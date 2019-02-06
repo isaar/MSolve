@@ -1,32 +1,20 @@
-﻿using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Analyzers.Interfaces;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
-using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Materials;
+using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
+using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials;
 //using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Skyline;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
-using Xunit;
-using ISAAR.MSolve.Geometry.Shapes;
-using ISAAR.MSolve.Solvers.Commons;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Solvers.PCG;
-using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
-using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
-using ISAAR.MSolve.LinearAlgebra.Iterative;
-using ISAAR.MSolve.Logging;
-using ISAAR.MSolve.Solvers.Ordering;
-using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.Solvers.Iterative;
+using ISAAR.MSolve.Solvers.Skyline;
+using Xunit;
 
 namespace ISAAR.MSolve.Tests
 {
@@ -129,31 +117,30 @@ namespace ISAAR.MSolve.Tests
             double poissonRatio = 0.3779;
             double thickness = 1.0;
             double nodalLoad = 500.0;
-            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
+            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
             };
 
             // Nodes
-            var nodes = new Node2D[]
+            var nodes = new Node_v2[]
             {
-                new Node2D(0, 0.0, 0.0),
-                new Node2D(1, 10.0, 0.0),
-                new Node2D(2, 10.0, 10.0),
-                new Node2D(3, 0.0, 10.0)
+                new Node_v2 { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 },
+                new Node_v2 { ID = 2, X = 10.0, Y = 0.0, Z = 0.0 },
+                new Node_v2 { ID = 3, X = 10.0, Y = 10.0, Z = 0.0 },
+                new Node_v2 { ID = 4, X = 0.0, Y = 10.0, Z = 0.0 }
             };
             for (int i = 0; i < nodes.Length; ++i) model.NodesDictionary.Add(i, nodes[i]);
 
 
             // Elements
             var factory = new ContinuumElement2DFactory(thickness, material, null);
-            ContinuumElement2D elementType = factory.CreateElement(CellType2D.Quad4, nodes);
 
-            var elementWrapper = new Element()
+            var elementWrapper = new Element_v2()
             {
                 ID = 0,
-                ElementType = elementType,
+                ElementType = factory.CreateElement(CellType2D.Quad4, nodes)
             };
             elementWrapper.AddNodes(nodes);
             model.ElementsDictionary.Add(elementWrapper.ID, elementWrapper);
@@ -168,14 +155,15 @@ namespace ISAAR.MSolve.Tests
             model.NodesDictionary[3].Constraints.Add(new Constraint() { DOF = DOFType.Y, Amount = 0.0 });
 
             // Nodal loads
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[1], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.X });
+            model.Loads.Add(new Load_v2() { Amount = nodalLoad, Node = model.NodesDictionary[1], DOF = DOFType.X });
+            model.Loads.Add(new Load_v2() { Amount = nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.X });
 
             // Solver
             var pcgBuilder = new PcgAlgorithm.Builder();
             pcgBuilder.ResidualTolerance = 1E-6;
             pcgBuilder.MaxIterationsProvider = new PercentageMaxIterationsProvider(0.5);
-            var solverBuilder = new PcgSolver.Builder(pcgBuilder.Build());
+            var solverBuilder = new PcgSolver.Builder();
+            solverBuilder.PcgAlgorithm = pcgBuilder.Build();
             PcgSolver solver = solverBuilder.BuildSolver(model);
 
             // Problem type
@@ -187,14 +175,14 @@ namespace ISAAR.MSolve.Tests
             //NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, childAnalyzer, linearSystems, 0.25, 0.5, 0.28, 3.36);
 
             // Request output
-            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 0 });
+            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory_v2(new int[] { 0 });
 
             // Run the anlaysis 
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
             // Check output
-            DOFSLog log = (DOFSLog)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
+            DOFSLog_v2 log = (DOFSLog_v2)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
             Assert.Equal(253.132375961535, log.DOFValues[0], 8);
         }
     }

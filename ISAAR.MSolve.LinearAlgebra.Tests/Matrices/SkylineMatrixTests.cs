@@ -59,5 +59,28 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
 
             //});
         }
+
+        //TODO: Skyline operations are not part of the MKL SparseBLAS provider yet. There are only provided by the managed provider 
+        //[Theory]
+        //[MemberData(nameof(TestSettings.ProvidersToTest), MemberType = typeof(TestSettings))]
+        [Fact]
+        private static void TestMatrixVectorMultiplicationIntoResult(/*LinearAlgebraProviderChoice providers*/)
+        {
+            //TestSettings.RunMultiproviderTest(providers, delegate () {
+            //
+
+            var A = SkylineMatrix.CreateFromArrays(SparsePosDef10by10.Order,
+                SparsePosDef10by10.SkylineValues, SparsePosDef10by10.SkylineDiagOffsets, true, true);
+            var x = Vector.CreateFromArray(SparsePosDef10by10.Lhs);
+            var bExpected = Vector.CreateFromArray(SparsePosDef10by10.Rhs);
+
+            // The result vectors will first be set to some non zero values to make sure that the result overwrites 
+            // them instead of being added to them.
+            Vector bComputed = Vector.CreateWithValue(A.NumRows, 1.0);
+            A.MultiplyIntoResult(x, bComputed, false);
+            comparer.AssertEqual(bExpected, bComputed);
+
+            //});
+        }
     }
 }

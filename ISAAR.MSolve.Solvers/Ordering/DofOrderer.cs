@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
     {
         //TODO: this should also be a strategy, so that I could have caching with fallbacks, in case of insufficient memor.
         private readonly bool cacheElementToSubdomainDofMaps = true; 
-        private readonly bool doOptimizationsIfSingleSubdomain = true;
+        private readonly bool doOptimizationsIfSingleSubdomain = true; // No idea why someone would want this to be false.
         private readonly IDofOrderingStrategy orderingStrategy;
         private readonly IDofReorderingStrategy reorderingStrategy;
 
@@ -28,8 +28,6 @@ namespace ISAAR.MSolve.Solvers.Ordering
             this.doOptimizationsIfSingleSubdomain = doOptimizationsIfSingleSubdomain;
             this.cacheElementToSubdomainDofMaps = cacheElementToSubdomainDofMaps;
         }
-
-        public IReorderingAlgorithm Reordering { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public IGlobalFreeDofOrdering OrderDofs(IStructuralModel_v2 model)
         {

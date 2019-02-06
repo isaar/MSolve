@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
-	/// <summary>
-	/// Isoparametric interpolation of a wedge with 18 nodes. Quadratic shape functions.
-	/// Implements singleton pattern.
-	/// Authors: Dimitris Tsapetis
-	/// </summary>
-    public class InterpolationWedge18:IsoparametricInterpolation3DBase
+    /// <summary>
+    /// Isoparametric interpolation of a wedge with 18 nodes. Quadratic shape functions.
+    /// Implements singleton pattern.
+    /// Authors: Dimitris Tsapetis
+    /// </summary>
+    public class InterpolationWedge18 : IsoparametricInterpolation3DBase
     {
 		private static readonly InterpolationWedge18 uniqueInstance= new InterpolationWedge18();
 
@@ -57,7 +57,8 @@ namespace ISAAR.MSolve.FEM.Interpolation
 	    /// </summary>
 	    /// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
 	    /// <returns></returns>
-	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> node) => throw new NotImplementedException("Iterative procedure needed");
+	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node_v2> node) 
+            => throw new NotImplementedException("Iterative procedure needed");
 
 
 	    protected sealed override double[] EvaluateAt(double xi, double eta, double zeta)
@@ -91,13 +92,13 @@ namespace ISAAR.MSolve.FEM.Interpolation
 	    }
 
 
-	    protected sealed override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
+	    protected sealed override Matrix EvaluateGradientsAt(double xi, double eta, double zeta)
 	    {
 		    var x = xi;
 		    var y = eta;
 		    var z = zeta;
 
-		    var derivatives = new double[18, 3];
+		    var derivatives = Matrix.CreateZero(18, 3);
 
 		    derivatives[0, 0] = (x * y * (2 * y - 1)) / 2 + (y * (2 * y - 1) * (x - 1)) / 2;
 		    derivatives[1, 0] = (x * z * (2 * z - 1)) / 2 + (z * (2 * z - 1) * (x - 1)) / 2;

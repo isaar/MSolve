@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
-using ISAAR.MSolve.Discretization.Integration.Points;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
@@ -36,7 +35,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.
         /// </summary>
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
-        IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> nodes);
+        IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node_v2> nodes);
 
         /// <summary>
         /// Evaluate the shape functions, the 1st order derivatives with respect to the global cartesian coordinate system 
@@ -45,13 +44,13 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <param name="naturalPoint">The coordinates of the point in the natural (element local) coordinate system of the 
         ///     element.</param>
-        EvalInterpolation3D EvaluateAllAt(IReadOnlyList<Node3D> nodes, NaturalPoint3D naturalPoint);
+        EvalInterpolation3D EvaluateAllAt(IReadOnlyList<Node_v2> nodes, NaturalPoint3D naturalPoint);
 
         /// <summary>
         /// Evaluate the shape functions, the 1st order derivatives with respect to the global cartesian coordinate system and
         /// the jacobian at the integration points defined by a given quadrature. 
         /// This method caches all possible quantities from previous calls. Use it instead of when the integration points of an 
-        /// <see cref="EvaluateAllAt(IReadOnlyList{Node3D}, NaturalPoint3D)"/>
+        /// <see cref="EvaluateAllAt(IReadOnlyList{Node_v2}, NaturalPoint3D)"/>
         /// element are the same across multiple elements or multiple iterations of a non linear or dynamic analysis (in the 
         /// latter cases we could also cache the <see cref="EvalInterpolation3D"/> at the integration points of each element).
         /// The <see cref="EvalInterpolation3D"/>s per integration point are returned in the same order as the integration 
@@ -61,7 +60,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <param name="quadrature">The integration rule that defines integration points where shape functions and derivatives  
         ///     are calculated. The integration points of this instance of <see cref="IQuadrature3D"/> are always the 
         ///     same.</param>
-        IReadOnlyList<EvalInterpolation3D> EvaluateAllAtGaussPoints(IReadOnlyList<Node3D> nodes, IQuadrature3D quadrature);
+        IReadOnlyList<EvalInterpolation3D> EvaluateAllAtGaussPoints(IReadOnlyList<Node_v2> nodes, IQuadrature3D quadrature);
 
         /// <summary>
         /// Evaluate the shape functions at a given natural point and returns them in a vector in the same order as the nodes
@@ -69,7 +68,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         /// <param name="naturalPoint">The coordinates of the point in the natural (element local) coordinate system of the 
         ///     element.</param>
-        Vector EvaluateFunctionsAt(NaturalPoint3D naturalPoint);
+        double[] EvaluateFunctionsAt(NaturalPoint3D naturalPoint);
 
         /// <summary>
         /// Evaluate the shape functions at the integration points defined by a given quadrature. 
@@ -83,7 +82,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <param name="quadrature">The integration rule that defines integration points where shape functions are calculated. 
         ///     The integration points of this instance of <see cref="IQuadrature2D"/> are always the same.</param>
-        IReadOnlyList<Vector> EvaluateFunctionsAtGaussPoints(IQuadrature3D quadrature);
+        IReadOnlyList<double[]> EvaluateFunctionsAtGaussPoints(IQuadrature3D quadrature);
 
         /// <summary>
         /// Evaluate the 1st order shape function derivatives with respect to the natural coordinate system 
@@ -94,7 +93,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <param name="naturalPoint">The coordinates of the point in the natural (element local) coordinate system of the 
         ///     element.</param>
-        Matrix2D EvaluateNaturalGradientsAt(NaturalPoint3D naturalPoint);
+        Matrix EvaluateNaturalGradientsAt(NaturalPoint3D naturalPoint);
 
         /// <summary>
         /// Evaluate the 1st order shape function derivatives with respect to the natural coordinate system 
@@ -111,7 +110,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <param name="quadrature">The integration rule that defines integration points where shape function derivatives are 
         ///     calculated. The integration points of this instance of <see cref="IQuadrature3D"/> are always the same.</param>
-        IReadOnlyList<Matrix2D> EvaluateNaturalGradientsAtGaussPoints(IQuadrature3D quadrature);
+        IReadOnlyList<Matrix> EvaluateNaturalGradientsAtGaussPoints(IQuadrature3D quadrature);
 
         /// <summary>
         /// Transforms the coordinates from the natural (element local) coordinate system to the the global
@@ -120,6 +119,6 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <param name="nodes">The coordinates of the finite element's nodes in the global cartesian system.</param>
         /// <param name="naturalPoint">The coordinates in the natural system of a point that is internal to the finite 
         ///     element.</param>
-        CartesianPoint3D TransformNaturalToCartesian(IReadOnlyList<Node3D> nodes, NaturalPoint3D naturalPoint);
+        CartesianPoint3D TransformNaturalToCartesian(IReadOnlyList<Node_v2> nodes, NaturalPoint3D naturalPoint);
     }
 }

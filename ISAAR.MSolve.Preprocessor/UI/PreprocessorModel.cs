@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
+﻿using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
@@ -26,7 +27,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
 
         private readonly ElasticMaterial2D planeStrainMaterial;
         private readonly double thickness;
-        private readonly FEM.Entities.Model model;
+        private readonly FEM.Entities.Model_v2 model;
         private bool isAssembled;
 
         private PreprocessorModel(ProblemDimensions dimensions, double thickness, ElasticMaterial2D planeStrainMaterial)
@@ -34,8 +35,8 @@ namespace ISAAR.MSolve.Preprocessor.UI
             this.isAssembled = false;
             this.planeStrainMaterial = planeStrainMaterial;
             this.thickness = thickness;
-            this.model = new FEM.Entities.Model();
-            this.model.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 }); //TODO: let the user decide how many subdomains there will be
+            this.model = new FEM.Entities.Model_v2();
+            this.model.SubdomainsDictionary.Add(0, new Subdomain_v2(0)); //TODO: let the user decide how many subdomains there will be
             this.Dimensions = dimensions;
         }
 
@@ -73,7 +74,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
             return new PreprocessorModel(ProblemDimensions.ThreeDimensional, 0.0, null);
         }
 
-        internal Model CoreModel
+        internal Model_v2 CoreModel
         {
             get
             {
@@ -105,7 +106,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// Adds a new node to the model.
         /// </summary>
         /// <param name="node">The node's coordinates and ID.</param>
-        public void AddNode(Node node)
+        public void AddNode(Node_v2 node)
         {
             int numNodes = model.NodesDictionary.Count;
             model.NodesDictionary.Add(numNodes, node);
@@ -116,15 +117,15 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// </summary>
         /// <param name="element">The element type (e.g. continuum element, beam, etc.)</param>
         /// <param name="elementNodes">The element's nodes. Beware of their order.</param>
-        public void AddElement(IFiniteElement element, IReadOnlyList<Node> elementNodes)
+        public void AddElement(IFiniteElement_v2 element, IReadOnlyList<Node_v2> elementNodes)
         {
             int numElementsTotal = model.Elements.Count;
-            int numElementsSubdomain = model.Subdomains[0].ElementsDictionary.Count;
+            int numElementsSubdomain = model.Subdomains[0].Elements.Count;
 
-            var elementWrapper = new Element() { ID = numElementsTotal, ElementType = element };
-            foreach (Node node in elementNodes) elementWrapper.AddNode(node);
+            var elementWrapper = new Element_v2() { ID = numElementsTotal, ElementType = element };
+            foreach (Node_v2 node in elementNodes) elementWrapper.AddNode(node);
             model.ElementsDictionary.Add(numElementsTotal, elementWrapper);
-            model.SubdomainsDictionary[0].ElementsDictionary.Add(numElementsSubdomain, elementWrapper); //TODO: let the user decide which subdomain it will be added to.
+            model.SubdomainsDictionary[0].Elements.Add(elementWrapper); //TODO: let the user decide which subdomain it will be added to.
         }
 
         /// <summary>
@@ -135,7 +136,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="material">The common material of all elements in the mesh.</param>
         /// <param name="dynamicProperties">Optional material properties for dynamic analysis. Common for all elements in the 
         ///     mesh.</param>
-        public void AddMesh2D(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements, 
+        public void AddMesh2D(IReadOnlyList<Node_v2> nodes, IReadOnlyList<CellConnectivity_v2> elements, 
             IFiniteElementMaterial material, DynamicMaterial dynamicProperties = null)
         {
             if (Dimensions == ProblemDimensions.ThreeDimensional)
@@ -150,15 +151,15 @@ namespace ISAAR.MSolve.Preprocessor.UI
 
             // Elements
             int numElementsCurrent = model.Elements.Count;
-            int numElementsSubdomain = model.Subdomains[0].ElementsDictionary.Count;
-            var factory = new ContinuumElement2DFactory(thickness, (ElasticMaterial2D)material, dynamicProperties); //TODO: extend the factory to other materials
+            int numElementsSubdomain = model.Subdomains[0].Elements.Count;
+            var factory = new ContinuumElement2DFactory(thickness, (ElasticMaterial2D_v2)material, dynamicProperties); //TODO: extend the factory to other materials
             for (int i = 0; i < elements.Count; ++i)
             {
                 ContinuumElement2D element = factory.CreateElement(elements[i].CellType, elements[i].Vertices);
-                var elementWrapper = new Element() { ID = numElementsCurrent + i, ElementType = element };
-                foreach (Node node in element.Nodes) elementWrapper.AddNode(node);
+                var elementWrapper = new Element_v2() { ID = numElementsCurrent + i, ElementType = element };
+                foreach (Node_v2 node in element.Nodes) elementWrapper.AddNode(node);
                 model.ElementsDictionary.Add(numElementsCurrent + i, elementWrapper);
-                model.SubdomainsDictionary[0].ElementsDictionary.Add(numElementsSubdomain + i, elementWrapper); //TODO: let the user decide which subdomain it will be added to.
+                model.SubdomainsDictionary[0].Elements.Add(elementWrapper); //TODO: let the user decide which subdomain it will be added to.
             }
         }
 
@@ -168,7 +169,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="node"></param>
         /// <param name="freedomDegree">The axis of the prescribed displacement.</param>
         /// <param name="signedMagnitude">The magnitude of the prescribed displacement with its sign.</param>
-        public void ApplyPrescribedDisplacement(Node node, DOFType freedomDegree, double signedMagnitude)
+        public void ApplyPrescribedDisplacement(Node_v2 node, DOFType freedomDegree, double signedMagnitude)
         {
             if (signedMagnitude == 0.0)
             {
@@ -183,9 +184,9 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="nodes"></param>
         /// <param name="freedomDegree">The axis of the prescribed displacement.</param>
         /// <param name="signedMagnitude">The magnitude of the prescribed displacement with its sign.</param>
-        public void ApplyPrescribedDisplacements(IEnumerable<Node> nodes, DOFType freedomDegree, double signedMagnitude)
+        public void ApplyPrescribedDisplacements(IEnumerable<Node_v2> nodes, DOFType freedomDegree, double signedMagnitude)
         {
-            foreach (Node node in nodes) ApplyPrescribedDisplacement(node, freedomDegree, signedMagnitude);
+            foreach (Node_v2 node in nodes) ApplyPrescribedDisplacement(node, freedomDegree, signedMagnitude);
         }
 
         /// <summary>
@@ -194,7 +195,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="nodeSelector">A method that returns true for the nodes to be selected and false for the rest.</param>
         /// <param name="freedomDegree">The axis of the prescribed displacement.</param>
         /// <param name="signedMagnitude">The magnitude of the prescribed displacement with its sign.</param>
-        public void ApplyPrescribedDisplacements(Func<Node, bool> nodeSelector, DOFType freedomDegree, double signedMagnitude)
+        public void ApplyPrescribedDisplacements(Func<Node_v2, bool> nodeSelector, DOFType freedomDegree, double signedMagnitude)
         {
             ApplyPrescribedDisplacements(model.Nodes.Where(nodeSelector), freedomDegree, signedMagnitude);
         }
@@ -205,9 +206,9 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="node"></param>
         /// <param name="freedomDegree">The axis of the nodal load.</param>
         /// <param name="signedMagnitude">The magnitude of the nodal load with its sign.</param>
-        public void ApplyNodalLoad(Node node, DOFType freedomDegree, double signedMagnitude)
+        public void ApplyNodalLoad(Node_v2 node, DOFType freedomDegree, double signedMagnitude)
         {
-            model.Loads.Add(new Load() { Amount = signedMagnitude, Node = node, DOF = freedomDegree });
+            model.Loads.Add(new Load_v2() { Amount = signedMagnitude, Node = node, DOF = freedomDegree });
         }
 
         /// <summary>
@@ -216,9 +217,9 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="nodes"></param>
         /// <param name="freedomDegree">The axis of the nodal load.</param>
         /// <param name="signedMagnitudeIndividual">The magnitude of the nodal load with its sign.</param>
-        public void ApplyNodalLoads(IEnumerable<Node> nodes, DOFType freedomDegree, double signedMagnitudeIndividual)
+        public void ApplyNodalLoads(IEnumerable<Node_v2> nodes, DOFType freedomDegree, double signedMagnitudeIndividual)
         {
-            foreach (Node node in nodes) ApplyNodalLoad(node, freedomDegree, signedMagnitudeIndividual);
+            foreach (Node_v2 node in nodes) ApplyNodalLoad(node, freedomDegree, signedMagnitudeIndividual);
         }
 
         /// <summary>
@@ -227,7 +228,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="nodes">A method that returns true for the nodes to be selected and false for the rest.</param>
         /// <param name="freedomDegree">The axis of the nodal load.</param>
         /// <param name="signedMagnitudeIndividual">The magnitude of the nodal load with its sign.</param>
-        public void ApplyNodalLoads(Func<Node, bool> nodeSelector, DOFType freedomDegree, double signedMagnitudeIndividual)
+        public void ApplyNodalLoads(Func<Node_v2, bool> nodeSelector, DOFType freedomDegree, double signedMagnitudeIndividual)
         {
             ApplyNodalLoads(model.Nodes.Where(nodeSelector), freedomDegree, signedMagnitudeIndividual);
         }
@@ -238,11 +239,11 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="nodes"></param>
         /// <param name="freedomDegree">The axis of the nodal load.</param>
         /// <param name="signedMagnitudeTotal">The magnitude of the nodal load with its sign.</param>
-        public void DistributeNodalLoadEvenly(IEnumerable<Node> nodes, DOFType freedomDegree, double signedMagnitudeTotal)
+        public void DistributeNodalLoadEvenly(IEnumerable<Node_v2> nodes, DOFType freedomDegree, double signedMagnitudeTotal)
         {
             int numNodes = nodes.Count();
             double individualLoad = signedMagnitudeTotal / numNodes;
-            foreach (Node node in nodes) ApplyNodalLoad(node, freedomDegree, individualLoad);
+            foreach (Node_v2 node in nodes) ApplyNodalLoad(node, freedomDegree, individualLoad);
         }
 
         /// <summary>
@@ -251,7 +252,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="nodes">A method that returns true for the nodes to be selected and false for the rest.</param>
         /// <param name="freedomDegree">The axis of the nodal load.</param>
         /// <param name="signedMagnitudeTotal">The magnitude of the nodal load with its sign.</param>
-        public void DistributeNodalLoadEvenly(Func<Node, bool> nodeSelector, DOFType freedomDegree, double signedMagnitudeTotal)
+        public void DistributeNodalLoadEvenly(Func<Node_v2, bool> nodeSelector, DOFType freedomDegree, double signedMagnitudeTotal)
         {
             DistributeNodalLoadEvenly(model.Nodes.Where(nodeSelector), freedomDegree, signedMagnitudeTotal);
         }

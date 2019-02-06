@@ -1,6 +1,7 @@
 ﻿using System;
 using IntelMKL.LP64;
 
+//TODO: benchmark this against the managed implementation. Use large matrices.
 namespace ISAAR.MSolve.LinearAlgebra.Providers.MKL
 {
     /// <summary>
@@ -44,8 +45,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.MKL
         public void Dcsrgemv(bool transposeA, int numRowsA, int numColsA, double[] valuesA, int[] rowOffsetsA, int[] colIndicesA,
             double[] vectorX, int offsetX, double[] vectorY, int offsetY)
         {
+            //TODO: For some reason, the resultis added to vector y, instead of overwritting it. Perhaps this behaviour is 
+            //      different in the non-deprecated routines.
             if (transposeA)
             {
+                Array.Clear(vectorY, offsetY, numColsA);
+
                 // This MKL function is only for square CSR matrices. We can use it for rectangular too, but it overwrites memory 
                 // of the rhs vector y equal to the number of matrix rows. If the rhs vector is shorter than that, then the 
                 // remaining entries are overwritten with 0. However, this messes up the managed vector objects, since 
@@ -68,6 +73,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.MKL
             }
             else
             {
+                Array.Clear(vectorY, offsetY, numRowsA);
                 SpBlas.MklCspblasDcsrgemv("N", ref numRowsA, ref valuesA[0], ref rowOffsetsA[0], ref colIndicesA[0],
                     ref vectorX[offsetX], ref vectorY[offsetY]);
             }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using ISAAR.MSolve.Discretization;
@@ -8,7 +7,6 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Numerical.Commons;
-using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
 
 //TODO: find what is going on with the dynamic loads and refactor them. That 564000000 in AssignMassAccelerationHistoryLoads()
 //      cannot be correct.
@@ -23,19 +21,21 @@ namespace ISAAR.MSolve.FEM.Entities
         public IList<Cluster> Clusters => ClustersDictionary.Values.ToList();
         public Dictionary<int, Cluster> ClustersDictionary { get; } = new Dictionary<int, Cluster>();
 
-        IReadOnlyList<IElement> IStructuralModel_v2.Elements => ElementsDictionary.Values.ToList();
-        public IList<Element> Elements => ElementsDictionary.Values.ToList();
-        public Dictionary<int, Element> ElementsDictionary { get; } = new Dictionary<int, Element>();
+        IReadOnlyList<IElement_v2> IStructuralModel_v2.Elements => ElementsDictionary.Values.ToList();
+        public IList<Element_v2> Elements => ElementsDictionary.Values.ToList();
+        public Dictionary<int, Element_v2> ElementsDictionary { get; } = new Dictionary<int, Element_v2>();
 
-        public IList<ElementMassAccelerationHistoryLoad> ElementMassAccelerationHistoryLoads { get; } = new List<ElementMassAccelerationHistoryLoad>();
-        public IList<ElementMassAccelerationLoad> ElementMassAccelerationLoads { get; } = new List<ElementMassAccelerationLoad>();
-        public IList<Load> Loads { get; } = new List<Load>();
+        public IList<ElementMassAccelerationHistoryLoad_v2> ElementMassAccelerationHistoryLoads { get; } 
+            = new List<ElementMassAccelerationHistoryLoad_v2>();
+        public IList<ElementMassAccelerationLoad_v2> ElementMassAccelerationLoads { get; } 
+            = new List<ElementMassAccelerationLoad_v2>();
+        public IList<Load_v2> Loads { get; } = new List<Load_v2>();
         public IList<MassAccelerationLoad> MassAccelerationLoads { get; } = new List<MassAccelerationLoad>();
         public IList<IMassAccelerationHistoryLoad> MassAccelerationHistoryLoads { get; } = new List<IMassAccelerationHistoryLoad>();
 
-        public IList<Node> Nodes => NodesDictionary.Values.ToList();
+        public IList<Node_v2> Nodes => NodesDictionary.Values.ToList();
         IReadOnlyList<INode> IStructuralModel_v2.Nodes => NodesDictionary.Values.ToList();
-        public Dictionary<int, Node> NodesDictionary { get; } = new Dictionary<int, Node>();
+        public Dictionary<int, Node_v2> NodesDictionary { get; } = new Dictionary<int, Node_v2>();
 
         IReadOnlyList<ISubdomain_v2> IStructuralModel_v2.Subdomains => SubdomainsDictionary.Values.ToList();
         public IList<Subdomain_v2> Subdomains => SubdomainsDictionary.Values.ToList();
@@ -43,21 +43,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public Table<INode, DOFType, double> Constraints { get; private set; } = new Table<INode, DOFType, double>();//TODOMaria: maybe it's useless in model class
 
-        public IGlobalFreeDofOrdering GlobalDofOrdering
-        {
-            get => globalDofOrdering;
-            set
-            {
-                globalDofOrdering = value;
-                foreach (Subdomain_v2 subdomain in Subdomains)
-                {
-                    subdomain.DofOrdering = GlobalDofOrdering.SubdomainDofOrderings[subdomain];
-                    subdomain.Forces = Vector.CreateZero(subdomain.DofOrdering.NumFreeDofs);
-                }
-                //EnumerateSubdomainLagranges();
-                //EnumerateDOFMultiplicity();
-            }
-        }
+        public IGlobalFreeDofOrdering GlobalDofOrdering { get; set; }
 
         public void AssignLoads()
         {
@@ -79,22 +65,24 @@ namespace ISAAR.MSolve.FEM.Entities
 
                 foreach (Subdomain_v2 subdomain in SubdomainsDictionary.Values)
                 {
-                    foreach (Element element in subdomain.Elements)
+                    foreach (Element_v2 element in subdomain.Elements)
                     {
-                        subdomain.DofOrdering.AddVectorElementToSubdomain(element,
-                            Vector.CreateFromArray(element.ElementType.CalculateAccelerationForces(element, m)),
-                            subdomain.Forces);
+                        double[] accelerationForces = element.ElementType.CalculateAccelerationForces(element, m);
+                        subdomain.DofOrdering.AddVectorElementToSubdomain(element, accelerationForces, subdomain.Forces);
                     }
                 }
             }
 
-            foreach (ElementMassAccelerationHistoryLoad load in ElementMassAccelerationHistoryLoads)
+            foreach (ElementMassAccelerationHistoryLoad_v2 load in ElementMassAccelerationHistoryLoads)
             {
-                MassAccelerationLoad hl = new MassAccelerationLoad() { Amount = load.HistoryLoad[timeStep] * 564000000, DOF = load.HistoryLoad.DOF };
-                Element element = load.Element;
-                ISubdomain_v2 subdomain = element.Subdomain_v2;
-                var accelerationForces = Vector.CreateFromArray(element.ElementType.CalculateAccelerationForces(
-                    load.Element, (new MassAccelerationLoad[] { hl }).ToList()));
+                MassAccelerationLoad hl = new MassAccelerationLoad()
+                {
+                    Amount = load.HistoryLoad[timeStep] * 564000000, DOF = load.HistoryLoad.DOF
+                };
+                Element_v2 element = load.Element;
+                ISubdomain_v2 subdomain = element.Subdomain;
+                var accelerationForces = element.ElementType.CalculateAccelerationForces(
+                    load.Element, (new MassAccelerationLoad[] { hl }).ToList());
                 globalDofOrdering.SubdomainDofOrderings[subdomain].AddVectorElementToSubdomain(element, accelerationForces,
                     subdomain.Forces);
             }
@@ -116,6 +104,8 @@ namespace ISAAR.MSolve.FEM.Entities
             MassAccelerationLoads.Clear();
         }
 
+        // Warning: This is called by the analyzer, so that the user does not have to call it explicitly. However, it is must be 
+        // called explicitly before the AutomaticDomainDecompositioner is used.
         public void ConnectDataStructures()
         {
             BuildInterconnectionData();
@@ -132,7 +122,7 @@ namespace ISAAR.MSolve.FEM.Entities
         //      It is too easy to access the wrong instance of the constraint. 
         private void AssignConstraints()
         {
-            foreach (Node node in NodesDictionary.Values)
+            foreach (Node_v2 node in NodesDictionary.Values)
             {
                 if (node.Constraints == null) continue;
                 foreach (Constraint constraint in node.Constraints) Constraints[node, constraint.DOF] = constraint.Amount;
@@ -143,11 +133,11 @@ namespace ISAAR.MSolve.FEM.Entities
 
         private void AssignElementMassLoads()
         {
-            foreach (ElementMassAccelerationLoad load in ElementMassAccelerationLoads)
+            foreach (ElementMassAccelerationLoad_v2 load in ElementMassAccelerationLoads)
             {
-                ISubdomain_v2 subdomain = load.Element.Subdomain_v2;
-                var accelerationForces = Vector.CreateFromArray(
-                    load.Element.ElementType.CalculateAccelerationForces(load.Element, MassAccelerationLoads));
+                ISubdomain_v2 subdomain = load.Element.Subdomain;
+                var accelerationForces = load.Element.ElementType.CalculateAccelerationForces(
+                    load.Element, MassAccelerationLoads);
                 globalDofOrdering.SubdomainDofOrderings[subdomain].AddVectorElementToSubdomain(load.Element,
                     accelerationForces, subdomain.Forces);
             }
@@ -159,10 +149,10 @@ namespace ISAAR.MSolve.FEM.Entities
 
             foreach (Subdomain_v2 subdomain in SubdomainsDictionary.Values)
             {
-                foreach (Element element in subdomain.Elements)
+                foreach (Element_v2 element in subdomain.Elements)
                 {
                     subdomain.DofOrdering.AddVectorElementToSubdomain(element,
-                        Vector.CreateFromArray(element.ElementType.CalculateAccelerationForces(element, MassAccelerationLoads)),
+                        element.ElementType.CalculateAccelerationForces(element, MassAccelerationLoads),
                         subdomain.Forces);
                 }
             }
@@ -172,13 +162,13 @@ namespace ISAAR.MSolve.FEM.Entities
         {
             foreach (Subdomain_v2 subdomain in SubdomainsDictionary.Values)
             {
-                subdomain.NodalLoads = new Table<Node, DOFType, double>();
+                subdomain.NodalLoads = new Table<Node_v2, DOFType, double>();
             }
 
-            foreach (Load load in Loads)
+            foreach (Load_v2 load in Loads)
             {
-                double amountPerSubdomain = load.Amount / load.Node.SubdomainsDictionary_v2.Count;
-                foreach (Subdomain_v2 subdomain in load.Node.SubdomainsDictionary_v2.Values)
+                double amountPerSubdomain = load.Amount / load.Node.SubdomainsDictionary.Count;
+                foreach (Subdomain_v2 subdomain in load.Node.SubdomainsDictionary.Values)
                 {
                     bool wasNotContained = subdomain.NodalLoads.TryAdd(load.Node, load.DOF, amountPerSubdomain);
                     Debug.Assert(wasNotContained, $"Duplicate load at node {load.Node.ID}, dof {load.DOF}");
@@ -188,7 +178,7 @@ namespace ISAAR.MSolve.FEM.Entities
             //TODO: this should be done by the subdomain when the analyzer decides.
             foreach (Subdomain_v2 subdomain in SubdomainsDictionary.Values)
             {
-                foreach ((Node node, DOFType dofType, double amount) in subdomain.NodalLoads)
+                foreach ((Node_v2 node, DOFType dofType, double amount) in subdomain.NodalLoads)
                 {
                     int subdomainDofIdx = subdomain.DofOrdering.FreeDofs[node, dofType];
                     subdomain.Forces[subdomainDofIdx] = amount;
@@ -198,9 +188,9 @@ namespace ISAAR.MSolve.FEM.Entities
 
         private void BuildElementDictionaryOfEachNode()
         {
-            foreach (Element element in ElementsDictionary.Values)
+            foreach (Element_v2 element in ElementsDictionary.Values)
             {
-                foreach (Node node in element.Nodes) node.ElementsDictionary.Add(element.ID, element);
+                foreach (Node_v2 node in element.Nodes) node.ElementsDictionary.Add(element.ID, element);
             }
         }
 
@@ -209,7 +199,7 @@ namespace ISAAR.MSolve.FEM.Entities
             BuildSubdomainOfEachElement();
             DuplicateInterSubdomainEmbeddedElements();
             BuildElementDictionaryOfEachNode();
-            foreach (Node node in NodesDictionary.Values) node.BuildSubdomainDictionary_v2();
+            foreach (Node_v2 node in NodesDictionary.Values) node.BuildSubdomainDictionary();
 
             //BuildNonConformingNodes();
 
@@ -220,33 +210,46 @@ namespace ISAAR.MSolve.FEM.Entities
         {
             foreach (Subdomain_v2 subdomain in SubdomainsDictionary.Values)
             {
-                foreach (Element element in subdomain.Elements) element.Subdomain_v2 = subdomain;
+                foreach (Element_v2 element in subdomain.Elements) element.Subdomain = subdomain;
             }
         }
 
         private void BuildNonConformingNodes()
         {
             List<int> subIDs = new List<int>();
-            foreach (Element element in ElementsDictionary.Values)
+            foreach (Element_v2 element in ElementsDictionary.Values)
             {
                 subIDs.Clear();
 
-                foreach (Node node in element.Nodes)
+                foreach (Node_v2 node in element.Nodes)
+                {
                     foreach (int subID in node.SubdomainsDictionary.Keys)
+                    {
                         if (!subIDs.Contains(subID)) subIDs.Add(subID);
 
-                foreach (Node node in element.Nodes)
+                    }
+                }
+
+                foreach (Node_v2 node in element.Nodes)
+                {
                     foreach (int subID in subIDs)
-                        if (!node.SubdomainsDictionary.ContainsKey(subID)) node.NonMatchingSubdomainsDictionary_v2.Add(subID, SubdomainsDictionary[subID]);
+                    {
+                        if (!node.SubdomainsDictionary.ContainsKey(subID))
+                        {
+                            node.NonMatchingSubdomainsDictionary.Add(subID, SubdomainsDictionary[subID]);
+                        }
+                    }
+                }
+                
             }
         }
 
         private void DuplicateInterSubdomainEmbeddedElements()
         {
-            foreach (var e in ElementsDictionary.Values.Where(x => x.ElementType is IEmbeddedElement))
+            foreach (var e in ElementsDictionary.Values.Where(x => x.ElementType is IEmbeddedElement_v2))
             {
-                var subs = ((IEmbeddedElement)e.ElementType).EmbeddedNodes.Select(x => x.EmbeddedInElement.Subdomain_v2).Distinct();
-                foreach (var s in subs.Where(x => x.ID != e.Subdomain_v2.ID))
+                var subs = ((IEmbeddedElement_v2)e.ElementType).EmbeddedNodes.Select(x => x.EmbeddedInElement.Subdomain).Distinct();
+                foreach (var s in subs.Where(x => x.ID != e.Subdomain.ID))
                     s.Elements.Add(e);
             }
         }

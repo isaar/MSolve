@@ -1,16 +1,10 @@
-﻿using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Analyzers.Interfaces;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+﻿using System;
+using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Analyzers.Dynamic;
 using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.PCG;
-using ISAAR.MSolve.Solvers.PCGSkyline;
-using ISAAR.MSolve.Solvers.Skyline;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using ISAAR.MSolve.Solvers;
+using ISAAR.MSolve.Solvers.Direct;
+using ISAAR.MSolve.Solvers.Iterative;
 
 //TODO: figure out how to set up different problem types. Only ProblemStructual is supported now.
 //TODO: add non linear and dynamic analyzers
@@ -167,17 +161,16 @@ namespace ISAAR.MSolve.Preprocessor.UI
         public void Submit()
         {
             // Linear system solver
-            VectorExtensions.AssignTotalAffinityCount();
-            var linearSystems = new Dictionary<int, ILinearSystem>();
-            linearSystems[0] = new SkylineLinearSystem(0, model.CoreModel.Subdomains[0].Forces);
-            ISolver solver;
+            ISolver_v2 solver;
             if (Solver == SolverOptions.DirectSkyline)
             {
-                solver = new SolverSkyline(linearSystems[0]);
+                var solverBuilder = new SkylineSolver.Builder();
+                solver = solverBuilder.BuildSolver(model.CoreModel);
             }
             else if (Solver == SolverOptions.IterativePcg)
             {
-                solver = new SolverPCG<SkylineMatrix2D>(linearSystems[0], new SolverPCGSimpleSearchVectorCalculator());
+                var solverBuilder = new PcgSolver.Builder();
+                solver = solverBuilder.BuildSolver(model.CoreModel);
             }
             else
             {
@@ -185,13 +178,13 @@ namespace ISAAR.MSolve.Preprocessor.UI
             }
 
             // Provider of the problem
-            ProblemStructural provider = new ProblemStructural(model.CoreModel, linearSystems); //TODO: extend this
+            var provider = new ProblemStructural_v2(model.CoreModel, solver); //TODO: extend this
 
             // (Non) linear analyzer
-            IAnalyzer childAnalyzer;
+            IChildAnalyzer childAnalyzer;
             if (Integrator == IntegratorOptions.Linear)
             {
-                var linearAnalyzer = new LinearAnalyzer(solver, linearSystems);
+                var linearAnalyzer = new LinearAnalyzer_v2(solver);
 
                 // Field output requests 
                 //TODO: this should work for all analyzers
@@ -223,15 +216,17 @@ namespace ISAAR.MSolve.Preprocessor.UI
             }
 
             // Parent analyzer
-            IAnalyzer parentAnalyzer;
+            IAnalyzer_v2 parentAnalyzer;
             if (Procedure == ProcedureOptions.Static)
             {
-                parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
+                parentAnalyzer = new StaticAnalyzer_v2(model.CoreModel, solver, provider, childAnalyzer);
             }
             else if (Procedure == ProcedureOptions.DynamicImplicit)
             {
-                parentAnalyzer = new NewmarkDynamicAnalyzer(provider, childAnalyzer, linearSystems, 0.6, 1, 
+                var analyzerBuilder = new NewmarkDynamicAnalyzer_v2.Builder(model.CoreModel, solver, provider, childAnalyzer,
                     model.TimeStep, model.TotalDuration);
+                analyzerBuilder.SetNewmarkParameters(0.6, 1); //TODO: Use the defaults.
+                parentAnalyzer = analyzerBuilder.Build();
             }
             else
             {
@@ -239,7 +234,6 @@ namespace ISAAR.MSolve.Preprocessor.UI
             }
 
             // Run the analysis
-            parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
         }

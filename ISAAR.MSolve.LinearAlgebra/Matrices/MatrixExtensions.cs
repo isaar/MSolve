@@ -5,6 +5,8 @@ using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: this should not be in the same folder with the actual matrices and their interfaces
+//TODO: Split this into many classes: IMatrixExtensions, MatrixExtensions, CsrMatrixExtensions (or collectively 
+//      SparseMatrixExtensions, etc).
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
@@ -122,28 +124,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return true;
         }
 
-        
-
-        /// <summary>
-        /// Performs the multiplication operation: 
-        /// result = transpose(<paramref name="csc"/>) * <paramref name="other"/> * <paramref name="csc"/>.
-        /// Constraints: <paramref name="csc"/>.<see cref="IIndexable2D.NumRows"/> 
-        ///     == <paramref name="other"/>.<see cref="IIndexable2D.NumRows"/>
-        ///     == <paramref name="other"/>.<see cref="IIndexable2D.NumColumns"/>.
-        /// </summary>
-        /// <param name="csc">The first matrix.</param>
-        /// <param name="other">The second matrix.</param>
-        /// <exception cref="NonMatchingDimensionsException">Thrown if the <see cref="NumRows"/> or <see cref="NumColumns"/> of
-        ///     <paramref name="csc"/> or <paramref name="other"/> are not compatible.</exception>
-        public static Numerical.LinearAlgebra.Matrix2D MultiplyTransposeThisTimesOtherTimesThis(this CscMatrix csc,
-            Numerical.LinearAlgebra.Matrix2D other)
-        { //TODO: delete this once legacy vectors, matrices are no longer used.
-            var otherCopy = Matrix.CreateFromLegacyMatrix(other);
-            Matrix otherTimesThis = csc.MultiplyLeft(otherCopy, false, false);
-            Matrix result = csc.MultiplyRight(otherTimesThis, true, false);
-            return new Numerical.LinearAlgebra.Matrix2D(result.CopyToArray2D());
-        }
-
         /// <summary>
         /// Creates a new <see cref="Matrix"/> that contains the entries of <paramref name="matrix"/> with a different order,
         /// which is specified by the provided <paramref name="permutation"/> and <paramref name="oldToNew"/>.
@@ -216,45 +196,5 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <exception cref="PatternModifiedException">Thrown if an <paramref name="matrix1"/>[i, j] needs to be 
         ///     overwritten, but that is not permitted by the matrix storage format.</exception>
         public static void SubtractIntoThis(this IMatrix matrix1, IMatrixView matrix2) => matrix1.AxpyIntoThis(matrix2, -1.0);
-
-        
-        #region legacy linear algebra classes conversions
-
-        /// <summary>
-        /// Warning: This method will copy the internal array, since e.g. <see cref="Numerical.LinearAlgebra.Matrix2D"/> uses
-        /// a double[,] and <see cref="Matrix"/> uses a column major double[].
-        /// </summary>
-        public static Matrix LegacyToNewMatrix(this Numerical.LinearAlgebra.Interfaces.IMatrix2D oldMatrix)
-        {
-            if (oldMatrix is Numerical.LinearAlgebra.Matrix2D dense) return Matrix.CreateFromArray(dense.Data);
-            //else if (oldMatrix is Numerical.LinearAlgebra.SymmetricMatrix2D packed)
-            //{
-            //    double[] full = Conversions.PackedUpperColMajorToFullSymmColMajor(packed.Data);
-            //    return Matrix.CreateFromArray(full, oldMatrix.Rows, oldMatrix.Columns, false); //Doesn't work
-            //}
-            else
-            {
-                int m = oldMatrix.Rows;
-                int n = oldMatrix.Columns;
-                var newMatrix = Matrix.CreateZero(m, n);
-                for (int i = 0; i < m; ++i)
-                {
-                    for (int j = 0; j < n; ++j)
-                    {
-                        newMatrix[i, j] = oldMatrix[i, j];
-                    }
-                }
-                return newMatrix;
-            }
-        }
-
-        /// <summary>
-        /// Warning: This method will copy the internal array, since e.g. <see cref="Numerical.LinearAlgebra.Matrix2D"/> uses
-        /// a double[,] and <see cref="Matrix"/> uses a column major double[].
-        /// </summary>
-        public static Numerical.LinearAlgebra.Matrix2D NewToLegacyMatrix(Matrix newMatrix) 
-            => new Numerical.LinearAlgebra.Matrix2D(newMatrix.CopyToArray2D());
-
-        #endregion
     }
 }

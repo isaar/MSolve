@@ -1,5 +1,6 @@
 ﻿//TODO: Move the operators here when C# supports extension operators
 using System;
+using ISAAR.MSolve.LinearAlgebra.Exceptions;
 
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
@@ -91,8 +92,34 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             int sourceIndex, int length) 
             => destinationVector.AxpySubvectorIntoThis(destinationIndex, sourceVector, 1.0, sourceIndex, length);
 
-        // TODO: implement this in each concrete vector.
-        public static double Norm2(this IVectorView thisVector) => Math.Sqrt(thisVector.DotProduct(thisVector));
+        /// <summary>
+        /// Performs the operation: a x b = { a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]},
+        /// where a = <paramref name="thisVector"/>, b = <paramref name="otherVector"/> and both have exactly 3 entries..
+        /// The result is a vector. Also note that: other.Cross(this) = - this.Cross(other).
+        /// </summary>
+        /// <param name="thisVector">A vector with three entries.</param>
+        /// <param name="otherVector">A vector with three entries.</param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if <paramref name="thisVector"/> or <paramref name="otherVector"/> do not have 
+        /// <see cref="IIndexable1D.Length"/> = 3.
+        /// </exception>
+        public static Vector CrossProduct(this Vector thisVector, Vector otherVector) //TODO: Should this be a member method? It breaks encapsulation as it is
+        {
+            if (thisVector.Length != 3) throw new NonMatchingDimensionsException(
+                $"Vector 1 has length = {thisVector.Length} instead of 3");
+            if (otherVector.Length != 3) throw new NonMatchingDimensionsException(
+                $"Vector 2 has length = {thisVector.Length} instead of 3");
+
+            double[] a = thisVector.RawData;
+            double[] b = otherVector.RawData;
+
+            return Vector.CreateFromArray(new double[]
+            {
+                a[1] * b[2] - a[2] * b[1],
+                a[2] * b[0] - a[0] * b[2],
+                a[0] * b[1] - a[1] * b[0]
+            });
+        }
 
         /// <summary>
         /// Performs the operation: 
@@ -166,21 +193,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         ///     <paramref name="sourceIndex"/> + <paramref name="length"/> &lt;= 
         ///     <paramref name="sourceVector"/>.<see cref="IIndexable1D.Length"/>.</param>
         /// <param name="length">The number of entries to copy.</param>
-        /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="length"/> and 
+        /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="length"/> and 
         ///     <paramref name="destinationIndex"/> or <paramref name="sourceIndex"/> violate the described constraints.
         ///     </exception>
-        /// <exception cref="Exceptions.PatternModifiedException">Thrown if an entry this[i] needs to be overwritten, but that 
+        /// <exception cref="PatternModifiedException">Thrown if an entry this[i] needs to be overwritten, but that 
         ///     is not permitted by the vector storage format.</exception>
         public static void SubtractSubvectorIntoThis(this IVector destinationVector, int destinationIndex,
             IVectorView sourceVector, int sourceIndex, int length)
             => destinationVector.AxpySubvectorIntoThis(destinationIndex, sourceVector, -1.0, sourceIndex, length);
-
-        //TODO: remove this
-        public static Numerical.LinearAlgebra.Vector ToLegacyVector(this IVectorView vector)
-            => Vector.CreateFromVector(vector).ToLegacyVector();
-
-        //TODO: remove this. Its only purpose is to avoid calling IVectorView.CopyToArray() and needless copying, during the
-        //      transition phase from the legacy linear algebra design.
-        public static double[] ToRawArray(this Vector vector) => vector.RawData;
     }
 }

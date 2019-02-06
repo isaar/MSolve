@@ -116,7 +116,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Factorizations
             // Check LAPACK execution
             if (indefiniteMinorIdx < 0)
             {
-                return SymmetricMatrix.CreateFromArray(inverse, Order, DefiniteProperty.PositiveDefinite);
+                return SymmetricMatrix.CreateFromPackedColumnMajorArray(inverse, Order, DefiniteProperty.PositiveDefinite);
             }
             else  // this should not have happened
             {

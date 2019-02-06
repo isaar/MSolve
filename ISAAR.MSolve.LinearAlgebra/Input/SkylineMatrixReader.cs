@@ -4,7 +4,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 namespace ISAAR.MSolve.LinearAlgebra.Input
 {
     /// <summary>
-    /// Reads the index and value arrays of a skyline matrix from separate files.
+    /// Reads the index and value arrays of a skyline matrix from separate files or a single one.
     /// Authors: George Stavroulakis
     /// </summary>
     public class SkylineMatrixReader
@@ -38,6 +38,41 @@ namespace ISAAR.MSolve.LinearAlgebra.Input
             //for (int i = 0; i < lines.Length; i++) mData[i] = Convert.ToDouble(lines[i]);
 
             return SkylineMatrix.CreateFromArrays(diagOffsets.Length - 1, values, diagOffsets, true, false);
+        }
+
+        public static SkylineMatrix ReadFromSingleFile(string name)
+        {
+            string path = Path.GetDirectoryName(name);
+            string nameOnly = Path.GetFileNameWithoutExtension(name);
+            string ext = Path.GetExtension(name);
+
+            FileStream fs = File.OpenRead(path + "\\" + nameOnly + "-Ix" + ext);
+            BinaryReader bw = new BinaryReader(fs);
+            int length = 0;
+            length = bw.ReadInt32();
+            var diagOffsets = new int[length];
+            for (int i = 0; i < diagOffsets.Length; i++) diagOffsets[i] = bw.ReadInt32();
+            bw.Close();
+            fs.Close();
+
+            fs = File.OpenRead(path + "\\" + nameOnly + "-Data" + ext);
+            bw = new BinaryReader(fs);
+            length = bw.ReadInt32();
+            var values = new double[length];
+            for (int i = 0; i < values.Length; i++) values[i] = bw.ReadDouble();
+            bw.Close();
+            fs.Close();
+
+            return SkylineMatrix.CreateFromArrays(diagOffsets.Length - 1, values, diagOffsets, true, false);
+
+            //string[] lines = File.ReadAllLines(path + "\\" + nameOnly + "-Ix" + ext);
+            //rowIndex = new int[lines.Length];
+            //for (int i = 0; i < lines.Length; i++) rowIndex[i] = Int32.Parse(lines[i]);
+
+            //lines = File.ReadAllLines(path + "\\" + nameOnly + "-Data" + ext);
+            //data = new T[lines.Length];
+            //double[] mData = data as double[];
+            //for (int i = 0; i < lines.Length; i++) mData[i] = Convert.ToDouble(lines[i]);
         }
     }
 }

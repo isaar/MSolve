@@ -10,7 +10,6 @@ namespace ISAAR.MSolve.Solvers.Ordering
     /// <summary>
     /// Free dofs are assigned global / subdomain indices in a node major fashion: The dofs of the first node are 
     /// numbered, then the dofs of the second node, etc. Constrained dofs are ignored.
-    /// Authors: Serafeim Bakalakos
     /// </summary>
     public class NodeMajorDofOrderingStrategy : IDofOrderingStrategy
     {
@@ -23,18 +22,18 @@ namespace ISAAR.MSolve.Solvers.Ordering
 
 
         // Copied from the methods used by Subdomain and Model previously.
-        private static (int numFreeDofs, DofTable freeDofs) OrderFreeDofsOfElementSet(IEnumerable<IElement> elements,
+        private static (int numFreeDofs, DofTable freeDofs) OrderFreeDofsOfElementSet(IEnumerable<IElement_v2> elements,
             IEnumerable<INode> sortedNodes, Table<INode, DOFType, double> constraints)
         {
             int totalDOFs = 0;
             Dictionary<int, List<DOFType>> nodalDOFTypesDictionary = new Dictionary<int, List<DOFType>>(); //TODO: use Set isntead of List
-            foreach (IElement element in elements)
+            foreach (IElement_v2 element in elements)
             {
-                for (int i = 0; i < element.INodes.Count; i++)
+                for (int i = 0; i < element.Nodes.Count; i++)
                 {
-                    if (!nodalDOFTypesDictionary.ContainsKey(element.INodes[i].ID))
-                        nodalDOFTypesDictionary.Add(element.INodes[i].ID, new List<DOFType>());
-                    nodalDOFTypesDictionary[element.INodes[i].ID].AddRange(element.IElementType.DOFEnumerator.GetDOFTypesForDOFEnumeration(element)[i]);
+                    if (!nodalDOFTypesDictionary.ContainsKey(element.Nodes[i].ID))
+                        nodalDOFTypesDictionary.Add(element.Nodes[i].ID, new List<DOFType>());
+                    nodalDOFTypesDictionary[element.Nodes[i].ID].AddRange(element.ElementType.DofEnumerator.GetDOFTypesForDOFEnumeration(element)[i]);
                 }
             }
 
@@ -67,7 +66,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
                     //}
                     #endregion
 
-                    foreach (var constraint in (node).Constraints) //TODO: access the constraints from the subdomain
+                    foreach (var constraint in node.Constraints) //TODO: access the constraints from the subdomain
                     {
                         if (constraint.DOF == dofType)
                         {

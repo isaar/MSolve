@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
+﻿using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,8 +14,6 @@ namespace ISAAR.MSolve.FEM.Entities
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
         private readonly Dictionary<int, Subdomain> subdomainsDictionary = new Dictionary<int, Subdomain>();
         private readonly Dictionary<int, Subdomain> nonMatchingSubdomainsDictionary = new Dictionary<int, Subdomain>();
-        private readonly Dictionary<int, Subdomain_v2> subdomainsDictionary_v2 = new Dictionary<int, Subdomain_v2>();
-        private readonly Dictionary<int, Subdomain_v2> nonMatchingSubdomainsDictionary_v2 = new Dictionary<int, Subdomain_v2>();
 
         public override string ToString()
         {
@@ -82,19 +81,9 @@ namespace ISAAR.MSolve.FEM.Entities
             get { return subdomainsDictionary; }
         }
 
-        public Dictionary<int, Subdomain_v2> SubdomainsDictionary_v2
-        {
-            get { return subdomainsDictionary_v2; }
-        }
-
         public Dictionary<int, Subdomain> NonMatchingSubdomainsDictionary
         {
             get { return nonMatchingSubdomainsDictionary; }
-        }
-
-        public Dictionary<int, Subdomain_v2> NonMatchingSubdomainsDictionary_v2
-        {
-            get { return nonMatchingSubdomainsDictionary_v2; }
         }
 
         //public Element EmbeddedInElement { get; set; }
@@ -108,13 +97,6 @@ namespace ISAAR.MSolve.FEM.Entities
             foreach (Element element in elementsDictionary.Values)
                 if (!subdomainsDictionary.ContainsKey(element.Subdomain.ID))
                     subdomainsDictionary.Add(element.Subdomain.ID, element.Subdomain);
-        }
-
-        public void BuildSubdomainDictionary_v2()
-        {
-            foreach (Element element in elementsDictionary.Values)
-                if (!subdomainsDictionary_v2.ContainsKey(element.Subdomain_v2.ID))
-                    subdomainsDictionary_v2.Add(element.Subdomain_v2.ID, element.Subdomain_v2);
         }
     }
 }

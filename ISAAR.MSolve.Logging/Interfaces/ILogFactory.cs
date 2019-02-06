@@ -8,7 +8,6 @@ namespace ISAAR.MSolve.Logging.Interfaces
 {
     /// <summary>
     /// Used by the analyzers to create the logs.
-    /// Authors: Serafeim Bakalakos
     /// </summary>
     public interface ILogFactory
     {

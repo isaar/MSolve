@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-    public class ControlPoint:INode
+    public class ControlPoint : INode
 	{
         protected readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
         protected readonly Dictionary<int, Patch> patchesDictionary =new Dictionary<int, Patch>();
@@ -38,14 +38,14 @@ namespace ISAAR.MSolve.IGA.Entities
         public double Heta { get; set; }
         public double Zeta { get; set; }
 
-		public List<Constraint> Constraints => constraints;
+        public List<Constraint> Constraints => throw new NotImplementedException("When merging Dimitris and Serafeim's code, keep Dimitris.");
 
-		public void BuildPatchesDictionary()
-		{
-			foreach (Element element in elementsDictionary.Values)
-				if (!patchesDictionary.ContainsKey(element.Patch.ID))
-					patchesDictionary.Add(element.Patch.ID, element.Patch);
-		}
+        public void BuildPatchesDictionary()
+        {
+            foreach (Element element in elementsDictionary.Values)
+                if (!patchesDictionary.ContainsKey(element.Patch.ID))
+                    patchesDictionary.Add(element.Patch.ID, element.Patch);
+        }
 
 
 		public override string ToString()

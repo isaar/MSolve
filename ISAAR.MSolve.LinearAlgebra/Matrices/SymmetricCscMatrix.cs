@@ -183,9 +183,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void Clear() => Array.Clear(values, 0, values.Length);
 
         /// <summary>
-        /// Initializes a new <see cref="SymmetricCscMatrix"/> instance by copying the entries of this 
-        /// <see cref="SymmetricCscMatrix"/>. 
+        /// See <see cref="IMatrixView.Copy(bool)"/>.
         /// </summary>
+        IMatrix IMatrixView.Copy(bool copyIndexingData) => Copy(copyIndexingData);
+
+        /// <summary>
+        /// Copies the entries of this matrix.
+        /// </summary>
+        /// <param name="copyIndexingData">
+        /// If true, all data of this object will be copied. If false, only the array containing the values of the stored 
+        /// matrix entries will be copied. The new matrix will reference the same indexing arrays as this one.
+        /// </param>
         public SymmetricCscMatrix Copy(bool copyIndexingArrays)
         {
             var valuesCopy = new double[values.Length];
@@ -323,10 +331,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
                 //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
                 double[] resultValues = new double[values.Length];
-                Array.Copy(this.values, resultValues, values.Length);
 
-                BlasExtensions.Daxpby(values.Length, otherCoefficient, otherCSC.values, 0, 1, 
-                    thisCoefficient, resultValues, 0, 1);
+                if (thisCoefficient == 1.0)
+                {
+                    Array.Copy(this.values, resultValues, values.Length);
+                    Blas.Daxpy(values.Length, otherCoefficient, otherCSC.values, 0, 1, resultValues, 0, 1);
+                }
+                else if (otherCoefficient == 1.0)
+                {
+                    Array.Copy(otherCSC.values, resultValues, values.Length);
+                    Blas.Daxpy(values.Length, thisCoefficient, this.values, 0, 1, resultValues, 0, 1);
+                }
+                else
+                {
+                    Array.Copy(this.values, resultValues, values.Length);
+                    BlasExtensions.Daxpby(values.Length, otherCoefficient, otherCSC.values, 0, 1,
+                        thisCoefficient, resultValues, 0, 1);
+                }
 
                 // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
                 return new SymmetricCscMatrix(NumRows, NumColumns, resultValues, this.rowIndices, this.colOffsets);

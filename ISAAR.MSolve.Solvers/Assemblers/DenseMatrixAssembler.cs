@@ -1,40 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using ISAAR.MSolve.Solvers.Ordering;
 
 namespace ISAAR.MSolve.Solvers.Assemblers
 {
-    public class DenseMatrixAssembler
+    /// <summary>
+    /// Builds the global matrix of the linear system that will be solved. This matrix is full column major format. It can be 
+    /// symmetric, but both triangles will be stored explicitly.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
+    public class DenseMatrixAssembler: IGlobalMatrixAssembler<Matrix>
     {
-        public IMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement> elements, 
-            IElementMatrixProvider elementMatrixProvider)
+        public Matrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement_v2> elements, 
+            IElementMatrixProvider_v2 elementMatrixProvider)
         {
             int numFreeDofs = dofOrdering.NumFreeDofs;
-            var Kff = Matrix.CreateZero(numFreeDofs, numFreeDofs);
+            var subdomainMatrix = Matrix.CreateZero(numFreeDofs, numFreeDofs);
 
-            foreach (IElement element in elements)
+            foreach (IElement_v2 element in elements)
             {
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 (int[] elementDofIndices, int[] subdomainDofIndices) = dofOrdering.MapFreeDofsElementToSubdomain(element);
                 //IReadOnlyDictionary<int, int> elementToGlobalDofs = dofOrdering.MapFreeDofsElementToSubdomain(element);
-                IMatrix2D elementK = elementMatrixProvider.Matrix(element);
-                //AddElementToGlobalMatrix(Kff, elementK, mapStandard, mapStandard);
-                AddElementToGlobalMatrix(Kff, elementK, elementDofIndices, subdomainDofIndices);
+                IMatrix elementMatrix = elementMatrixProvider.Matrix(element);
+                AddElementToGlobalMatrix(subdomainMatrix, elementMatrix, elementDofIndices, subdomainDofIndices);
             }
 
-            return Kff;
+            return subdomainMatrix;
         }
 
-        private static void AddElementToGlobalMatrix(Matrix globalMatrix, IMatrix2D elementMatrix,
+        public void HandleDofOrderingWillBeModified()
+        {
+           // Do nothing, since there are no idexing arrays to cache.
+        }
+
+        private static void AddElementToGlobalMatrix(Matrix globalMatrix, IMatrixView elementMatrix,
             int[] elementIndices, int[] globalIndices)
         {
-            Debug.Assert(elementMatrix.Rows == elementMatrix.Columns);
+            Debug.Assert(elementMatrix.NumRows == elementMatrix.NumColumns);
             Debug.Assert(globalIndices.Length == elementIndices.Length);
 
             int numRelevantRows = elementIndices.Length;
@@ -52,7 +57,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             }
         }
 
-        private static void AddElementToGlobalMatrix(Matrix globalMatrix, IMatrix2D elementMatrix,
+        private static void AddElementToGlobalMatrix(Matrix globalMatrix, IMatrixView elementMatrix,
             IReadOnlyDictionary<int, int> elementRowsToGlobalRows, IReadOnlyDictionary<int, int> elementColsToGlobalCols)
         {
             foreach (var rowPair in elementRowsToGlobalRows)

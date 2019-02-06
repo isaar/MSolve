@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
-	/// <summary>
-	/// Isoparamateric interpolation of a pyramid finite element with 14 nodes. Quadratic shape functions.
-	/// Implements singleton pattern.
-	/// Authors: Dimitris Tsapetis
-	/// </summary>
-    public class InterpolationPyra14:IsoparametricInterpolation3DBase
+    /// <summary>
+    /// Isoparamateric interpolation of a pyramid finite element with 14 nodes. Quadratic shape functions.
+    /// Implements singleton pattern.
+    /// Authors: Dimitris Tsapetis
+    /// </summary>
+    public class InterpolationPyra14 : IsoparametricInterpolation3DBase
     {
 		private static readonly InterpolationPyra14 uniqueInstance=new InterpolationPyra14();
 
@@ -55,7 +55,8 @@ namespace ISAAR.MSolve.FEM.Interpolation
 	    /// </summary>
 	    /// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
 	    /// <returns></returns>
-	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> node) => throw new NotImplementedException("Iterative procedure required");
+	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node_v2> node) 
+            => throw new NotImplementedException("Iterative procedure required");
 
 		// based on https://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/AFEM.Ch12.d/AFEM.Ch12.pdf
 		protected override double[] EvaluateAt(double xi, double eta, double zeta)
@@ -82,13 +83,13 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		}
 
 
-	    protected override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
+	    protected override Matrix EvaluateGradientsAt(double xi, double eta, double zeta)
 	    {
 		    var Ncx = -xi * (1 - eta * eta) * (1 - zeta);
 		    var Ncy = -eta * (1 - xi * xi) * (1 - zeta);
 		    var Ncz = -0.5 * (1 - xi * xi) * (1 - eta * eta);
 
-		    var derivatives = new double[14, 3];
+		    var derivatives = Matrix.CreateZero(14, 3);
 
 		    derivatives[0, 0] = 1 / 16.0 * (1 - eta) * (1 - zeta) * (1 + 6 * xi + eta + 4 * xi * eta + zeta + 2 * xi * zeta - eta * zeta + 4 * xi * eta * zeta) + 1 / 4.0 * Ncx;
 		    derivatives[1, 0] = -1 / 16.0 * (1 - eta) * (1 - zeta) * (1 - 6 * xi + eta - 4 * xi * eta + zeta - 2 * xi * zeta - eta * zeta - 4 * xi * eta * zeta) + 1 / 4.0 * Ncx;

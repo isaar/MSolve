@@ -11,25 +11,6 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
-    public class Beam2DMemoizer
-    {
-        private readonly Dictionary<int, Tuple<double[], double[,,]>> integrationDictionary =
-            new Dictionary<int, Tuple<double[], double[,,]>>();
-
-        public Tuple<double[], double[,,]> GetIntegrationData(int element)
-        {
-            if (integrationDictionary.ContainsKey(element))
-                return integrationDictionary[element];
-            else
-                return new Tuple<double[], double[,,]>(null, null);
-        }
-
-        public void SetIntegrationData(int element, Tuple<double[], double[,,]> integrationData)
-        {
-            integrationDictionary.Add(element, integrationData);
-        }
-    }
-
     public class Beam2DWithStochasticMaterial : EulerBeam2D
     {
         protected readonly new IStochasticContinuumMaterial3D Material;

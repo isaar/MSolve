@@ -48,10 +48,10 @@ namespace ISAAR.MSolve.Tests.Solvers
         private readonly double width;
         private readonly double endPointLoad;
         private readonly double youngModulus;
-        private readonly Node[] endNodes;
+        private readonly Node_v2[] endNodes;
 
         private CantileverBeam(double length, double height, double width, double endPointLoad, 
-            double youngModulus, Model_v2 model, Node[] endNodes)
+            double youngModulus, Model_v2 model, Node_v2[] endNodes)
         {
             this.length = length;
             this.height = height;
@@ -112,7 +112,7 @@ namespace ISAAR.MSolve.Tests.Solvers
             {
                 // Material and section properties
                 double thickness = Width;
-                var material = new ElasticMaterial2D(StressState2D.PlaneStress)
+                var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
                 {
                     YoungModulus = this.YoungModulus,
                     PoissonRatio = this.PoissonRatio
@@ -124,9 +124,9 @@ namespace ISAAR.MSolve.Tests.Solvers
                 model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
 
                 // Generate mesh
-                var meshGenerator = new UniformMeshGenerator(0.0, 0.0, Length, Height, 
+                var meshGenerator = new UniformMeshGenerator_v2(0.0, 0.0, Length, Height, 
                     numElementsAlongLength, numElementsAlongHeight);
-                (IReadOnlyList<Node2D> vertices, IReadOnlyList<CellConnectivity2D> cells) = meshGenerator.CreateMesh();
+                (IReadOnlyList<Node_v2> vertices, IReadOnlyList<CellConnectivity_v2> cells) = meshGenerator.CreateMesh();
 
                 // Add nodes to the model
                 for (int n = 0; n < vertices.Count; ++n) model.NodesDictionary.Add(n, vertices[n]);
@@ -136,8 +136,8 @@ namespace ISAAR.MSolve.Tests.Solvers
                 for (int e = 0; e < cells.Count; ++e)
                 {
                     ContinuumElement2D element = factory.CreateElement(cells[e].CellType, cells[e].Vertices);
-                    var elementWrapper = new Element() { ID = e, ElementType = element };
-                    foreach (Node node in element.Nodes) elementWrapper.AddNode(node);
+                    var elementWrapper = new Element_v2() { ID = e, ElementType = element };
+                    foreach (Node_v2 node in element.Nodes) elementWrapper.AddNode(node);
                     model.ElementsDictionary.Add(e, elementWrapper);
                     model.SubdomainsDictionary[subdomainID].Elements.Add(elementWrapper);
                 }
@@ -151,10 +151,10 @@ namespace ISAAR.MSolve.Tests.Solvers
                 }
 
                 // Apply concentrated load at the other end
-                Node[] loadedNodes = model.Nodes.Where(node => Math.Abs(node.X - Length) <= tol).ToArray();
+                Node_v2[] loadedNodes = model.Nodes.Where(node => Math.Abs(node.X - Length) <= tol).ToArray();
                 foreach (var node in loadedNodes)
                 {
-                    model.Loads.Add(new Load() { Amount = EndPointLoad / loadedNodes.Length, Node = node, DOF = DOFType.Y });
+                    model.Loads.Add(new Load_v2() { Amount = EndPointLoad / loadedNodes.Length, Node = node, DOF = DOFType.Y });
                 }
 
                 return new CantileverBeam(Length, Height, Width, EndPointLoad, YoungModulus, model, loadedNodes);

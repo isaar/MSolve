@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+
 
 //TODO: In XFEM I used dictionaries with nodes as keys, but it is less efficient and offers little extra safety, since the
 //      shape functions and derivatives will be used by classes that have direct access to the nodes.
@@ -17,11 +18,11 @@ namespace ISAAR.MSolve.FEM.Interpolation
     /// </summary>
     public class EvalInterpolation2D
     {
-        public EvalInterpolation2D(Vector shapeFunctions, Matrix2D shapeGradientsNatural, IsoparametricJacobian2D jacobian)
+        public EvalInterpolation2D(double[] shapeFunctions, Matrix shapeGradientsNatural, IsoparametricJacobian2D jacobian)
         {
             int numNodes = shapeFunctions.Length;
-            if (shapeGradientsNatural.Rows != numNodes) throw new ArgumentException($"There are {shapeFunctions.Length}"
-               + $" evaluated shape functions, but {shapeGradientsNatural.Rows} evaluated natural shape derivatives.");
+            if (shapeGradientsNatural.NumRows != numNodes) throw new ArgumentException($"There are {shapeFunctions.Length}"
+               + $" evaluated shape functions, but {shapeGradientsNatural.NumRows} evaluated natural shape derivatives.");
             this.ShapeFunctions = shapeFunctions;
             this.ShapeGradientsNatural = shapeGradientsNatural;
             this.Jacobian = jacobian;
@@ -36,7 +37,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <summary>
         /// A vector that contains the shape functions in the same order as the nodes of the interpolation.
         /// </summary>
-        public Vector ShapeFunctions { get; }
+        public double[] ShapeFunctions { get; }
 
         /// <summary>
         /// A matrix that contains the 1st order shape function derivatives with respect to the global cartesian coordinate 
@@ -44,7 +45,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// shape function. Each column corresponds to the derivatives of all shape functions with respect to a single 
         /// coordinate.
         /// </summary>
-        public Matrix2D ShapeGradientsCartesian { get; }
+        public Matrix ShapeGradientsCartesian { get; }
 
         /// <summary>
         /// A matrix that contains the 1st order shape function derivatives with respect to the natural coordinate 
@@ -52,16 +53,16 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// shape function. Each column corresponds to the derivatives of all shape functions with respect to a single 
         /// coordinate.
         /// </summary>
-        public Matrix2D ShapeGradientsNatural { get; }
+        public Matrix ShapeGradientsNatural { get; }
 
-        public CartesianPoint2D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node2D> nodes)
+        public CartesianPoint2D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node_v2> nodes)
         {
             if (nodes.Count != ShapeFunctions.Length) throw new ArgumentException(
                 $"There are {ShapeFunctions.Length} evaluated shape functions stored, but {nodes.Count} were passed in.");
             double x = 0, y = 0;
             for (int i = 0; i < ShapeFunctions.Length; ++i)
             {
-                Node2D node = nodes[i];
+                Node_v2 node = nodes[i];
                 double val = ShapeFunctions[i];
                 x += val * node.X;
                 y += val * node.Y;

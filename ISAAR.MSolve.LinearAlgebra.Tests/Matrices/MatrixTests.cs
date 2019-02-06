@@ -160,6 +160,32 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
 
         [Theory]
         [MemberData(nameof(TestSettings.ProvidersToTest), MemberType = typeof(TestSettings))]
+        private static void TestMatrixVectorMultiplicationIntoResult(LinearAlgebraProviderChoice providers)
+        {
+            TestSettings.RunMultiproviderTest(providers, delegate ()
+            {
+                // The result vectors will first be set to some non zero values to make sure that the result overwrites 
+                // them instead of being added to them.
+
+                // MultiplyIntoResult() - untransposed 
+                var A1 = Matrix.CreateFromArray(RectangularFullRank10by5.Matrix);
+                var x1 = Vector.CreateFromArray(RectangularFullRank10by5.Lhs5);
+                var b1Expected = Vector.CreateFromArray(RectangularFullRank10by5.Rhs10);
+                Vector b1Computed = Vector.CreateWithValue(A1.NumRows, 1.0);
+                A1.MultiplyIntoResult(x1, b1Computed, false);
+                comparer.AssertEqual(b1Expected, b1Computed);
+
+                // MultiplyIntoResult() - transposed
+                var x2 = Vector.CreateFromArray(RectangularFullRank10by5.Lhs10);
+                var b2Expected = Vector.CreateFromArray(RectangularFullRank10by5.Rhs5);
+                Vector b2Computed = Vector.CreateWithValue(A1.NumColumns, 1.0);
+                A1.MultiplyIntoResult(x2, b2Computed, true);
+                comparer.AssertEqual(b2Expected, b2Computed);
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(TestSettings.ProvidersToTest), MemberType = typeof(TestSettings))]
         private static void TestScaling(LinearAlgebraProviderChoice providers)
         {
             TestSettings.RunMultiproviderTest(providers, delegate ()

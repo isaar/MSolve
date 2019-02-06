@@ -11,37 +11,6 @@ using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
 
 namespace ISAAR.MSolve.Logging
 {
-    public enum NEUOutputVector
-    {
-        TranslationX = 2,
-        TranslationY,
-        TranslationZ,
-        RotationX = 6,
-        RotationY,
-        RotationZ
-    }
-
-    public class NEUOutputVectorProperties
-    {
-        private readonly int id;
-        private readonly string title;
-        private readonly string componentVector;
-        private readonly DOFType dofType;
-
-        public int ID { get { return id; } }
-        public string Title { get { return title; } }
-        public string ComponentVector { get { return componentVector; } }
-        public DOFType DOFType { get { return dofType; } }
-
-        public NEUOutputVectorProperties(int id, string title, string componentVector, DOFType dofType)
-        {
-            this.id = id;
-            this.title = title;
-            this.componentVector = componentVector;
-            this.dofType = dofType;
-        }
-    }
-
     public class NEUWriter
     {
         private const int outputSet = 1;

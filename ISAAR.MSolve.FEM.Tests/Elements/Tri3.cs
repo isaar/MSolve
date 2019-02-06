@@ -1,16 +1,13 @@
-﻿using ISAAR.MSolve.Discretization.Integration.Points;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Integration.Points;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
 using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Xunit;
 
 //TODO: Add tests for wrong node orders, too distorted shapes, etc.
@@ -26,7 +23,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
     {
         private static double thickness = 1.0;
 
-        private static readonly ElasticMaterial2D material0 = new ElasticMaterial2D(StressState2D.PlaneStress)
+        private static readonly ElasticMaterial2D_v2 material0 = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
         {
             YoungModulus = 2.1e5,
             PoissonRatio = 0.3
@@ -37,21 +34,21 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         /// <summary>
         /// Random shape, not too distorted.
         /// </summary>
-        private static readonly IReadOnlyList<Node2D> nodeSet0 = new Node2D[]
+        private static readonly IReadOnlyList<Node_v2> nodeSet0 = new Node_v2[]
         {
-            new Node2D(0, 1.5,  3.8),
-            new Node2D(1, 1.0,  1.0),
-            new Node2D(2, 4.0,  0.8)
+            new Node_v2 { ID = 0, X = 1.5, Y = 3.8 },
+            new Node_v2 { ID = 1, X = 1.0, Y = 1.0 },
+            new Node_v2 { ID = 2, X = 4.0, Y = 0.8 }            
         };
 
         /// <summary>
         /// Right triangle.
         /// </summary>
-        private static readonly IReadOnlyList<Node2D> nodeSet1 = new Node2D[]
+        private static readonly IReadOnlyList<Node_v2> nodeSet1 = new Node_v2[]
         {
-            new Node2D(0, 0.0,  0.0),
-            new Node2D(1, 1.0,  0.0),
-            new Node2D(2, 0.0, 1.0)
+            new Node_v2 { ID = 0, X = 0.0, Y = 0.0 },
+            new Node_v2 { ID = 1, X = 1.0, Y = 0.0 },
+            new Node_v2 { ID = 2, X = 0.0, Y = 1.0 }
         };
 
         /// <summary>
@@ -74,10 +71,10 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
             TestConsistentMassParametric(nodeSet1, TriangleQuadratureSymmetricGaussian.Order1Point1, true);
         }
 
-        private static void TestConsistentMassParametric(IReadOnlyList<Node2D> nodeSet, IQuadrature2D quadratureForMass,
+        private static void TestConsistentMassParametric(IReadOnlyList<Node_v2> nodeSet, IQuadrature2D quadratureForMass,
             bool reducedQuadrature)
         {
-            var materialsAtGaussPoints = new List<ElasticMaterial2D>();
+            var materialsAtGaussPoints = new List<ElasticMaterial2D_v2>();
             foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
             {
                 materialsAtGaussPoints.Add(material0.Clone());
@@ -86,10 +83,10 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
                 TriangleQuadratureSymmetricGaussian.Order1Point1, quadratureForMass,
                 ExtrapolationGaussTriangular1Point.UniqueInstance,
                 materialsAtGaussPoints, dynamicMaterial);
-            IMatrix2D M = tri3.BuildConsistentMassMatrix();
+            IMatrix M = tri3.BuildConsistentMassMatrix();
 
             // Reference: http://kis.tu.kielce.pl/mo/COLORADO_FEM/colorado/IFEM.Ch31.pdf, (eq 31.27) 
-            Matrix2D expectedM = new Matrix2D(new double[,]
+            Matrix expectedM = Matrix.CreateFromArray(new double[,]
             {
                 { 2, 0, 1, 0, 1, 0 },
                 { 0, 2, 0, 1, 0, 1 },
@@ -100,10 +97,10 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
             });
             double area = CalcTriangleArea(nodeSet);
             double scalar = dynamicMaterial.Density * thickness * area / 12.0;
-            expectedM.Scale(scalar);
+            expectedM.ScaleIntoThis(scalar);
 
-            if (reducedQuadrature) Assert.False(Utilities.AreMatricesEqual(M, expectedM, 1e-10));
-            else Assert.True(Utilities.AreMatricesEqual(M, expectedM, 1e-10));
+            if (reducedQuadrature) Assert.False(M.Equals(expectedM, 1e-10));
+            else Assert.True(M.Equals(expectedM, 1e-10));
 
         }
 
@@ -116,7 +113,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         {
             var factory = new ContinuumElement2DFactory(thickness, material0, dynamicMaterial);
             ContinuumElement2D tri3 = factory.CreateElement(CellType2D.Tri3, nodeSet0);
-            IMatrix2D K = tri3.BuildStiffnessMatrix();
+            IMatrix K = tri3.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
                 { 43303.16742081400, 5294.11764705880, -43778.28054298600, -44796.38009049800, 475.11312217194, 39502.26244343900 },
@@ -126,7 +123,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
                 { 475.11312217194, 33733.03167420800, -108088.23529412000, -21380.09049773800, 107613.12217195000, -12352.94117647100 },
                 { 39502.26244343900, -17701.35746606300, -27149.32126696800, -22941.17647058800, -12352.94117647100, 40642.53393665200 }
             }; // from Abaqus
-            Assert.True(Utilities.AreMatricesEqual(K, new Matrix2D(expectedK), 1e-10));
+            Assert.True(K.Equals(Matrix.CreateFromArray(expectedK), 1e-10));
         }
 
         /// <summary>
@@ -185,7 +182,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
             Assert.True(Utilities.AreTensorsEqual(expectedStressesAtNodes, stressesAtNodes, 1e-3));
         }
 
-        private static double CalcTriangleArea(IReadOnlyList<Node2D> nodes)
+        private static double CalcTriangleArea(IReadOnlyList<Node_v2> nodes)
         {
             return (nodes[0].X * (nodes[1].Y - nodes[2].Y)
                 + nodes[1].X * (nodes[2].Y - nodes[0].Y)

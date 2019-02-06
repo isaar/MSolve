@@ -1,27 +1,20 @@
-﻿using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Analyzers.Interfaces;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Analyzers.NonLinear;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Providers;
+using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Materials;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
 using Xunit;
-using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.FEM;
-using ISAAR.MSolve.Discretization.Providers;
-using ISAAR.MSolve.Logging;
-using ISAAR.MSolve.Solvers.Ordering;
-using ISAAR.MSolve.LinearAlgebra.Reordering;
-using ISAAR.MSolve.Solvers.Ordering.Reordering;
-using ISAAR.MSolve.Solvers.Direct;
 
 namespace ISAAR.MSolve.Tests
 {
@@ -154,17 +147,17 @@ namespace ISAAR.MSolve.Tests
             int monitorNode = 3;
 
             // Create new 2D material
-            ElasticMaterial material = new ElasticMaterial
+            var material = new ElasticMaterial
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,
             };
 
             // Node creation
-            IList<Node> nodes = new List<Node>();
-            Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0 };
-            Node node2 = new Node { ID = 2, X = 100.0, Y = 0.0 };
-            Node node3 = new Node { ID = 3, X = 200.0, Y = 0.0 };
+            IList<Node_v2> nodes = new List<Node_v2>();
+            Node_v2 node1 = new Node_v2 { ID = 1, X = 0.0, Y = 0.0 };
+            Node_v2 node2 = new Node_v2 { ID = 2, X = 100.0, Y = 0.0 };
+            Node_v2 node3 = new Node_v2 { ID = 3, X = 200.0, Y = 0.0 };
 
             nodes.Add(node1);
             nodes.Add(node2);
@@ -192,26 +185,25 @@ namespace ISAAR.MSolve.Tests
             for (int iElem = 0; iElem < nElems; iElem++)
             {
                 // element nodes
-                IList<Node> elementNodes = new List<Node>();
+                IList<Node_v2> elementNodes = new List<Node_v2>();
                 elementNodes.Add(model.NodesDictionary[iNode]);
                 elementNodes.Add(model.NodesDictionary[iNode + 1]);
 
                 // Create new Beam3D section and element
                 var beamSection = new BeamSection2D(area, inertia);
-                var beam = new Beam2DCorotational(elementNodes, material, 7.85, beamSection);
 
                 // Create elements
-                var element = new Element()
+                var element = new Element_v2()
                 {
                     ID = iElem + 1,
-                    ElementType = beam
+                    ElementType = new Beam2DCorotational_v2(elementNodes, material, 7.85, beamSection)
                 };
 
                 // Add nodes to the created element
                 element.AddNode(model.NodesDictionary[iNode]);
                 element.AddNode(model.NodesDictionary[iNode + 1]);
 
-                var a = beam.StiffnessMatrix(element);
+                var a = element.ElementType.StiffnessMatrix(element);
 
                 // Add beam element to the element and subdomains dictionary of the model
                 model.ElementsDictionary.Add(element.ID, element);
@@ -220,7 +212,7 @@ namespace ISAAR.MSolve.Tests
             }
 
             // Add nodal load values at the top nodes of the model
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode], DOF = DOFType.Y });
+            model.Loads.Add(new Load_v2() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode], DOF = DOFType.Y });
 
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();
@@ -240,14 +232,14 @@ namespace ISAAR.MSolve.Tests
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
             // Request output
-            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 4 }); 
+            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory_v2(new int[] { 4 }); 
 
             // Run the analysis
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
             // Check output
-            DOFSLog log = (DOFSLog)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
+            DOFSLog_v2 log = (DOFSLog_v2)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
             Assert.Equal(146.5587362562, log.DOFValues[4], 3);
         }
 
@@ -379,17 +371,17 @@ namespace ISAAR.MSolve.Tests
             int monitorNode = 3;
 
             // Create new 2D material
-            ElasticMaterial material = new ElasticMaterial
+            var material = new ElasticMaterial
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,
             };
 
             // Node creation
-            IList<Node> nodes = new List<Node>();
-            Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0 };
-            Node node2 = new Node { ID = 2, X = 100.0, Y = 0.0 };
-            Node node3 = new Node { ID = 3, X = 200.0, Y = 0.0 };
+            IList<Node_v2> nodes = new List<Node_v2>();
+            Node_v2 node1 = new Node_v2 { ID = 1, X = 0.0, Y = 0.0 };
+            Node_v2 node2 = new Node_v2 { ID = 2, X = 100.0, Y = 0.0 };
+            Node_v2 node3 = new Node_v2 { ID = 3, X = 200.0, Y = 0.0 };
 
             nodes.Add(node1);
             nodes.Add(node2);
@@ -420,26 +412,25 @@ namespace ISAAR.MSolve.Tests
             for (int iElem = 0; iElem < nElems; iElem++)
             {
                 // element nodes
-                IList<Node> elementNodes = new List<Node>();
+                IList<Node_v2> elementNodes = new List<Node_v2>();
                 elementNodes.Add(model.NodesDictionary[iNode]);
                 elementNodes.Add(model.NodesDictionary[iNode + 1]);
 
                 // Create new Beam3D section and element
                 var beamSection = new BeamSection2D(area, inertia);
-                var beam = new Beam2DCorotational(elementNodes, material, 7.85, beamSection);
 
                 // Create elements
-                var element = new Element()
+                var element = new Element_v2()
                 {
                     ID = iElem + 1,
-                    ElementType = beam
+                    ElementType = new Beam2DCorotational_v2(elementNodes, material, 7.85, beamSection)
                 };
 
                 // Add nodes to the created element
                 element.AddNode(model.NodesDictionary[iNode]);
                 element.AddNode(model.NodesDictionary[iNode + 1]);
 
-                var a = beam.StiffnessMatrix(element);
+                var a = element.ElementType.StiffnessMatrix(element);
 
                 // Add beam element to the element and subdomains dictionary of the model
                 model.ElementsDictionary.Add(element.ID, element);
@@ -457,28 +448,21 @@ namespace ISAAR.MSolve.Tests
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
             var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) };
             int numIncrements = 10;
-            var equivalentLoadsAssemblers = new Dictionary<int, IEquivalentLoadsAssembler_v2>
-            {
-                { subdomainID, new EquivalentLoadsAssembler_v2(model.SubdomainsDictionary[subdomainID], 
-                                                               new ElementStructuralStiffnessProvider()) }
-            };
-
-            var childAnalyzerBuilder = new DisplacementControlAnalyzer_v2.Builder(model, solver, provider,
-                equivalentLoadsAssemblers, numIncrements);
+            var childAnalyzerBuilder = new DisplacementControlAnalyzer_v2.Builder(model, solver, provider, numIncrements);
             var childAnalyzer = childAnalyzerBuilder.Build();
 
             // Choose parent analyzer -> Parent: Static
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
             // Request output
-            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 3 });
+            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory_v2(new int[] { 3 });
 
             // Run the analysis
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
             // Check output
-            DOFSLog log = (DOFSLog)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
+            DOFSLog_v2 log = (DOFSLog_v2)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
             Assert.Equal(-72.090605787610343, log.DOFValues[3], 8);
         }
     }

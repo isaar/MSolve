@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -19,10 +16,10 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         public DofTable FreeDofs { get; }
         public int NumFreeDofs { get; }
 
-        public void AddVectorElementToSubdomain(IElement element, IVectorView elementVector, IVector subdomainVector)
+        public void AddVectorElementToSubdomain(IElement_v2 element, double[] elementVector, IVector subdomainVector)
         {
-            IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
-            IList<IList<DOFType>> elementDofs = element.IElementType.DOFEnumerator.GetDOFTypes(element);
+            IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
+            IList<IList<DOFType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
 
             int elementDofIdx = 0;
             for (int nodeIdx = 0; nodeIdx < elementNodes.Count; ++nodeIdx)
@@ -40,19 +37,44 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             }
         }
 
-        public int CountElementDofs(IElement element)
+        public int CountElementDofs(IElement_v2 element)
         {
-            IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
-            IList<IList<DOFType>> elementDofs = element.IElementType.DOFEnumerator.GetDOFTypes(element);
+            IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
+            IList<IList<DOFType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
             int numElementDofs = 0;
             for (int nodeIdx = 0; nodeIdx < elementDofs.Count; ++nodeIdx) numElementDofs += elementDofs[nodeIdx].Count;
             return numElementDofs;
         }
 
-        public void ExtractVectorElementFromSubdomain(IElement element, IVectorView subdomainVector, IVector elementVector)
+        public double[] ExtractVectorElementFromSubdomain(IElement_v2 element, IVectorView subdomainVector)
         {
-            IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
-            IList<IList<DOFType>> elementDofs = element.IElementType.DOFEnumerator.GetDOFTypes(element);
+            IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
+            IList<IList<DOFType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
+
+            int numElementDofs = 0;
+            for (int nodeIdx = 0; nodeIdx < elementDofs.Count; ++nodeIdx) numElementDofs += elementDofs[nodeIdx].Count;
+            var elementVector = new double[numElementDofs];
+
+            int elementDofIdx = 0;
+            for (int nodeIdx = 0; nodeIdx < elementNodes.Count; ++nodeIdx)
+            {
+                for (int dofIdx = 0; dofIdx < elementDofs[nodeIdx].Count; ++dofIdx)
+                {
+                    bool isFree = FreeDofs.TryGetValue(elementNodes[nodeIdx], elementDofs[nodeIdx][dofIdx],
+                        out int subdomainDofIdx);
+                    if (isFree) elementVector[elementDofIdx] = subdomainVector[subdomainDofIdx];
+                    // Else, the quantity of interest is 0.0 at all constrained dofs.
+                    ++elementDofIdx; // This must be incremented for constrained dofs as well
+                }
+            }
+
+            return elementVector;
+        }
+
+        public void ExtractVectorElementFromSubdomain(IElement_v2 element, IVectorView subdomainVector, IVector elementVector)
+        {
+            IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
+            IList<IList<DOFType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
             //int numElementDofs = 0;
             //for (int nodeIdx = 0; nodeIdx < elementDofs.Count; ++nodeIdx) numElementDofs += elementDofs[nodeIdx].Count;
 
@@ -70,10 +92,10 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             }
         }
 
-        public (int[] elementDofIndices, int[] subdomainDofIndices) MapFreeDofsElementToSubdomain(IElement element)
+        public (int[] elementDofIndices, int[] subdomainDofIndices) MapFreeDofsElementToSubdomain(IElement_v2 element)
         {
-            IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
-            IList<IList<DOFType>> elementDofs = element.IElementType.DOFEnumerator.GetDOFTypes(element);
+            IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
+            IList<IList<DOFType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
 
             // Count the dof superset (free and constrained) to allocate enough memory and avoid resizing
             int allElementDofs = 0;

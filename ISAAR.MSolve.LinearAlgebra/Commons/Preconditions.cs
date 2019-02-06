@@ -4,6 +4,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: These should be Debug only
+//TODO: when a check can be either <= (with offsets) or == (without offsets), rename the latter as ~Exact.
 namespace ISAAR.MSolve.LinearAlgebra.Commons
 {
     /// <summary>
@@ -89,6 +90,28 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             if (vectorStart + matrixLeft.NumRows > result.Length) throw new NonMatchingDimensionsException(
                 $"The result vector's length = {result.Length} must be at least as large as the start index =" +
                 $" {resultStart} + the matrix' rows = {matrixLeft.NumRows}");
+        }
+
+        public static void CheckMultiplicationDimensions(IIndexable2D matrix, IVectorView lhsVector, int lhsOffset,
+            IVectorView rhsVector, int rhsOffset, bool transposeMatrix)
+        {
+            int m, n;
+            if (transposeMatrix)
+            {
+                m = matrix.NumColumns;
+                n = matrix.NumRows;
+            }
+            else
+            {
+                m = matrix.NumRows;
+                n = matrix.NumColumns;
+            }
+            if (lhsVector.Length < lhsOffset + n) throw new NonMatchingDimensionsException(
+                "The left hand side vector's length must be at least as large as the offset plus the number of columns of the "
+                + "matrix (or its transpose).");
+            if (rhsVector.Length < rhsOffset + m) throw new NonMatchingDimensionsException(
+                "The left hand side vector's length must be at least as large as the offset plus the number of rows of the "
+                + "matrix (or its transpose).");
         }
 
         public static void CheckSameColDimension(IIndexable2D matrix, IVectorView vector)
@@ -183,6 +206,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
                     + $" dimensions ({rhsVectorLength}x1)";
                 throw new NonMatchingDimensionsException(message);
             }
+        }
+
+        public static void CheckVectorDimensions(double[] vector1, double[] vector2)
+        {
+            if (vector1.Length != vector2.Length)
+            {
+                string message = string.Format("Vector1 has length of {0}, while vector2 has length of {1}",
+                    vector1.Length, vector2.Length);
+                throw new NonMatchingDimensionsException(message);
+            }
+
         }
 
         public static void CheckVectorDimensions(IIndexable1D vector1, IIndexable1D vector2)

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
-using ISAAR.MSolve.Discretization.Integration.Points;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
@@ -10,9 +9,9 @@ using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
 using ISAAR.MSolve.FEM.Interpolation.Jacobians;
+using ISAAR.MSolve.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 //TODO: Damping matrix calculation needs redesign for all of MSolve. For this class, see DampingMatrix().
 //TODO: Materials also need redesign. Some properties are the same for all instances of a material class, some are the same for
@@ -32,17 +31,17 @@ namespace ISAAR.MSolve.FEM.Elements
     /// of this element is uniform, therefore it is necessary to use finer meshes to simulate domains with variable thickness.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class ContinuumElement2D: IStructuralFiniteElement
+    public class ContinuumElement2D : IStructuralFiniteElement_v2
     {
         private readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y };
         private readonly DOFType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
         private DynamicMaterial dynamicProperties;
-        private readonly IReadOnlyList<ElasticMaterial2D> materialsAtGaussPoints;
+        private readonly IReadOnlyList<ElasticMaterial2D_v2> materialsAtGaussPoints;
 
-        public ContinuumElement2D(double thickness, IReadOnlyList<Node2D> nodes, IIsoparametricInterpolation2D interpolation,
-            IQuadrature2D quadratureForStiffness, IQuadrature2D quadratureForConsistentMass, 
+        public ContinuumElement2D(double thickness, IReadOnlyList<Node_v2> nodes, IIsoparametricInterpolation2D interpolation,
+            IQuadrature2D quadratureForStiffness, IQuadrature2D quadratureForConsistentMass,
             IGaussPointExtrapolation2D gaussPointExtrapolation,
-            IReadOnlyList<ElasticMaterial2D> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
+            IReadOnlyList<ElasticMaterial2D_v2> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
         {
             this.dynamicProperties = dynamicProperties;
             this.materialsAtGaussPoints = materialsAtGaussPoints;
@@ -64,39 +63,40 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public IGaussPointExtrapolation2D GaussPointExtrapolation { get; }
         public IIsoparametricInterpolation2D Interpolation { get; }
-        public IReadOnlyList<Node2D> Nodes { get; }
+        public IReadOnlyList<Node_v2> Nodes { get; }
         public IQuadrature2D QuadratureForConsistentMass { get; }
         public IQuadrature2D QuadratureForStiffness { get; }
         public double Thickness { get; }
 
-        public Matrix2D BuildConsistentMassMatrix()
+        public Matrix BuildConsistentMassMatrix()
         {
             int numDofs = 2 * Nodes.Count;
-            var mass = new Matrix2D(numDofs, numDofs);
-            IReadOnlyList<Vector> shapeFunctions =
+            var mass = Matrix.CreateZero(numDofs, numDofs);
+            IReadOnlyList<double[]> shapeFunctions =
                 Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForConsistentMass);
-            IReadOnlyList<Matrix2D> shapeGradientsNatural =
+            IReadOnlyList<Matrix> shapeGradientsNatural =
                 Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForConsistentMass);
 
             for (int gp = 0; gp < QuadratureForConsistentMass.IntegrationPoints.Count; ++gp)
             {
-                Matrix2D shapeFunctionMatrix = BuildShapeFunctionMatrix(shapeFunctions[gp]);
-                Matrix2D partial = shapeFunctionMatrix.Transpose() * shapeFunctionMatrix;
+                Matrix shapeFunctionMatrix = BuildShapeFunctionMatrix(shapeFunctions[gp]);
+                //Matrix partial = shapeFunctionMatrix.Transpose() * shapeFunctionMatrix;
+                Matrix partial = shapeFunctionMatrix.MultiplyRight(shapeFunctionMatrix, true, false);
                 var jacobian = new IsoparametricJacobian2D(Nodes, shapeGradientsNatural[gp]);
                 double dA = jacobian.DirectDeterminant * QuadratureForConsistentMass.IntegrationPoints[gp].Weight;
                 mass.AxpyIntoThis(partial, dA);
             }
 
             //WARNING: the following needs to change for non uniform density. Perhaps the integration order too.
-            mass.Scale(Thickness * dynamicProperties.Density); 
+            mass.ScaleIntoThis(Thickness * dynamicProperties.Density);
             return mass;
         }
 
-        public Matrix2D BuildLumpedMassMatrix()
+        public Matrix BuildLumpedMassMatrix()
         {
             int numDofs = 2 * Nodes.Count;
-            var lumpedMass = new Matrix2D(numDofs, numDofs);
-            IReadOnlyList<Matrix2D> shapeGradientsNatural =
+            var lumpedMass = Matrix.CreateZero(numDofs, numDofs);
+            IReadOnlyList<Matrix> shapeGradientsNatural =
                 Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForConsistentMass);
 
             // Contribution of each Gauss point to the element's area
@@ -117,28 +117,28 @@ namespace ISAAR.MSolve.FEM.Elements
             return lumpedMass;
         }
 
-        public Matrix2D BuildStiffnessMatrix()
+        public Matrix BuildStiffnessMatrix()
         {
             int numDofs = 2 * Nodes.Count;
-            var stiffness = new Matrix2D(numDofs, numDofs);
-            IReadOnlyList<Matrix2D> shapeGradientsNatural =
+            var stiffness = Matrix.CreateZero(numDofs, numDofs);
+            IReadOnlyList<Matrix> shapeGradientsNatural =
                 Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
 
             for (int gp = 0; gp < QuadratureForStiffness.IntegrationPoints.Count; ++gp)
             {
                 // Calculate the necessary quantities for the integration
-                Matrix2D constitutive = (Matrix2D)(materialsAtGaussPoints[gp].ConstitutiveMatrix); // ugly cast will be removed along with the retarded legacy Matrix classes
+                IMatrixView constitutive = materialsAtGaussPoints[gp].ConstitutiveMatrix;
                 var jacobian = new IsoparametricJacobian2D(Nodes, shapeGradientsNatural[gp]);
-                Matrix2D shapeGradientsCartesian = 
+                Matrix shapeGradientsCartesian =
                     jacobian.TransformNaturalDerivativesToCartesian(shapeGradientsNatural[gp]);
-                Matrix2D deformation = BuildDeformationMatrix(shapeGradientsCartesian);
+                Matrix deformation = BuildDeformationMatrix(shapeGradientsCartesian);
 
                 // Contribution of this gauss point to the element stiffness matrix
-                Matrix2D partial = deformation.Transpose() * (constitutive * deformation);
+                Matrix partial = deformation.ThisTransposeTimesOtherTimesThis(constitutive);
                 double dA = jacobian.DirectDeterminant * QuadratureForStiffness.IntegrationPoints[gp].Weight; //TODO: this is used by all methods that integrate. I should cache it.
                 stiffness.AxpyIntoThis(partial, dA);
             }
-            stiffness.Scale(Thickness);
+            stiffness.ScaleIntoThis(Thickness);
             return stiffness;
         }
 
@@ -146,11 +146,11 @@ namespace ISAAR.MSolve.FEM.Elements
         //      mass matrix, once at the start of the dynamic analysis. The resulting vectors for each direction of the ground 
         //      motion should be stored. Then at each timestep they only need to be scaled and added to the rhs vector. The mass 
         //      matrix doesn't change, so there is not reason to recompute it at each time step.
-        public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
+        public double[] CalculateAccelerationForces(Element_v2 element, IList<MassAccelerationLoad> loads)
         {
             int numDofs = 2 * Nodes.Count;
-            Vector accelerations = new Vector(numDofs);
-            IMatrix2D massMatrix = MassMatrix(element);
+            var accelerations = new double[numDofs];
+            IMatrix massMatrix = MassMatrix(element);
 
             foreach (MassAccelerationLoad load in loads)
             {
@@ -162,24 +162,23 @@ namespace ISAAR.MSolve.FEM.Elements
                         index++;
                     }
             }
-            double[] forces = new double[numDofs];
-            massMatrix.Multiply(accelerations, forces);
-            return forces;
+
+            return massMatrix.Multiply(accelerations);
         }
 
-        public double[] CalculateForces(Element element, double[] localTotalDisplacements, double[] localdDisplacements)
+        public double[] CalculateForces(Element_v2 element, double[] localTotalDisplacements, double[] localdDisplacements)
         {
             throw new NotImplementedException();
         }
 
         //TODO: this method is probably not necessary at all
-        public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
+        public double[] CalculateForcesForLogging(Element_v2 element, double[] localDisplacements)
         {
             return CalculateForces(element, localDisplacements, new double[localDisplacements.Length]);
         }
 
         //TODO: this method must be changed. It should calculates strains, stresses at GPs or nodes.
-        public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, 
+        public Tuple<double[], double[]> CalculateStresses(Element_v2 element, double[] localDisplacements,
             double[] localdDisplacements)
         {
             throw new NotImplementedException();
@@ -187,27 +186,27 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public void ClearMaterialState()
         {
-            foreach (ElasticMaterial2D m in materialsAtGaussPoints) m.ClearState();
+            foreach (ElasticMaterial2D_v2 m in materialsAtGaussPoints) m.ClearState();
         }
 
         public void ClearMaterialStresses()
         {
-            foreach (ElasticMaterial2D m in materialsAtGaussPoints) m.ClearStresses();
+            foreach (ElasticMaterial2D_v2 m in materialsAtGaussPoints) m.ClearStresses();
         }
 
-        public IMatrix2D DampingMatrix(IElement element)
+        public IMatrix DampingMatrix(IElement_v2 element)
         {
             //TODO: Stiffness and mass matrices have already been computed probably. Reuse them.
             //TODO: Perhaps with Rayleigh damping, the global damping matrix should be created directly from global mass and stiffness matrices.
-            Matrix2D damping = BuildStiffnessMatrix();
-            damping.Scale(dynamicProperties.RayleighCoeffStiffness);
+            Matrix damping = BuildStiffnessMatrix();
+            damping.ScaleIntoThis(dynamicProperties.RayleighCoeffStiffness);
             damping.AxpyIntoThis(MassMatrix(element), dynamicProperties.RayleighCoeffMass);
             return damping;
         }
 
-        public IElementDOFEnumerator DOFEnumerator { get; set; } = new GenericDOFEnumerator();
+        public IElementDofEnumerator_v2 DofEnumerator { get; set; } = new GenericDofEnumerator_v2();
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element) => dofTypes;
 
         /// <summary>
         /// The returned structure is a list with as many entries as the number of nodes of this element. Each entry contains 
@@ -245,7 +244,7 @@ namespace ISAAR.MSolve.FEM.Elements
         //    return dofTable;
         //}
 
-        public IMatrix2D MassMatrix(IElement element)
+        public IMatrix MassMatrix(IElement_v2 element)
         {
             return BuildConsistentMassMatrix();
             //return BuildLumpedMassMatrix();
@@ -255,7 +254,7 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             get
             {
-                foreach (ElasticMaterial2D material in materialsAtGaussPoints)
+                foreach (ElasticMaterial2D_v2 material in materialsAtGaussPoints)
                     if (material.Modified) return true;
                 return false;
             }
@@ -263,19 +262,15 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public void ResetMaterialModified()
         {
-            foreach (ElasticMaterial2D material in materialsAtGaussPoints) material.ResetModified();
+            foreach (ElasticMaterial2D_v2 material in materialsAtGaussPoints) material.ResetModified();
         }
 
         public void SaveMaterialState()
         {
-            foreach (ElasticMaterial2D m in materialsAtGaussPoints) m.SaveState();
+            foreach (ElasticMaterial2D_v2 m in materialsAtGaussPoints) m.SaveState();
         }
 
-        //TODO: why do I need the wrapping element?
-        public IMatrix2D StiffnessMatrix(IElement element)
-        {
-            return BuildStiffnessMatrix();
-        }
+        public IMatrix StiffnessMatrix(IElement_v2 element) => BuildStiffnessMatrix();
 
         /// <summary>
         /// Calculate strains (exx, eyy, 2exy) and stresses (sxx, syy, sxy) at integration points, store them in the materials 
@@ -287,33 +282,30 @@ namespace ISAAR.MSolve.FEM.Elements
         public (IReadOnlyList<double[]> strains, IReadOnlyList<double[]> stresses) UpdateStrainsStressesAtGaussPoints(
             double[] localDisplacements)
         {
-            var localDisplVector = new Vector(localDisplacements);
             int numGPs = QuadratureForStiffness.IntegrationPoints.Count;
             var strains = new double[numGPs][];
             var stresses = new double[numGPs][];
-            IReadOnlyList<Matrix2D> shapeGradientsNatural =
+            IReadOnlyList<Matrix> shapeGradientsNatural =
                 Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
 
             for (int gp = 0; gp < numGPs; ++gp)
             {
-                IMatrix2D constitutive = materialsAtGaussPoints[gp].ConstitutiveMatrix;
+                IMatrixView constitutive = materialsAtGaussPoints[gp].ConstitutiveMatrix;
                 var jacobian = new IsoparametricJacobian2D(Nodes, shapeGradientsNatural[gp]);
-                Matrix2D shapeGrandientsCartesian =
+                Matrix shapeGrandientsCartesian =
                     jacobian.TransformNaturalDerivativesToCartesian(shapeGradientsNatural[gp]);
-                Matrix2D deformation = BuildDeformationMatrix(shapeGrandientsCartesian);
+                Matrix deformation = BuildDeformationMatrix(shapeGrandientsCartesian);
 
-                strains[gp] = new double[3];
-                deformation.Multiply(localDisplVector, strains[gp]);
-                stresses[gp] = new double[3];
-                constitutive.Multiply(new Vector(strains[gp]), stresses[gp]);
+                strains[gp] = deformation.Multiply(localDisplacements);
+                stresses[gp] = constitutive.Multiply(strains[gp]);
             }
 
             return (strains, stresses);
         }
 
-        private Matrix2D BuildDeformationMatrix(Matrix2D shapeGradientsCartesian)
+        private Matrix BuildDeformationMatrix(Matrix shapeGradientsCartesian)
         {
-            var deformation = new Matrix2D(3, 2 * Nodes.Count);
+            var deformation = Matrix.CreateZero(3, 2 * Nodes.Count);
             for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
             {
                 int col0 = 2 * nodeIdx;
@@ -331,15 +323,15 @@ namespace ISAAR.MSolve.FEM.Elements
         /// The shape function matrix is 2-by-2n, where n = is the number of shape functions. Row 0 corresponds to dof X, while
         /// row 1 to dof Y.
         /// </summary>
-        private Matrix2D BuildShapeFunctionMatrix(Vector shapeFunctions)
+        private Matrix BuildShapeFunctionMatrix(double[] shapeFunctions)
         {
-            var array2D = new double[2, 2 * shapeFunctions.Length];
+            var shapeFunctionMatrix = Matrix.CreateZero(2, 2 * shapeFunctions.Length);
             for (int i = 0; i < shapeFunctions.Length; ++i)
             {
-                array2D[0, 2 * i] = shapeFunctions[i];
-                array2D[1, 2 * i + 1] = shapeFunctions[i];
+                shapeFunctionMatrix[0, 2 * i] = shapeFunctions[i];
+                shapeFunctionMatrix[1, 2 * i + 1] = shapeFunctions[i];
             }
-            return new Matrix2D(array2D);
+            return shapeFunctionMatrix;
         }
     }
 }

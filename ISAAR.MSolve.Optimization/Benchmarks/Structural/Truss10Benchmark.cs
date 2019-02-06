@@ -1,20 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Optimization.Problems;
-using ISAAR.MSolve.FEM.Problems.Structural;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.FEM.Problems.Structural.Elements;
-using ISAAR.MSolve.Solvers.Skyline;
-using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Logging;
-using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Problems.Structural.Elements;
+using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Optimization.Problems;
+using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Interfaces;
+using ISAAR.MSolve.Solvers.Skyline;
 
 namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
 {

@@ -14,27 +14,27 @@ namespace ISAAR.MSolve.Logging.VTK
     /// </summary>
     public class VtkMesh2D
     {
-        private readonly Model model;
+        private readonly Model_v2 model;
         private readonly VtkPoint2D[] points;
         private readonly VtkCell2D[] cells;
-        private readonly Dictionary<Node, VtkPoint2D> nodes2Points;
+        private readonly Dictionary<Node_v2, VtkPoint2D> nodes2Points;
         private readonly Dictionary<ContinuumElement2D, VtkCell2D> elements2Cells;
 
-        public VtkMesh2D(Model model)
+        public VtkMesh2D(Model_v2 model)
         {
             this.model = model;
 
-            IList<Node> nodes = model.Nodes;
+            IList<Node_v2> nodes = model.Nodes;
             points = new VtkPoint2D[nodes.Count];
-            nodes2Points = new Dictionary<Node, VtkPoint2D>();
+            nodes2Points = new Dictionary<Node_v2, VtkPoint2D>();
             for (int i = 0; i < points.Length; ++i)
             {
-                Node node = nodes[i];
+                Node_v2 node = nodes[i];
                 points[i] = new VtkPoint2D(i, node.X, node.Y);
                 nodes2Points[node] = points[i];
             }
 
-            IList<Element> elements = model.Elements;
+            IList<Element_v2> elements = model.Elements;
             cells = new VtkCell2D[elements.Count];
             elements2Cells = new Dictionary<ContinuumElement2D, VtkCell2D>();
             for (int i = 0; i < cells.Length; ++i)
@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.Logging.VTK
 
         public IReadOnlyList<VtkPoint2D> Points { get { return points; } }
         public IReadOnlyList<VtkCell2D> Cells { get { return cells; } }
-        public IReadOnlyDictionary<Node, VtkPoint2D> Nodes2Points { get { return nodes2Points; } }
+        public IReadOnlyDictionary<Node_v2, VtkPoint2D> Nodes2Points { get { return nodes2Points; } }
         public IReadOnlyDictionary<ContinuumElement2D, VtkCell2D> Elements2Celss { get { return elements2Cells; } }
     }
 }

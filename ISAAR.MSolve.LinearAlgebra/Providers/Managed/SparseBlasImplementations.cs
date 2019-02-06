@@ -25,6 +25,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.Managed
         {
             if (transposeA)
             {
+                Array.Clear(y, offsetY, numColsA);
                 // A^T * x = linear combination of columns of A^T = rows of A, with the entries of x as coefficients
                 for (int i = 0; i < numRowsA; ++i)
                 {
@@ -39,6 +40,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.Managed
             }
             else
             {
+                Array.Clear(y, offsetY, numRowsA);
                 for (int i = 0; i < numRowsA; ++i)
                 {
                     double dot = 0.0;
@@ -53,6 +55,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.Managed
         internal static void SkylineTimesVector(int order, double[] valuesA, int[] diagOffsetsA, double[] vectorX, 
             double[] vectorY)
         {
+            Array.Clear(vectorY, 0, vectorY.Length);
+
             // A*x = (L+D)*x + U*x
             // (L+D)*x is easy, since the non zero entries of row i left of the diagonal are stored contiguously in column i and
             // we can easily take its dot product with the vector.

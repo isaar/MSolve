@@ -135,6 +135,35 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
             });
         }
 
+        [Theory]
+        [MemberData(nameof(TestSettings.ProvidersToTest), MemberType = typeof(TestSettings))]
+        private static void TestMatrixVectorMultiplicationIntoResult(LinearAlgebraProviderChoice providers)
+        {
+            TestSettings.RunMultiproviderTest(providers, delegate ()
+            {
+                // The result vectors will first be set to some non zero values to make sure that the result overwrites 
+                // them instead of being added to them.
+
+                // MultiplyIntoResult() - untransposed 
+                var A = CsrMatrix.CreateFromArrays(SparseRectangular10by5.NumRows, SparseRectangular10by5.NumCols,
+                    SparseRectangular10by5.CsrValues, SparseRectangular10by5.CsrColIndices, SparseRectangular10by5.CsrRowOffsets,
+                    true);
+                var x5 = Vector.CreateFromArray(SparseRectangular10by5.Lhs5);
+                var b10Expected = Vector.CreateFromArray(SparseRectangular10by5.Rhs10);
+                Vector b10Computed = Vector.CreateWithValue(SparseRectangular10by5.NumRows, 1.0);
+                //Vector bComputed = Vector.CreateZero(SparseRectangular10by5.NumRows);
+                A.MultiplyIntoResult(x5, b10Computed, false);
+                comparer.AssertEqual(b10Expected, b10Computed);
+
+                // MultiplyIntoResult() - transposed
+                var x10 = Vector.CreateFromArray(SparseRectangular10by5.Lhs10);
+                var b5Expected = Vector.CreateFromArray(SparseRectangular10by5.Rhs5);
+                Vector b5Computed = Vector.CreateWithValue(SparseRectangular10by5.NumCols, 1.0);
+                A.MultiplyIntoResult(x10, b5Computed, true);
+                comparer.AssertEqual(b5Expected, b5Computed);
+            });
+        }
+
         [Fact] //TODO: If the explicit transposition becomes abstracted behind a provider, then this should also be a Theory
         private static void TestTransposition()
         {
