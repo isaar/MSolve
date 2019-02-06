@@ -11,6 +11,7 @@ using ISAAR.MSolve.IGA.Readers;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
@@ -72,8 +73,8 @@ namespace ISAAR.MSolve.IGA.Tests
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
 
-			var paraview = new ParaviewTsplineShells(model, solver.LinearSystems[0].Solution, filename);
-			paraview.CreateParaviewFile();
+			//var paraview = new ParaviewTsplineShells(model, solver.LinearSystems[0].Solution, filename);
+			//paraview.CreateParaviewFile();
 
 			var expectedSolutionVector = new Vector(new double[]
 			{
@@ -300,7 +301,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			paraview.CreateParaviewFile();
 		}
 
-		[Fact]
+		//[Fact]
 		public void SimpleHoodBenchmarkMKL()
 		{
 			VectorExtensions.AssignTotalAffinityCount();

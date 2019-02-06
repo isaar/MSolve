@@ -9,6 +9,7 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.IGA.Elements
@@ -18,13 +19,13 @@ namespace ISAAR.MSolve.IGA.Elements
 
         protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X};
         protected DOFType[][] dofTypes;
-        protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
         public  int Degree { get; set; }
 
         #region IStructuralIsogeometricElement
         public ElementDimensions ElementDimensions { get { return ElementDimensions.OneD; } }
 
-        public IElementDOFEnumerator DOFEnumerator { get { return dofEnumerator; } set { this.dofEnumerator = value; } }
+        public IElementDofEnumerator_v2 DofEnumerator { get { return dofEnumerator; } set { this.dofEnumerator = value; } }
 
         public bool MaterialModified => throw new NotImplementedException();
 
@@ -291,7 +292,7 @@ namespace ISAAR.MSolve.IGA.Elements
             throw new NotImplementedException();
         }
 
-        public IMatrix2D StiffnessMatrix(IElement element)
+        public IMatrix StiffnessMatrix(IElement_v2 element)
         {
             throw new NotImplementedException();
         }
@@ -311,17 +312,17 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix2D MassMatrix(IElement element)
+		public IMatrix MassMatrix(IElement_v2 element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IMatrix2D DampingMatrix(IElement element)
+		public IMatrix DampingMatrix(IElement_v2 element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
+		public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
 		{
 			throw new NotImplementedException();
 		}

@@ -11,6 +11,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.IGA.Entities.Loads;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
 
@@ -20,11 +21,11 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
     {
         protected readonly static DOFType[] controlPointDOFTypes = new  DOFType[] {DOFType.X, DOFType.Y , DOFType.Z };
         protected DOFType[][] dofTypes;
-        protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
 	    private DynamicMaterial dynamicProperties;
 
 
-		public IElementDOFEnumerator DOFEnumerator
+		public IElementDofEnumerator_v2 DofEnumerator
         {
             get
             {
@@ -45,7 +46,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
             }
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
         {
 	        var nurbsElement = (NURBSElement3D) element;
 			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
@@ -89,17 +90,17 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
             throw new NotImplementedException();
         }
 
-        public IMatrix2D DampingMatrix(IElement element)
+        public IMatrix DampingMatrix(IElement_v2 element)
         {
             throw new NotImplementedException();
         }
 
-        public IMatrix2D MassMatrix(IElement element)
+        public IMatrix MassMatrix(IElement_v2 element)
         {
             throw new NotImplementedException();
         }
 
-        public IMatrix2D StiffnessMatrix(IElement element)
+        public IMatrix StiffnessMatrix(IElement_v2 element)
         {
 	        var nurbsElement = (NURBSElement3D)element;
 			IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(nurbsElement);
@@ -131,7 +132,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
                     }
                 }
             }
-            return stiffnessMatrixElement;
+            return Matrix.CreateFromArray(stiffnessMatrixElement.Data);
 
         }
 

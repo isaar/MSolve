@@ -8,6 +8,7 @@ using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.IGA.SupportiveClasses;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
@@ -21,9 +22,9 @@ namespace ISAAR.MSolve.IGA.Elements
 		public int DegreeHeta { get; set; }
 		protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
 		protected DOFType[][] dofTypes;
-		protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+		protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
 
-		public IElementDOFEnumerator DOFEnumerator
+		public IElementDofEnumerator_v2 DofEnumerator
 		{
 			get
 			{
@@ -86,12 +87,12 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix2D DampingMatrix(IElement element)
+		public IMatrix DampingMatrix(IElement_v2 element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
+		public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
 		{
 			var nurbsElement = (TSplineKirchhoffLoveShellElement)element;
 			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
@@ -102,7 +103,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			return dofTypes;
 		}
 
-		public IMatrix2D MassMatrix(IElement element)
+		public IMatrix MassMatrix(IElement_v2 element)
 		{
 			throw new NotImplementedException();
 		}
@@ -112,7 +113,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix2D StiffnessMatrix(IElement element)
+		public IMatrix StiffnessMatrix(IElement_v2 element)
 		{
 			var shellElement = (TSplineKirchhoffLoveShellElement)element;
             IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(shellElement);
@@ -160,7 +161,7 @@ namespace ISAAR.MSolve.IGA.Elements
 				stiffnessMatrixElement.Add(Kmembrane);
 				stiffnessMatrixElement.Add(Kbending);
 			}
-			return stiffnessMatrixElement;
+			return Matrix.CreateFromArray(stiffnessMatrixElement.Data);
 		}
 
 		private Matrix2D CalculateConstitutiveMatrix(TSplineKirchhoffLoveShellElement element, Vector surfaceBasisVector1, Vector surfaceBasisVector2)

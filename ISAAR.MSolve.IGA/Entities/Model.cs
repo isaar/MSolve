@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.IGA.Entities
 		public IList<Cluster> Clusters => ClustersDictionary.Values.ToList();
 		public Dictionary<int, Cluster> ClustersDictionary { get; } = new Dictionary<int, Cluster>();
 
-		IReadOnlyList<IElement> IStructuralModel_v2.Elements => ElementsDictionary.Values.ToList();
+		IReadOnlyList<IElement_v2> IStructuralModel_v2.Elements => ElementsDictionary.Values.ToList();
 		public IList<Element> Elements => ElementsDictionary.Values.ToList();
 		public Dictionary<int, Element> ElementsDictionary => elementsDictionary;
 

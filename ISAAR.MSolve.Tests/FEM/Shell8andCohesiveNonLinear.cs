@@ -269,7 +269,7 @@ namespace ISAAR.MSolve.Tests.FEM
             //    YoungModulus = 1353000,
             //    PoissonRatio = 0.3,
             //};
-            ShellElasticMaterial material2 = new ShellElasticMaterial()
+            ShellElasticMaterial3D material2 = new ShellElasticMaterial3D()
             {
                 YoungModulus = 1353000,
                 PoissonRatio = 0.3,

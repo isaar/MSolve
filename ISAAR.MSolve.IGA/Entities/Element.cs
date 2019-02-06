@@ -9,7 +9,7 @@ using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-    public class Element:IElement
+    public class Element:IElement_v2
     {
         private readonly Dictionary<int, ControlPoint> controlPointDictionary =new Dictionary<int, ControlPoint>();
 
@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.IGA.Entities
             get { return controlPointDictionary.Values.ToList<ControlPoint>(); }
         }
 
-	    public IList<INode> INodes
+	    public IList<INode> Nodes
 	    {
 		    get
 		    {
@@ -54,13 +54,10 @@ namespace ISAAR.MSolve.IGA.Entities
 
         public IIsogeometricElement ElementType { get; set; }
 
-		public IElementType IElementType
-		{
-			get => ElementType;
-		}
+        IElementType_v2 IElement_v2.ElementType => ElementType;
 
-        //public Patch Patch { get; set; }
-		
+		//public Patch Patch { get; set; }
+
 
 		public int[] DOFs { get; set; }
 

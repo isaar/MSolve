@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.IGA.Entities
 
 		public Table<INode, DOFType, double> Constraints { get; } = new Table<INode, DOFType, double>();
 
-		IReadOnlyList<IElement> ISubdomain_v2.Elements => Elements;
+		IReadOnlyList<IElement_v2> ISubdomain_v2.Elements => Elements;
 		public List<Element> Elements { get; } = new List<Element>();
 		
 		public int ID { get; }
@@ -48,19 +48,19 @@ namespace ISAAR.MSolve.IGA.Entities
 			get { return facesDictionary; }
 		}
 
-		public Vector CalculateElementIncrementalConstraintDisplacements(IElement element, double constraintScalingFactor)
+		public double[] CalculateElementIncrementalConstraintDisplacements(IElement_v2 element, double constraintScalingFactor)
 		{
-			var elementNodalDisplacements = Vector.CreateZero(DofOrdering.CountElementDofs(element));
+			var elementNodalDisplacements = new double[DofOrdering.CountElementDofs(element)];
 			ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
 			return elementNodalDisplacements;
 		}
 
-		private static void ApplyConstraintDisplacements(IElement element, Vector elementNodalDisplacements,
+		private static void ApplyConstraintDisplacements(IElement_v2 element, double[] elementNodalDisplacements,
 			Table<INode, DOFType, double> constraints)
 		{
 			int elementDofIdx = 0;
-			IList<INode> nodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
-			IList<IList<DOFType>> dofs = element.IElementType.DOFEnumerator.GetDOFTypes(element);
+			IList<INode> nodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
+			IList<IList<DOFType>> dofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
 			for (int i = 0; i < nodes.Count; ++i)
 			{
 				//bool isConstrainedNode = constraintsDictionary.TryGetValue(nodes[i].ID, 
@@ -85,10 +85,10 @@ namespace ISAAR.MSolve.IGA.Entities
 			}
 		}
 
-		public Vector CalculateElementDisplacements(Element element, IVectorView globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
+		public double[] CalculateElementDisplacements(Element element, IVectorView globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
 		{
-			var elementNodalDisplacements = Vector.CreateZero(DofOrdering.CountElementDofs(element));
-			DofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector, elementNodalDisplacements);
+			var elementNodalDisplacements = new double[DofOrdering.CountElementDofs(element)];
+			DofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector);
 			ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
 			return elementNodalDisplacements;
 		}
@@ -137,12 +137,12 @@ namespace ISAAR.MSolve.IGA.Entities
 			var forces = Vector.CreateZero(DofOrdering.NumFreeDofs); //TODO: use Vector
 			foreach (Element element in Elements)
 			{
-				double[] localSolution = CalculateElementDisplacements(element, solution).ToRawArray();
-				double[] localdSolution = CalculateElementDisplacements(element, dSolution).ToRawArray();
+				double[] localSolution = CalculateElementDisplacements(element, solution);
+				double[] localdSolution = CalculateElementDisplacements(element, dSolution);
 				element.ElementType.CalculateStresses(element, localSolution, localdSolution);
 				if (element.ElementType.MaterialModified)
 					element.Patch.MaterialsModified = true;
-				var f = Vector.CreateFromArray(element.ElementType.CalculateForces(element, localSolution, localdSolution));
+				var f = element.ElementType.CalculateForces(element, localSolution, localdSolution);
 				DofOrdering.AddVectorElementToSubdomain(element, f, forces);
 			}
 			return forces;
@@ -868,7 +868,5 @@ namespace ISAAR.MSolve.IGA.Entities
 			}
 
 		}
-		
-
 	}
 }

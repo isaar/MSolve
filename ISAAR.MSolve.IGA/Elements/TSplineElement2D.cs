@@ -8,6 +8,7 @@ using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.IGA.SupportiveClasses;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
@@ -22,8 +23,8 @@ namespace ISAAR.MSolve.IGA.Elements
 		private IReadOnlyList<IContinuumMaterial2D> materialsAtGaussPoints;
 		private DynamicMaterial dynamicProperties;
 
-		protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
-		public IElementDOFEnumerator DOFEnumerator
+		protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
+		public IElementDofEnumerator_v2 DofEnumerator
 		{
 			get
 			{
@@ -90,12 +91,12 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix2D DampingMatrix(IElement element)
+		public IMatrix DampingMatrix(IElement_v2 element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
+		public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
 		{
 			var nurbsElement = (TSplineElement2D)element;
 			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
@@ -106,7 +107,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			return dofTypes;
 		}
 
-		public IMatrix2D MassMatrix(IElement element)
+		public IMatrix MassMatrix(IElement_v2 element)
 		{
 			throw new NotImplementedException();
 		}
@@ -116,7 +117,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix2D StiffnessMatrix(IElement element)
+		public IMatrix StiffnessMatrix(IElement_v2 element)
 		{
 			var tsplineElement = (TSplineElement2D)element;
 			IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(tsplineElement);
@@ -148,7 +149,7 @@ namespace ISAAR.MSolve.IGA.Elements
 					}
 				}
 			}
-			return stiffnessMatrixElement;
+			return Matrix.CreateFromArray(stiffnessMatrixElement.Data);
 		}
 
 		private static Matrix2D CalculateDeformationMatrix2(TSplineElement2D tsplineElement,

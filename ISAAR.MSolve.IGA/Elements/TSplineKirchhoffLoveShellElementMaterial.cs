@@ -8,6 +8,7 @@ using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.IGA.SupportiveClasses;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
@@ -22,7 +23,7 @@ namespace ISAAR.MSolve.IGA.Elements
 		public int DegreeHeta { get; set; }
 		protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
 		protected DOFType[][] dofTypes;
-		protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+		protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
 		private DynamicMaterial dynamicProperties;
 		private IReadOnlyList<IShellMaterial> materialsAtGaussPoints;
 
@@ -52,7 +53,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			}
 		}
 
-		public IElementDOFEnumerator DOFEnumerator
+		public IElementDofEnumerator_v2 DofEnumerator
 		{
 			get
 			{
@@ -242,12 +243,12 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix2D DampingMatrix(IElement element)
+		public IMatrix DampingMatrix(IElement_v2 element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
+		public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
 		{
 			var nurbsElement = (TSplineKirchhoffLoveShellElementMaterial)element;
 			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
@@ -258,7 +259,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			return dofTypes;
 		}
 
-		public IMatrix2D MassMatrix(IElement element)
+		public IMatrix MassMatrix(IElement_v2 element)
 		{
 			throw new NotImplementedException();
 		}
@@ -342,7 +343,7 @@ namespace ISAAR.MSolve.IGA.Elements
 		//}
 
 
-		public IMatrix2D StiffnessMatrix(IElement element)
+		public IMatrix StiffnessMatrix(IElement_v2 element)
 		{
 			var shellElement = (TSplineKirchhoffLoveShellElementMaterial)element;
 			var gaussPoints = materialsAtThicknessGP.Keys.ToArray();
@@ -467,7 +468,7 @@ namespace ISAAR.MSolve.IGA.Elements
 					}
 				}
 			}
-			return new Matrix2D(stiffnessMatrix);
+			return Matrix.CreateFromArray(stiffnessMatrix);
 		}
 
 		public (double[,] MembraneConstitutiveMatrix, double[,] BendingConstitutiveMatrix, double[,] CouplingConstitutiveMatrix) IntegratedConstitutiveOverThickness(IList<GaussLegendrePoint3D> gaussPoints, int j)
