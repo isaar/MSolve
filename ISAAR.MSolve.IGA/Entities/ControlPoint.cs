@@ -38,7 +38,7 @@ namespace ISAAR.MSolve.IGA.Entities
         public double Heta { get; set; }
         public double Zeta { get; set; }
 
-        public List<Constraint> Constraints => throw new NotImplementedException("When merging Dimitris and Serafeim's code, keep Dimitris.");
+        public List<Constraint> Constraints => constraints;
 
         public void BuildPatchesDictionary()
         {
