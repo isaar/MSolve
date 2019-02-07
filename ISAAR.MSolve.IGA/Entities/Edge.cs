@@ -1,6 +1,5 @@
 ﻿using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Interfaces;
-using ISAAR.MSolve.IGA.Problems.Structural.Elements;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using System;

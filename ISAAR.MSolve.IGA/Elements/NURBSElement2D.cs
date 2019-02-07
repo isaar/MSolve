@@ -1,21 +1,17 @@
-﻿using ISAAR.MSolve.IGA.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.IGA.Entities;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.IGA.Entities;
+using ISAAR.MSolve.IGA.Entities.Loads;
+using ISAAR.MSolve.IGA.Interfaces;
+using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
 
-namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
+namespace ISAAR.MSolve.IGA.Elements
 {
 	public class NURBSElement2D : Element, IStructuralIsogeometricElement
 	{

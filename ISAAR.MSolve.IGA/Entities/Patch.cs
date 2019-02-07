@@ -6,7 +6,6 @@ using System.Text;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Elements;
-using ISAAR.MSolve.IGA.Problems.Structural.Elements;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Numerical.Commons;

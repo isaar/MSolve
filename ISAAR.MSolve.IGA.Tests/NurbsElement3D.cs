@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.FEM.Materials;
+using ISAAR.MSolve.IGA.Elements;
 using ISAAR.MSolve.IGA.Entities;
-using ISAAR.MSolve.IGA.Problems.Structural.Elements;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using Xunit;
 

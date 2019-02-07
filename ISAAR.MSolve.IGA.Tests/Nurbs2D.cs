@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.IGA.Entities;
-using ISAAR.MSolve.IGA.Problems.Structural.Elements;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using Xunit;
 using System.Linq;
