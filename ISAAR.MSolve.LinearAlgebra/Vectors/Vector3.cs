@@ -9,7 +9,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
     /// A vector with 3 entries. Optimized version of <see cref="Vector"/>.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class Vector3: IVector
+    public class Vector3: IVector, IEntrywiseOperableView1D<Vector3, Vector3>, IEntrywiseOperable1D<Vector3>
     {
         private readonly double[] data;
 
@@ -330,7 +330,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// See <see cref="IVectorView.DoEntrywise(IVectorView, Func{double, double, double})"/>.
+        /// See <see cref="IEntrywiseOperableView1D{TVectorIn, TVectorOut}.DoEntrywise(TVectorIn, Func{double, double, double})"/>.
         /// </summary>
         public IVector DoEntrywise(IVectorView vector, Func<double, double, double> binaryOperation)
         {
@@ -344,12 +344,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// Performs a binary operation on each pair of entries, for 0 &lt;= i &lt; 3: 
-        /// result[i] = <paramref name="binaryOperation"/>(this[i], <paramref name="vector"/>[i]). 
-        /// The resulting vector is written to a new <see cref="Vector3"/> and then returned.
+        /// See <see cref="IEntrywiseOperableView1D{TVectorIn, TVectorOut}.DoEntrywise(TVectorIn, Func{double, double, double})"/>.
         /// </summary>
-        /// <param name="vector">A vector with three entries.</param>
-        /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
         public Vector3 DoEntrywise(Vector3 vector, Func<double, double, double> binaryOperation)
         {
             return new Vector3(new double[] { binaryOperation(this.data[0], vector.data[0]),
@@ -357,7 +353,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// See <see cref="IVector.DoEntrywiseIntoThis(IVectorView, Func{double, double, double})"/>
+        /// See <see cref="IEntrywiseOperable1D{TVectorIn}.DoEntrywiseIntoThis(TVectorIn, Func{double, double, double})"/>
         /// </summary>
         public void DoEntrywiseIntoThis(IVectorView otherVector, Func<double, double, double> binaryOperation)
         {
@@ -371,12 +367,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// Performs a binary operation on each pair of entries, for 0 &lt;= i &lt; 3: 
-        /// result[i] = <paramref name="binaryOperation"/>(this[i], <paramref name="vector"/>[i]). 
-        /// The resulting vector overwrites the entries of this <see cref="Vector3"/> instance.
+        /// See <see cref="IEntrywiseOperable1D{TVectorIn}.DoEntrywiseIntoThis(TVectorIn, Func{double, double, double})"/>
         /// </summary>
-        /// <param name="vector">A vector with three entries.</param>
-        /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
         public void DoEntrywiseIntoThis(Vector3 vector, Func<double, double, double> binaryOperation)
         {
             this.data[0] = binaryOperation(this.data[0], vector.data[0]);
@@ -385,28 +377,24 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// See <see cref="IVectorView.DoToAllEntries(Func{double, double})"/>.
+        /// See <see cref="IEntrywiseOperableView1D{TVectorIn, TVectorOut}.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
-        IVector IVectorView.DoToAllEntries(Func<double, double> unaryOperation)
+        IVector IEntrywiseOperableView1D<IVectorView, IVector>.DoToAllEntries(Func<double, double> unaryOperation)
         {
             return DoToAllEntries(unaryOperation);
         }
 
         /// <summary>
-        /// Performs a unary operation on each entry: result[i] = <paramref name="unaryOperation"/>(this[i]), 
-        /// for 0 &lt;= i &lt; 3. The resulting vector is written to a new <see cref="Vector3"/> and then returned.
+        /// See <see cref="IEntrywiseOperableView1D{TVectorIn, TVectorOut}.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
-        /// <param name="unaryOperation">A method that takes 1 argument and returns 1 result.</param>
         public Vector3 DoToAllEntries(Func<double, double> unaryOperation)
         {
             return new Vector3(new double[] { unaryOperation(data[0]), unaryOperation(data[1]), unaryOperation(data[2]) });
         }
 
         /// <summary>
-        /// Performs a unary operation on each entry: result[i] = <paramref name="unaryOperation"/>(this[i]), 
-        /// for 0 &lt;= i &lt; 3. The resulting vector overwrites the entries of this <see cref="Vector3"/> instance.
+        /// See <see cref="IEntrywiseOperable1D{TVectorIn}.DoToAllEntriesIntoThis(Func{double, double})"/>
         /// </summary>
-        /// <param name="unaryOperation">A method that takes 1 argument and returns 1 result.</param>
         public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
         {
             this.data[0] = unaryOperation(this.data[0]);

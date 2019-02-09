@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// General purpose matrix class. All entries are stored in an 1D column major array. Uses LAPACK for most operations. 
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class Matrix : IMatrix, ISliceable2D
+    public class Matrix : IMatrix, ISliceable2D, IEntrywiseOperableView2D<Matrix, Matrix>, IEntrywiseOperable2D<Matrix>
     {
         private double[] data;
 
@@ -389,24 +389,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrixView.DoEntrywise(IMatrixView, Func{double, double, double})"/>.
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoEntrywise(TMatrixIn, Func{double, double, double})"/>.
         /// </summary>
         public IMatrix DoEntrywise(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
             if (matrix is Matrix dense) return DoEntrywise(dense, binaryOperation);
-            else return matrix.DoEntrywise(this, binaryOperation); // To avoid accessing zero entries
+            else return matrix.DoEntrywise(this, (x, y) => binaryOperation(y, x)); // To avoid accessing zero entries.
         }
 
         /// <summary>
-        /// Performs the following operation for 0 &lt;= i &lt; <see cref="NumRows"/>, 0 &lt;= j &lt; <see cref="NumColumns"/>:
-        /// result[i, j] = <paramref name="binaryOperation"/>(this[i,j], <paramref name="matrix"/>[i, j]). 
-        /// The resulting matrix is written to a new <see cref="Matrix"/> and then returned.
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoEntrywise(TMatrixIn, Func{double, double, double})"/>.
         /// </summary>
-        /// <param name="matrix">A matrix with the same <see cref="NumRows"/> and <see cref="NumColumns"/> as this 
-        ///     <see cref="Matrix"/> instance.</param>
-        /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
-        /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="matrix"/> has different 
-        ///     <see cref="NumRows"/> or <see cref="NumColumns"/> than this instance.</exception>
         public Matrix DoEntrywise(Matrix matrix, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckSameMatrixDimensions(this, matrix);
@@ -416,7 +409,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrix.DoEntrywiseIntoThis(IMatrixView, Func{double, double, double})"/>.
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoEntrywiseIntoThis(TMatrixIn, Func{double, double, double})"/>.
         /// </summary>
         public void DoEntrywiseIntoThis(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
@@ -436,15 +429,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Performs the following operation for 0 &lt;= i &lt; <see cref="NumRows"/>, 0 &lt;= j &lt; <see cref="NumColumns"/>:
-        /// this[i, j] = <paramref name="binaryOperation"/>(this[i,j], <paramref name="matrix"/>[i, j]). 
-        /// The resulting matrix overwrites the entries of this <see cref="Matrix"/> instance.
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoEntrywiseIntoThis(TMatrixIn, Func{double, double, double})"/>.
         /// </summary>
-        /// <param name="matrix">A matrix with the same <see cref="NumRows"/> and <see cref="NumColumns"/> as this 
-        ///     <see cref="Matrix"/> instance.</param>
-        /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
-        /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="matrix"/> has different 
-        ///     <see cref="NumRows"/> or <see cref="NumColumns"/> than this instance.</exception>
         public void DoEntrywiseIntoThis(Matrix matrix, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckSameMatrixDimensions(this, matrix);
@@ -452,16 +438,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrixView.DoToAllEntries(Func{double, double})"/>.
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
-        IMatrix IMatrixView.DoToAllEntries(Func<double, double> unaryOperation) => DoToAllEntries(unaryOperation);
+        IMatrix IEntrywiseOperableView2D<IMatrixView, IMatrix>.DoToAllEntries(Func<double, double> unaryOperation)
+            => DoToAllEntries(unaryOperation);
 
         /// <summary>
-        /// Performs the following operation for 0 &lt;= i &lt; <see cref="NumRows"/>, 0 &lt;= j &lt; <see cref="NumColumns"/>:
-        /// result[i, j] = <paramref name="unaryOperation"/>(this[i,j]). 
-        /// The resulting matrix is written to a new <see cref="Matrix"/> and then returned.
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
-        /// <param name="unaryOperation">A method that takes 1 argument and returns 1 result.</param>
         public Matrix DoToAllEntries(Func<double, double> unaryOperation)
         {
             var result = new double[NumRows * NumColumns];
@@ -470,7 +454,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrix.DoToAllEntriesIntoThis(Func{double, double})"/>.
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoToAllEntriesIntoThis(Func{double, double})"/>.
         /// </summary>
         public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
         {

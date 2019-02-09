@@ -281,7 +281,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public int CountNonZeros() => values.Length;
 
         /// <summary>
-        /// See <see cref="IMatrixView.DoEntrywise(IMatrixView, Func{double, double, double})"/>.
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoEntrywise(TMatrixIn, Func{double, double, double})"/>.
         /// </summary>
         public IMatrix DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
         {
@@ -304,38 +304,27 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrix.DoEntrywiseIntoThis(IMatrixView, Func{double, double, double})"/>.
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoEntrywiseIntoThis(TMatrixIn, Func{double, double, double})"/>.
         /// </summary>
         public void DoEntrywiseIntoThis(IMatrixView other, Func<double, double, double> binaryOperation)
         {
-            if (other is CscMatrix casted) DoEntrywiseIntoThis(casted, binaryOperation);
+            if (other is CscMatrix casted)
+            {
+                //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
+                if (!HasSameIndexer(casted))
+                {
+                    throw new SparsityPatternModifiedException("Only allowed if the indexing arrays are the same");
+                }
+                for (int i = 0; i < values.Length; ++i) this.values[i] = binaryOperation(this.values[i], casted.values[i]);
+            }
             else throw new SparsityPatternModifiedException(
                 "This operation is legal only if the other matrix has the same sparsity pattern");
         }
 
         /// <summary>
-        /// Performs the following operation for 0 &lt;= i &lt; <see cref="NumRows"/>, 0 &lt;= j &lt; <see cref="NumColumns"/>:
-        /// this[i, j] = <paramref name="binaryOperation"/>(this[i,j], <paramref name="matrix"/>[i, j]). 
-        /// The resulting matrix overwrites the entries of this <see cref="CscMatrix"/> instance.
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
-        /// <param name="matrix">A matrix with the same indexing arrays as this <see cref="CscMatrix"/> instance.</param>
-        /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
-        /// <exception cref="SparsityPatternModifiedException">Thrown if <paramref name="otherMatrix"/> has different 
-        ///     indexing arrays than this instance.</exception>
-        public void DoEntrywiseIntoThis(CscMatrix other, Func<double, double, double> binaryOperation)
-        {
-            //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
-            if (!HasSameIndexer(other))
-            {
-                throw new SparsityPatternModifiedException("Only allowed if the indexing arrays are the same");
-            }
-            for (int i = 0; i < values.Length; ++i) this.values[i] = binaryOperation(this.values[i], other.values[i]);
-        }
-
-        /// <summary>
-        /// See <see cref="IMatrixView.DoToAllEntries(Func{double, double})"/>.
-        /// </summary>
-        IMatrix IMatrixView.DoToAllEntries(Func<double, double> unaryOperation)
+        public IMatrix DoToAllEntries(Func<double, double> unaryOperation)
         {
             // Only apply the operation on non zero entries
             double[] newValues = new double[values.Length];
@@ -357,7 +346,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrix.DoToAllEntriesIntoThis(Func{double, double})"/>.
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoToAllEntriesIntoThis(Func{double, double})"/>.
         /// </summary>
         public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
         {

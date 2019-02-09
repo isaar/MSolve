@@ -10,7 +10,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// A matrix with 2 rows and 2 columns. Optimized version of <see cref="Matrix"/>.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class Matrix2by2: IMatrix
+    public class Matrix2by2: IMatrix, IEntrywiseOperableView2D<Matrix2by2, Matrix2by2>, IEntrywiseOperable2D<Matrix2by2>
     {
         private readonly double[,] data;
 
@@ -270,7 +270,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public double[,] CopyToArray2D() => new double[,] { { data[0, 0], data[0, 1] }, { data[1, 0], data[1, 1] } };
 
         /// <summary>
-        /// See <see cref="IMatrixView.DoEntrywise(IMatrixView, Func{double, double, double})"/>.
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoEntrywise(TMatrixIn, Func{double, double, double})"/>.
         /// </summary>
         public IMatrix DoEntrywise(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
@@ -287,12 +287,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Performs the following operation for 0 &lt;= i, j &lt; 2:
-        /// result[i, j] = <paramref name="binaryOperation"/>(this[i,j], <paramref name="matrix"/>[i, j])
-        /// The resulting matrix is written to a new <see cref="Matrix2by2"/> and then returned.
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoEntrywise(TMatrixIn, Func{double, double, double})"/>.
         /// </summary>
-        /// <param name="matrix">A matrix with 2 rows and 2 columns.</param>
-        /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
         public Matrix2by2 DoEntrywise(Matrix2by2 matrix, Func<double, double, double> binaryOperation)
         {
             return new Matrix2by2(new double[,]
@@ -303,7 +299,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrix.DoEntrywiseIntoThis(IMatrixView, Func{double, double, double})"/>.
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoEntrywiseIntoThis(TMatrixIn, Func{double, double, double})"/>.
         /// </summary>
         public void DoEntrywiseIntoThis(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
@@ -319,12 +315,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Performs the following operation for 0 &lt;= i, j &lt; 2:
-        /// this[i, j] = <paramref name="binaryOperation"/>(this[i,j], <paramref name="matrix"/>[i, j])
-        /// The resulting matrix overwrites the entries of this <see cref="Matrix2by2"/> instance.
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoEntrywiseIntoThis(TMatrixIn, Func{double, double, double})"/>.
         /// </summary>
-        /// <param name="matrix">A matrix with 2 rows and 2 columns.</param>
-        /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
         public void DoEntrywiseIntoThis(Matrix2by2 matrix, Func<double, double, double> binaryOperation)
         {
             this.data[0, 0] = binaryOperation(this.data[0, 0], matrix.data[0, 0]);
@@ -334,16 +326,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrixView.DoToAllEntries(Func{double, double})"/>.
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
-        IMatrix IMatrixView.DoToAllEntries(Func<double, double> unaryOperation) => DoToAllEntries(unaryOperation);
+        IMatrix IEntrywiseOperableView2D<IMatrixView, IMatrix>.DoToAllEntries(Func<double, double> unaryOperation) 
+            => DoToAllEntries(unaryOperation);
 
         /// <summary>
-        /// Performs the following operation for 0 &lt;= i, j &lt; 2:
-        /// result[i, j] = <paramref name="unaryOperation"/>(this[i,j])
-        /// The resulting matrix is written to a new <see cref="Matrix2by2"/> and then returned.
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
-        /// <param name="unaryOperation">A method that takes 1 argument and returns 1 result.</param>
         public Matrix2by2 DoToAllEntries(Func<double, double> unaryOperation)
         {
             return new Matrix2by2(new double[,]
@@ -354,7 +344,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrix.DoToAllEntriesIntoThis(Func{double, double})"/>.
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoToAllEntriesIntoThis(Func{double, double})"/>.
         /// </summary>
         public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
         {

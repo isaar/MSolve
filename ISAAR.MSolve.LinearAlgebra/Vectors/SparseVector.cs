@@ -412,7 +412,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public IVector CreateZeroVectorWithSameFormat() => new SparseVector(Length, new double[indices.Length], indices);
 
         /// <summary>
-        /// See <see cref="IVectorView.DoEntrywise(IVectorView, Func{double, double, double})"/>.
+        /// See <see cref="IEntrywiseOperableView1D{TVectorIn, TVectorOut}.DoEntrywise(TVectorIn, Func{double, double, double})"/>.
         /// </summary>
         public IVector DoEntrywise(IVectorView otherVector, Func<double, double, double> binaryOperation)
         {
@@ -436,7 +436,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// See <see cref="IVector.DoEntrywiseIntoThis(IVectorView, double)"/>.
+        /// See <see cref="IEntrywiseOperable1D{TVectorIn}.DoEntrywiseIntoThis(TVectorIn, Func{double, double, double})"/>
         /// </summary>
         public void DoEntrywiseIntoThis(IVectorView otherVector, Func<double, double, double> binaryOperation)
         {
@@ -453,7 +453,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// See <see cref="IVectorView.DoToAllEntries(Func{double, double})"/>.
+        /// See <see cref="IEntrywiseOperableView1D{TVectorIn, TVectorOut}.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
         public IVector DoToAllEntries(Func<double, double> unaryOperation)
         {
@@ -475,7 +475,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// See <see cref="IVector.DoToAllEntriesIntoThis(Func{double, double})"/>.
+        /// See <see cref="IEntrywiseOperable1D{TVectorIn}.DoToAllEntriesIntoThis(Func{double, double})"/>
         /// </summary>
         public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
         {

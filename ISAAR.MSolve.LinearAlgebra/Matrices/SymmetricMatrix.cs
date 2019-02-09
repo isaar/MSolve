@@ -16,7 +16,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// major order. Uses LAPACK. Do not use this, since it is an experimantal class, which will probably be removed.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class SymmetricMatrix: IMatrix, ISymmetricMatrix
+    public class SymmetricMatrix: IMatrix, ISymmetricMatrix, IEntrywiseOperableView2D<SymmetricMatrix, SymmetricMatrix>, 
+        IEntrywiseOperable2D<SymmetricMatrix>
     {
         /// <summary>
         /// Packed storage, column major order, upper triangle: 
@@ -307,12 +308,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return Matrix.CreateFromArray(fullData, Order, Order, false);
         }
 
+        /// <summary>
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoEntrywise(TMatrixIn, Func{double, double, double})"/>.
+        /// </summary>
         public IMatrix DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
         {
             if (other is SymmetricMatrix casted) return DoEntrywise(casted, binaryOperation);
             else return DenseStrategies.DoEntrywise(this, other, binaryOperation); //TODO: optimize this
         }
 
+        /// <summary>
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoEntrywise(TMatrixIn, Func{double, double, double})"/>.
+        /// </summary>
         public SymmetricMatrix DoEntrywise(SymmetricMatrix other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckSameMatrixDimensions(this, other);
@@ -321,6 +328,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return new SymmetricMatrix(result, Order, DefiniteProperty.Unknown);
         }
 
+        /// <summary>
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoEntrywiseIntoThis(TMatrixIn, Func{double, double, double})"/>.
+        /// </summary>
         public void DoEntrywiseIntoThis(IMatrixView other, Func<double, double, double> binaryOperation)
         {
             if (other is SymmetricMatrix casted) DoEntrywiseIntoThis(casted, binaryOperation);
@@ -342,6 +352,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        /// <summary>
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoEntrywiseIntoThis(TMatrixIn, Func{double, double, double})"/>.
+        /// </summary>
         public void DoEntrywiseIntoThis(SymmetricMatrix other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckSameMatrixDimensions(this, other);
@@ -349,11 +362,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             Definiteness = DefiniteProperty.Unknown;
         }
 
-        IMatrix IMatrixView.DoToAllEntries(Func<double, double> unaryOperation)
+        /// <summary>
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoToAllEntries(Func{double, double})"/>.
+        /// </summary>
+        IMatrix IEntrywiseOperableView2D<IMatrixView, IMatrix>.DoToAllEntries(Func<double, double> unaryOperation)
         {
             return DoToAllEntries(unaryOperation);
         }
 
+        /// <summary>
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoToAllEntries(Func{double, double})"/>.
+        /// </summary>
         public SymmetricMatrix DoToAllEntries(Func<double, double> unaryOperation)
         {
             var result = new double[data.Length];
@@ -364,12 +383,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return new SymmetricMatrix(result, NumRows, DefiniteProperty.Unknown);
         }
 
-        void IMatrix.DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
-        {
-            DoToAllEntriesIntoThis(unaryOperation);
-        }
-
-        void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
+        /// <summary>
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoToAllEntriesIntoThis(Func{double, double})"/>.
+        /// </summary>
+        public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
         {
             for (int i = 0; i < NumRows * NumColumns; ++i)
             {
