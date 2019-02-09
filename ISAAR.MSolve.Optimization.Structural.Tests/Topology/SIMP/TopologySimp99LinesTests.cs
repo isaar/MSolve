@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
         {
             // Run the optimization
             var simp = new TopologySimp99Lines(60, 20, 0.5, 3.0, 1.5, TopologySimp99Lines.BoundaryConditions.MbbBeam, 
-                TopologySimp99Lines.PassiveElements.No);
+                TopologySimp99Lines.PassiveElements.No, TopologySimp99Lines.OptimAlgorithm.OC);
             (double compliance, Matrix densities, ObjectiveFunctionLogger logger) = simp.TopologyOptimization();
 
             // Check the history of the compliance (objective function)
@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
         {
             // Run the optimization
             var simp = new TopologySimp99Lines(32, 20, 0.4, 3.0, 1.2, TopologySimp99Lines.BoundaryConditions.ShortCantilever,
-                TopologySimp99Lines.PassiveElements.No);
+                TopologySimp99Lines.PassiveElements.No, TopologySimp99Lines.OptimAlgorithm.OC);
             (double compliance, Matrix densities, ObjectiveFunctionLogger logger) = simp.TopologyOptimization();
 
             // Check the history of the compliance (objective function)
@@ -103,7 +103,8 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
         {
             // Run the optimization
             var simp = new TopologySimp99Lines(30, 30, 0.4, 3.0, 1.2,
-                TopologySimp99Lines.BoundaryConditions.Cantilever2LoadCases, TopologySimp99Lines.PassiveElements.No);
+                TopologySimp99Lines.BoundaryConditions.Cantilever2LoadCases, TopologySimp99Lines.PassiveElements.No, 
+                TopologySimp99Lines.OptimAlgorithm.OC);
             (double compliance, Matrix densities, ObjectiveFunctionLogger logger) = simp.TopologyOptimization();
 
             // Check the history of the compliance (objective function)
@@ -143,7 +144,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
         {
             // Run the optimization
             var simp = new TopologySimp99Lines(45, 30, 0.5, 3.0, 1.5, TopologySimp99Lines.BoundaryConditions.ShortCantilever,
-                TopologySimp99Lines.PassiveElements.HoleInCantilever);
+                TopologySimp99Lines.PassiveElements.HoleInCantilever, TopologySimp99Lines.OptimAlgorithm.OC);
             (double compliance, Matrix densities, ObjectiveFunctionLogger logger) = simp.TopologyOptimization();
 
             // Check the history of the compliance (objective function)

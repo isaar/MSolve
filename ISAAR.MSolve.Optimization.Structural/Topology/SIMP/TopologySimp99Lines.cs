@@ -30,6 +30,11 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
             No, HoleInCantilever
         }
 
+        public enum OptimAlgorithm
+        {
+            OC, MMA
+        }
+
         // Number of elements along the x, y axes
         private readonly int nelx, nely;
 
@@ -44,9 +49,10 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
 
         private readonly Func<Matrix, IList<Vector>> feAnalysis;
         private readonly Func<Matrix, bool[,]> applyPassiveElements;
+        private readonly Func<Matrix, Matrix, bool[,], Matrix> optimAlgorithm;
 
         public TopologySimp99Lines(int nelx, int nely, double volfrac, double penal, double rmin, 
-            BoundaryConditions bc, PassiveElements passive)
+            BoundaryConditions bc, PassiveElements passive, OptimAlgorithm alg)
         {
             this.nelx = nelx;
             this.nely = nely;
@@ -60,6 +66,9 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
 
             if (passive == PassiveElements.No) applyPassiveElements = NoPassiveElements;
             else if (passive == PassiveElements.HoleInCantilever) applyPassiveElements = PassiveElementsForHoleInCantilever;
+
+            if (alg == OptimAlgorithm.OC) optimAlgorithm = OptimalityCriteriaUpdate;
+            else if (alg == OptimAlgorithm.MMA) optimAlgorithm = MethodMovingAsymptotesUpdate;
         }
 
         public (double compliance, Matrix densities, ObjectiveFunctionLogger logger) TopologyOptimization()
@@ -356,6 +365,45 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
                 }
             }
             return passive;
+        }
+
+        /// <summary>
+        /// Simplified MMA by Bendsoe. Unfortunately it converges slower than Optimality Criteria and oscillates.
+        /// </summary>
+        private Matrix MethodMovingAsymptotesUpdate(Matrix x, Matrix dc, bool[,] passive)
+        {
+            double xlow = 0.001, xhigh = 1.0;
+            Matrix L = x - 0.1 * (xhigh - xlow) * Matrix.CreateWithValue(nely, nelx, 1.0);
+            Matrix xMinusLSquared = (x - L).Square();
+            Matrix high = xMinusLSquared.MultiplyEntrywise(
+                dc.DoEntrywise(L, (dci, Li) => -dci / Math.Pow(xlow - Li, 2)));
+            Matrix low = xMinusLSquared.MultiplyEntrywise(
+                dc.DoEntrywise(L, (dci, Li) => -dci / Math.Pow(xhigh - Li, 2)));
+            double l2 = high.Min();
+            double l1 = low.Max();
+
+            Matrix xnew = null;
+            for (int i = 0; i < 50; ++i) // 50 is totally arbitrary
+            {
+                double lmid = 0.5 * (l1 + l2);
+                Matrix dcRoot = dc.DoToAllEntries(dci => Math.Sqrt(-dci / lmid));
+                xnew = L + x.DoEntrywise(L, (xi, Li) => Math.Abs(xi - Li)).MultiplyEntrywise(dcRoot);
+                xnew.DoToAllEntriesIntoThis(xi => Math.Max(xlow, xi));
+
+                // Extension for passive elements
+                for (int ely = 0; ely < nely; ++ely)
+                {
+                    for (int elx = 0; elx < nelx; ++elx)
+                    {
+                        if (passive[ely, elx]) xnew[ely, elx] = 0.001;
+                    }
+                }
+
+                if (xnew.Sum() - volfrac * nelx * nely > 0) l2 = lmid;
+                else l1 = lmid;
+            }
+
+            return xnew;
         }
 
         /// <summary>
