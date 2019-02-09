@@ -2,6 +2,10 @@
 using System;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 
+//TODO: Use the generic interfaces IEntrywiseOperable1D, etc (and create some for axpy, linear combo), instead of implementing
+//      the extensions for each vector/matrix type and the IVectorView, etc. interfaces. However the extension method should be
+//      concise as possible. Having to declare the generic types (see the generic MultiplyEntrywise) is prohibitive, especially
+//      if IntelliSense does not suggest the generic extension method. How dids LINQ solve this issue?
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
     /// <summary>
@@ -120,6 +124,63 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                 a[0] * b[1] - a[1] * b[0]
             });
         }
+
+        /// <summary>
+        /// Performs the operation: result[i] = <paramref name="thisVector"/>[i] * <paramref name="otherVector"/>[i], for all
+        /// valid i. The resulting vector is written in a new object and then returned.
+        /// </summary>
+        /// <param name="thisVector">A vector.</param>
+        /// <param name="otherVector">A vector with the same <see cref="IIndexable1D.Length"/> as this vector.</param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if <paramref name="otherVector"/> has different <see cref="IIndexable1D.Length"/> than this vector.
+        /// </exception>
+        public static TVectorOut MultiplyEntrywise<TVectorIn, TVectorOut>(
+            this IEntrywiseOperableView1D<TVectorIn, TVectorOut> thisVector, TVectorIn otherVector)
+            where TVectorIn: IVectorView
+            where TVectorOut: IVector
+            => thisVector.DoEntrywise(otherVector, (x, y) => x * y); //TODO: nice in theory, but passing a lambda to DoEntrywise is less verbose.
+
+        /// <summary>
+        /// Performs the operation: 
+        /// <paramref name="thisVector"/>[i] = <paramref name="thisVector"/>[i] * <paramref name="otherVector"/>[i], for all
+        /// valid i. The resulting vector overwrites the entries of this vector.
+        /// </summary>
+        /// <param name="thisVector">A vector.</param>
+        /// <param name="otherVector">A vector with the same <see cref="IIndexable1D.Length"/> as this vector.</param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if <paramref name="otherVector"/> has different <see cref="IIndexable1D.Length"/> than this vector.
+        /// </exception>
+        /// <exception cref="PatternModifiedException">
+        /// Thrown if an entry this[i] needs to be overwritten, but that is not permitted by the vector storage format.
+        /// </exception>
+        public static void MultiplyEntrywiseIntoThis<TVectorIn>(
+            this IEntrywiseOperable1D<TVectorIn> thisVector, TVectorIn otherVector)
+            where TVectorIn: IVectorView
+            => thisVector.DoEntrywiseIntoThis(otherVector, (x, y) => x * y); //TODO: nice in theory, but passing a lambda to DoEntrywise() is less verbose.
+
+        /// <summary>
+        /// Performs the operation: result[i] = this[i] ^ 0.5 for all valid i. 
+        /// The resulting vector is written in a new object and then returned.
+        /// </summary>
+        public static Vector Sqrt(this Vector vector) => vector.DoToAllEntries(x => Math.Sqrt(x));
+
+        /// <summary>
+        /// Performs the operation: this[i] = this[i] ^ 0.5 for all valid i. 
+        /// The resulting vector overwrites the entries of this vector.
+        /// </summary>
+        public static void SqrtIntoThis(this Vector vector) => vector.DoToAllEntriesIntoThis(x => Math.Sqrt(x));
+
+        /// <summary>
+        /// Performs the operation: result[i] = this[i] ^ 2 for all valid i. 
+        /// The resulting vector is written in a new object and then returned.
+        /// </summary>
+        public static Vector Square(this Vector vector) => vector.DoToAllEntries(x => x * x);
+
+        /// <summary>
+        /// Performs the operation: this[i] = this[i] ^ 2 for all valid i. 
+        /// The resulting vector overwrites the entries of this vector.
+        /// </summary>
+        public static void SquareIntoThis(this Vector vector) => vector.DoToAllEntriesIntoThis(x => x * x);
 
         /// <summary>
         /// Performs the operation: 

@@ -123,7 +123,41 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
             return true;
         }
-        
+
+        /// <summary>
+        /// Performs the operation: result[i, j] = <paramref name="thisMatrix"/>[i, j] * <paramref name="otherMatrix"/>[i, j],
+        /// for all valid (i, j). The resulting matrix is written in a new object and then returned.
+        /// </summary>
+        /// <param name="thisMatrix">A matrix.</param>
+        /// <param name="otherMatrix">
+        /// A matrix with the same <see cref="IIndexable2D.NumRows"/> and <see cref="IIndexable2D.NumColumns"/> as this matrix.
+        /// </param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if <paramref name="otherMatrix"/> has different <see cref="IIndexable2D.NumRows"/> or 
+        /// <see cref="IIndexable2D.NumColumns"/> than this matrix.
+        /// </exception>
+        public static Matrix MultiplyEntrywise(this Matrix thisMatrix, Matrix otherMatrix)
+            => thisMatrix.DoEntrywise(otherMatrix, (x, y) => x * y); //TODO: This should be implemented similarly to Vector.MultiplyEntrywise()
+
+        /// <summary>
+        /// Performs the operation: 
+        /// <paramref name="thisMatrix"/>[i, j] = <paramref name="thisMatrix"/>[i, j] * <paramref name="otherMatrix"/>[i, j],
+        /// for all valid (i, j). The resulting matrix overwrites the entries of this matrix.
+        /// </summary>
+        /// <param name="thisMatrix">A matrix.</param>
+        /// <param name="otherMatrix">
+        /// A matrix with the same <see cref="IIndexable2D.NumRows"/> and <see cref="IIndexable2D.NumColumns"/> as this matrix.
+        /// </param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if <paramref name="otherMatrix"/> has different <see cref="IIndexable2D.NumRows"/> or 
+        /// <see cref="IIndexable2D.NumColumns"/> than this matrix.
+        /// </exception>
+        /// <exception cref="PatternModifiedException">
+        /// Thrown if an entry this[i, j] needs to be overwritten, but that is not permitted by the matrix storage format.
+        /// </exception>
+        public static void MultiplyEntrywiseIntoThis(this Matrix thisMatrix, Matrix otherMatrix)
+            => thisMatrix.DoEntrywiseIntoThis(otherMatrix, (x, y) => x * y); //TODO: This should be implemented similarly to Vector.MultiplyEntrywiseIntoThis()
+
         /// <summary>
         /// Computes the Reduced Row Echelon Form (rref) of the matrix and finds the independent columns of the matrix.  
         /// See https://en.wikipedia.org/wiki/Row_echelon_form#Reduced_row_echelon_form.
@@ -247,6 +281,30 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
             return reordered;
         }
+
+        /// <summary>
+        /// Performs the operation: result[i, j] = this[i, j] ^ 0.5 for all valid (i, j). 
+        /// The resulting matrix is written in a new object and then returned.
+        /// </summary>
+        public static Matrix Sqrt(this Matrix matrix) => matrix.DoToAllEntries(x => Math.Sqrt(x));
+
+        /// <summary>
+        /// Performs the operation: this[i, j] = this[i, j] ^ 0.5 for all valid (i, j). 
+        /// The resulting matrix overwrites the entries of this matrix.
+        /// </summary>
+        public static void SqrtIntoThis(this Matrix matrix) => matrix.DoToAllEntriesIntoThis(x => Math.Sqrt(x));
+
+        /// <summary>
+        /// Performs the operation: result[i, j] = this[i, j] ^ 2 for all valid (i, j). 
+        /// The resulting matrix is written in a new object and then returned.
+        /// </summary>
+        public static Matrix Square(this Matrix matrix) => matrix.DoToAllEntries(x => x * x);
+
+        /// <summary>
+        /// Performs the operation: this[i, j] = this[i, j] ^ 2 for all valid (i, j). 
+        /// The resulting matrix overwrites the entries of this matrix.
+        /// </summary>
+        public static void SquareIntoThis(this Matrix matrix) => matrix.DoToAllEntriesIntoThis(x => x * x);
 
         /// <summary>
         /// Performs the operation: result[i, j] = <paramref name="matrix1"/>[i, j] - <paramref name="matrix2"/>[i, j], 
