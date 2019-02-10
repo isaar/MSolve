@@ -666,7 +666,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             else
             {
                 LUFactorization factor = FactorLU();
-                return (factor.Invert(true), factor.CalcDeterminant());
+                double det = factor.CalcDeterminant(); // Call this before factor.Invert(), else the factor will be overwritten.
+                Matrix inverse = factor.Invert(true); 
+                return (factor.Invert(true), det);
             }
         }
 
