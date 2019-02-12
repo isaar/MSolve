@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
-using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -165,7 +163,8 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
                 }
 
                 // Bi-sectioning
-                if (xnew.Sum() - volfrac * nelx * nely > 0) l1 = lmid;
+                double constraint = xnew.Sum() - volfrac * nelx * nely ;
+                if (constraint > 0) l1 = lmid;
                 else l2 = lmid;
             }
             return xnew;
@@ -246,7 +245,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
 
             // Define loads and supports for half MBB beam
             F[1] = -1.0;
-            var fixedDofs = new HashSet<int>(); //TODO: Use LINQ to simplify this madness
+            var fixedDofs = new HashSet<int>(); //TODO: Use LINQ to simplify this
             for (int i = 0; i < 2 * (nely + 1); i += 2) fixedDofs.Add(i);
             fixedDofs.Add(numAllDofs - 1);
             int[] freeDofs = Enumerable.Range(0, numAllDofs).Except(fixedDofs).ToArray();
