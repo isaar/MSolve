@@ -283,6 +283,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
+        /// Spreads the entries of a matrix (2D) into a vector (1D). The order could be row major (consecutive entries belong to
+        /// the same row) or column major (consecutive entries belong to the same column).
+        /// </summary>
+        /// <param name="columnMajor">
+        /// If true, the vector will contain the entries of the matrix in column major order, otherwise in row major.
+        /// </param>
+        public static Vector Reshape(this Matrix matrix, bool columnMajor)
+        {
+            if (columnMajor) return Vector.CreateFromArray(matrix.RawData, true);
+            else
+            {
+                double[] rowMajorEntries = Conversions.ColumnMajorToRowMajor(matrix.RawData, matrix.NumRows, matrix.NumColumns);
+                return Vector.CreateFromArray(rowMajorEntries, false);
+            }
+        }
+
+        /// <summary>
         /// Performs the operation: result[i, j] = this[i, j] ^ 0.5 for all valid (i, j). 
         /// The resulting matrix is written in a new object and then returned.
         /// </summary>
