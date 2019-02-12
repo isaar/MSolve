@@ -35,6 +35,7 @@ namespace ISAAR.MSolve.Analyzers
                 int iteration = 0;
                 for (iteration = 0; iteration < maxIterationsPerIncrement; iteration++)
                 {
+                    if (iteration == maxIterationsPerIncrement - 1) return;
                     solver.Solve();
                     Dictionary<int, IVector> internalRhsVectors = CalculateInternalRhs(increment, iteration);
                     double residualNormCurrent = UpdateResidualForcesAndNorm(increment, internalRhsVectors); // This also sets the rhs vectors in linear systems.
