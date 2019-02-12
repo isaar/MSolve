@@ -22,12 +22,13 @@ using System.Linq;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using System.IO;
 using ISAAR.MSolve.Solvers.Direct;
+using ISAAR.MSolve.FEM.Postprocessing;
 
 namespace ISAAR.MSolve.SamplesConsole
 {
     public class EmbeddedEBEmodelInMatrix
     {
-        private const string outputDirectory = @"E:\GEORGE_DATA\DESKTOP\MSolveResults";
+        private const string outputDirectory = @"D:\George\Desktop\MSolveResults"; //@"E:\GEORGE_DATA\DESKTOP\MSolveResults";
         private const int subdomainID = 0;
 
         public static void EmbeddedEBEinMatrix_NewtonRaphson()
@@ -52,17 +53,17 @@ namespace ISAAR.MSolve.SamplesConsole
             // Model_v2
 
             // Choose linear equation system solver
-            //var solverBuilder = new SkylineSolver.Builder();
-            //SkylineSolver solver = solverBuilder.BuildSolver(model);
-            var solverBuilder = new SuiteSparseSolver.Builder();
-            SuiteSparseSolver solver = solverBuilder.BuildSolver(model);
+            var solverBuilder = new SkylineSolver.Builder();
+            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            //var solverBuilder = new SuiteSparseSolver.Builder();
+            //SuiteSparseSolver solver = solverBuilder.BuildSolver(model);
 
             // Choose the provider of the problem -> here a structural problem
             var provider = new ProblemStructural_v2(model, solver);
 
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
             int increments = 100;
-            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments) { ResidualTolerance = 1E-03 };
+            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments) { ResidualTolerance = 1E-03, MaxIterationsPerIncrement = 10 };
             LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
 
             // Choose parent analyzer -> Parent: Static
@@ -77,6 +78,11 @@ namespace ISAAR.MSolve.SamplesConsole
             // Run the analysis
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
+
+            // Create Paraview File
+            var paraview = new ParaviewEmbedded3D(model, solver.LinearSystems[0].Solution, "test");
+            paraview.CreateParaviewFile();
+
         }
 
         public static void EmbeddedEBEinMatrix_DisplacementControl()
@@ -147,7 +153,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             public static void MatrixModelBuilder(Model_v2 model)
             {
-                string workingDirectory = @"E:\GEORGE_DATA\DESKTOP\input files"; //"..\..\..\Resources\Beam3DInputFiles";
+                string workingDirectory = @"D:\George\Desktop\input files"; //"E:\GEORGE_DATA\DESKTOP\input files"; //"..\..\..\Resources\Beam3DInputFiles";
 
                 string MatrixGeometryFileName = "MATRIX_3D-L_x=10-L_y=10-L_z=100-1x1x10-Geometry_EBE_MSolve.inp";
                 //"MATRIX_3D-L_x=30-L_y=30-L_z=100-3x3x10-Geometry_MSolve.inp";
@@ -300,7 +306,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
                 double effectiveAreaY = area;
                 double effectiveAreaZ = area;
-                string workingDirectory = @"E:\GEORGE_DATA\DESKTOP\input files"; //"..\..\..\Resources\Beam3DInputFiles";
+                string workingDirectory = @"D:\George\Desktop\input files"; //@"E:\GEORGE_DATA\DESKTOP\input files"; //"..\..\..\Resources\Beam3DInputFiles";
 
                 string CNTgeometryFileName = "EmbeddedCNT-8-8-L=100-h=3-k=1-EBE-L=10-NumberOfCNTs=1-Geometry_beam.inp";
                 
