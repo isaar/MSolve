@@ -104,15 +104,18 @@ namespace ISAAR.MSolve.Solvers.Direct
             factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
         }
 
-        public class Builder
+        public class Builder: ISolverBuilder
         {
             public Builder() { }
 
             public IDofOrderer DofOrderer { get; set; }
                 = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
 
+            ISolver_v2 ISolverBuilder.BuildSolver(IStructuralModel_v2 model) => BuildSolver(model);
+
             public DenseMatrixSolver BuildSolver(IStructuralModel_v2 model)
                 => new DenseMatrixSolver(model, DofOrderer);
+
         }
     }
 }

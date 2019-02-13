@@ -60,7 +60,7 @@ namespace ISAAR.MSolve.Solvers.Iterative
                 linearSystem.Solution, true, () => linearSystem.CreateZeroVector()); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0
         }
 
-        public class Builder
+        public class Builder : ISolverBuilder
         {
             public IDofOrderer DofOrderer { get; set; }
                 = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
@@ -68,6 +68,8 @@ namespace ISAAR.MSolve.Solvers.Iterative
             public PcgAlgorithm PcgAlgorithm { get; set; } = (new PcgAlgorithm.Builder()).Build();
 
             public IPreconditionerFactory PreconditionerFactory { get; set; } = new JacobiPreconditioner.Factory();
+
+            ISolver_v2 ISolverBuilder.BuildSolver(IStructuralModel_v2 model) => BuildSolver(model);
 
             public PcgSolver BuildSolver(IStructuralModel_v2 model) 
                 => new PcgSolver(model, PcgAlgorithm, PreconditionerFactory, DofOrderer);

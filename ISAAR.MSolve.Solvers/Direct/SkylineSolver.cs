@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.Solvers.Direct
             factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
         }
 
-        public class Builder
+        public class Builder : ISolverBuilder
         {
             public Builder() { }
 
@@ -61,6 +61,8 @@ namespace ISAAR.MSolve.Solvers.Direct
                 = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
 
             public double FactorizationPivotTolerance { get; set; } = 1E-15;
+
+            ISolver_v2 ISolverBuilder.BuildSolver(IStructuralModel_v2 model) => BuildSolver(model);
 
             public SkylineSolver BuildSolver(IStructuralModel_v2 model)
             {

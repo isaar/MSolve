@@ -84,7 +84,7 @@ namespace ISAAR.MSolve.Solvers.Direct
             }
         }
 
-        public class Builder
+        public class Builder : ISolverBuilder
         {
             public Builder() { }
 
@@ -92,6 +92,8 @@ namespace ISAAR.MSolve.Solvers.Direct
                 = new DofOrderer(new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd());
 
             public double FactorizationPivotTolerance { get; set; } = 1E-15;
+
+            ISolver_v2 ISolverBuilder.BuildSolver(IStructuralModel_v2 model) => BuildSolver(model);
 
             public SuiteSparseSolver BuildSolver(IStructuralModel_v2 model)
                 => new SuiteSparseSolver(model, FactorizationPivotTolerance, DofOrderer);
