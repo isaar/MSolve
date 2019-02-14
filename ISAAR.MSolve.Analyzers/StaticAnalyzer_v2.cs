@@ -47,22 +47,36 @@ namespace ISAAR.MSolve.Analyzers
             return linearSystem.CreateZeroVector();
         }
 
-        public void Initialize()
+        public void Initialize(bool isFirstAnalysis = true)
         {
-            if (ChildAnalyzer == null) throw new InvalidOperationException("Static analyzer must contain an embedded analyzer.");
-            //InitalizeMatrices();
-
-            model.ConnectDataStructures();
-            solver.OrderDofsAndClearLinearSystems();
-            model.AssignLoads();
-
-            //TODO: this should be done elsewhere. It makes sense to assign the RHS vector when the stiffness matrix is assigned
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            if (isFirstAnalysis)
             {
-                linearSystem.RhsVector = linearSystem.Subdomain.Forces;
+                // The order in which the next initializations happen is very important.
+                model.ConnectDataStructures();
+                solver.OrderDofs();
+                foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+                {
+                    linearSystem.Reset(); // Necessary to define the linear system's size 
+                    linearSystem.Subdomain.Forces = Vector.CreateZero(linearSystem.Size);
+
+                    //TODO: Wouldn't it be better to assign the RHS vector when the stiffness matrix is assigned?
+                    linearSystem.RhsVector = linearSystem.Subdomain.Forces;
+                }
+                model.AssignLoads();
+            }
+            else
+            {
+                foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+                {
+                    //TODO: Perhaps these shouldn't be done if an analysis has already been executed. The model will not be 
+                    //      modified. Why should the linear system be?
+                    linearSystem.Reset(); 
+                    linearSystem.RhsVector = linearSystem.Subdomain.Forces;
+                }
             }
 
-            ChildAnalyzer.Initialize();
+            if (ChildAnalyzer == null) throw new InvalidOperationException("Static analyzer must contain an embedded analyzer.");
+            ChildAnalyzer.Initialize(isFirstAnalysis);
         }
 
         public void Solve()

@@ -158,7 +158,7 @@ namespace ISAAR.MSolve.Analyzers
         //    //    subdomain.Matrix.LinearCombination(coefficients, matricesPerSubdomain[subdomain.ID]);
         //}
 
-        public void Initialize()
+        public void Initialize(bool isFirstAnalysis)
         {
             if (ChildAnalyzer == null) throw new InvalidOperationException("Polynomial chaos analyzer must contain an embedded analyzer.");
         }
@@ -187,7 +187,7 @@ namespace ISAAR.MSolve.Analyzers
             //BuildStochasticMatrices();
             InitializeNonZeroPsi();
             if (shouldFactorizeMatrices) MakePreconditioners();
-            ChildAnalyzer.Initialize();
+            ChildAnalyzer.Initialize(true);
             ChildAnalyzer.Solve();
 
             int dofNo = model.Subdomains[0].DofOrdering.FreeDofs[model.NodesDictionary[1], DOFType.X];

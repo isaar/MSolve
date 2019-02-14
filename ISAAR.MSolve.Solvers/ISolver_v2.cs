@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Solvers.LinearSystems;
@@ -32,10 +33,13 @@ namespace ISAAR.MSolve.Solvers
         void Initialize();
 
         /// <summary>
-        /// Orders the freedom degrees of the model. It also clears all data of the linear systems, since they represent the 
-        /// model and that has been modified.
+        /// Orders the freedom degrees of the model. Also remember to reset the linear systems.
         /// </summary>
-        void OrderDofsAndClearLinearSystems();
+        void OrderDofs();
+        //TODO: Would it be better if the solver didn't modify the model? It would return the ordering 
+        //      and the analyzer would. However the assembler should still be notified.
+        //TODO: I think this should also reset the linear systems. Is there any chance that OrderDofs() should be called but 
+        //      ILinearSystem.Reset() shouldn't?
 
         /// <summary>
         /// Notifies this <see cref="ISolver_v2"/> that it cannot overwrite the data of <see cref="ILinearSystem_v2.Matrix"/>.

@@ -85,16 +85,16 @@ namespace ISAAR.MSolve.Solvers.LinearSystems
         IVectorView Solution { get; }
 
         /// <summary>
-        /// Removes the linear system matrix, right hand side vector and solution vector. Depending on the implementation, the
-        /// memory taken up by these may also be freed.
-        /// </summary>
-        void Clear();
-
-        /// <summary>
         /// Initializes a new vector with zero entries. Its pattern depends on the solver used. The freedom degrees must be 
         /// ordered before this method can be called. Special attention is needed if the freedom degrees change during 
         /// the analysis (e.g. adaptive FEM, XFEM). 
         /// </summary>
         IVector CreateZeroVector();
+
+        /// <summary>
+        /// Clears all data stored in this <see cref="ILinearSystem_v2"/> instance and sets its <see cref="Size"/> equal to the
+        /// number of freedom degrees of the corresponding <see cref="Subdomain"/>.
+        /// </summary>
+        void Reset();
     }
 }

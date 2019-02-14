@@ -46,21 +46,18 @@ namespace ISAAR.MSolve.Solvers
         public virtual IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
             => assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.Elements, elementMatrixProvider);
 
-        public virtual void OrderDofsAndClearLinearSystems()
+        public void OrderDofs()
         {
             IGlobalFreeDofOrdering globalOrdering = dofOrderer.OrderDofs(model);
             assembler.HandleDofOrderingWillBeModified();
-            HandleMatrixWillBeSet();
-            linearSystem.Clear();
-            linearSystem.Size = globalOrdering.SubdomainDofOrderings[subdomain].NumFreeDofs;
-
+            
             model.GlobalDofOrdering = globalOrdering;
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 subdomain.DofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
 
-                // If we decide subdomain.Forces will always be a Vector or double[] then this process could be done elsewhere.
-                subdomain.Forces = linearSystem.CreateZeroVector();
+                // The next must done by the analyzer, so that subdomain.Forces is retained when doing back to back analyses.
+                //subdomain.Forces = linearSystem.CreateZeroVector();
             }
             //EnumerateSubdomainLagranges();
             //EnumerateDOFMultiplicity();

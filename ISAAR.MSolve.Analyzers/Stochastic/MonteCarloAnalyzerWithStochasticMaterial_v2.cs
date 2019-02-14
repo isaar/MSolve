@@ -177,7 +177,7 @@ namespace ISAAR.MSolve.Analyzers
         //    //}
         //}
 
-        public void Initialize()
+        public void Initialize(bool isFirstAnalysis = true)
         {
             if (ChildAnalyzer == null) throw new InvalidOperationException("Monte Carlo analyzer must contain an embedded analyzer.");
 
@@ -264,7 +264,7 @@ namespace ISAAR.MSolve.Analyzers
                 if (stiffnessMatrixProductionMode == StiffnessMatrixProductionMode.StoreToDisk) continue;
 
                 e = DateTime.Now;
-                ChildAnalyzer.Initialize();
+                ChildAnalyzer.Initialize(false);
                 times["factorize"] += DateTime.Now - e;
                 GCSettings.LatencyMode = GCLatencyMode.LowLatency;
                 e = DateTime.Now;
@@ -349,7 +349,7 @@ namespace ISAAR.MSolve.Analyzers
                 if (stiffnessMatrixProductionMode == StiffnessMatrixProductionMode.StoreToDisk) continue;
 
                 e = DateTime.Now;
-                ChildAnalyzer.Initialize();
+                ChildAnalyzer.Initialize(false);
                 ChildAnalyzer.Solve();
                 times["solution"] += DateTime.Now - e;
                 values[i] = linearSystems[1].Solution[dofNo].ToString();

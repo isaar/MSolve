@@ -234,7 +234,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
             }
 
             // Run the analysis
-            parentAnalyzer.Initialize();
+            parentAnalyzer.Initialize(true);
             parentAnalyzer.Solve();
         }
     }

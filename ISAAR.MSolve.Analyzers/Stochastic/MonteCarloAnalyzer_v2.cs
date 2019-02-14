@@ -159,10 +159,10 @@ namespace ISAAR.MSolve.Analyzers
             //}
         }
 
-        public void Initialize()
+        public void Initialize(bool isFirstAnalysis)
         {
             if (ChildAnalyzer == null) throw new InvalidOperationException("Monte Carlo analyzer must contain an embedded analyzer.");
-            ChildAnalyzer.Initialize();
+            ChildAnalyzer.Initialize(isFirstAnalysis);
         }
 
         public void Solve()
@@ -174,7 +174,7 @@ namespace ISAAR.MSolve.Analyzers
             {
                 currentSimulation = i;
                 ComposeStochasticMatrixFromMatrices();
-                ChildAnalyzer.Initialize();
+                ChildAnalyzer.Initialize(false);
                 ChildAnalyzer.Solve();
                 values[i] = linearSystems[1].Solution[28].ToString();
             }
