@@ -22,6 +22,7 @@ using System.Linq;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using System.IO;
 using ISAAR.MSolve.Solvers.Direct;
+using ISAAR.MSolve.FEM.Postprocessing;
 
 namespace ISAAR.MSolve.SamplesConsole
 {
@@ -45,14 +46,14 @@ namespace ISAAR.MSolve.SamplesConsole
             model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
 
             // Variables
-            int monitorNode = 10001;
+            int monitorNode = 40001;
             DOFType monitorDof = DOFType.Z;
 
             // Choose model
             EmbeddedModelBuilder.EmbeddedExample(model);
 
             // Boundary Conditions - Left End [End-1]
-            for (int iNode = 1; iNode <= 100; iNode++)
+            for (int iNode = 1; iNode <= 400; iNode++)
             {
                 //model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.X });
                 //model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Y });
@@ -60,23 +61,23 @@ namespace ISAAR.MSolve.SamplesConsole
             }
 
             // Boundary Conditions - Bottom End [End-3] (y = -10)
-            for (int iNode = 1; iNode <= 10010; iNode = iNode + 100)
+            for (int iNode = 1; iNode <= 40020; iNode = iNode + 400)
             {
-                for (int jj = 0; jj <= 9; jj++)
+                for (int jj = 0; jj <= 19; jj++)
                 {
                     model.NodesDictionary[iNode + jj].Constraints.Add(new Constraint { DOF = DOFType.Y });
                 }                
             }
 
             // Boundary Conditions - Bottom End [End-5] (x = -10)
-            for (int iNode = 1; iNode <= 10091; iNode = iNode + 10)
+            for (int iNode = 1; iNode <= 40381; iNode = iNode + 20)
             {
                 model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.X });
             }
 
-            // Bending Loading - [End-2]
-            double nodalLoad = -2.0;
-            for (int iNode = 10001; iNode <= 10100; iNode++)
+            // Compressive Loading - [End-4]
+            double nodalLoad = -0.5; //2.0;
+            for (int iNode = 40001; iNode <= 40400; iNode++)
             {
                 model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[iNode], DOF = DOFType.Z });
             }
@@ -106,6 +107,10 @@ namespace ISAAR.MSolve.SamplesConsole
             // Run the analysis
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
+
+            // Create Paraview File
+            //var paraview = new ParaviewEmbedded3D(model, solver.LinearSystems[0].Solution, "test");
+            //paraview.CreateParaviewFile();
         }
 
         public static void EmbeddedCNT_20_20_inMatrix_DisplacementControl()
@@ -185,16 +190,16 @@ namespace ISAAR.MSolve.SamplesConsole
             {
                 HostElementsBuilder(model);
                 EmbeddedElementsBuilder(model);
-                var embeddedGrouping = new EmbeddedGrouping_v2(model, model.ElementsDictionary.Where(x => x.Key <= 8100).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 8100).Select(kv => kv.Value), true);
+                var embeddedGrouping = new EmbeddedGrouping_v2(model, model.ElementsDictionary.Where(x => x.Key <= 36100).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 36100).Select(kv => kv.Value), true);
             }
 
             public static void HostElementsBuilder(Model_v2 model)
             {
                 string workingDirectory = @"E:\GEORGE_DATA\DESKTOP\input files"; //"..\..\..\Resources\Beam3DInputFiles";
 
-                string MatrixGeometryFileName = "MATRIX_3D-L_x=20-L_y=20-L_z=100-9x9x100-Geometry_MSolve.inp";
+                string MatrixGeometryFileName = "MATRIX_3D-L_x=20-L_y=20-L_z=100-19x19x100-Geometry_MSolve.inp";
                 
-                string MatrixGonnectivityFileName = "MATRIX_3D-L_x=20-L_y=20-L_z=100-9x9x100-ConnMatr_MSolve.inp";
+                string MatrixGonnectivityFileName = "MATRIX_3D-L_x=20-L_y=20-L_z=100-19x19x100-ConnMatr_MSolve.inp";
                 
                 int matrixNodes = File.ReadLines(workingDirectory + '\\' + MatrixGeometryFileName).Count();
                 int matrixElements = File.ReadLines(workingDirectory + '\\' + MatrixGonnectivityFileName).Count();
@@ -288,7 +293,7 @@ namespace ISAAR.MSolve.SamplesConsole
                     {
                         string text = reader.ReadLine();
                         string[] bits = text.Split(',');
-                        int nodeID = int.Parse(bits[0]) + 10100; // matrixNodes
+                        int nodeID = int.Parse(bits[0]) + 40400; // matrixNodes
                         double nodeX = double.Parse(bits[1]);
                         double nodeY = double.Parse(bits[2]);
                         double nodeZ = double.Parse(bits[3]);
@@ -313,9 +318,9 @@ namespace ISAAR.MSolve.SamplesConsole
                     {
                         string text = reader.ReadLine();
                         string[] bits = text.Split(',');
-                        int elementID = int.Parse(bits[0]) + 8100; // matrixElements
-                        int node1 = int.Parse(bits[1]) + 10100; // matrixNodes
-                        int node2 = int.Parse(bits[2]) + 10100; // matrixNodes
+                        int elementID = int.Parse(bits[0]) + 36100; // matrixElements
+                        int node1 = int.Parse(bits[1]) + 40400; // matrixNodes
+                        int node2 = int.Parse(bits[2]) + 40400; // matrixNodes
                         // element nodes
                         IList<Node> elementNodes = new List<Node>();
                         elementNodes.Add(model.NodesDictionary[node1]);
