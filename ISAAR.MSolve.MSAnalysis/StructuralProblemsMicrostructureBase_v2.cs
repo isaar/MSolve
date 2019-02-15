@@ -177,7 +177,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             #endregion
 
             #region solution and update ------------->THA MPEI ENTOS KLASHS: of free converged displacements vectors;
-            StaticAnalyzer_v2 parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, microAnalyzer);
+            MSParentAnalyzer parentAnalyzer = new MSParentAnalyzer(model, solver, provider, microAnalyzer);
             //parentAnalyzer.BuildMatrices(); //v2.6 ston neon static analyzer den xreiazetai to build matrices poia
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();

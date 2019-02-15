@@ -60,7 +60,8 @@ namespace ISAAR.MSolve.Analyzers
             //model.ConnectDataStructures();
             //solver.OrderDofsAndClearLinearSystems(); //TODO MS Since orderdofs is called here it cannot be called twice (hence in subdomainmicrobase) so modify
             //solver.ResetSubdomainForcesVector();
-            model.AssignLoads(); //mhdenizei ta subdomain.forces ean exoume epivalei fortio afou tous pernaei ta fortia
+
+            //model.AssignLoads(); //mhdenizei ta subdomain.forces ean exoume epivalei fortio afou tous pernaei ta fortia
 
             //TODO: this should be done elsewhere. It makes sense to assign the RHS vector when the stiffness matrix is assigned
             foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
