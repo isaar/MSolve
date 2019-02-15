@@ -12,6 +12,7 @@ using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Preprocessor.Meshes;
 using ISAAR.MSolve.Preprocessor.Meshes.GMSH;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
 
 namespace ISAAR.MSolve.SamplesConsole
@@ -307,7 +308,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
             // Structural problem provider
             var provider = new ProblemStructural_v2(model, solver);
@@ -683,7 +684,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
             // Structural problem provider
             var provider = new ProblemStructural_v2(model, solver);
@@ -767,7 +768,7 @@ namespace ISAAR.MSolve.SamplesConsole
             #region Analysis
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
             // Structural problem provider
             var provider = new ProblemStructural_v2(model, solver);
@@ -864,7 +865,7 @@ namespace ISAAR.MSolve.SamplesConsole
             #region Analysis
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
             // Structural problem provider
             var provider = new ProblemStructural_v2(model, solver);
@@ -964,7 +965,7 @@ namespace ISAAR.MSolve.SamplesConsole
             #region Analysis
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
             // Structural problem provider
             var provider = new ProblemStructural_v2(model, solver);
@@ -1088,7 +1089,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
             // Structural problem provider
             var provider = new ProblemStructural_v2(model, solver);

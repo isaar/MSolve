@@ -19,6 +19,7 @@ using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Analyzers.NonLinear;
+using ISAAR.MSolve.Solvers;
 
 namespace ISAAR.MSolve.Tests
 {
@@ -95,7 +96,7 @@ namespace ISAAR.MSolve.Tests
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(m);
+            ISolver_v2 solver = solverBuilder.BuildSolver(m);
 
             // Problem type
             var provider = new ProblemStructural_v2(m, solver);
@@ -324,7 +325,7 @@ namespace ISAAR.MSolve.Tests
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
             // Problem type
             var provider = new ProblemStructural_v2(model, solver);
@@ -572,7 +573,7 @@ namespace ISAAR.MSolve.Tests
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
             // Problem type
             var provider = new ProblemStructural_v2(model, solver);

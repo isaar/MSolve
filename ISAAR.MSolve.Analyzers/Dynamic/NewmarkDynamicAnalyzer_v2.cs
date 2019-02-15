@@ -140,6 +140,7 @@ namespace ISAAR.MSolve.Analyzers.Dynamic
         {
             model.ConnectDataStructures();
             solver.OrderDofsAndClearLinearSystems();
+            solver.ResetSubdomainForcesVector();
             model.AssignLoads();
 
             //TODO: this should be done elsewhere. It makes sense to assign the Rhs vector when the stiffness matrix is assigned

@@ -1,39 +1,48 @@
 ﻿using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.LinearAlgebra;
 using System;
 using System.Collections.Generic;
 using System.Text;
-
+using System;
+using System.Collections.Generic;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.FEM
 {
-    public class EquivalentContributionsAssebler
+    /// <summary>
+    /// Assembles the equivalent contribution of imposed displacements in a bvp with non zero initial conditions.
+    /// Authors: Gerasimos Sotiropoulos
+    /// </summary>
+    public class EquivalentContributionsAssebler_v2
     {
-        private Subdomain subdomain;
-        private IElementMatrixProvider elementProvider;
+        private Subdomain_v2 subdomain;
+        private IElementMatrixProvider_v2 elementProvider;
         /// <summary>
         /// ELEMENT provider tha perastei profanws o ElementStructuralStiffnessProvider elementProvider = new ElementStructuralStiffnessProvider();
         /// kai subdomain prosoxh sta ID idia me ta linearsystems
         /// </summary>
         /// <param name="subdomain"></param>
         /// <param name="elementProvider"></param>
-        public EquivalentContributionsAssebler(Subdomain subdomain, IElementMatrixProvider elementProvider)
+        public EquivalentContributionsAssebler_v2(Subdomain_v2 subdomain, IElementMatrixProvider_v2 elementProvider)
         {
             this.subdomain = subdomain;
             this.elementProvider = elementProvider;
         }
 
-        public Vector CalculateKfreeprescribedUpMultiplicationForSubdRHSContribution(Dictionary<int, Node> boundaryNodes,
+        public Vector CalculateKfreeprescribedUpMultiplicationForSubdRHSContribution(Dictionary<int, Node_v2> boundaryNodes,
             Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements,
             int nIncrement, int totalIncrements)
         {
-            //ElementStructuralStiffnessProvider elementProvider = new ElementStructuralStiffnessProvider(); //TODOMS: where the provider should be defined
-            Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary = subdomain.NodalDOFsDictionary;
+            var dofOrdering = subdomain.DofOrdering; //_v2.1
+            var FreeDofs = subdomain.DofOrdering.FreeDofs;//_v2.1 Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary = subdomain.NodalDOFsDictionary;
 
-            double[] Kfp_Ustep = new double[subdomain.TotalDOFs]; // h allliws subdomain.Forces.GetLength(0)
+            double[] Kfp_Ustep = new double[subdomain.DofOrdering.NumFreeDofs];//_v2.2 subdomain.TotalDOFs]; 
 
             var times = new Dictionary<string, TimeSpan>();
             var totalStart = DateTime.Now;
@@ -41,24 +50,28 @@ namespace ISAAR.MSolve.FEM
             times.Add("element", TimeSpan.Zero);
             times.Add("addition", TimeSpan.Zero);
 
-            foreach (Element element in subdomain.ElementsDictionary.Values) // TODOGerasimos edw mporei na xrhsimopoihthei to dictionary twn eleement pou exoun fp nodes
+            foreach (Element_v2 element in subdomain.Elements) //_v2.3 ElementsDictionary.Values)    // TODOGerasimos edw mporei na xrhsimopoihthei to dictionary twn eleement pou exoun fp nodes
             {
                 var isEmbeddedElement = element.ElementType is IEmbeddedElement;
                 var elStart = DateTime.Now;
-                IMatrix2D ElementK = elementProvider.Matrix(element);
+                IMatrix ElementK = elementProvider.Matrix(element);
                 times["element"] += DateTime.Now - elStart;
 
                 elStart = DateTime.Now;
-                var elementDOFTypes = element.ElementType.DOFEnumerator.GetDOFTypes(element);
-                var matrixAssemblyNodes = element.ElementType.DOFEnumerator.GetNodesForMatrixAssembly(element);
+                var elementDOFTypes = element.ElementType.DofEnumerator.GetDOFTypes(element);
+                var matrixAssemblyNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
                 int iElementMatrixRow = 0;
                 for (int i = 0; i < elementDOFTypes.Count; i++)
                 {
                     INode nodeRow = matrixAssemblyNodes[i];
+                    int dofTypeRowToNumber = -1;
                     foreach (DOFType dofTypeRow in elementDOFTypes[i])
                     {
-                        int dofRow = nodalDOFsDictionary.ContainsKey(nodeRow.ID) == false && isEmbeddedElement ? -1 : nodalDOFsDictionary[nodeRow.ID][dofTypeRow];
-                        if (dofRow != -1) // TODOGerasimos edw pithanws thelei kai elegxo alliws an den ta exoume afhsei constrained ta p kai einai elefthera px me to an anhkoun sto baoundary nodes
+                        dofTypeRowToNumber++;
+                        bool isFree = FreeDofs.TryGetValue(matrixAssemblyNodes[i], elementDOFTypes[i][dofTypeRowToNumber],
+                        out int dofRow);
+                        //_v2.4 int dofRow = nodalDOFsDictionary.ContainsKey(nodeRow.ID) == false && isEmbeddedElement ? -1 : nodalDOFsDictionary[nodeRow.ID][dofTypeRow];
+                        if (isFree) // TODOGerasimos edw pithanws thelei kai elegxo alliws an den ta exoume afhsei constrained ta p kai einai elefthera px me to an anhkoun sto baoundary nodes
                         {                    // alla etsi einai oti akrivws thewritai kai sto assembly tou Kff opote ok
                             int iElementMatrixColumn = 0;
                             for (int j = 0; j < elementDOFTypes.Count; j++)
@@ -127,7 +140,7 @@ namespace ISAAR.MSolve.FEM
             }
             var totalTime = DateTime.Now - totalStart;
 
-            return new Vector(Kfp_Ustep);
+            return  Vector.CreateFromArray(Kfp_Ustep);
         }
     }
 }

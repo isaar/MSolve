@@ -11,7 +11,9 @@ using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.SamplesConsole.IntegrationTests2;
 using ISAAR.MSolve.SamplesConsole.Solvers;
+using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
@@ -25,7 +27,7 @@ namespace ISAAR.MSolve.SamplesConsole
         static void Main(string[] args)
         {
             //SolveBuildingInNoSoilSmall();
-            TrussExample.Run();
+            //TrussExample.Run();
             //FEM.Cantilever2D.Run();
             //FEM.Cantilever2DPreprocessor.Run();
             //FEM.WallWithOpenings.Run();
@@ -42,6 +44,9 @@ namespace ISAAR.MSolve.SamplesConsole
 
             //SuiteSparseBenchmarks.MemoryConsumptionDebugging();
             //SolverBenchmarks.SuiteSparseMemoryConsumptionDebugging();
+            //NRNLAnalyzerDevelopTest_v2.SolveDisplLoadsExample();
+            //SeparateCodeCheckingClass4.Check05bStressIntegrationObje_v2_Integration();
+            SeparateCodeCheckingClass4.Check_Graphene_rve_Obje_v2_Integration();
         }
 
         private static void SolveBuildingInNoSoilSmall()
@@ -81,7 +86,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
             // Structural problem provider
             var provider = new ProblemStructural_v2(model, solver);
@@ -138,7 +143,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
             // Structural problem provider
             var provider = new ProblemStructural_v2(model, solver);
@@ -304,7 +309,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
             // Structural problem provider
             var provider = new ProblemStructural_v2(model, solver);

@@ -247,3 +247,4 @@ ModelManifest.xml
 *.dat
 *.vtu
 *.vts
+/ISAAR.MSolve.IGA.Tests/OutputFiles

@@ -12,6 +12,7 @@ using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
@@ -83,7 +84,7 @@ namespace ISAAR.MSolve.Tests
             model.Loads.Add(new Load_v2() { Amount = -0.25, Node = model.Nodes[19], DOF = DOFType.Z });
 
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
             var provider = new ProblemStructural_v2(model, solver);
             var childAnalyzer = new LinearAnalyzer_v2(solver);
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
@@ -263,7 +264,7 @@ namespace ISAAR.MSolve.Tests
 
             // Solvers, providers, analyzers
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
             var provider = new ProblemStructural_v2(model, solver);
             var childAnalyzer = new LinearAnalyzer_v2(solver);
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
@@ -1053,7 +1054,7 @@ namespace ISAAR.MSolve.Tests
 
             // Solvers, providers, analyzers
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(trussModel);
+            ISolver_v2 solver = solverBuilder.BuildSolver(trussModel);
             var provider = new ProblemStructural_v2(trussModel, solver);
             var childAnalyzer = new LinearAnalyzer_v2(solver);
             var parentAnalyzer = new StaticAnalyzer_v2(trussModel, solver, provider, childAnalyzer);

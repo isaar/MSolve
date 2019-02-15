@@ -71,7 +71,7 @@ namespace ISAAR.MSolve.Tests.Solvers
 
             var solverBuilder = new SkylineSolver.Builder();
             //solverBuilder.DofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering()); // default
-            SkylineSolver solver = solverBuilder.BuildSolver(benchmark.Model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(benchmark.Model);
 
             RunAnalysisAndCheck(benchmark, solver);
         }
@@ -84,7 +84,7 @@ namespace ISAAR.MSolve.Tests.Solvers
             var solverBuilder = new SkylineSolver.Builder();
             solverBuilder.DofOrderer = new DofOrderer(
                 new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithCSparseAmd());
-            SkylineSolver solver = solverBuilder.BuildSolver(benchmark.Model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(benchmark.Model);
 
             RunAnalysisAndCheck(benchmark, solver);
 

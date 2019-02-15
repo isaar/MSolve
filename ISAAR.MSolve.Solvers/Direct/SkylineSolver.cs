@@ -3,6 +3,7 @@ using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
@@ -54,19 +55,25 @@ namespace ISAAR.MSolve.Solvers.Direct
             factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
         }
 
-        public class Builder
+        public class Builder : ISolverBuilder_v2
         {
             public Builder() { }
 
-            public IDofOrderer DofOrderer { get; set; } 
+            public IDofOrderer DofOrderer { get; set; }
                 = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
 
             public double FactorizationPivotTolerance { get; set; } = 1E-15;
 
-            public SkylineSolver BuildSolver(IStructuralModel_v2 model)
+            public ISolver_v2 BuildSolver(IStructuralModel_v2 model)
             {
                 return new SkylineSolver(model, FactorizationPivotTolerance, DofOrderer);
             }
+
+            public ISolverBuilder_v2 Clone()
+            {
+                return new SkylineSolver.Builder();
+            }
+
         }
     }
 }

@@ -10,14 +10,19 @@ using ISAAR.MSolve.Solvers.LinearSystems;
 
 namespace ISAAR.MSolve.Analyzers
 {
-    public class StaticAnalyzer_v2 : INonLinearParentAnalyzer_v2
+    /// <summary>
+    /// Parent Analyzer for nonlinear static problems assosiated with a microstructure bvp handled by MicrostructureBvpNRNLAnalyzer
+    /// Authors: Gerasimos Sotiropoulos
+    /// </summary>
+    public class MSParentAnalyzer : INonLinearParentAnalyzer_v2
     {
         private readonly IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
         private readonly IStructuralModel_v2 model;
         private readonly IStaticProvider_v2 provider;
         private readonly ISolver_v2 solver;
+        private bool firstInitialization;
 
-        public StaticAnalyzer_v2(IStructuralModel_v2 model, ISolver_v2 solver, IStaticProvider_v2 provider, 
+        public MSParentAnalyzer(IStructuralModel_v2 model, ISolver_v2 solver, IStaticProvider_v2 provider, 
             IChildAnalyzer childAnalyzer)
         {
             this.model = model;
