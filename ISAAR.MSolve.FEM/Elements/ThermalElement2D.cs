@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
+using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.FEM.Interpolation.Jacobians;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
@@ -15,7 +18,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 //TODO: Is there any point in having different material properties per Gauss point?
 namespace ISAAR.MSolve.FEM.Elements
 {
-    public class ThermalElement2D : IFiniteElement
+    public class ThermalElement2D : IFiniteElement, IEmbeddedHostElement
     {
         private readonly DOFType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
         private readonly ThermalMaterial material;
@@ -195,12 +198,50 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public IMatrix2D StiffnessMatrix(IElement element)
         {
-            return BuildConductivityMatrix();
+            return DOFEnumerator.GetTransformedMatrix(BuildConductivityMatrix());
         }
 
         public IMatrix2D DampingMatrix(IElement element)
         {
             throw new NotImplementedException();
+        }
+
+        public EmbeddedNode BuildHostElementEmbeddedNode(Element element, Node node, IEmbeddedDOFInHostTransformationVector transformationVector)
+        {
+            IInverseInterpolation2D inverseInterpolation = Interpolation.CreateInverseMappingFor(Nodes);
+            double[] naturalCoordinates = inverseInterpolation.TransformPointCartesianToNatural(new CartesianPoint2D(node.X, node.Y)).Coordinates;
+
+            if (naturalCoordinates.Length == 0) return null;
+
+            element.EmbeddedNodes.Add(node);
+            var embeddedNode = new EmbeddedNode(node, element, transformationVector.GetDependentDOFTypes);
+            for (int i = 0; i < naturalCoordinates.Length; i++)
+                embeddedNode.Coordinates.Add(naturalCoordinates[i]);
+            return embeddedNode;
+        }
+
+        public double[] GetShapeFunctionsForNode(Element element, EmbeddedNode node)
+        {
+            return Interpolation.EvaluateFunctionsAt(new NaturalPoint2D(node.Coordinates[0], node.Coordinates[1])).Data;
+
+            //TODO: This method originally returned an array containing the shape functions, shape function derivatives and entries of the inverse jacobian matrix.
+            //      a) This is retarded and extremely difficult to work with. b) This array is used in Hexa8TranslationAndRotationTransformationVector. Cohesive embedding 
+            //      and regular embedding in thermal elements only need the shape functions, so we will return these for now.
+
+            //double[,] elementCoordinates = GetCoordinatesTranspose(element);
+            //var shapeFunctions = CalcH8Shape(node.Coordinates[0], node.Coordinates[1], node.Coordinates[2]);
+            //var nablaShapeFunctions = CalcH8NablaShape(node.Coordinates[0], node.Coordinates[1], node.Coordinates[2]);
+            //var jacobian = CalcH8JDetJ(elementCoordinates, nablaShapeFunctions);
+
+            //return new double[]
+            //{
+            //    shapeFunctions[0], shapeFunctions[1], shapeFunctions[2], shapeFunctions[3], shapeFunctions[4], shapeFunctions[5], shapeFunctions[6], shapeFunctions[7],
+            //    nablaShapeFunctions[0], nablaShapeFunctions[1], nablaShapeFunctions[2], nablaShapeFunctions[3], nablaShapeFunctions[4], nablaShapeFunctions[5], nablaShapeFunctions[6], nablaShapeFunctions[7],
+            //    nablaShapeFunctions[8], nablaShapeFunctions[9], nablaShapeFunctions[10], nablaShapeFunctions[11], nablaShapeFunctions[12], nablaShapeFunctions[13], nablaShapeFunctions[14], nablaShapeFunctions[15],
+            //    nablaShapeFunctions[16], nablaShapeFunctions[17], nablaShapeFunctions[18], nablaShapeFunctions[19], nablaShapeFunctions[20], nablaShapeFunctions[21], nablaShapeFunctions[22], nablaShapeFunctions[23],
+            //    jacobian.Item1[0, 0], jacobian.Item1[0, 1], jacobian.Item1[0, 2], jacobian.Item1[1, 0], jacobian.Item1[1, 1], jacobian.Item1[1, 2], jacobian.Item1[2, 0], jacobian.Item1[2, 1], jacobian.Item1[2, 2],
+            //    jacobian.Item2[0, 0], jacobian.Item2[0, 1], jacobian.Item2[0, 2], jacobian.Item2[1, 0], jacobian.Item2[1, 1], jacobian.Item2[1, 2], jacobian.Item2[2, 0], jacobian.Item2[2, 1], jacobian.Item2[2, 2]
+            //};
         }
     }
 }
