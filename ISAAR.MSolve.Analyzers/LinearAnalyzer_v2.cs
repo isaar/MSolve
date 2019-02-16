@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.Analyzers
             //solver.Initialize();
         }
 
-        public void Initialize()
+        public void Initialize(bool isFirstAnalysis)
         {
             InitializeLogs();
             solver.Initialize();

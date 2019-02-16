@@ -70,7 +70,7 @@ namespace ISAAR.MSolve.Analyzers
             ChildAnalyzer.BuildMatrices();
         }
 
-        public void Initialize()
+        public void Initialize(bool isFirstAnalysis)
         {
             if (ChildAnalyzer == null) throw new InvalidOperationException("Monte Carlo analyzer must contain an embedded analyzer.");
 

@@ -69,7 +69,7 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
             parentAnalyzer.BuildMatrices();
         }
 
-        public void Initialize()
+        public void Initialize(bool isFirstAnalysis)
         {
             InitializeInternalVectors();
             solver.Initialize();

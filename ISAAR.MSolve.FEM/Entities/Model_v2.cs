@@ -10,6 +10,8 @@ using ISAAR.MSolve.Numerical.Commons;
 
 //TODO: find what is going on with the dynamic loads and refactor them. That 564000000 in AssignMassAccelerationHistoryLoads()
 //      cannot be correct.
+//TODO: ConnectDataStructures() should not be called twice. There should be a flag that determines if it has been called. If it
+//      has the method should just return without doing anything.
 namespace ISAAR.MSolve.FEM.Entities
 {
     public class Model_v2 : IStructuralModel_v2
@@ -107,7 +109,7 @@ namespace ISAAR.MSolve.FEM.Entities
         // Warning: This is called by the analyzer, so that the user does not have to call it explicitly. However, it is must be 
         // called explicitly before the AutomaticDomainDecompositioner is used.
         public void ConnectDataStructures()
-        {
+        {         
             BuildInterconnectionData();
             AssignConstraints();
             //EnumerateDOFs();
