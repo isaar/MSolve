@@ -76,7 +76,7 @@ namespace ISAAR.MSolve.SamplesConsole
             double[] stressesCheck2 = material1.Stresses.Data;
 
             VectorExtensions.AssignTotalAffinityCount();
-            IRVEbuilder_v2 homogeneousRveBuilder1 = new GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_v2(1);
+            IRVEbuilder_v2 homogeneousRveBuilder1 = new GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_forCheck_v2(1);
             //IRVEbuilder homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheckEnaHexa();
 
             IContinuumMaterial3DDefGrad microstructure3 = new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2(homogeneousRveBuilder1, new SkylineSolver.Builder(), false, 1);

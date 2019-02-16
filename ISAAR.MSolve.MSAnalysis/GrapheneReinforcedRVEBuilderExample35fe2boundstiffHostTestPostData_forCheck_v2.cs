@@ -28,9 +28,9 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     /// Model builder that can be used to create graphene reinforced rves 
     /// Authors: Gerasimos Sotiropoulos
     /// </summary>
-    public class GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_v2 : IRVEbuilder_v2 //IdegenerateRVEbuilder
+    public class GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_forCheck_v2 : IRVEbuilder_v2 //IdegenerateRVEbuilder
     {
-        //PROELEFSI einai o updated grapheneBuilder...35... apo thn ekdosh ms_development_nl_elements_merge
+        //PROELEFSI einai o updated GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData( _v2 to idio einai) apo thn ekdosh ms_development_nl_elements_merge
         // allages: discretization data kai paths wste
         //anti gia REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2
         //na trexoume REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2_forCHECK
@@ -43,12 +43,12 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         string renumbering_vector_path;
         int RVE_id;
 
-        public GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_v2(int RVE_id)
+        public GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_forCheck_v2(int RVE_id)
         {
             this.RVE_id = RVE_id;
         }
 
-        public IRVEbuilder_v2 Clone(int a) => new GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_v2(a);
+        public IRVEbuilder_v2 Clone(int a) => new GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_forCheck_v2(a);
     
         public Tuple<Model_v2, Dictionary<int, Node_v2>,double> GetModelAndBoundaryNodes()
         {
