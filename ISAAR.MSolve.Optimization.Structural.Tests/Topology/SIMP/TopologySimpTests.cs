@@ -28,8 +28,8 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
 
             // Define the optimization
             var material = new ElasticMaterial2D(StressState2D.PlaneStress) { YoungModulus = 1.0, PoissonRatio = 0.3 };
-            var fem = new LinearFemAnalysisUniform2D(numElementsX, numElementsY, material,
-                LinearFemAnalysisUniform2D.BoundaryConditions.ShortCantilever);
+            var fem = new LinearFemAnalysis2DUniformHardcoded(numElementsX, numElementsY, material,
+                LinearFemAnalysis2DUniformHardcoded.BoundaryConditions.ShortCantilever);
             var filter = new MeshIndependentSensitivityFilter2DUniform(numElementsX, numElementsY, filterAreaRadius);
             var simp = new TopologySimpLinear2D(fem, filter, volumeFraction);
             simp.PenalizationExponent = penalty;
@@ -63,8 +63,8 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
 
             // Define the optimization
             var material = new ElasticMaterial2D(StressState2D.PlaneStress) { YoungModulus = 1.0, PoissonRatio = 0.3 };
-            var fem = new LinearFemAnalysisUniform2D(numElementsX, numElementsY, material,
-                LinearFemAnalysisUniform2D.BoundaryConditions.Cantilever2LoadCases);
+            var fem = new LinearFemAnalysis2DUniformHardcoded(numElementsX, numElementsY, material,
+                LinearFemAnalysis2DUniformHardcoded.BoundaryConditions.Cantilever2LoadCases);
             var filter = new MeshIndependentSensitivityFilter2DUniform(numElementsX, numElementsY, filterAreaRadius);
             var simp = new TopologySimpLinear2D(fem, filter, volumeFraction);
             simp.PenalizationExponent = penalty;
@@ -99,8 +99,8 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
 
             // Define the optimization
             var material = new ElasticMaterial2D(StressState2D.PlaneStress) { YoungModulus = 1.0, PoissonRatio = 0.3 };
-            var fem = new LinearFemAnalysisUniform2D(numElementsX, numElementsY, material, 
-                LinearFemAnalysisUniform2D.BoundaryConditions.MbbBeam);
+            var fem = new LinearFemAnalysis2DUniformHardcoded(numElementsX, numElementsY, material, 
+                LinearFemAnalysis2DUniformHardcoded.BoundaryConditions.MbbBeam);
             var filter = new MeshIndependentSensitivityFilter2DUniform(numElementsX, numElementsY, filterAreaRadius);
             var simp = new TopologySimpLinear2D(fem, filter, volumeFraction);
             simp.PenalizationExponent = penalty;

@@ -14,7 +14,13 @@ using System.Linq;
 //TODO: Add support for various boundary conditions and load cases
 namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
 {
-    public class LinearFemAnalysisUniform2D: ILinearFemAnalysis
+    /// <summary>
+    /// This class implements the FEM analysis part of the 99 line topology code, which is 2D, linear elastic with a uniform mesh.
+    /// In this case many optimizations are possible (e.g. only calculating the element stiffness matrix once.). Therefore this 
+    /// class is useful to compare other FEM analyses with, in terms of computational cost. 
+    /// For the full paper see "A 99 line topology optimization code written in Matlab, O. Sigmund, 1991"
+    /// </summary>
+    public class LinearFemAnalysis2DUniformHardcoded: ILinearFemAnalysis
     {
         //TODO: Use MSolve analysis and Model instead of this
         public enum BoundaryConditions
@@ -31,7 +37,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
         private IMatrixView commonStiffness; //TODO: Should this be readonly without an Initialize() method?
         private Vector[] globalDisplacements;
 
-        public LinearFemAnalysisUniform2D(int numElementsX, int numElementsY, ElasticMaterial2D material,
+        public LinearFemAnalysis2DUniformHardcoded(int numElementsX, int numElementsY, ElasticMaterial2D material,
             BoundaryConditions bc)
         {
             this.numElementsX = numElementsX;
