@@ -109,8 +109,8 @@ namespace ISAAR.MSolve.SamplesConsole
             parentAnalyzer.Solve();
 
             // Create Paraview File
-            //var paraview = new ParaviewEmbedded3D(model, solver.LinearSystems[0].Solution, "test");
-            //paraview.CreateParaviewFile();
+            var paraview = new ParaviewEmbedded3D(model, solver.LinearSystems[0].Solution, "test");
+            paraview.CreateParaviewFile();
         }
 
         public static void EmbeddedCNT_20_20_inMatrix_DisplacementControl()
@@ -190,7 +190,8 @@ namespace ISAAR.MSolve.SamplesConsole
             {
                 HostElementsBuilder(model);
                 EmbeddedElementsBuilder(model);
-                var embeddedGrouping = new EmbeddedGrouping_v2(model, model.ElementsDictionary.Where(x => x.Key <= 36100).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 36100).Select(kv => kv.Value), true);
+                //var embeddedGrouping = new EmbeddedGrouping_v2(model, model.ElementsDictionary.Where(x => x.Key <= 36100).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 36100).Select(kv => kv.Value), true);
+                var embeddedGrouping = new EmbeddedCohesiveGrouping_v2(model, model.ElementsDictionary.Where(x => x.Key <= 36100).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 36100).Select(kv => kv.Value), true);
             }
 
             public static void HostElementsBuilder(Model_v2 model)

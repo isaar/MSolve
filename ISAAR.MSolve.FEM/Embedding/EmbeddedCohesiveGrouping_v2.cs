@@ -46,8 +46,7 @@ namespace ISAAR.MSolve.FEM.Embedding
         {
             IEmbeddedDOFInHostTransformationVector transformer;
             if (hasEmbeddedRotations)
-                //transformer = new Hexa8TranslationAndRotationTransformationVector();
-                throw new NotImplementedException();
+                transformer = new Hexa8TranslationAndRotationTransformationVector();
             else
                 transformer = new Hexa8LAndNLTranslationTransformationVector();
 
