@@ -57,16 +57,31 @@ namespace ISAAR.MSolve.FEM.Elements
         }
 
         public ElementDimensions ElementDimensions => ElementDimensions.TwoD;
+        public IGaussPointExtrapolation2D GaussPointExtrapolation { get; }
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element) => dofTypes;
 
         public int ID => throw new NotImplementedException(
             "Element type codes should be in a settings class. Even then it's a bad design choice");
 
-        public IGaussPointExtrapolation2D GaussPointExtrapolation { get; }
         public IIsoparametricInterpolation2D Interpolation { get; }
         public IReadOnlyList<Node_v2> Nodes { get; }
         public IQuadrature2D QuadratureForConsistentMass { get; }
         public IQuadrature2D QuadratureForStiffness { get; }
         public double Thickness { get; }
+
+        public IElementDofEnumerator_v2 DofEnumerator { get; set; } = new GenericDofEnumerator_v2();
+
+        public bool MaterialModified
+        {
+            get
+            {
+                foreach (ElasticMaterial2D_v2 material in materialsAtGaussPoints)
+                {
+                    if (material.Modified) return true;
+                }
+                return false;
+            }
+        }
 
         public Matrix BuildConsistentMassMatrix()
         {
@@ -117,7 +132,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return lumpedMass;
         }
 
-        public Matrix BuildStiffnessMatrix()
+        public IMatrix BuildStiffnessMatrix()
         {
             int numDofs = 2 * Nodes.Count;
             var stiffness = Matrix.CreateZero(numDofs, numDofs);
@@ -139,7 +154,8 @@ namespace ISAAR.MSolve.FEM.Elements
                 stiffness.AxpyIntoThis(partial, dA);
             }
             stiffness.ScaleIntoThis(Thickness);
-            return stiffness;
+
+            return DofEnumerator.GetTransformedMatrix(stiffness);
         }
 
         //TODO: I think this method must be removed from IFiniteElement altogether. This procedure shoud be done for the global 
@@ -164,6 +180,24 @@ namespace ISAAR.MSolve.FEM.Elements
             }
 
             return massMatrix.Multiply(accelerations);
+        }
+
+        public double CalculateArea()
+        {
+            //TODO: Linear elements can use the more efficient rules for area of polygons. Therefore this method should be 
+            //      delegated to the interpolation.
+            //TODO: A different integration rule should be used for integrating constant functions. For linear elements there
+            //      is only 1 Gauss point (most probably), therefore the computational cost could be the same as using the 
+            //      polygonal formulas.
+            double area = 0.0;
+            IReadOnlyList<Matrix> shapeGradientsNatural =
+                Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
+            for (int gp = 0; gp < QuadratureForStiffness.IntegrationPoints.Count; ++gp)
+            {
+                var jacobian = new IsoparametricJacobian2D(Nodes, shapeGradientsNatural[gp]);
+                area += jacobian.DirectDeterminant * QuadratureForStiffness.IntegrationPoints[gp].Weight; //TODO: this is used by all methods that integrate. I should cache it.
+            }
+            return area;
         }
 
         public double[] CalculateForces(Element_v2 element, double[] localTotalDisplacements, double[] localdDisplacements)
@@ -198,15 +232,11 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             //TODO: Stiffness and mass matrices have already been computed probably. Reuse them.
             //TODO: Perhaps with Rayleigh damping, the global damping matrix should be created directly from global mass and stiffness matrices.
-            Matrix damping = BuildStiffnessMatrix();
+            IMatrix damping = BuildStiffnessMatrix();
             damping.ScaleIntoThis(dynamicProperties.RayleighCoeffStiffness);
             damping.AxpyIntoThis(MassMatrix(element), dynamicProperties.RayleighCoeffMass);
             return damping;
         }
-
-        public IElementDofEnumerator_v2 DofEnumerator { get; set; } = new GenericDofEnumerator_v2();
-
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element) => dofTypes;
 
         /// <summary>
         /// The returned structure is a list with as many entries as the number of nodes of this element. Each entry contains 
@@ -248,16 +278,6 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             return BuildConsistentMassMatrix();
             //return BuildLumpedMassMatrix();
-        }
-
-        public bool MaterialModified
-        {
-            get
-            {
-                foreach (ElasticMaterial2D_v2 material in materialsAtGaussPoints)
-                    if (material.Modified) return true;
-                return false;
-            }
         }
 
         public void ResetMaterialModified()
