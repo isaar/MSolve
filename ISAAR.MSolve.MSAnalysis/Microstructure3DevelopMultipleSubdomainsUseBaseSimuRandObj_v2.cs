@@ -9,6 +9,7 @@ using ISAAR.MSolve.PreProcessor;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Elements;
@@ -24,7 +25,6 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Discretization.Providers;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
-using Matrix2D = ISAAR.MSolve.Numerical.LinearAlgebra.Matrix2D;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.LinearSystems;
 
@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     /// Primary multiscale analysis class that connects all nesessary structures for a FE2 simulation
     /// Authors: Gerasimos Sotiropoulos
     /// </summary>
-    public class Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2 : StructuralProblemsMicrostructureBase_v2, IContinuumMaterial3DDefGrad
+    public class Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2 : StructuralProblemsMicrostructureBase_v2, IContinuumMaterial3DDefGrad_v2
     {
         //PROELEFSI aplo copy apo nl_elements_test.
         //allages apo UseBase egine UseBaseSimuRand me odhgo Microstructure3DevelopMultipleSubdomainsUseBaseSmallStrainsShelltransformationSimuRand se sxesh me to Microstru...Transformation.cs
@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         ISolverBuilder_v2 solverBuilder;
 
         // aparaithta gia to implementation tou IFiniteElementMaterial3D
-        Matrix2D constitutiveMatrix;
+        Matrix constitutiveMatrix;
         private double[] SPK_vec=new double[6];
         private bool modified; // opws sto MohrCoulomb gia to modified
 
@@ -67,7 +67,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             Cijrs_prev = new double[6, 6];
             matrices_not_initialized = false;
             tol = Math.Pow(10, -19);
-            constitutiveMatrix = new Matrix2D(new double[6, 6]);
+            constitutiveMatrix = Matrix.CreateZero(6, 6);
         }
 
 
@@ -345,7 +345,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             
             #endregion
 
-            constitutiveMatrix = new Matrix2D(Cijrs);
+            constitutiveMatrix = Matrix.CreateFromArray(Cijrs);
 
             //PrintMethodsForDebug(KfpDq, f2_vectors, f3_vectors, KppDqVectors, f4_vectors, DqCondDq, d2W_dfdf, Cijrs);
             this.modified = CheckIfConstitutiveMatrixChanged(); 
@@ -365,7 +365,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
 
         #region IFiniteElementMaterial3D methodoi mia mia 
 
-        public Matrix2D ConstitutiveMatrix
+        public IMatrixView ConstitutiveMatrix
         {
             get
             {
@@ -374,9 +374,9 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             }
         }
 
-        public ISAAR.MSolve.Numerical.LinearAlgebra.Vector Stresses // opws xrhsimopoeitai sto mohrcoulomb kai hexa8
+        public double[] Stresses // opws xrhsimopoeitai sto mohrcoulomb kai hexa8
         {
-            get { return new ISAAR.MSolve.Numerical.LinearAlgebra.Vector(SPK_vec); }
+            get { return SPK_vec; }
         }
 
         public void SaveState()
@@ -694,7 +694,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
 
             double[,] Cijrs = CombineCinpkTensorTermsIntoMatrix(Cinpk);
            
-            constitutiveMatrix = new Matrix2D(Cijrs);
+            constitutiveMatrix = Matrix.CreateFromArray(Cijrs);
             #endregion
 
             //PrintMethodsForDebug(KfpDq, f2_vectors, f3_vectors, KppDqVectors, f4_vectors, DqCondDq, d2W_dfdf, Cijrs);

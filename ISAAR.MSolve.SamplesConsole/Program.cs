@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.SamplesConsole
             //SolverBenchmarks.SuiteSparseMemoryConsumptionDebugging();
             //NRNLAnalyzerDevelopTest_v2.SolveDisplLoadsExample();
             //SeparateCodeCheckingClass4.Check05bStressIntegrationObje_v2_Integration();
-            SeparateCodeCheckingClass4.Check_Graphene_rve_Obje_v2_Integration();
+            //SeparateCodeCheckingClass4.Check_Graphene_rve_Obje_v2_Integration();
         }
 
         private static void SolveBuildingInNoSoilSmall()
