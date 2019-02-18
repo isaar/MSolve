@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Xml.Serialization;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
-	/// <summary>
-	/// Isoparamteric interpolation of a wedge finite element with 15 nodes. Quadratic shape functions.
-	/// Implements singleton pattern.
-	/// Authors: Dimitris Tsapetis
-	/// </summary>
-	public class InterpolationWedge15 : IsoparametricInterpolation3DBase
+    /// <summary>
+    /// Isoparamteric interpolation of a wedge finite element with 15 nodes. Quadratic shape functions.
+    /// Implements singleton pattern.
+    /// Authors: Dimitris Tsapetis
+    /// </summary>
+    public class InterpolationWedge15 : IsoparametricInterpolation3DBase
 	{
 		private static readonly InterpolationWedge15 uniqueInstance = new InterpolationWedge15();
 
@@ -57,7 +56,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// </summary>
 		/// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
 		/// <returns></returns>
-		public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> node) =>
+		public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node_v2> node) =>
 			throw new NotImplementedException("Iterative procedure needed");
 
 		// Evaluated according to https://www.code-aster.org/V2/doc/v11/en/man_r/r3/r3.01.01.pdf
@@ -87,13 +86,13 @@ namespace ISAAR.MSolve.FEM.Interpolation
 			return values;
 		}
 
-		protected sealed override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
+		protected sealed override Matrix EvaluateGradientsAt(double xi, double eta, double zeta)
 		{
 			var x = xi;
 			var y = eta;
 			var z = zeta;
 
-			var derivatives = new double[15, 3];
+			var derivatives = Matrix.CreateZero(15, 3);
 
 			derivatives[0, 0] = (y * (x - 2 * y + 2)) / 2 + (y * (x - 1)) / 2;
 			derivatives[1, 0] = (z * (x - 2 * z + 2)) / 2 + (z * (x - 1)) / 2;

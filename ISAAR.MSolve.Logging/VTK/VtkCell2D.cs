@@ -12,36 +12,36 @@ namespace ISAAR.MSolve.Logging.VTK
     /// </summary>
     public class VtkCell2D
     {
-        public static readonly IReadOnlyDictionary<CellType2D, int> cellTypeCodes = 
-            new Dictionary<CellType2D, int>
+        public static readonly IReadOnlyDictionary<CellType, int> cellTypeCodes = 
+            new Dictionary<CellType, int>
             {
                                             // 3 ---- 2
                                             // |      |
                                             // |      |
-                { CellType2D.Quad4, 9 },    // 0 ---- 1
+                { CellType.Quad4, 9 },    // 0 ---- 1
 
                                             // 3 -- 6 -- 2
                                             // |         |
                                             // 7         5
                                             // |         |
-                { CellType2D.Quad8, 23 },   // 0 -- 4 -- 1
+                { CellType.Quad8, 23 },   // 0 -- 4 -- 1
 
                                             // 3 -- 6 -- 2
                                             // |    |    |
                                             // 7 -- 8 -- 5
                                             // |    |    |
-                { CellType2D.Quad9, 28 },   // 0 -- 4 -- 1
+                { CellType.Quad9, 28 },   // 0 -- 4 -- 1
 
                                             //    2
                                             //   /  \
                                             //  /    \
-                { CellType2D.Tri3, 5 },     // 0 ---  1
+                { CellType.Tri3, 5 },     // 0 ---  1
 
                                             //     2
                                             //    /  \
                                             //   5    4
                                             //  /       \
-                { CellType2D.Tri6, 22 }     // 0 -- 3 -- 1
+                { CellType.Tri6, 22 }     // 0 -- 3 -- 1
             };
 
         public VtkCell2D(int code, IReadOnlyList<VtkPoint2D> vertices)

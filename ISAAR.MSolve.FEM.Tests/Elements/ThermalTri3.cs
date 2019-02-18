@@ -1,16 +1,9 @@
-﻿using ISAAR.MSolve.Discretization.Integration.Points;
-using ISAAR.MSolve.Discretization.Integration.Quadratures;
-using ISAAR.MSolve.FEM.Elements;
+﻿using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Interpolation;
-using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
 using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using Xunit;
 
 namespace ISAAR.MSolve.FEM.Tests.Elements
@@ -25,21 +18,21 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         /// <summary>
         /// Random shape, not too distorted.
         /// </summary>
-        private static readonly IReadOnlyList<Node2D> nodeSet0 = new Node2D[]
+        private static readonly IReadOnlyList<Node_v2> nodeSet0 = new Node_v2[]
         {
-            new Node2D(0, 0.0,  0.0),
-            new Node2D(1, 1.0,  0.0),
-            new Node2D(2, 0.0,  1.0)
+            new Node_v2 { ID = 0, X = 0.0, Y = 0.0 },
+            new Node_v2 { ID = 1, X = 1.0, Y = 0.0 },
+            new Node_v2 { ID = 2, X = 0.0, Y = 1.0 }
         };
 
         [Fact]
         private static void TestCapacity()
         {
             var factory = new ThermalElement2DFactory(thickness, new ThermalMaterial(density, specialHeatCoeff, thermalConductivity));
-            ThermalElement2D element = factory.CreateElement(CellType2D.Tri3, nodeSet0);
-            IMatrix2D M = element.BuildCapacityMatrix();
+            ThermalElement2D element = factory.CreateElement(CellType.Tri3, nodeSet0);
+            IMatrix M = element.BuildCapacityMatrix();
 
-            var expectedM = new Matrix2D(new double[,]
+            var expectedM = Matrix.CreateFromArray(new double[,]
             {
                 {2, 1, 1 },
                 {1, 2, 1 },
@@ -47,23 +40,24 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
 
             });
 
-            Assert.True(Utilities.AreMatricesEqual(M, expectedM, 1e-10));
+            Assert.True(expectedM.Equals(M, 1e-10));
         }
 
         [Fact]
         private static void TestConductivity()
         {
             var factory = new ThermalElement2DFactory(thickness, new ThermalMaterial(density, specialHeatCoeff, thermalConductivity));
-            ThermalElement2D element = factory.CreateElement(CellType2D.Tri3, nodeSet0);
-            IMatrix2D K = element.BuildConductivityMatrix();
+            ThermalElement2D element = factory.CreateElement(CellType.Tri3, nodeSet0);
+            IMatrix K = element.BuildConductivityMatrix();
 
-            double[,] expectedK = new double[,]
+            var expectedK = Matrix.CreateFromArray(new double[,]
             {
                 { 1.0, -0.5, -0.5 },
                 { -0.5, 0.5,  0.0 },
                 { -0.5, 0.0,  0.5 }
-            };
-            Assert.True(Utilities.AreMatricesEqual(K, new Matrix2D(expectedK), 1e-10));
+            });
+
+            Assert.True(expectedK.Equals(K, 1e-10));
         }
     }
 }

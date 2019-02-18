@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-//TODO: Density is also used in body forces, so it is not only for dynamic/modal problems.
+﻿//TODO: Density is also used in body forces, so it is not only for dynamic/modal problems.
 //TODO: These cannot vary throughout the element. The solution is having a MaterialField that returns properties at specific 
 //      natural points.
 namespace ISAAR.MSolve.Materials

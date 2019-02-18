@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using Xunit;
 
 namespace ISAAR.MSolve.FEM.Tests.Interpolation
 {
-	/// <summary>
-	/// Unit testing implementations of <see cref="IIsoparametricInterpolation3D"/>
-	/// </summary>
+    /// <summary>
+    /// Unit testing implementations of <see cref="IIsoparametricInterpolation3D_OLD"/>
+    /// </summary>
     public class IsoparametricInterpolation3D
 	{
 		private const int numRandomPoints = 10;
@@ -56,7 +54,7 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 			NaturalPoint3D[] points = pointGenerators[interpolation]();
 			for (int p = 0; p < points.Length; p++)
 			{
-				Vector shapeFunctions = interpolation.EvaluateFunctionsAt(points[p]);
+                double[] shapeFunctions = interpolation.EvaluateFunctionsAt(points[p]);
 				double sum = 0.0;
 				for (int f = 0; f < interpolation.NumFunctions; f++) sum += shapeFunctions[f];
 				Assert.True(Utilities.AreValuesEqual(1.0,sum,tolerance));
@@ -70,7 +68,7 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 			double tolerance = 1e-10;
 			for (int n = 0; n < interpolation.NodalNaturalCoordinates.Count; n++)
 			{
-				Vector shapeFunctions = interpolation.EvaluateFunctionsAt(interpolation.NodalNaturalCoordinates[n]);
+                double[] shapeFunctions = interpolation.EvaluateFunctionsAt(interpolation.NodalNaturalCoordinates[n]);
 				for (int f = 0; f < interpolation.NumFunctions; f++)
 				{
 					if (f==n) Assert.True(Utilities.AreValuesEqual(1.0,shapeFunctions[f], tolerance));

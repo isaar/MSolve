@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Materials.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
@@ -99,7 +100,7 @@ namespace ISAAR.MSolve.IGA.Entities
             get { return facesDictionary; }
         }
 
-		public Dictionary<int, IElement> ΙElementsDictionary
+		Dictionary<int, IElement> ISubdomain.ElementsDictionary
 		{
 			get
 			{
@@ -562,7 +563,6 @@ namespace ISAAR.MSolve.IGA.Entities
                 if (!controlPointsDictionary.ContainsKey(controlPointID))
                     controlPointsDictionary.Add(controlPointID, controlPoints[controlPointID]);
         }
-
         #endregion
 
         public void ResetMaterialsModifiedProperty()

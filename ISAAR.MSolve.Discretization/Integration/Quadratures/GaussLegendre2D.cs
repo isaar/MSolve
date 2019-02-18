@@ -40,9 +40,9 @@ namespace ISAAR.MSolve.Discretization.Integration.Quadratures
 
             // Combine the integration rules of each axis. The order is Xi minor - Eta major 
             // WARNING: Do not change their order. Other classes, such as ExtrapolationGaussLegendre2x2 depend on it.
-            foreach (var pointEta in quadratureXi.IntegrationPoints)
+            foreach (var pointEta in quadratureEta.IntegrationPoints)
             {
-                foreach (var pointXi in quadratureEta.IntegrationPoints)
+                foreach (var pointXi in quadratureXi.IntegrationPoints)
                 {
                     points2D.Add(new GaussPoint2D(pointXi.Xi, pointEta.Xi, pointXi.Weight * pointEta.Weight));
                 }

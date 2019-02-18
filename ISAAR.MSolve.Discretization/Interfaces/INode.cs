@@ -4,12 +4,14 @@ using System.Text;
 
 namespace ISAAR.MSolve.Discretization.Interfaces
 {
-    public interface INode
+    public interface INode: IDiscretePoint
     {
 		int ID { get; set; }
 		double X { get; set; }
 		double Y { get; set; }
 		double Z { get; set; }
+
+        List<Constraint> Constraints { get; }
 	}
 
     public static class NodeExtensions
@@ -23,5 +25,4 @@ namespace ISAAR.MSolve.Discretization.Interfaces
             return Math.Sqrt(dx * dx + dy * dy + dz * dz);
         }
     }
-
 }

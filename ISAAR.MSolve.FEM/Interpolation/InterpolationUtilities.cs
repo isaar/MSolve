@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
     /// </summary>
     public static class InterpolationUtilities
     {
-        public static CartesianPoint2D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node2D> nodes, 
+        public static CartesianPoint2D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node_v2> nodes, 
             Vector shapeFunctionsAtNaturalPoint)
         {
             int numFuncs = shapeFunctionsAtNaturalPoint.Length;
@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
             double x = 0, y = 0;
             for (int i = 0; i < numFuncs; ++i)
             {
-                Node2D node = nodes[i];
+                Node_v2 node = nodes[i];
                 double val = shapeFunctionsAtNaturalPoint[i];
                 x += val * node.X;
                 y += val * node.Y;
@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
             return new CartesianPoint2D(x, y);
         }
 
-        public static CartesianPoint3D TransformPointToGlobalCartesian(IReadOnlyList<Node3D> nodes,
+        public static CartesianPoint3D TransformPointToGlobalCartesian(IReadOnlyList<Node_v2> nodes,
             Vector shapeFunctionsAtNaturalPoint)
         {
             int numFuncs = shapeFunctionsAtNaturalPoint.Length;
@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
             double x = 0, y = 0, z = 0;
             for (int i = 0; i < numFuncs; ++i)
             {
-                Node3D node = nodes[i];
+                Node_v2 node = nodes[i];
                 double val = shapeFunctionsAtNaturalPoint[i];
                 x += val * node.X;
                 y += val * node.Y;

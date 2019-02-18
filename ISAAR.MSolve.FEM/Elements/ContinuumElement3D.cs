@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Integration.Points;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
@@ -10,28 +9,28 @@ using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
 using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 using ISAAR.MSolve.FEM.Materials;
+using ISAAR.MSolve.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
     /// <summary>
     /// Represents a continuum finite element for 3D problems. Specific elements (e.g. Hexa8, Hexa20, ...) can be created using
-    /// the appropriate <see cref="IIsoparametricInterpolation3D"/>, <see cref="IQuadrature3D"/> etc. strategies. 
+    /// the appropriate <see cref="IIsoparametricInterpolation3D_OLD"/>, <see cref="IQuadrature3D"/> etc. strategies. 
     /// Authors: Dimitris Tsapetis
     /// </summary>
-    public class ContinuumElement3D:IStructuralFiniteElement
+    public class ContinuumElement3D : IStructuralFiniteElement_v2
     {
         private readonly static DOFType[] nodalDOFTypes = new DOFType[] {DOFType.X, DOFType.Y, DOFType.Z};
         private readonly DOFType[][] dofTypes;
         private DynamicMaterial dynamicProperties;
-        private readonly IReadOnlyList<ElasticMaterial3D> materialsAtGaussPoints;
+        private readonly IReadOnlyList<ElasticMaterial3D_v2> materialsAtGaussPoints;
 
-        public ContinuumElement3D(IReadOnlyList<Node3D> nodes, IIsoparametricInterpolation3D interpolation,
+        public ContinuumElement3D(IReadOnlyList<Node_v2> nodes, IIsoparametricInterpolation3D interpolation,
             IQuadrature3D quadratureForStiffness, IQuadrature3D quadratureForMass,
             IGaussPointExtrapolation3D gaussPointExtrapolation,
-            IReadOnlyList<ElasticMaterial3D> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
+            IReadOnlyList<ElasticMaterial3D_v2> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
         {
             this.dynamicProperties = dynamicProperties;
             this.materialsAtGaussPoints = materialsAtGaussPoints;
@@ -53,37 +52,37 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public IGaussPointExtrapolation3D GaussPointExtrapolation { get; }
         public IIsoparametricInterpolation3D Interpolation { get; }
-        public IReadOnlyList<Node3D> Nodes { get; }
+        public IReadOnlyList<Node_v2> Nodes { get; }
         public IQuadrature3D QuadratureForConsistentMass { get; }
         public IQuadrature3D QuadratureForStiffness { get; }
 
 
-        public Matrix2D BuildConsistentMassMatrix()
+        public Matrix BuildConsistentMassMatrix()
         {
             int numberOfDofs = 3 * Nodes.Count;
-            var mass= new Matrix2D(numberOfDofs,numberOfDofs);
-            IReadOnlyList<Vector> shapeFunctions =
+            var mass = Matrix.CreateZero(numberOfDofs,numberOfDofs);
+            IReadOnlyList<double[]> shapeFunctions =
                 Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForConsistentMass);
-            IReadOnlyList<Matrix2D> shapeGradientsNatural =
+            IReadOnlyList<Matrix> shapeGradientsNatural =
                 Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForConsistentMass);
 
             for (int gp = 0; gp < QuadratureForConsistentMass.IntegrationPoints.Count; ++gp)
             {
-                Matrix2D shapeFunctionMatrix = BuildShapeFunctionMatrix(shapeFunctions[gp]);
-                Matrix2D partial = shapeFunctionMatrix.Transpose() * shapeFunctionMatrix;
+                Matrix shapeFunctionMatrix = BuildShapeFunctionMatrix(shapeFunctions[gp]);
+                Matrix partial = shapeFunctionMatrix.MultiplyRight(shapeFunctionMatrix, true, false);
                 var jacobian = new IsoparametricJacobian3D(Nodes, shapeGradientsNatural[gp]);
                 double dA = jacobian.DirectDeterminant * QuadratureForConsistentMass.IntegrationPoints[gp].Weight;
                 mass.AxpyIntoThis(partial,dA);
             }
-            mass.Scale(dynamicProperties.Density);
+            mass.ScaleIntoThis(dynamicProperties.Density);
             return mass;
         }
 
-        public Matrix2D BuildLumpedMassMatrix()
+        public Matrix BuildLumpedMassMatrix()
         {
             int numberOfDofs = 3 * Nodes.Count;
-            var lumpedMass= new Matrix2D(numberOfDofs,numberOfDofs);
-            IReadOnlyList<Matrix2D> shapeGradientsNatural =
+            var lumpedMass= Matrix.CreateZero(numberOfDofs,numberOfDofs);
+            IReadOnlyList<Matrix> shapeGradientsNatural =
                 Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForConsistentMass);
 
             double area = 0;
@@ -100,34 +99,34 @@ namespace ISAAR.MSolve.FEM.Elements
         }
 
 
-        public Matrix2D BuildStiffnessMatrix()
+        public Matrix BuildStiffnessMatrix()
         {
             int numberOfDofs = 3 * Nodes.Count;
-            var stiffness=new Matrix2D(numberOfDofs, numberOfDofs);
-            IReadOnlyList<Matrix2D> shapeGradientsNatural =
+            var stiffness = Matrix.CreateZero(numberOfDofs, numberOfDofs);
+            IReadOnlyList<Matrix> shapeGradientsNatural =
                 Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
 
             for (int gp = 0; gp < QuadratureForStiffness.IntegrationPoints.Count; ++gp)
             {
-                Matrix2D constitutive = (Matrix2D) materialsAtGaussPoints[gp].ConstitutiveMatrix;
+                IMatrixView constitutive = materialsAtGaussPoints[gp].ConstitutiveMatrix;
                 var jacobian = new IsoparametricJacobian3D(Nodes, shapeGradientsNatural[gp]);
-                Matrix2D shapeGradientsCartesian =
+                Matrix shapeGradientsCartesian =
                     jacobian.TransformNaturalDerivativesToCartesian(shapeGradientsNatural[gp]);
-                Matrix2D deformation = BuildDeformationMatrix(shapeGradientsCartesian);
+                Matrix deformation = BuildDeformationMatrix(shapeGradientsCartesian);
 
-                Matrix2D partial = deformation.Transpose() * (constitutive * deformation);
+                Matrix partial = deformation.ThisTransposeTimesOtherTimesThis(constitutive);
                 double dA = jacobian.DirectDeterminant * QuadratureForStiffness.IntegrationPoints[gp].Weight;
-                stiffness.AxpyIntoThis(partial,dA);
+                stiffness.AxpyIntoThis(partial, dA);
             }
 
             return stiffness;
         }
 
-        public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
+        public double[] CalculateAccelerationForces(Element_v2 element, IList<MassAccelerationLoad> loads)
         {
             int numberOfDofs = 3 * Nodes.Count;
-            Vector accelerations= new Vector(numberOfDofs);
-            IMatrix2D massMatrix =MassMatrix(element);
+            var accelerations = new double[numberOfDofs];
+            IMatrix massMatrix = MassMatrix(element);
 
             foreach (var load in loads)
             {
@@ -142,22 +141,20 @@ namespace ISAAR.MSolve.FEM.Elements
                 }
             }
 
-            double[] forces = new double[numberOfDofs];
-            massMatrix.Multiply(accelerations,forces);
-            return forces;
+            return massMatrix.Multiply(accelerations);
         }
 
-        public double[] CalculateForces(Element element, double[] localTotalDisplacements, double[] localDisplacements)
+        public double[] CalculateForces(Element_v2 element, double[] localTotalDisplacements, double[] localDisplacements)
         {
             throw new NotImplementedException();
         }
 
-        public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
+        public double[] CalculateForcesForLogging(Element_v2 element, double[] localDisplacements)
         {
             return CalculateForces(element, localDisplacements, new double[localDisplacements.Length]);
         }
 
-        public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements,
+        public Tuple<double[], double[]> CalculateStresses(Element_v2 element, double[] localDisplacements,
             double[] localdDisplacements)
         {
             throw new NotImplementedException();
@@ -173,20 +170,20 @@ namespace ISAAR.MSolve.FEM.Elements
             foreach (var material in materialsAtGaussPoints) material.ClearStresses();
         }
 
-        public IMatrix2D DampingMatrix(IElement element)
+        public IMatrix DampingMatrix(IElement_v2 element)
         {
-            Matrix2D damping = BuildStiffnessMatrix();
-            damping.Scale(dynamicProperties.RayleighCoeffStiffness);
+            Matrix damping = BuildStiffnessMatrix();
+            damping.ScaleIntoThis(dynamicProperties.RayleighCoeffStiffness);
             damping.AxpyIntoThis(MassMatrix(element), dynamicProperties.RayleighCoeffMass);
             return damping;
         }
 
 
-        public IElementDOFEnumerator DOFEnumerator { get; set; }=new GenericDOFEnumerator();
+        public IElementDofEnumerator_v2 DofEnumerator { get; set; } = new GenericDofEnumerator_v2();
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element) => dofTypes;
 
-        public IMatrix2D MassMatrix(IElement element)
+        public IMatrix MassMatrix(IElement_v2 element)
         {
             return BuildLumpedMassMatrix();
         }
@@ -195,7 +192,7 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             get
             {
-                foreach (ElasticMaterial3D material in materialsAtGaussPoints)
+                foreach (ElasticMaterial3D_v2 material in materialsAtGaussPoints)
                     if (material.Modified)
                         return true;
                 return false;
@@ -212,33 +209,31 @@ namespace ISAAR.MSolve.FEM.Elements
             foreach (var m in materialsAtGaussPoints) m.SaveState();
         }
 
-        public IMatrix2D StiffnessMatrix(IElement element)
+        public IMatrix StiffnessMatrix(IElement_v2 element)
         {
             return BuildStiffnessMatrix();
         }
 
 
-        public (IReadOnlyList<double[]> strains, IReadOnlyList<double[]> stresses) UpdateStrainStressesAtGaussPoints(double[] localDisplacements)
+        public (IReadOnlyList<double[]> strains, IReadOnlyList<double[]> stresses) 
+            UpdateStrainStressesAtGaussPoints(double[] localDisplacements)
         {
-            var localDisplacementVector= new Vector(localDisplacements);
             int numberOfGPs = QuadratureForStiffness.IntegrationPoints.Count;
             var strains = new double[numberOfGPs][];
             var stresses = new double[numberOfGPs][];
-            IReadOnlyList<Matrix2D> shapeGradientsNatural =
+            IReadOnlyList<Matrix> shapeGradientsNatural =
                 Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
 
             for (int gp = 0; gp < numberOfGPs; gp++)
             {
-                IMatrix2D constitutive = materialsAtGaussPoints[gp].ConstitutiveMatrix;
+                IMatrixView constitutive = materialsAtGaussPoints[gp].ConstitutiveMatrix;
                 var jacobian = new IsoparametricJacobian3D(Nodes, shapeGradientsNatural[gp]);
-                Matrix2D shapeGrandientsCartesian =
+                Matrix shapeGrandientsCartesian =
                     jacobian.TransformNaturalDerivativesToCartesian(shapeGradientsNatural[gp]);
-                Matrix2D deformation = BuildDeformationMatrix(shapeGrandientsCartesian);
+                Matrix deformation = BuildDeformationMatrix(shapeGrandientsCartesian);
 
-                strains[gp]= new double[6];
-                deformation.Multiply(localDisplacementVector,strains[gp]);
-                stresses[gp]=new double[6];
-                constitutive.Multiply(new Vector(strains[gp]),stresses[gp]);
+                strains[gp] = deformation.Multiply(localDisplacements);
+                stresses[gp] = constitutive.Multiply(strains[gp]);
             }
 
             return (strains, stresses);
@@ -251,9 +246,9 @@ namespace ISAAR.MSolve.FEM.Elements
         /// </summary>
         /// <param name="shapeGradients"></param>
         /// <returns></returns>
-        private Matrix2D BuildDeformationMatrix(Matrix2D shapeGradientsCartesian)
+        private Matrix BuildDeformationMatrix(Matrix shapeGradientsCartesian)
         {
-            var deformation = new Matrix2D(6, 3 * Nodes.Count);
+            var deformation = Matrix.CreateZero(6, 3 * Nodes.Count);
             for (int nodeIdx = 0; nodeIdx < Nodes.Count; nodeIdx++)
             {
                 int col0 = 3 * nodeIdx;
@@ -281,16 +276,16 @@ namespace ISAAR.MSolve.FEM.Elements
         /// The shape function matrix is 2-by-2n, where n = is the number of shape functions. Row 0 corresponds to dof X, while
         /// row 1 to dof Y, etc.
         /// </summary>
-        private Matrix2D BuildShapeFunctionMatrix(Vector shapeFunctions)
+        private Matrix BuildShapeFunctionMatrix(double[] shapeFunctions)
         {
-            var array2D = new double[3, 3 * shapeFunctions.Length];
+            var shapeFunctionMatrix = Matrix.CreateZero(3, 3 * shapeFunctions.Length);
             for (int i = 0; i < shapeFunctions.Length; i++)
             {
-                array2D[0, 3 * i] = shapeFunctions[i];
-                array2D[1, 2 * i + 1] = shapeFunctions[i];
-                array2D[2, 3 * i + 2] = shapeFunctions[i];
+                shapeFunctionMatrix[0, 3 * i] = shapeFunctions[i];
+                shapeFunctionMatrix[1, 2 * i + 1] = shapeFunctions[i];
+                shapeFunctionMatrix[2, 3 * i + 2] = shapeFunctions[i];
             }
-            return new Matrix2D(array2D);
+            return shapeFunctionMatrix;
         }
 
     }

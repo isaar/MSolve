@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.Analyzers
             InitializeInternalVectors();
         }
 
-        public IncrementalDisplacementsLog IncrementalDisplacementsLog { get; set; }
+        public TotalDisplacementsPerIterationLog IncrementalDisplacementsLog { get; set; }
 
         public int SetMaxIterations
         {
@@ -170,6 +170,7 @@ namespace ISAAR.MSolve.Analyzers
                 {
                     solver.Solve();
                     errorNorm = rhsNorm != 0 ? CalculateInternalRHS(increment, step) / rhsNorm : 0;// (rhsNorm*increment/increments) : 0;//TODOMaria this calculates the internal force vector and subtracts it from the external one (calculates the residual)
+                    //Console.WriteLine($"Increment {increment}, iteration {step}: norm2(error) = {errorNorm}");
                     if (step == 0) firstError = errorNorm;
                     if (IncrementalDisplacementsLog != null) IncrementalDisplacementsLog.StoreDisplacements(uPlusdu); // Logging should be done before exiting the last iteration.
                     if (errorNorm < tolerance) break;

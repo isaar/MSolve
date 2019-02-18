@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 // Quad8 nodes:
 // 3 -- 6 -- 2
@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
     {
         private static readonly InterpolationQuad8 uniqueInstance = new InterpolationQuad8();
 
-        private InterpolationQuad8() : base(CellType2D.Quad8, 8)
+        private InterpolationQuad8() : base(CellType.Quad8, 8)
         {
             NodalNaturalCoordinates = new NaturalPoint2D[]
             {
@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <returns></returns>
-        public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node2D> nodes)
+        public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node_v2> nodes)
             => throw new NotImplementedException("Requires an iterative procedure.");
 
         protected override sealed double[] EvaluateAt(double xi, double eta)
@@ -79,7 +79,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
             return values;
         }
 
-        protected override sealed double[,] EvaluateGradientsAt(double xi, double eta)
+        protected override sealed Matrix EvaluateGradientsAt(double xi, double eta)
         {
             //TODO: cache some quantities, e.g. 1-xi, 1+xi, etc.
             double xi2 = xi * 2.0;
@@ -88,24 +88,26 @@ namespace ISAAR.MSolve.FEM.Interpolation
             double etaSq = eta * eta;
             double xiEta = xi * eta;
 
-            var derivatives = new double[8, 2];
-            derivatives[0, 0] = -0.25 * (xi2 + eta) * (eta - 1);
-            derivatives[0, 1] = -0.25 * (xi - 1) * (xi + eta2);
-            derivatives[1, 0] = -0.25 * (xi2 - eta) * (eta - 1);
-            derivatives[1, 1] = -0.25 * (xi + 1) * (xi - eta2);
-            derivatives[2, 0] = -0.25 * (xi2 + eta) * (-eta - 1);
-            derivatives[2, 1] = -0.25 * (xi + 1) * (-xi - eta2);
-            derivatives[3, 0] = -0.25 * (xi2 - eta) * (-eta - 1);
-            derivatives[3, 1] = -0.25 * (xi - 1) * (-xi + eta2);
+            var derivatives = Matrix.CreateZero(8, 2);
 
+            derivatives[0, 0] = -0.25 * (xi2 + eta) * (eta - 1);
+            derivatives[1, 0] = -0.25 * (xi2 - eta) * (eta - 1);
+            derivatives[2, 0] = -0.25 * (xi2 + eta) * (-eta - 1);
+            derivatives[3, 0] = -0.25 * (xi2 - eta) * (-eta - 1);
             derivatives[4, 0] = xi * (eta - 1);
-            derivatives[4, 1] = 0.5 * (xiSq - 1);
             derivatives[5, 0] = 0.5 * (1 - etaSq);
-            derivatives[5, 1] = -eta * (xi + 1);
             derivatives[6, 0] = -xi * (eta + 1);
-            derivatives[6, 1] = -0.5 * (xiSq - 1);
             derivatives[7, 0] = -0.5 * (1 - etaSq);
+
+            derivatives[0, 1] = -0.25 * (xi - 1) * (xi + eta2);
+            derivatives[1, 1] = -0.25 * (xi + 1) * (xi - eta2);
+            derivatives[2, 1] = -0.25 * (xi + 1) * (-xi - eta2);
+            derivatives[3, 1] = -0.25 * (xi - 1) * (-xi + eta2);
+            derivatives[4, 1] = 0.5 * (xiSq - 1);
+            derivatives[5, 1] = -eta * (xi + 1);
+            derivatives[6, 1] = -0.5 * (xiSq - 1);
             derivatives[7, 1] = eta * (xi - 1);
+
             return derivatives;
         }
     }

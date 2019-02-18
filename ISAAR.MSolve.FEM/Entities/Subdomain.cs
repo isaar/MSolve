@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System.Globalization;
-using System.IO;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
+using IVectorOLD = ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces.IVector;
+using VectorOLD = ISAAR.MSolve.Numerical.LinearAlgebra.Vector;
 
 namespace ISAAR.MSolve.FEM.Entities
 {
@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.FEM.Entities
             get { return elementsDictionary; }
         }
 
-        public Dictionary<int, IElement> ΙElementsDictionary
+        Dictionary<int, IElement> ISubdomain.ElementsDictionary
         {
             get
             {
@@ -269,12 +269,12 @@ namespace ISAAR.MSolve.FEM.Entities
             elementNodalDisplacements = ApplyConstraintDisplacements(element, elementNodalDisplacements);
             var incrementalNodalDisplacements = new double[localDOFs];
             elementNodalDisplacements.CopyTo(incrementalNodalDisplacements, 0);
-            var icrementalElementNodalDisplacementsVector = new Vector(incrementalNodalDisplacements);
+            var icrementalElementNodalDisplacementsVector = new VectorOLD(incrementalNodalDisplacements);
             
             return icrementalElementNodalDisplacementsVector.Data;
         }
 
-        public double[] CalculateElementNodalDisplacements(Element element, IVector globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
+        public double[] CalculateElementNodalDisplacements(Element element, IVectorOLD globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
         {
             double[] elementNodalDisplacements = GetLocalVectorFromGlobal(element, globalDisplacementVector);
             elementNodalDisplacements = ApplyConstraintDisplacements(element, elementNodalDisplacements);
@@ -302,7 +302,7 @@ namespace ISAAR.MSolve.FEM.Entities
             return elementNodalDisplacements;
         }
 
-        public double[] GetLocalVectorFromGlobal(Element element, IVector globalVector)//TODOMaria: here is where the element displacements are assigned to zero if they are restrained
+        public double[] GetLocalVectorFromGlobal(Element element, IVectorOLD globalVector)//TODOMaria: here is where the element displacements are assigned to zero if they are restrained
                                                                                        //TODOMaria: Change visibility to private
         {
             int localDOFs = 0;
@@ -340,11 +340,10 @@ namespace ISAAR.MSolve.FEM.Entities
             }
         }
 
-        
-        public IVector GetRHSFromSolution(IVector solution, IVector dSolution)
+        public IVectorOLD GetRHSFromSolution(IVectorOLD solution, IVectorOLD dSolution)
         {
            
-            var forces = new Vector(TotalDOFs);
+            var forces = new VectorOLD(TotalDOFs);
             foreach (Element element in elementsDictionary.Values)
             {
                 //var localSolution = GetLocalVectorFromGlobal(element, solution);//TODOMaria: This is where the element displacements are calculated //removeMaria
@@ -408,6 +407,5 @@ namespace ISAAR.MSolve.FEM.Entities
                 }
             }
         }
-       
     }
 }

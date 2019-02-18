@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
 using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
@@ -354,8 +356,7 @@ namespace ISAAR.MSolve.FEM.Entities
             //EnumerateSubdomainLagranges();
             //EnumerateDOFMultiplicity();
 
-            //TODOMaria: Here is where the element loads are assembled 
-            //TODOSerafeim: This should be done by the Analyzer
+            //TODOMaria: Here is where the element loads are assembled
             AssignLoads();
 
             BuildConstraintDisplacementDictionary();

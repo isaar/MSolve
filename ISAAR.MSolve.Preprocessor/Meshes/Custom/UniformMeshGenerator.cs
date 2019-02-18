@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
     /// (rectangles in particular).
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class UniformMeshGenerator : IMeshProvider2D<Node2D>
+    public class UniformMeshGenerator : IMeshProvider2D<Node2D, CellConnectivity2D>
     {
         private readonly double minX;
         private readonly double minY;
@@ -71,7 +71,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
                     int firstVertex = row * vertexColumns + col;
                     Node2D[] verticesOfCell = { allVertices[firstVertex], allVertices[firstVertex+1],
                         allVertices[firstVertex + vertexColumns + 1], allVertices[firstVertex + vertexColumns] };
-                    cells[row * cellColumns + col] = new CellConnectivity2D(CellType2D.Quad4, verticesOfCell); // row major
+                    cells[row * cellColumns + col] = new CellConnectivity2D(CellType.Quad4, verticesOfCell); // row major
                 }
             }
             return cells;

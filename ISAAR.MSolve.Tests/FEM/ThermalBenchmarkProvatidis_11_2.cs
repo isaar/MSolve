@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Discretization.Providers;
 using ISAAR.MSolve.FEM;
@@ -9,12 +10,12 @@ using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.Commons;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
 using Xunit;
@@ -28,17 +29,17 @@ namespace ISAAR.MSolve.Tests.FEM
         [Fact]
         private static void RunTest()
         {
-            Model model = CreateModel();
-            IVector solution = SolveModel(model);
+            Model_v2 Model_v2 = CreateModel_v2();
+            IVectorView solution = SolveModel_v2(Model_v2);
             Assert.True(CompareResults(solution));
         }
 
-        private static bool CompareResults(IVector solution)
+        private static bool CompareResults(IVectorView solution)
         {
             var comparer = new ValueComparer(1E-8);
 
-            //                                         dofs:   1,   2,   4,   5,   7,   8
-            var expectedSolution = new Vector(new double[] { 150, 200, 150, 200, 150, 200 });
+            //                                                   dofs:   1,   2,   4,   5,   7,   8
+            var expectedSolution = Vector.CreateFromArray(new double[] { 150, 200, 150, 200, 150, 200 });
             int numFreeDofs = 6;
             if (solution.Length != 6) return false;
             for (int i = 0; i < numFreeDofs; ++i)
@@ -48,12 +49,12 @@ namespace ISAAR.MSolve.Tests.FEM
             return true;
         }
 
-        private static Model CreateModel()
+        private static Model_v2 CreateModel_v2()
         {
-            var model = new Model();
+            var model = new Model_v2();
 
             // Subdomains
-            model.SubdomainsDictionary.Add(0, new Subdomain() { ID = subdomainID });
+            model.SubdomainsDictionary.Add(0, new Subdomain_v2(subdomainID));
 
             // Material
             double density = 1.0;
@@ -62,16 +63,16 @@ namespace ISAAR.MSolve.Tests.FEM
 
             // Nodes
             int numNodes = 9;
-            var nodes = new Node2D[numNodes];
-            nodes[0] = new Node2D(0, 0.0, 0.0);
-            nodes[1] = new Node2D(1, 1.0, 0.0);
-            nodes[2] = new Node2D(2, 2.0, 0.0);
-            nodes[3] = new Node2D(3, 0.0, 1.0);
-            nodes[4] = new Node2D(4, 1.0, 1.0);
-            nodes[5] = new Node2D(5, 2.0, 1.0);
-            nodes[6] = new Node2D(6, 0.0, 2.0);
-            nodes[7] = new Node2D(7, 1.0, 2.0);
-            nodes[8] = new Node2D(8, 2.0, 2.0);
+            var nodes = new Node_v2[numNodes];
+            nodes[0] = new Node_v2 { ID = 0, X = 0.0, Y = 0.0 };
+            nodes[1] = new Node_v2 { ID = 1, X = 1.0, Y = 0.0 };
+            nodes[2] = new Node_v2 { ID = 2, X = 2.0, Y = 0.0 };
+            nodes[3] = new Node_v2 { ID = 3, X = 0.0, Y = 1.0 };
+            nodes[4] = new Node_v2 { ID = 4, X = 1.0, Y = 1.0 };
+            nodes[5] = new Node_v2 { ID = 5, X = 2.0, Y = 1.0 };
+            nodes[6] = new Node_v2 { ID = 6, X = 0.0, Y = 2.0 };
+            nodes[7] = new Node_v2 { ID = 7, X = 1.0, Y = 2.0 };
+            nodes[8] = new Node_v2 { ID = 8, X = 2.0, Y = 2.0 };
 
             for (int i = 0; i < numNodes; ++i) model.NodesDictionary[i] = nodes[i];
 
@@ -79,17 +80,17 @@ namespace ISAAR.MSolve.Tests.FEM
             int numElements = 4;
             var elementFactory = new ThermalElement2DFactory(1.0, new ThermalMaterial(density, c, k));
             var elements = new ThermalElement2D[4];
-            elements[0] = elementFactory.CreateElement(CellType2D.Quad4, new Node2D[] { nodes[0], nodes[1], nodes[4], nodes[3] });
-            elements[1] = elementFactory.CreateElement(CellType2D.Quad4, new Node2D[] { nodes[1], nodes[2], nodes[5], nodes[4] });
-            elements[2] = elementFactory.CreateElement(CellType2D.Quad4, new Node2D[] { nodes[3], nodes[4], nodes[7], nodes[6] });
-            elements[3] = elementFactory.CreateElement(CellType2D.Quad4, new Node2D[] { nodes[4], nodes[5], nodes[8], nodes[7] });
+            elements[0] = elementFactory.CreateElement(CellType.Quad4, new Node_v2[] { nodes[0], nodes[1], nodes[4], nodes[3] });
+            elements[1] = elementFactory.CreateElement(CellType.Quad4, new Node_v2[] { nodes[1], nodes[2], nodes[5], nodes[4] });
+            elements[2] = elementFactory.CreateElement(CellType.Quad4, new Node_v2[] { nodes[3], nodes[4], nodes[7], nodes[6] });
+            elements[3] = elementFactory.CreateElement(CellType.Quad4, new Node_v2[] { nodes[4], nodes[5], nodes[8], nodes[7] });
 
             for (int i = 0; i < numElements; ++i)
             {
-                var elementWrapper = new Element() { ID = i, ElementType = elements[i] };
+                var elementWrapper = new Element_v2() { ID = i, ElementType = elements[i] };
                 foreach (var node in elements[i].Nodes) elementWrapper.AddNode(node);
                 model.ElementsDictionary[i] = elementWrapper;
-                model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(i, elementWrapper);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(elementWrapper);
             }
 
             // Dirichlet BC
@@ -99,39 +100,30 @@ namespace ISAAR.MSolve.Tests.FEM
 
             // Neumann BC
             double q = 50.0;
-            model.Loads.Add(new Load() { Amount = q / 2.0, Node = model.NodesDictionary[2], DOF = DOFType.Temperature });
-            model.Loads.Add(new Load() { Amount = q, Node = model.NodesDictionary[5], DOF = DOFType.Temperature });
-            model.Loads.Add(new Load() { Amount = q / 2.0, Node = model.NodesDictionary[8], DOF = DOFType.Temperature });
+            model.Loads.Add(new Load_v2() { Amount = q / 2.0, Node = model.NodesDictionary[2], DOF = DOFType.Temperature });
+            model.Loads.Add(new Load_v2() { Amount = q, Node = model.NodesDictionary[5], DOF = DOFType.Temperature });
+            model.Loads.Add(new Load_v2() { Amount = q / 2.0, Node = model.NodesDictionary[8], DOF = DOFType.Temperature });
 
-            model.ConnectDataStructures();
             return model;
         }
 
-        private static IVector SolveModel(Model model)
+        private static IVectorView SolveModel_v2(Model_v2 model)
         {
-            VectorExtensions.AssignTotalAffinityCount();
+            SkylineSolver solver = (new SkylineSolver.Builder()).BuildSolver(model);
+            var provider = new ProblemStructural_v2(model, solver);
 
-            var linearSystems = new Dictionary<int, ILinearSystem>(); //I think this should be done automatically
-            linearSystems[subdomainID] = new SkylineLinearSystem(subdomainID, model.SubdomainsDictionary[subdomainID].Forces);
-            var solver = new SolverSkyline(linearSystems[subdomainID]);
+            var childAnalyzer = new LinearAnalyzer_v2(solver);
+            //childAnalyzer.EquivalentLoadsAssemblers = new Dictionary<int, IEquivalentLoadsAssembler>()
+            //{
+            //    { subdomainID, new EquivalentLoadsAssembler(model.Subdomains[0], new ElementStructuralStiffnessProvider()) }
+            //};
 
-            var provider = new ProblemStructural(model, linearSystems);
+            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
-            var childAnalyzer = new LinearAnalyzer(solver, linearSystems);
-            childAnalyzer.EquivalentLoadsAssemblers = new Dictionary<int, IEquivalentLoadsAssembler>()
-            {
-                { subdomainID, new EquivalentLoadsAssembler(model.Subdomains[0], new ElementStructuralStiffnessProvider()) }
-            };
-
-            var parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
-
-            childAnalyzer.LogFactories[0] = new LinearAnalyzerLogFactory(new int[] { });
-
-            parentAnalyzer.BuildMatrices();
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            return linearSystems[subdomainID].Solution;
+            return solver.LinearSystems[subdomainID].Solution;
         }
     }
 }

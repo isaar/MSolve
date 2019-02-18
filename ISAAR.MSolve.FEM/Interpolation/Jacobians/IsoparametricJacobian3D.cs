@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
+//TODO: Use Matrix3by3 after benchmarking it.
 namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
 {
     /// <summary>
@@ -23,10 +24,11 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
         /// </summary>
         /// <param name="nodes">The nodes used for the interpolation.</param>
         /// <param name="naturalCoordinates">The shape function derivatives at a specific integration point.</param>
-        public IsoparametricJacobian3D(IReadOnlyList<Node3D> nodes, Matrix2D naturalDerivatives)
+        public IsoparametricJacobian3D(IReadOnlyList<Node_v2> nodes, Matrix naturalDerivatives)
         {
             DirectMatrix = CalculateJacobianMatrix(nodes, naturalDerivatives);
-            (InverseMatrix, DirectDeterminant) = InvertAndDeterminant(DirectMatrix);
+            (InverseMatrix, DirectDeterminant) = DirectMatrix.InvertAndDetermninant();
+            //(InverseMatrix, DirectDeterminant) = InvertAndDeterminant(DirectMatrix);
             if (DirectDeterminant < determinantTolerance)
             {
                 throw new ArgumentException("Jacobian determinant is negative or under the allowed tolerance"
@@ -43,13 +45,13 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
         /// The Jacobian matrix of the direct mapping. Numerator layout is used:
         /// J = [df_1/dx_1 df_1/dx_2 df_1/dx_3; df_2/dx_1 df_2/dx_2 df_2/dx_3; df_3/dx_1 df_3/dx_2 df_3/dx_3].
         /// </summary>
-        public Matrix2D DirectMatrix { get; }
+        public Matrix DirectMatrix { get; }
 
         /// <summary>
         /// The inverse of the Jacobian matrix. Numerator layout used is used:
         /// inv(J) = [dx_1/df_1 dx_1/df_2 dx_1/df_3; dx_2/df_1 dx_2/df_2 dx_2/df_3; dx_3/df_1 dx_3/df_2 dx_3/df_3]
         /// </summary>
-        public Matrix2D InverseMatrix { get; }
+        public Matrix InverseMatrix { get; }
 
         /// <summary>
         /// Transforms the gradient of a vector-valued function from the natural to the global cartesian coordinate system.
@@ -57,7 +59,8 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
         /// <param name="naturalGradient">The gradient of a vector-valued function in the natural coordinate system. Each row 
         ///     corresponds to the gradient of a single component of the vector function. Each column corresponds to the 
         ///     derivatives of all components with respect to a single coordinate.</param>
-        public Matrix2D TransformNaturalDerivativesToCartesian(Matrix2D naturalGradient) => naturalGradient * InverseMatrix;
+        public Matrix TransformNaturalDerivativesToCartesian(Matrix naturalGradient) 
+            => InverseMatrix.MultiplyLeft(naturalGradient);
 
         /// <summary>
         /// Transforms the gradient of a scalar-valued function from the natural to the global cartesian coordinate system.
@@ -78,9 +81,10 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
             return result;
         }
 
-        private static Matrix2D CalculateJacobianMatrix(IReadOnlyList<Node3D> nodes, Matrix2D naturalDerivatives)
+        private static Matrix CalculateJacobianMatrix(IReadOnlyList<Node_v2> nodes, Matrix naturalDerivatives)
         {
-            var jacobianMatrix = new double[3,3];
+            var jacobianMatrix = Matrix.CreateZero(3, 3);
+            //var jacobianMatrix = new double[3,3];
 
             for (int nodeIndex = 0; nodeIndex < nodes.Count; nodeIndex++)
             {
@@ -97,35 +101,36 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
                 jacobianMatrix[2, 2] += naturalDerivatives[nodeIndex, 2] * nodes[nodeIndex].Z;
             }
 
-            return new Matrix2D(jacobianMatrix);
+            return jacobianMatrix;
+            //return Matrix3by3.CreateFromArray(jacobianMatrix, false);
         }
 
-        private static (Matrix2D inverse, double determinant) InvertAndDeterminant(Matrix2D directMatrix)
-        {
-            double determinant = directMatrix[0, 0] *
-                                 (directMatrix[1, 1] * directMatrix[2, 2] - directMatrix[2, 1] * directMatrix[1, 2])
-                                 - directMatrix[0, 1] * (directMatrix[1, 0] * directMatrix[2, 2] -
-                                                           directMatrix[2, 0] * directMatrix[1, 2])
-                                 + directMatrix[0, 2] * (directMatrix[1, 0] * directMatrix[2, 1] -
-                                                           directMatrix[2, 0] * directMatrix[1, 1]);
-            if (Math.Abs(determinant) < determinantTolerance) throw new Exception(
-                $"|Determinant| = {Math.Abs(determinant)} < tolerance = {determinantTolerance}. The matrix is singular");
+        //private static (Matrix inverse, double determinant) InvertAndDeterminant(Matrix directMatrix)
+        //{
+        //    double determinant = directMatrix[0, 0] *
+        //                         (directMatrix[1, 1] * directMatrix[2, 2] - directMatrix[2, 1] * directMatrix[1, 2])
+        //                         - directMatrix[0, 1] * (directMatrix[1, 0] * directMatrix[2, 2] -
+        //                                                   directMatrix[2, 0] * directMatrix[1, 2])
+        //                         + directMatrix[0, 2] * (directMatrix[1, 0] * directMatrix[2, 1] -
+        //                                                   directMatrix[2, 0] * directMatrix[1, 1]);
+        //    if (Math.Abs(determinant) < determinantTolerance) throw new Exception(
+        //        $"|Determinant| = {Math.Abs(determinant)} < tolerance = {determinantTolerance}. The matrix is singular");
 
-            var inverseJacobian = new double[3,3];
+        //    var inverseJacobian = new double[3, 3];
 
-            inverseJacobian[0, 0] = (directMatrix[1, 1] * directMatrix[2, 2] - directMatrix[1, 2] * directMatrix[2, 1]) / determinant;
-            inverseJacobian[0, 1] = (directMatrix[0, 2] * directMatrix[2, 1] - directMatrix[0, 1] * directMatrix[2, 2]) / determinant;
-            inverseJacobian[0, 2] = (directMatrix[0, 1] * directMatrix[1, 2] - directMatrix[0, 2] * directMatrix[1, 1]) / determinant;
+        //    inverseJacobian[0, 0] = (directMatrix[1, 1] * directMatrix[2, 2] - directMatrix[1, 2] * directMatrix[2, 1]) / determinant;
+        //    inverseJacobian[0, 1] = (directMatrix[0, 2] * directMatrix[2, 1] - directMatrix[0, 1] * directMatrix[2, 2]) / determinant;
+        //    inverseJacobian[0, 2] = (directMatrix[0, 1] * directMatrix[1, 2] - directMatrix[0, 2] * directMatrix[1, 1]) / determinant;
 
-            inverseJacobian[1, 0] = (directMatrix[1, 2] * directMatrix[2, 0] - directMatrix[1, 0] * directMatrix[2, 2]) / determinant;
-            inverseJacobian[1, 1] = (directMatrix[0, 0] * directMatrix[2, 2] - directMatrix[0, 2] * directMatrix[2, 0]) / determinant;
-            inverseJacobian[1, 2] = (directMatrix[0, 2] * directMatrix[1, 0] - directMatrix[0, 0] * directMatrix[1, 2]) / determinant;
+        //    inverseJacobian[1, 0] = (directMatrix[1, 2] * directMatrix[2, 0] - directMatrix[1, 0] * directMatrix[2, 2]) / determinant;
+        //    inverseJacobian[1, 1] = (directMatrix[0, 0] * directMatrix[2, 2] - directMatrix[0, 2] * directMatrix[2, 0]) / determinant;
+        //    inverseJacobian[1, 2] = (directMatrix[0, 2] * directMatrix[1, 0] - directMatrix[0, 0] * directMatrix[1, 2]) / determinant;
 
-            inverseJacobian[2, 0] = (directMatrix[1, 0] * directMatrix[2, 1] - directMatrix[1, 1] * directMatrix[2, 0]) / determinant;
-            inverseJacobian[2, 1] = (directMatrix[0, 1] * directMatrix[2, 0] - directMatrix[0, 0] * directMatrix[2, 1]) / determinant;
-            inverseJacobian[2, 2] = (directMatrix[0, 0] * directMatrix[1, 1] - directMatrix[0, 1] * directMatrix[1, 0]) / determinant;
+        //    inverseJacobian[2, 0] = (directMatrix[1, 0] * directMatrix[2, 1] - directMatrix[1, 1] * directMatrix[2, 0]) / determinant;
+        //    inverseJacobian[2, 1] = (directMatrix[0, 1] * directMatrix[2, 0] - directMatrix[0, 0] * directMatrix[2, 1]) / determinant;
+        //    inverseJacobian[2, 2] = (directMatrix[0, 0] * directMatrix[1, 1] - directMatrix[0, 1] * directMatrix[1, 0]) / determinant;
 
-            return (new Matrix2D(inverseJacobian), determinant);
-        }
+        //    return (new Matrix2D(inverseJacobian), determinant);
+        //}
     }
 }
