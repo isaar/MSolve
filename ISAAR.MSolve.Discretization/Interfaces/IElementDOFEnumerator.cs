@@ -8,7 +8,7 @@ namespace ISAAR.MSolve.Discretization.Interfaces
         /// <summary>
         /// These are the dofs of the nodes returned by <see cref="GetNodesForMatrixAssembly"/>
         /// </summary>
-		IList<IList<DOFType>> GetDOFTypes(IElement element); //TODO: rename GetDofTypesForMatrixAssembly()
+		IList<IList<DOFType>> GetDOFTypes(IElement element);
 
         /// <summary>
         /// The returned outer list will include nested lists for all <see cref="IElement.INodes"/>. When using embedding, the
@@ -22,6 +22,9 @@ namespace ISAAR.MSolve.Discretization.Interfaces
         /// </summary>
 		IList<INode> GetNodesForMatrixAssembly(IElement element);
 
+        /// <summary>
+        /// Kembedded = transpose(T) * Koriginal * T
+        /// </summary>
 		IMatrix2D GetTransformedMatrix(IMatrix2D matrix);
 
         /// <summary>

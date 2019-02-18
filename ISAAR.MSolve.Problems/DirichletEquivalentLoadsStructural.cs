@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.Problems
             //times.Add("addition", TimeSpan.Zero);
 
             var subdomainEquivalentForces = Vector.CreateZero(subdomain.DofOrdering.NumFreeDofs);
-            foreach (IElement_v2 element in subdomain.Elements)
+            foreach (IElement_v2 element in subdomain.Elements) //TODO: why go through all the elements? Most of them will not have Dirichlet bc.
             {
                 //var elStart = DateTime.Now;
                 IMatrix elementK = elementProvider.Matrix(element);

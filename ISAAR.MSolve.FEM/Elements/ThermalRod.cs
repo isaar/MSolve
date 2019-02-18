@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.FEM.Elements
     /// account geometric non-linearities.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class ThermalRod : IFiniteElement
+    public class ThermalRod : IFiniteElement_v2, IEmbeddedElement_v2
     {
         private const int numNodes = 2;
         private const int numDofs = 2;
@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         private readonly ThermalMaterial material;
 
-        public ThermalRod(IReadOnlyList<Node2D> nodes, double crossSectionArea, ThermalMaterial material)
+        public ThermalRod(IReadOnlyList<Node_v2> nodes, double crossSectionArea, ThermalMaterial material)
         {
             Debug.Assert(nodes.Count == 2, "Thermal rod element must have exactly 2 nodes.");
             this.material = material;
@@ -41,55 +41,57 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public double CrossSectionArea { get; }
         public double Length { get; }
-        public IReadOnlyList<Node2D> Nodes { get; }
+        public IReadOnlyList<Node_v2> Nodes { get; }
 
         public bool MaterialModified => throw new NotImplementedException();
 
-        public IElementDOFEnumerator DOFEnumerator { get; set; } = new GenericDOFEnumerator();
+        public IElementDofEnumerator_v2 DofEnumerator { get; set; } = new GenericDofEnumerator_v2();
 
-        public IMatrix2D MassMatrix(IElement element)
+        public IList<EmbeddedNode_v2> EmbeddedNodes { get; } = new List<EmbeddedNode_v2>();
+
+        public IMatrix MassMatrix(IElement_v2 element)
         {
             return BuildCapacityMatrix();
         }
 
-        public Matrix2D BuildCapacityMatrix()
+        public Matrix BuildCapacityMatrix()
         {
             double kdAL = material.SpecialHeatCoeff * material.Density * CrossSectionArea * Length;
             double[,] capacity = { { kdAL / 3.0, kdAL/ 6.0 }, { kdAL / 6.0, kdAL / 3.0 } };
-            return new Matrix2D(capacity);
+            return Matrix.CreateFromArray(capacity);
         }
 
-        public Matrix2D BuildConductivityMatrix()
+        public Matrix BuildConductivityMatrix()
         {
 
             double cAoverL = material.ThermalConductivity * CrossSectionArea / Length;
             double[,] conductivity = { { cAoverL, -cAoverL }, { -cAoverL, cAoverL } };
-            return new Matrix2D(conductivity);
+            return Matrix.CreateFromArray(conductivity);
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element) => dofTypes;
 
         public void ResetMaterialModified()
         {
             throw new NotImplementedException();
         }
 
-        public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
+        public Tuple<double[], double[]> CalculateStresses(Element_v2 element, double[] localDisplacements, double[] localdDisplacements)
         {
             throw new NotImplementedException();
         }
 
-        public double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements)
+        public double[] CalculateForces(Element_v2 element, double[] localDisplacements, double[] localdDisplacements)
         {
             throw new NotImplementedException();
         }
 
-        public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
+        public double[] CalculateForcesForLogging(Element_v2 element, double[] localDisplacements)
         {
             throw new NotImplementedException();
         }
 
-        public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
+        public double[] CalculateAccelerationForces(Element_v2 element, IList<MassAccelerationLoad> loads)
         {
             throw new NotImplementedException();
         }
@@ -109,14 +111,26 @@ namespace ISAAR.MSolve.FEM.Elements
             throw new NotImplementedException();
         }
 
-        public IMatrix2D StiffnessMatrix(IElement element)
+        public IMatrix StiffnessMatrix(IElement_v2 element)
         {
-            return BuildConductivityMatrix();
+            return DofEnumerator.GetTransformedMatrix(BuildConductivityMatrix());
         }
 
-        public IMatrix2D DampingMatrix(IElement element)
+        public IMatrix DampingMatrix(IElement_v2 element)
         {
             throw new NotImplementedException();
+        }
+
+        public Dictionary<DOFType, int> GetInternalNodalDOFs(Element_v2 element, Node_v2 node)
+        {
+            if (node.ID == this.Nodes[0].ID) return new Dictionary<DOFType, int> { { DOFType.Temperature, 0 } };
+            else if (node.ID == this.Nodes[1].ID) return new Dictionary<DOFType, int> { { DOFType.Temperature, 1 } };
+            else throw new ArgumentException($"GetInternalNodalDOFs: Node {node.ID} not found in element {element.ID}.");
+        }
+
+        public double[] GetLocalDOFValues(Element_v2 hostElement, double[] hostDOFValues)
+        {
+            return DofEnumerator.GetTransformedDisplacementsVector(hostDOFValues);
         }
     }
 }
