@@ -21,12 +21,12 @@ namespace ISAAR.MSolve.FEM.Embedding
             this.transformer = transformer;
             hostGroup.Select(e => e.ElementType).Distinct().ToList().ForEach(et =>
             {
-                if (!(et is IEmbeddedHostElement))
+                if (!(et is IEmbeddedHostElement_v2))
                     throw new ArgumentException("EmbeddedGrouping: One or more elements of host group does NOT implement IEmbeddedHostElement.");
             });
             embeddedGroup.Select(e => e.ElementType).Distinct().ToList().ForEach(et =>
             {
-                if (!(et is IEmbeddedElement))
+                if (!(et is IEmbeddedElement_v2))
                     throw new ArgumentException("EmbeddedGrouping: One or more elements of embedded group does NOT implement IEmbeddedElement.");
             });
         }

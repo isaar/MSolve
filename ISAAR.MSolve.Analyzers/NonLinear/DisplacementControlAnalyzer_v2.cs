@@ -67,7 +67,6 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
             base.InitializeInternalVectors();
             foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
-                //int idx = FindSubdomainIdx(linearSystems, linearSystem);
                 subdomainUpdaters[linearSystem.Subdomain.ID].ScaleConstraints(1 / (double)numIncrements);
             }
         }
@@ -80,7 +79,6 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
             foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
-                //int idx = FindSubdomainIdx(linearSystems, linearSystem);
 
                 double scalingFactor = 1; //((double)currentIncrement + 2) / (currentIncrement + 1); //2; //
                 IVector equivalentNodalLoads = provider.DirichletLoadsAssembler.GetEquivalentNodalLoads(linearSystem.Subdomain, 

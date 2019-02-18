@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.SamplesConsole.Solvers
                     var provider = new ProblemStructural_v2(benchmark.Model, solver);
 
                     // Linear static analysis
-                    var childAnalyzer = new LinearAnalyzer_v2(solver);
+                    var childAnalyzer = new LinearAnalyzer_v2(benchmark.Model, solver, provider);
                     var parentAnalyzer = new StaticAnalyzer_v2(benchmark.Model, solver, provider, childAnalyzer);
 
                     // Run the analysis
