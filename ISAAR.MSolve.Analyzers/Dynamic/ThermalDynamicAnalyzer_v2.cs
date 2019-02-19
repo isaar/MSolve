@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.Analyzers.Dynamic
             this.model = model;
             this.linearSystems = solver.LinearSystems;
             this.solver = solver;
-            solver.PreventFromOverwrittingSystemMatrices(); //TODO: If the scheme is purely implicit we can overwrite the matrix.
+            //solver.PreventFromOverwrittingSystemMatrices(); //TODO: If the scheme is purely implicit we can overwrite the matrix.
             this.provider = provider;
             this.ChildAnalyzer = childAnalyzer;
             this.beta = beta;

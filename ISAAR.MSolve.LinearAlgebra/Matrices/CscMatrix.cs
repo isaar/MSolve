@@ -451,7 +451,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                     {
                         Array.Copy(this.values, resultValues, values.Length);
                         BlasExtensions.Daxpby(values.Length, otherCoefficient, otherCSC.values, 0, 1,
-                            thisCoefficient, this.values, 0, 1);
+                            thisCoefficient, resultValues, 0, 1);
                     }
                     return new CscMatrix(NumRows, NumColumns, resultValues, this.rowIndices, this.colOffsets);
                 }

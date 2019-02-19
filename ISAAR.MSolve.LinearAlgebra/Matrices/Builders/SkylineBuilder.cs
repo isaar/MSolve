@@ -18,8 +18,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
     {
         private readonly int order;
         private readonly int numNonZeros;
-        private readonly double[] values;
         private readonly int[] diagOffsets;
+        private double[] values;
 
         private SkylineBuilder(int order, int numNonZeros, double[] values, int[] diagOffsets)
         {
@@ -249,7 +249,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         /// <summary>
         /// Deletes the values of the non zero entries, but retains their pattern.
         /// </summary>
-        public void ClearValues() => values.Clear();
+        public void ClearValues() => values = new double[numNonZeros];
 
         /// <summary>
         /// See <see cref="IIndexable2D.Equals(IIndexable2D, double)"/>.
