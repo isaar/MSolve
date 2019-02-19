@@ -40,16 +40,16 @@ namespace ISAAR.MSolve.SamplesConsole
             IRVEbuilder_v2 homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheck27Hexa_v2();
             //IRVEbuilder homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheckEnaHexa();
 
-            IContinuumMaterial3DDefGrad microstructure3 = new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2(homogeneousRveBuilder1, new SkylineSolver.Builder(), false, 1);
+            IContinuumMaterial3DDefGrad_v2 microstructure3 = new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2(homogeneousRveBuilder1, new SkylineSolver.Builder(), false, 1);
             //IContinuumMaterial3DDefGrad microstructure3copyConsCheck = new Microstructure3copyConsCheckEna(homogeneousRveBuilder1);
             double[,] consCheck1 = new double[6, 6];
             for (int i1 = 0; i1 < 6; i1++) { for (int i2 = 0; i2 < 6; i2++) { consCheck1[i1, i2] = microstructure3.ConstitutiveMatrix[i1, i2]; } }
 
             microstructure3.UpdateMaterial(new double[9] { 1.10, 1, 1, 0, 0, 0, 0, 0, 0 });
-            double[] stressesCheck3 = microstructure3.Stresses.Data;
+            double[] stressesCheck3 = microstructure3.Stresses;
             microstructure3.SaveState();
             microstructure3.UpdateMaterial(new double[9] { 1.20, 1, 1, 0, 0, 0, 0, 0, 0 });
-            double[] stressesCheck4 = microstructure3.Stresses.Data;
+            double[] stressesCheck4 = microstructure3.Stresses;
 
         }
 
@@ -79,16 +79,16 @@ namespace ISAAR.MSolve.SamplesConsole
             IRVEbuilder_v2 homogeneousRveBuilder1 = new GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_forCheck_v2(1);
             //IRVEbuilder homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheckEnaHexa();
 
-            IContinuumMaterial3DDefGrad microstructure3 = new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2(homogeneousRveBuilder1, new SkylineSolver.Builder(), false, 1);
+            IContinuumMaterial3DDefGrad_v2 microstructure3 = new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2(homogeneousRveBuilder1, new SkylineSolver.Builder(), false, 1);
             //IContinuumMaterial3DDefGrad microstructure3copyConsCheck = new Microstructure3copyConsCheckEna(homogeneousRveBuilder1);
             double[,] consCheck1 = new double[6, 6];
             for (int i1 = 0; i1 < 6; i1++) { for (int i2 = 0; i2 < 6; i2++) { consCheck1[i1, i2] = microstructure3.ConstitutiveMatrix[i1, i2]; } }
 
             microstructure3.UpdateMaterial(new double[9] { 1.05, 1, 1, 0, 0, 0, 0, 0, 0 });
-            double[] stressesCheck3 = microstructure3.Stresses.Data;
+            double[] stressesCheck3 = microstructure3.Stresses;
             microstructure3.SaveState();
             microstructure3.UpdateMaterial(new double[9] { 1.10, 1, 1, 0, 0, 0, 0, 0, 0 });
-            double[] stressesCheck4 = microstructure3.Stresses.Data;
+            double[] stressesCheck4 = microstructure3.Stresses;
 
         }
 

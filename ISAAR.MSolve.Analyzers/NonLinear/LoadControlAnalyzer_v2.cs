@@ -83,7 +83,7 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
             {
                 MaxIterationsPerIncrement = 1000;
                 NumIterationsForMatrixRebuild = 1;
-                ResidualTolerance = 1E-8;
+                ResidualTolerance = 1E-3;
             }
 
             public LoadControlAnalyzer_v2 Build()

@@ -11,6 +11,7 @@ using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.SamplesConsole.DdmBenchmarks1;
 using ISAAR.MSolve.SamplesConsole.IntegrationTests2;
 using ISAAR.MSolve.SamplesConsole.Solvers;
 using ISAAR.MSolve.Solvers;
@@ -47,6 +48,7 @@ namespace ISAAR.MSolve.SamplesConsole
             //NRNLAnalyzerDevelopTest_v2.SolveDisplLoadsExample();
             //SeparateCodeCheckingClass4.Check05bStressIntegrationObje_v2_Integration();
             //SeparateCodeCheckingClass4.Check_Graphene_rve_Obje_v2_Integration();
+            IntegrationElasticCantileverBenchmark.RunExample();
         }
 
         private static void SolveBuildingInNoSoilSmall()
