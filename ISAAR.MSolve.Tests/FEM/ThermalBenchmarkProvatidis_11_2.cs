@@ -110,14 +110,9 @@ namespace ISAAR.MSolve.Tests.FEM
         private static IVectorView SolveModel_v2(Model_v2 model)
         {
             SkylineSolver solver = (new SkylineSolver.Builder()).BuildSolver(model);
-            var provider = new ProblemStructural_v2(model, solver);
+            var provider = new ProblemThermal_v2(model, solver);
 
             var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-            //childAnalyzer.EquivalentLoadsAssemblers = new Dictionary<int, IEquivalentLoadsAssembler>()
-            //{
-            //    { subdomainID, new EquivalentLoadsAssembler(model.Subdomains[0], new ElementStructuralStiffnessProvider()) }
-            //};
-
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
             parentAnalyzer.Initialize();

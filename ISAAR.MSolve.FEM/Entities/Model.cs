@@ -21,7 +21,6 @@ namespace ISAAR.MSolve.FEM.Entities
         private readonly Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
         private readonly Dictionary<int, Dictionary<DOFType, double>> constraintsDictionary = new Dictionary<int, Dictionary<DOFType, double>>();//TODOMaria: maybe it's useless in model class
         private readonly IList<Load> loads = new List<Load>();
-        private readonly IList<ITimeDependentNodalLoad> timeDependentNodalLoads = new List<ITimeDependentNodalLoad>();
         private readonly IList<ElementMassAccelerationLoad> elementMassAccelerationLoads = new List<ElementMassAccelerationLoad>();
         private readonly IList<MassAccelerationLoad> massAccelerationLoads = new List<MassAccelerationLoad>();
         private readonly IList<IMassAccelerationHistoryLoad> massAccelerationHistoryLoads = new List<IMassAccelerationHistoryLoad>();
@@ -92,11 +91,6 @@ namespace ISAAR.MSolve.FEM.Entities
         public IList<Load> Loads
         {
             get { return loads; }
-        }
-
-        public IList<ITimeDependentNodalLoad> TimeDependentNodalLoads
-        {
-            get { return timeDependentNodalLoads; }
         }
 
         public IList<ElementMassAccelerationLoad> ElementMassAccelerationLoads
@@ -274,17 +268,6 @@ namespace ISAAR.MSolve.FEM.Entities
 
             foreach (Subdomain subdomain in subdomainsDictionary.Values)
                 subdomain.BuildConstraintDisplacementDictionary();
-        }
-
-        public void AssignTimeDependentNodalLoads(int timeStep)
-        {
-            foreach (ITimeDependentNodalLoad load in timeDependentNodalLoads)
-                foreach (Subdomain subdomain in load.Node.SubdomainsDictionary.Values)
-                {
-                    int dof = subdomain.NodalDOFsDictionary[load.Node.ID][load.DOF];
-                    if (dof >= 0)
-                        subdomain.Forces[dof] = load.GetLoadAmount(timeStep) / load.Node.SubdomainsDictionary.Count;
-                }
         }
 
         public void AssignNodalLoads()

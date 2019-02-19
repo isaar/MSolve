@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Analyzers.Dynamic;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Discretization.Providers;
@@ -112,23 +113,15 @@ namespace ISAAR.MSolve.Tests.FEM
         private static IVectorView SolveModel(Model_v2 model)
         {
             SkylineSolver solver = (new SkylineSolver.Builder()).BuildSolver(model);
-            var provider = new ProblemStructural_v2(model, solver);
+            var provider = new ProblemThermal_v2(model, solver);
 
             var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-            //childAnalyzer.EquivalentLoadsAssemblers = new Dictionary<int, IEquivalentLoadsAssembler>()
-            //{
-            //    { subdomainID, new EquivalentLoadsAssembler(model.Subdomains[0], new ElementStructuralStiffnessProvider()) }
-            //};
+            var parentAnalyzer = new ThermalDynamicAnalyzer_v2(model, solver, provider, childAnalyzer, 0.5, 0.5, 1000);
 
-            throw new NotImplementedException();
-            //var parentAnalyzer = new ThermalDynamicAnalyzer(provider, childAnalyzer, linearSystems, 0.5, 0.5, 1000);
-
-            //parentAnalyzer.Initialize();
-            //parentAnalyzer.Solve();
+            parentAnalyzer.Initialize();
+            parentAnalyzer.Solve();
 
             return solver.LinearSystems[subdomainID].Solution;
-
-
         }
     }
 }

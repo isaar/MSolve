@@ -81,7 +81,7 @@ namespace ISAAR.MSolve.FEM.Elements
             }
 
             //WARNING: the following needs to change for non uniform density. Perhaps the integration order too.
-            capacity.Scale(Thickness * material.Density * material.SpecialHeatCoeff);
+            capacity.ScaleIntoThis(Thickness * material.Density * material.SpecialHeatCoeff);
             return capacity;
         }
 
@@ -110,7 +110,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 conductivity.AxpyIntoThis(partialK, dA * material.ThermalConductivity);
             }
 
-            conductivity.Scale(Thickness);
+            conductivity.ScaleIntoThis(Thickness);
             return conductivity;
         }
 

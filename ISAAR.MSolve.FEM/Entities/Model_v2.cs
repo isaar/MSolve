@@ -43,6 +43,8 @@ namespace ISAAR.MSolve.FEM.Entities
         public IList<Subdomain_v2> Subdomains => SubdomainsDictionary.Values.ToList();
         public Dictionary<int, Subdomain_v2> SubdomainsDictionary { get; } = new Dictionary<int, Subdomain_v2>();
 
+        public IList<ITimeDependentNodalLoad> TimeDependentNodalLoads { get; } = new List<ITimeDependentNodalLoad>();
+
         public Table<INode, DOFType, double> Constraints { get; private set; } = new Table<INode, DOFType, double>();//TODOMaria: maybe it's useless in model class
 
         public IGlobalFreeDofOrdering GlobalDofOrdering { get; set; }
@@ -87,6 +89,48 @@ namespace ISAAR.MSolve.FEM.Entities
                     load.Element, (new MassAccelerationLoad[] { hl }).ToList());
                 globalDofOrdering.SubdomainDofOrderings[subdomain].AddVectorElementToSubdomain(element, accelerationForces,
                     subdomain.Forces);
+            }
+        }
+
+        public void AssignNodalLoads()
+        {
+            foreach (Subdomain_v2 subdomain in SubdomainsDictionary.Values)
+            {
+                subdomain.NodalLoads = new Table<Node_v2, DOFType, double>();
+            }
+
+            foreach (Load_v2 load in Loads)
+            {
+                double amountPerSubdomain = load.Amount / load.Node.SubdomainsDictionary.Count;
+                foreach (Subdomain_v2 subdomain in load.Node.SubdomainsDictionary.Values)
+                {
+                    bool wasNotContained = subdomain.NodalLoads.TryAdd(load.Node, load.DOF, amountPerSubdomain);
+                    Debug.Assert(wasNotContained, $"Duplicate load at node {load.Node.ID}, dof {load.DOF}");
+                }
+            }
+
+            //TODO: this should be done by the subdomain when the analyzer decides.
+            foreach (Subdomain_v2 subdomain in SubdomainsDictionary.Values)
+            {
+                foreach ((Node_v2 node, DOFType dofType, double amount) in subdomain.NodalLoads)
+                {
+                    int subdomainDofIdx = subdomain.DofOrdering.FreeDofs[node, dofType];
+                    subdomain.Forces[subdomainDofIdx] += amount;
+                }
+            }
+        }
+
+        public void AssignTimeDependentNodalLoads(int timeStep)
+        {
+            foreach (ITimeDependentNodalLoad load in TimeDependentNodalLoads)
+            {
+                double amountPerSubdomain = load.GetLoadAmount(timeStep) / load.Node.SubdomainsDictionary.Count;
+
+                foreach (ISubdomain_v2 subdomain in load.Node.SubdomainsDictionary.Values)
+                {
+                    int subdomainDofIdx = subdomain.DofOrdering.FreeDofs[load.Node, load.DOF];
+                    subdomain.Forces[subdomainDofIdx] += amountPerSubdomain;
+                }
             }
         }
 
@@ -156,34 +200,6 @@ namespace ISAAR.MSolve.FEM.Entities
                     subdomain.DofOrdering.AddVectorElementToSubdomain(element,
                         element.ElementType.CalculateAccelerationForces(element, MassAccelerationLoads),
                         subdomain.Forces);
-                }
-            }
-        }
-
-        private void AssignNodalLoads()
-        {
-            foreach (Subdomain_v2 subdomain in SubdomainsDictionary.Values)
-            {
-                subdomain.NodalLoads = new Table<Node_v2, DOFType, double>();
-            }
-
-            foreach (Load_v2 load in Loads)
-            {
-                double amountPerSubdomain = load.Amount / load.Node.SubdomainsDictionary.Count;
-                foreach (Subdomain_v2 subdomain in load.Node.SubdomainsDictionary.Values)
-                {
-                    bool wasNotContained = subdomain.NodalLoads.TryAdd(load.Node, load.DOF, amountPerSubdomain);
-                    Debug.Assert(wasNotContained, $"Duplicate load at node {load.Node.ID}, dof {load.DOF}");
-                }
-            }
-
-            //TODO: this should be done by the subdomain when the analyzer decides.
-            foreach (Subdomain_v2 subdomain in SubdomainsDictionary.Values)
-            {
-                foreach ((Node_v2 node, DOFType dofType, double amount) in subdomain.NodalLoads)
-                {
-                    int subdomainDofIdx = subdomain.DofOrdering.FreeDofs[node, dofType];
-                    subdomain.Forces[subdomainDofIdx] = amount;
                 }
             }
         }

@@ -165,7 +165,7 @@ namespace ISAAR.MSolve.Problems
             }
 
             model.AssignNodalLoads(); // Time-independent nodal loads
-            model.AssignTimeDependentNodalLoads(timeStep); // Time-dependent nodal loads
+            //model.AssignTimeDependentNodalLoads(timeStep); // Time-dependent nodal loads
 
             foreach (var l in subdomains)
                 l.Value.RHS.CopyFrom(0, l.Value.RHS.Length, new Vector(model.ISubdomainsDictionary[l.Key].Forces), 0);

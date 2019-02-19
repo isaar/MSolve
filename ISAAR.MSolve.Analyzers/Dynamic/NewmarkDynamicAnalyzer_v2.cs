@@ -298,7 +298,7 @@ namespace ISAAR.MSolve.Analyzers.Dynamic
                 uc.Add(id, linearSystem.CreateZeroVector());
                 ucc.Add(id, linearSystem.CreateZeroVector());
                 u.Add(id, linearSystem.CreateZeroVector());
-                v.Add(id, linearSystem.CreateZeroVector());
+                //v.Add(id, linearSystem.CreateZeroVector());
                 v1.Add(id, linearSystem.CreateZeroVector());
                 v2.Add(id, linearSystem.CreateZeroVector());
                 rhs.Add(id, linearSystem.CreateZeroVector());
@@ -306,7 +306,7 @@ namespace ISAAR.MSolve.Analyzers.Dynamic
                 // Account for initial conditions coming from a previous solution. 
                 //TODO: This doesn't work as intended. The solver (previously the LinearSystem) initializes the solution to zero.
                 if (linearSystem.Solution != null) v[id] = linearSystem.Solution.Copy();
-                else v[id] = linearSystem.CreateZeroVector();
+                else v.Add(id, linearSystem.CreateZeroVector());
             }
         }
 
@@ -319,7 +319,6 @@ namespace ISAAR.MSolve.Analyzers.Dynamic
             foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
                 provider.ProcessRhs(coeffs, linearSystem.Subdomain, linearSystem.RhsVector);
-                int dofs = linearSystem.RhsVector.Length;
                 rhs[linearSystem.Subdomain.ID] = linearSystem.RhsVector.Copy(); //TODO: copying the vectors is wasteful.
             }
         }

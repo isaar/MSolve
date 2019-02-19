@@ -152,7 +152,7 @@ namespace ISAAR.MSolve.Problems
             IMatrix matrix = this.Ks[id];
             matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[id], coefficients.Mass);
             matrix.AxpyIntoThis(Cs[id], coefficients.Damping);
-            return this.Ks[id];
+            return matrix;
         }
 
         public void ProcessRhs(ImplicitIntegrationCoefficients coefficients, ISubdomain_v2 subdomain, IVector rhs)
@@ -233,7 +233,7 @@ namespace ISAAR.MSolve.Problems
             model.AssignMassAccelerationHistoryLoads(timeStep);
 
             var rhsVectors = new Dictionary<int, IVector>();
-            foreach (Subdomain_v2 subdomain in model.Subdomains) rhsVectors.Add(subdomain.ID, subdomain.Forces);
+            foreach (ISubdomain_v2 subdomain in model.Subdomains) rhsVectors.Add(subdomain.ID, subdomain.Forces);
             return rhsVectors;
         }
 
