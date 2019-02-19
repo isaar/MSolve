@@ -247,6 +247,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         }
 
         /// <summary>
+        /// Deletes the values of the non zero entries, but retains their pattern.
+        /// </summary>
+        public void ClearValues() => values.Clear();
+
+        /// <summary>
         /// See <see cref="IIndexable2D.Equals(IIndexable2D, double)"/>.
         /// </summary>
         public bool Equals(IIndexable2D other, double tolerance = 1E-13)
