@@ -33,9 +33,14 @@ namespace ISAAR.MSolve.Solvers
         void Initialize();
 
         /// <summary>
-        /// Orders the freedom degrees of the model. Also remember to reset the linear systems.
+        /// Orders the free and optionally the constrained freedom degrees of the model. Also remember to reset the linear 
+        /// systems. 
         /// </summary>
-        void OrderDofs();
+        /// <param name="alsoOrderConstrainedDofs">
+        /// If true, the constrained dofs will also be ordered. Else, <see cref="ISubdomain_v2.ConstrainedDofOrdering"/> will
+        /// be null.
+        /// </param>
+        void OrderDofs(bool alsoOrderConstrainedDofs);
         //TODO: Would it be better if the solver didn't modify the model? It would return the ordering 
         //      and the analyzer would. However the assembler should still be notified.
         //TODO: I think this should also reset the linear systems. Is there any chance that OrderDofs() should be called but 

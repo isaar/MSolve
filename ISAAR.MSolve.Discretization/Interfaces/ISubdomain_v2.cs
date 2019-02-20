@@ -10,6 +10,7 @@ namespace ISAAR.MSolve.Discretization.Interfaces
     {
         Table<INode, DOFType, double> Constraints { get; }
 
+        ISubdomainConstrainedDofOrdering ConstrainedDofOrdering { get; set; }
 
         /// <summary>
         /// This should be set when the analyzer decides. E.g. an XFEM or adaptive FEM analyzer would need to create a new dof 

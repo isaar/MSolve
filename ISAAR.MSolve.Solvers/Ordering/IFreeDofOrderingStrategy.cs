@@ -7,7 +7,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
     /// Determines how the unconstrained freedom degrees of the physical model will be ordered.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public interface IDofOrderingStrategy
+    public interface IFreeDofOrderingStrategy
     {
         /// <summary>
         /// Orders the unconstrained freedom degrees of the whole model.

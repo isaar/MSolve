@@ -142,7 +142,7 @@ namespace ISAAR.MSolve.Analyzers.Dynamic
             {
                 // The order in which the next initializations happen is very important.
                 model.ConnectDataStructures();
-                solver.OrderDofs();
+                solver.OrderDofs(false);
                 foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
                 {
                     linearSystem.Reset(); // Necessary to define the linear system's size 

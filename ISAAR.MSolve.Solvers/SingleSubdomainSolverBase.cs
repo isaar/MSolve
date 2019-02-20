@@ -46,15 +46,16 @@ namespace ISAAR.MSolve.Solvers
         public virtual IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
             => assembler.BuildGlobalMatrix(subdomain.FreeDofOrdering, subdomain.Elements, elementMatrixProvider);
 
-        public void OrderDofs()
+        public void OrderDofs(bool alsoOrderConstrainedDofs)
         {
-            IGlobalFreeDofOrdering globalOrdering = dofOrderer.OrderDofs(model);
+            IGlobalFreeDofOrdering globalOrdering = dofOrderer.OrderFreeDofs(model);
             assembler.HandleDofOrderingWillBeModified();
             
             model.GlobalDofOrdering = globalOrdering;
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 subdomain.FreeDofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
+                if (alsoOrderConstrainedDofs) subdomain.ConstrainedDofOrdering = dofOrderer.OrderConstrainedDofs(subdomain);
 
                 // The next must done by the analyzer, so that subdomain.Forces is retained when doing back to back analyses.
                 //subdomain.Forces = linearSystem.CreateZeroVector();
