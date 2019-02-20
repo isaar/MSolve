@@ -16,8 +16,6 @@ namespace ISAAR.MSolve.FEM.Entities
 {
     public class Model_v2 : IStructuralModel_v2
     {
-        private IGlobalFreeDofOrdering globalDofOrdering;
-
         //public IList<EmbeddedNode> EmbeddedNodes { get; } = new List<EmbeddedNode>();
 
         public IList<Cluster> Clusters => ClustersDictionary.Values.ToList();
@@ -87,7 +85,7 @@ namespace ISAAR.MSolve.FEM.Entities
                 ISubdomain_v2 subdomain = element.Subdomain;
                 var accelerationForces = element.ElementType.CalculateAccelerationForces(
                     load.Element, (new MassAccelerationLoad[] { hl }).ToList());
-                globalDofOrdering.SubdomainDofOrderings[subdomain].AddVectorElementToSubdomain(element, accelerationForces,
+                GlobalDofOrdering.SubdomainDofOrderings[subdomain].AddVectorElementToSubdomain(element, accelerationForces,
                     subdomain.Forces);
             }
         }
@@ -142,7 +140,7 @@ namespace ISAAR.MSolve.FEM.Entities
             SubdomainsDictionary.Clear();
             ElementsDictionary.Clear();
             NodesDictionary.Clear();
-            globalDofOrdering = null;
+            GlobalDofOrdering = null;
             Constraints.Clear();
             ElementMassAccelerationHistoryLoads.Clear();
             ElementMassAccelerationLoads.Clear();
@@ -184,7 +182,7 @@ namespace ISAAR.MSolve.FEM.Entities
                 ISubdomain_v2 subdomain = load.Element.Subdomain;
                 var accelerationForces = load.Element.ElementType.CalculateAccelerationForces(
                     load.Element, MassAccelerationLoads);
-                globalDofOrdering.SubdomainDofOrderings[subdomain].AddVectorElementToSubdomain(load.Element,
+                GlobalDofOrdering.SubdomainDofOrderings[subdomain].AddVectorElementToSubdomain(load.Element,
                     accelerationForces, subdomain.Forces);
             }
         }
