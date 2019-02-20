@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.SamplesConsole
             VectorExtensions.AssignTotalAffinityCount();
 
             // No. of increments
-            int increments = 1000;
+            int increments = 100;
 
             // Model creation
             var model = new Model_v2();
@@ -190,8 +190,8 @@ namespace ISAAR.MSolve.SamplesConsole
             {
                 HostElementsBuilder(model);
                 EmbeddedElementsBuilder(model);
-                //var embeddedGrouping = new EmbeddedGrouping_v2(model, model.ElementsDictionary.Where(x => x.Key <= 36100).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 36100).Select(kv => kv.Value), true);
-                var embeddedGrouping = new EmbeddedCohesiveGrouping_v2(model, model.ElementsDictionary.Where(x => x.Key <= 36100).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 36100).Select(kv => kv.Value), true);
+                var embeddedGrouping = new EmbeddedGrouping_v2(model, model.ElementsDictionary.Where(x => x.Key <= 36100).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 36100).Select(kv => kv.Value), true);
+                //var embeddedGrouping = new EmbeddedCohesiveGrouping_v2(model, model.ElementsDictionary.Where(x => x.Key <= 36100).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 36100).Select(kv => kv.Value), true);               
             }
 
             public static void HostElementsBuilder(Model_v2 model)
