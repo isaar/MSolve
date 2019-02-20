@@ -13,6 +13,8 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Optimization.Logging;
 using ISAAR.MSolve.Optimization.Structural.Topology.SIMP;
+using ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis;
+using ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Filters;
 using ISAAR.MSolve.Preprocessor.Meshes;
 using ISAAR.MSolve.Preprocessor.Meshes.Custom;
 using ISAAR.MSolve.Solvers.Direct;

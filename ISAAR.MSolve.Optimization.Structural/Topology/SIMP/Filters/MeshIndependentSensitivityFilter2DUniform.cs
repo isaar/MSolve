@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
+namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Filters
 {
     public class MeshIndependentSensitivityFilter2DUniform: IDensityFilter
     {

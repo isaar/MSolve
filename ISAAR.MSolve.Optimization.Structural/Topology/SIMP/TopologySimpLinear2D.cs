@@ -6,6 +6,8 @@ using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Optimization.Algorithms.GradientBased.OC;
 using ISAAR.MSolve.Optimization.Logging;
+using ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis;
+using ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Filters;
 
 //TODO: This probably works for 3D as it is. If not, extend it.
 //TODO: Should I store the prescribedVolume, instead of prescribedVolumeFraction?

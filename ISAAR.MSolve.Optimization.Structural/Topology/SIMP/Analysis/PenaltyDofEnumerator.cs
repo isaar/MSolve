@@ -5,7 +5,7 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 
-namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
+namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis
 {
     public class PenaltyDofEnumerator : IElementDofEnumerator_v2
     {

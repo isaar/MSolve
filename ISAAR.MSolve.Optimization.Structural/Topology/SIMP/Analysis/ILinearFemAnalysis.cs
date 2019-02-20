@@ -6,7 +6,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: The methods depending on if the mesh is uniform, if it has passive elements etc should be in a different interface than
 //      the methods concerning the execution of the analysis.
-namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
+namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis
 {
     public interface ILinearFemAnalysis
     {

@@ -12,7 +12,7 @@ using System.Linq;
 //TODO: extend it to 3D.
 //TODO: What about passive elements? They should not be included in the analysis.
 //TODO: Add support for various boundary conditions and load cases
-namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
+namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis
 {
     /// <summary>
     /// This class implements the FEM analysis part of the 99 line topology code, which is 2D, linear elastic with a uniform mesh.

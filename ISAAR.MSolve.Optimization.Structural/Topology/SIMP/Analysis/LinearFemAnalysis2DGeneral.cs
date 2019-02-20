@@ -11,7 +11,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 
-namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
+namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis
 {
     public class LinearFemAnalysis2DGeneral : ILinearFemAnalysis
     {
