@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ISAAR.MSolve.Optimization.Structural\ISAAR.MSolve.Optimization.Structural.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.Preprocessor\ISAAR.MSolve.Preprocessor.csproj" />
   </ItemGroup>
 
   <ItemGroup>

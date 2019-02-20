@@ -36,12 +36,14 @@ namespace ISAAR.MSolve.Materials
 
         public void ClearState()
         {
-            throw new NotImplementedException();
+            // constitutiveMatrix = null; // Why clear this? It will not and should not change.
+            strains.Clear();
+            stresses.Clear();
         }
 
         public void ClearStresses()
         {
-            throw new NotImplementedException();
+            stresses.Clear();
         }
 
         public void SaveState()

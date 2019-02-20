@@ -86,7 +86,7 @@ namespace ISAAR.MSolve.FEM.Materials
 
         public void ClearState()
         {
-            //constitutiveMatrix.Clear();
+            //constitutiveMatrix.Clear(); // Why clear this? It will not and should not change.
             incrementalStrains.Clear();
             stresses.Clear();
             stressesNew.Clear();

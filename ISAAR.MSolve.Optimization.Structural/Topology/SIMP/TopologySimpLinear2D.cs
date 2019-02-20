@@ -7,8 +7,8 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Optimization.Algorithms.GradientBased.OC;
 using ISAAR.MSolve.Optimization.Logging;
 
-//TODO: extend it to 3D.
-//TODO: Should I store the number of elements and the prescribedVolume, instead of prescribedVolumeFraction?
+//TODO: This probably works for 3D as it is. If not, extend it.
+//TODO: Should I store the prescribedVolume, instead of prescribedVolumeFraction?
 namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
 {
     public class TopologySimpLinear2D
@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
         public void Initialize()
         {
             fem.Initialize();
-            prescribedVolume = prescribedVolumeFraction * fem.CalVolume(Vector.CreateWithValue(fem.NumElements, 1.0));
+            prescribedVolume = prescribedVolumeFraction * fem.CalculateTotalVolume(Vector.CreateWithValue(fem.NumElements, 1.0));
             optimAlgorithm = new OptimalityCriteria(ObjectiveFunction, EqualityConstraint, MinDensity, maxDensity);
         }
 
@@ -51,24 +51,33 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
         private (double compliance, Vector sensitivities) ObjectiveFunction(Vector densities)
         {
             // FEM analysis. Use the penalized densities.
-            fem.AnalyzeModelWithDensities(densities.DoToAllEntries(xi => Math.Pow(xi, PenalizationExponent)));
+            Vector penalizedDensities = densities.DoToAllEntries(xi => Math.Pow(xi, PenalizationExponent));
+            fem.AnalyzeModelWithDensities(penalizedDensities);
 
             // Objective function and sensitivity analysis
             int numElements = fem.NumElements;
             int numLoadCases = fem.NumLoadCases;
             double compliance = 0.0;
             var sensitivities = Vector.CreateZero(numElements);
-            for (int elem = 0; elem < numElements; ++elem)
+            for (int e = 0; e < numElements; ++e)
             {
-                IMatrixView stiffness = fem.GetBaseStiffnessOfElement(elem);
-                double complianceCoeff = Math.Pow(densities[elem], PenalizationExponent);
-                double sensitivityCoeff = -Math.Pow(densities[elem], PenalizationExponent - 1) * PenalizationExponent;
+                IMatrixView stiffness = fem.GetPenalizedStiffnessOfElement(e, penalizedDensities);
+                double sensitivityCoeff = -PenalizationExponent * Math.Pow(densities[e], PenalizationExponent - 1) 
+                    / penalizedDensities[e];
                 for (int load = 0; load < numLoadCases; ++load)
                 {
-                    Vector displacements = fem.GetElementDisplacements(elem, load);
-                    double unitCompliance = stiffness.Multiply(displacements).DotProduct(displacements);
-                    compliance += complianceCoeff * unitCompliance;
-                    sensitivities[elem] += sensitivityCoeff * unitCompliance;
+                    // In theory, if x(e) is the density of an element, p is the penalty and K(e) is its stiffness matrix before 
+                    // penalizing its material properties:
+                    // Compliance: c += x(e)^p * ( U(e)^T * K(e) * U(e) )
+                    // Sensitivity: dc(e) -= p * x(e)^(p-1) * (  U(e)^T * K(e) * U(e) ),
+                    // However, calculating both K(e) here and x(e)^p*K(e) during global matrix assembly is cumbersome.
+                    // Therefore we will only calculate x(e)^p*K(e) and rewrite the equations above as:
+                    // Compliance: c += U(e)^T * x(e)^p*K(e) * U(e)
+                    // Sensitivity: dc(e) -= p * ( x(e)^(p-1) / x(e)^p ) * (  U(e)^T * x(e)^p*K(e) * U(e) ),
+                    Vector displacements = fem.GetElementDisplacements(e, load);
+                    double elementCompliance = stiffness.Multiply(displacements).DotProduct(displacements);
+                    compliance += elementCompliance;
+                    sensitivities[e] += sensitivityCoeff * elementCompliance;
                 }
             }
 
@@ -80,6 +89,6 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
             return (compliance, sensitivities);
         }
 
-        private double EqualityConstraint(Vector densities) => fem.CalVolume(densities) - prescribedVolume; 
+        private double EqualityConstraint(Vector densities) => fem.CalculateTotalVolume(densities) - prescribedVolume; 
     }
 }

@@ -13,17 +13,17 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
         int NumElements { get; }
         int NumLoadCases { get; }
 
-        void AnalyzeModelWithDensities(Vector densities);
+        void AnalyzeModelWithDensities(IVectorView densities);
 
         // What about passive elements?
-        double CalVolume(Vector densities);
+        double CalculateTotalVolume(IVectorView densities);
 
         Vector GetElementDisplacements(int elementIdx, int loadCaseIdx);
 
         /// <summary>
-        /// The element's stiffness matrix before scaling it with the density.
+        /// The element's stiffness matrix after it has been scaled with respect to the penalized density.
         /// </summary>
-        IMatrixView GetBaseStiffnessOfElement(int elementIdx);
+        IMatrixView GetPenalizedStiffnessOfElement(int elementIdx, IVectorView densities);
 
         void Initialize();
     }

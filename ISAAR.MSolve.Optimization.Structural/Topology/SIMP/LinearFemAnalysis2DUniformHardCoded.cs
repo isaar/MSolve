@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
 
         public int NumLoadCases => (bc == BoundaryConditions.Cantilever2LoadCases) ? 2 : 1;
 
-        public void AnalyzeModelWithDensities(Vector densities)
+        public void AnalyzeModelWithDensities(IVectorView densities)
         {
             // Global stiffness matrix assembly
             int numAllDofs = 2 * (numElementsX + 1) * (numElementsY + 1);
@@ -82,9 +82,10 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
         }
 
         //TODO: doesn't this depend on the geometry? Or is it normalized somehow?
-        public double CalVolume(Vector densities) => densities.Sum();
+        public double CalculateTotalVolume(IVectorView densities) => densities.Sum();
 
-        public IMatrixView GetBaseStiffnessOfElement(int elementIdx) => commonStiffness;
+        public IMatrixView GetPenalizedStiffnessOfElement(int elementIdx, IVectorView densities) 
+            => commonStiffness.Scale(densities[elementIdx]);
 
         public Vector GetElementDisplacements(int elementIdx, int loadCaseIdx)
         {
