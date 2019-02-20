@@ -87,9 +87,9 @@ namespace ISAAR.MSolve.Solvers.LinearSystems
             Solution = null;
             Matrix = null;
 
-            if (Subdomain.DofOrdering == null) throw new InvalidOperationException("The freedom degrees of a subdomain must" 
+            if (Subdomain.FreeDofOrdering == null) throw new InvalidOperationException("The freedom degrees of a subdomain must" 
                  + " be ordered before defining the size of its corresponding linear system.");
-            Size = Subdomain.DofOrdering.NumFreeDofs;
+            Size = Subdomain.FreeDofOrdering.NumFreeDofs;
         }
 
         internal abstract TVector CreateZeroVector();

@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.Tests.Solvers
         public double CalculateAverageEndDeflectionFromSolution(IVectorView solution)
         {
             //TODO: better do this with observers/loggers
-            DofTable subdomainDofs = Model.SubdomainsDictionary[subdomainID].DofOrdering.FreeDofs;
+            DofTable subdomainDofs = Model.SubdomainsDictionary[subdomainID].FreeDofOrdering.FreeDofs;
             double endDeflectionSum = 0.0;
             int dofsCount = 0;
             foreach (var node in endNodes)

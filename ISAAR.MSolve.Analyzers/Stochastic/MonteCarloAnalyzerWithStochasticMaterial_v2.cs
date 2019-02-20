@@ -231,7 +231,7 @@ namespace ISAAR.MSolve.Analyzers
         {
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[150][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[84][DOFType.Y];
-            int dofNo = model.Subdomains[0].DofOrdering.FreeDofs[model.NodesDictionary[10], DOFType.Y];
+            int dofNo = model.Subdomains[0].FreeDofOrdering.FreeDofs[model.NodesDictionary[10], DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[450][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[601][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[6051][DOFType.Y];
@@ -321,7 +321,7 @@ namespace ISAAR.MSolve.Analyzers
 
         private void SolveWithOrder()
         {
-            int dofNo = model.Subdomains[0].DofOrdering.FreeDofs[model.NodesDictionary[6051], DOFType.Y];
+            int dofNo = model.Subdomains[0].FreeDofOrdering.FreeDofs[model.NodesDictionary[6051], DOFType.Y];
             string[] values = new string[simulations];
             var fileName = String.Format(@"{0}-{1}-{2}.txt", fileNameForLogging, expansionOrder, simulationStartFrom);
             StreamWriter sw = File.CreateText(fileName);

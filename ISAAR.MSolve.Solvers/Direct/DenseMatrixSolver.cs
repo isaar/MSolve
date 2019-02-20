@@ -72,7 +72,7 @@ namespace ISAAR.MSolve.Solvers.Direct
             //writer.WriteToConsole(matrix);
             #endregion
 
-            return assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.Elements, 
+            return assembler.BuildGlobalMatrix(subdomain.FreeDofOrdering, subdomain.Elements, 
                 elementMatrixProvider);
         }
 

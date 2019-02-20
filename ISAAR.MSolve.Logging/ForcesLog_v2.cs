@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.Logging
             //double[] solution = ((Vector<double>)solutionVector).Data;
             foreach (Element_v2 e in elements)
             {
-                double[] localVector = e.Subdomain.DofOrdering.ExtractVectorElementFromSubdomain(e, solutionVector);
+                double[] localVector = e.Subdomain.FreeDofOrdering.ExtractVectorElementFromSubdomain(e, solutionVector);
                 forces[e.ID] = e.ElementType.CalculateForcesForLogging(e, localVector);
 
                 //for (int i = 0; i < stresses[e.ID].Length; i++)

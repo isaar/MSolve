@@ -32,7 +32,8 @@ namespace ISAAR.MSolve.FEM.Entities
         IReadOnlyList<INode> ISubdomain_v2.Nodes => nodes;
         public IReadOnlyList<Node_v2> Nodes => nodes;
 
-        public ISubdomainFreeDofOrdering DofOrdering { get; set; }
+        public ISubdomainConstrainedDofOrdering ConstrainedDofOrdering { get; set; }
+        public ISubdomainFreeDofOrdering FreeDofOrdering { get; set; }
 
         public Vector Forces { get; set; } //TODO: this doesn't belong here
 
@@ -61,14 +62,14 @@ namespace ISAAR.MSolve.FEM.Entities
         //TODO: the constraintScalingFactor parameter is not used.
         public double[] CalculateElementIncrementalConstraintDisplacements(IElement_v2 element, double constraintScalingFactor)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
         {
-            var elementNodalDisplacements = new double[DofOrdering.CountElementDofs(element)];
+            var elementNodalDisplacements = new double[FreeDofOrdering.CountElementDofs(element)];
             ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
             return elementNodalDisplacements;
         }
 
         public double[] CalculateElementDisplacements(Element_v2 element, IVectorView globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
         {
-            double[] elementNodalDisplacements = DofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector);
+            double[] elementNodalDisplacements = FreeDofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector);
             ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
             return elementNodalDisplacements;
         }
@@ -164,7 +165,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public IVector GetRhsFromSolution(IVectorView solution, IVectorView dSolution)
         {
-            var forces = Vector.CreateZero(DofOrdering.NumFreeDofs); //TODO: use Vector
+            var forces = Vector.CreateZero(FreeDofOrdering.NumFreeDofs); //TODO: use Vector
             foreach (Element_v2 element in Elements)
             {
                 //var localSolution = GetLocalVectorFromGlobal(element, solution);//TODOMaria: This is where the element displacements are calculated //removeMaria
@@ -177,7 +178,7 @@ namespace ISAAR.MSolve.FEM.Entities
                 if (element.ElementType.MaterialModified)
                     element.Subdomain.MaterialsModified = true;
                 var f = element.ElementType.CalculateForces(element, localSolution, localdSolution);
-                DofOrdering.AddVectorElementToSubdomain(element, f, forces);
+                FreeDofOrdering.AddVectorElementToSubdomain(element, f, forces);
             }
             return forces;
         }

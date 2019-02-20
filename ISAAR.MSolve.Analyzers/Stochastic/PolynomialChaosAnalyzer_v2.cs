@@ -190,7 +190,7 @@ namespace ISAAR.MSolve.Analyzers
             ChildAnalyzer.Initialize(true);
             ChildAnalyzer.Solve();
 
-            int dofNo = model.Subdomains[0].DofOrdering.FreeDofs[model.NodesDictionary[1], DOFType.X];
+            int dofNo = model.Subdomains[0].FreeDofOrdering.FreeDofs[model.NodesDictionary[1], DOFType.X];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[84][DOFType.Y];
             //int dofNo = 112;
             var subdomain = linearSystems.Select(x => x.Value).First();

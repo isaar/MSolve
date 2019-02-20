@@ -133,9 +133,9 @@ namespace ISAAR.MSolve.Problems
         //TODO: make sure this is called whenever the ordering changes
         private CsrMatrix BuildQFromSubdomain(Subdomain_v2 subdomain) 
         {
-            int numFreeDofs = subdomain.DofOrdering.NumFreeDofs;
+            int numFreeDofs = subdomain.FreeDofOrdering.NumFreeDofs;
             var qSubdomain = DokRowMajor.CreateEmpty(numFreeDofs, numFreeDofs);
-            DofTable allDofs = subdomain.DofOrdering.FreeDofs;
+            DofTable allDofs = subdomain.FreeDofOrdering.FreeDofs;
             foreach (Element_v2 element in subdomain.Elements)
             {
                 if (!(element.ElementType is IPorousFiniteElement_v2)) continue;
@@ -176,7 +176,7 @@ namespace ISAAR.MSolve.Problems
 
         private void ScaleSubdomainSolidVector(ISubdomain_v2 subdomain, IVector vector)
         {
-            foreach ((INode node, DOFType dofType, int dofIdx) in subdomain.DofOrdering.FreeDofs)
+            foreach ((INode node, DOFType dofType, int dofIdx) in subdomain.FreeDofOrdering.FreeDofs)
             {
                 if (dofType!= DOFType.Pore) vector.Set(dofIdx, vector[dofIdx] * this.scalingCoefficient);
             }
@@ -249,7 +249,7 @@ namespace ISAAR.MSolve.Problems
                 foreach (ISubdomain_v2 subdomain in model.Subdomains)
                 {
                     int[] subdomainToGlobalDofs = model.GlobalDofOrdering.MapFreeDofsSubdomainToGlobal(subdomain);
-                    foreach ((INode node, DOFType dofType, int subdomainDofIdx) in subdomain.DofOrdering.FreeDofs)
+                    foreach ((INode node, DOFType dofType, int subdomainDofIdx) in subdomain.FreeDofOrdering.FreeDofs)
                     {
                         int globalDofIdx = subdomainToGlobalDofs[subdomainDofIdx];
                         foreach (var l in m)

@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.Solvers
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
         public virtual IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
-            => assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.Elements, elementMatrixProvider);
+            => assembler.BuildGlobalMatrix(subdomain.FreeDofOrdering, subdomain.Elements, elementMatrixProvider);
 
         public void OrderDofs()
         {
@@ -54,7 +54,7 @@ namespace ISAAR.MSolve.Solvers
             model.GlobalDofOrdering = globalOrdering;
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
-                subdomain.DofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
+                subdomain.FreeDofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
 
                 // The next must done by the analyzer, so that subdomain.Forces is retained when doing back to back analyses.
                 //subdomain.Forces = linearSystem.CreateZeroVector();

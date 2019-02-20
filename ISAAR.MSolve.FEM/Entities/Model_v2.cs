@@ -72,7 +72,7 @@ namespace ISAAR.MSolve.FEM.Entities
                     foreach (Element_v2 element in subdomain.Elements)
                     {
                         double[] accelerationForces = element.ElementType.CalculateAccelerationForces(element, m);
-                        subdomain.DofOrdering.AddVectorElementToSubdomain(element, accelerationForces, subdomain.Forces);
+                        subdomain.FreeDofOrdering.AddVectorElementToSubdomain(element, accelerationForces, subdomain.Forces);
                     }
                 }
             }
@@ -114,7 +114,7 @@ namespace ISAAR.MSolve.FEM.Entities
             {
                 foreach ((Node_v2 node, DOFType dofType, double amount) in subdomain.NodalLoads)
                 {
-                    int subdomainDofIdx = subdomain.DofOrdering.FreeDofs[node, dofType];
+                    int subdomainDofIdx = subdomain.FreeDofOrdering.FreeDofs[node, dofType];
                     subdomain.Forces[subdomainDofIdx] += amount;
                 }
             }
@@ -128,7 +128,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
                 foreach (ISubdomain_v2 subdomain in load.Node.SubdomainsDictionary.Values)
                 {
-                    int subdomainDofIdx = subdomain.DofOrdering.FreeDofs[load.Node, load.DOF];
+                    int subdomainDofIdx = subdomain.FreeDofOrdering.FreeDofs[load.Node, load.DOF];
                     subdomain.Forces[subdomainDofIdx] += amountPerSubdomain;
                 }
             }
@@ -197,7 +197,7 @@ namespace ISAAR.MSolve.FEM.Entities
             {
                 foreach (Element_v2 element in subdomain.Elements)
                 {
-                    subdomain.DofOrdering.AddVectorElementToSubdomain(element,
+                    subdomain.FreeDofOrdering.AddVectorElementToSubdomain(element,
                         element.ElementType.CalculateAccelerationForces(element, MassAccelerationLoads),
                         subdomain.Forces);
                 }

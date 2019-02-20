@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.Problems
             //times.Add("element", TimeSpan.Zero);
             //times.Add("addition", TimeSpan.Zero);
 
-            var subdomainEquivalentForces = Vector.CreateZero(subdomain.DofOrdering.NumFreeDofs);
+            var subdomainEquivalentForces = Vector.CreateZero(subdomain.FreeDofOrdering.NumFreeDofs);
             foreach (IElement_v2 element in subdomain.Elements) //TODO: why go through all the elements? Most of them will not have Dirichlet bc.
             {
                 //var elStart = DateTime.Now;
@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.Problems
 
                 var elementEquivalentForces = elementK.Multiply(localdSolution);
 
-                subdomain.DofOrdering.AddVectorElementToSubdomain(element, elementEquivalentForces, subdomainEquivalentForces);
+                subdomain.FreeDofOrdering.AddVectorElementToSubdomain(element, elementEquivalentForces, subdomainEquivalentForces);
 
                 //times["addition"] += DateTime.Now - elStart;
             }

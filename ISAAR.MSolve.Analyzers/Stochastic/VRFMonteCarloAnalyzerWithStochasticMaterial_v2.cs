@@ -154,7 +154,7 @@ namespace ISAAR.MSolve.Analyzers
         {
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[150][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[84][DOFType.Y];
-            int dofNo = model.Subdomains[0].DofOrdering.FreeDofs[model.Nodes[80], DOFType.X];
+            int dofNo = model.Subdomains[0].FreeDofOrdering.FreeDofs[model.Nodes[80], DOFType.X];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[450][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[601][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[6051][DOFType.Y];
@@ -287,7 +287,7 @@ namespace ISAAR.MSolve.Analyzers
             ISubdomain_v2 subdomain = model.Subdomains[0];
             foreach (var node in subdomain.Nodes)
             {
-                bool isFree = subdomain.DofOrdering.FreeDofs.TryGetValue(node, DOFType.Y, out int dofIdx);
+                bool isFree = subdomain.FreeDofOrdering.FreeDofs.TryGetValue(node, DOFType.Y, out int dofIdx);
                 s += (isFree ? dofIdx.ToString() : "0") + ";";
             }
             return s;

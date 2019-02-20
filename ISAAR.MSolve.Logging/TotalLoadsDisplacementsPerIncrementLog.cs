@@ -70,7 +70,7 @@ namespace ISAAR.MSolve.Logging
         public void LogTotalDataForIncrement(int incrementNumber, int currentIterationNumber, double errorNorm,
             IVectorView totalDisplacements, IVectorView totalInternalForces)
         {
-            int subdomainDofIdx = subdomain.DofOrdering.FreeDofs[monitorNode, monitorDof]; //TODO: SHould this be cached?
+            int subdomainDofIdx = subdomain.FreeDofOrdering.FreeDofs[monitorNode, monitorDof]; //TODO: SHould this be cached?
 
             // If all subdomains use the same file, then we need to open it in append mode. 
             //TODO: Also that will not work in parallel for many subdomains.

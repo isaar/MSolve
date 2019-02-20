@@ -10,11 +10,12 @@ namespace ISAAR.MSolve.Discretization.Interfaces
     {
         Table<INode, DOFType, double> Constraints { get; }
 
+
         /// <summary>
         /// This should be set when the analyzer decides. E.g. an XFEM or adaptive FEM analyzer would need to create a new dof 
         /// ordering, whenever the crack propagates or the mesh is refined respectively.
         /// </summary>
-        ISubdomainFreeDofOrdering DofOrdering { get; set; }
+        ISubdomainFreeDofOrdering FreeDofOrdering { get; set; }
 
         IReadOnlyList<IElement_v2> Elements { get; } //TODO: perhaps this should be a set
 

@@ -47,7 +47,7 @@ namespace ISAAR.MSolve.FEM.Postprocessing
                     ContinuumElement2D elementType = (ContinuumElement2D)(element.ElementType); //TODO: remove cast
 
                     // Find local displacement vector
-                    double[] localDisplacements = subdomain.DofOrdering.ExtractVectorElementFromSubdomain(element, 
+                    double[] localDisplacements = subdomain.FreeDofOrdering.ExtractVectorElementFromSubdomain(element, 
                         freeDisplacements);
 
                     // Calculate strains, stresses at Gauss points and extrapolate to nodes
