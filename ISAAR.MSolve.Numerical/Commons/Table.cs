@@ -82,6 +82,25 @@ namespace ISAAR.MSolve.Numerical.Commons
             else return wholeRow.ContainsKey(col);
         }
 
+        /// <summary>
+        /// Finds and returns the an entry for which <typeparamref name="TValue"/>> satisfies <paramref name="predicate"/>.
+        /// If none is found, a <see cref="KeyNotFoundException"/> will be thrown.
+        /// </summary>
+        /// <param name="predicate"></param>
+        public (TRow row, TColumn col, TValue val) Find(Predicate<TValue> predicate)
+        {
+            //TODO: throwing an exception for a common usecase is not the best solution. However returning 
+            //      default((TRow, TColumn, TValue)) is also bad, since this could be a valid value.
+            foreach (var wholeRow in data)
+            {
+                foreach (var colValPair in wholeRow.Value)
+                {
+                    if (predicate(colValPair.Value)) return (wholeRow.Key, colValPair.Key, colValPair.Value);
+                }
+            }
+            throw new KeyNotFoundException("No entry has the requested value");
+        }
+
         public IEnumerator<(TRow row, TColumn col, TValue val)> GetEnumerator()
         {
             foreach (var wholeRow in data)
