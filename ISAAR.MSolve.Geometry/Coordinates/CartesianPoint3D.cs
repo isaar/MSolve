@@ -58,7 +58,20 @@ namespace ISAAR.MSolve.Geometry.Coordinates
 		/// </summary>
 		public double[] Coordinates => new double[] {x, y, z};
 
-		public override string ToString()
+        /// <summary>
+        /// Calculates the Euclidian distance between a <see cref="CartesianPoint3D"/> named <paramref name="other"/> and this 
+        /// one. It will be non negative.
+        /// </summary>
+        /// <param name="other">The other <see cref="CartesianPoint3D"/>.</param>
+        public double CalculateDistanceFrom(CartesianPoint3D other) //TODO: this should be implemented for IPoint2D
+        {
+            double dx = this.x - other.x;
+            double dy = this.y - other.y;
+            double dz = this.z - other.z;
+            return Math.Sqrt(dx * dx + dy * dy + dz * dz);
+        }
+
+        public override string ToString()
 		{
 			return $"(x, y, z) = ({x}, {y}, {z})";
 		}

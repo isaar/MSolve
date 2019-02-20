@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis
             {
                 if (modelElements[e].ElementType is ContinuumElement2D continuum) elementTypes[e] = continuum;
                 else throw new ArgumentException("2D topology optimization only works with 2D continuum elements,"
-                    + $" but the element with ID = {elementTypes[e].ID} was not.");
+                    + $" but the element with ID = {modelElements[e].ID} was not.");
                 elementWrappers[e] = modelElements[e];
                 penalizers[e] = new PenaltyDofEnumerator();
             }

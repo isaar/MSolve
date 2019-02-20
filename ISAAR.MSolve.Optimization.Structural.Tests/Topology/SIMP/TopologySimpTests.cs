@@ -23,7 +23,8 @@ using Xunit;
 namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
 {
     /// <summary>
-    /// Tests for <see cref="TopologySimpLinear2D"/>.
+    /// Tests for <see cref="TopologySimpLinear2D"/>. Keep in mind that elements are numbered like pixels: top-to-bottom (major) 
+    /// left-to-right (minor), in order to agree with their order in the input files we test against.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public static class TopologySimpTests
@@ -33,9 +34,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
         [Fact]
         private static void TestCantileverBeamGeneral()
         {
-            //TODO: Also need a general filter
-
-            // Define the fem analysis and the filter
+            // Define the materials
             double thickness = 1.0;
             var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress) { YoungModulus = 1.0, PoissonRatio = 0.3 };
             var dynamicProperties = new DynamicMaterial(1.0, 0.0, 0.0);
@@ -47,8 +46,8 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
             // Generate mesh
             int numElementsX = 32, numElementsY = 20;
             double lengthX = numElementsX;
-            double lengthY = numElementsY;
-            var mesher = new UniformMeshGenerator2D_v2(0, 0, lengthX, lengthY, numElementsX, numElementsY);
+            double depthY = numElementsY;
+            var mesher = new UniformMeshGenerator2D_v2(0, 0, lengthX, depthY, numElementsX, numElementsY);
             (IReadOnlyList<Node_v2> nodes, IReadOnlyList<CellConnectivity_v2> connectivity) = mesher.CreateMesh();
 
             // Add nodes to the model
@@ -76,7 +75,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
             // Apply concentrated load at the bottom right corner
             double load = 1.0;
             var cornerNode = model.Nodes.Where(
-                node => (Math.Abs(node.X - lengthX) <= tol) && (Math.Abs(node.Y - lengthY) <= tol)); //TODO: this means Y is downwards to match the filer. Change this (and the load)
+                node => (Math.Abs(node.X - lengthX) <= tol) && (Math.Abs(node.Y - depthY) <= tol));
             Assert.True(cornerNode.Count() == 1);
             model.Loads.Add(new Load_v2() { Amount = load, Node = cornerNode.First(), DOF = DOFType.Y });
 
@@ -86,7 +85,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
             // Define the fem analysis and the filter
             double filterAreaRadius = 1.2;
             var fem = new LinearFemAnalysis2DGeneral(model, solver);
-            var filter = new MeshIndependentSensitivityFilter2DUniform(numElementsX, numElementsY, filterAreaRadius);
+            var filter = new ProximityDensityFilter2D(model, filterAreaRadius);
 
             // Run the test
             TestCantileverBeam(fem, filter);
@@ -189,8 +188,8 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
             // Generate mesh
             int numElementsX = 60, numElementsY = 20;
             double lengthX = numElementsX;
-            double lengthY = numElementsY;
-            var mesher = new UniformMeshGenerator2D_v2(0, 0, lengthX, lengthY, numElementsX, numElementsY);
+            double depthY = numElementsY;
+            var mesher = new UniformMeshGenerator2D_v2(0, 0, lengthX, depthY, numElementsX, numElementsY);
             (IReadOnlyList<Node_v2> nodes, IReadOnlyList<CellConnectivity_v2> connectivity) = mesher.CreateMesh();
 
             // Add nodes to the model
@@ -216,7 +215,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
 
             // Roller boundary condition at bottom right corner
             var bottomRightNode = model.Nodes.Where(
-                node => (Math.Abs(node.X - lengthX) <= tol) && (Math.Abs(node.Y - lengthY) <= tol)); //TODO: this means Y is downwards to match the filer. Change this (and the load)
+                node => (Math.Abs(node.X - lengthX) <= tol) && (Math.Abs(node.Y - depthY) <= tol));
             Assert.True(bottomRightNode.Count() == 1);
             bottomRightNode.First().Constraints.Add(new Constraint() { DOF = DOFType.Y, Amount = 0.0 });
 
@@ -233,7 +232,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
             // Define the fem analysis and the filter
             double filterAreaRadius = 1.5;
             var fem = new LinearFemAnalysis2DGeneral(model, solver);
-            var filter = new MeshIndependentSensitivityFilter2DUniform(numElementsX, numElementsY, filterAreaRadius);
+            var filter = new ProximityDensityFilter2D(model, filterAreaRadius);
 
             // Run the test
             TestMbbBeam(fem, filter);

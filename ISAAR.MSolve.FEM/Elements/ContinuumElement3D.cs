@@ -9,6 +9,7 @@ using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
 using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 using ISAAR.MSolve.FEM.Materials;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
@@ -207,6 +208,12 @@ namespace ISAAR.MSolve.FEM.Elements
             damping.AxpyIntoThis(MassMatrix(element), dynamicProperties.RayleighCoeffMass);
             return damping;
         }
+
+        /// <summary>
+        /// Calculates the coordinates of the centroid of this element.
+        /// </summary>
+        public CartesianPoint3D FindCentroid()
+            => Interpolation.TransformNaturalToCartesian(Nodes, new NaturalPoint3D(0.0, 0.0, 0.0));
 
         public IMatrix MassMatrix(IElement_v2 element)
         {
