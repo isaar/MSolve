@@ -19,7 +19,8 @@ namespace ISAAR.MSolve.Problems
 {
     public class ProblemThermal_v2 : IImplicitIntegrationProvider_v2, IStaticProvider_v2, INonLinearProvider_v2
     {
-        private Dictionary<int, IMatrix> capacityMatrices, conductivityMatrices;
+        private Dictionary<int, IMatrix> capacity, conductivityFreeFree;
+        private Dictionary<int, IMatrix> conductivityConstrFree, conductivityConstrConstr;
         private readonly Model_v2 model;
         private readonly ISolver_v2 solver;
         private IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
@@ -36,52 +37,66 @@ namespace ISAAR.MSolve.Problems
 
         public IDirichletEquivalentLoadsAssembler DirichletLoadsAssembler { get; }
 
-        private IDictionary<int, IMatrix> CapacityMatrices
+        private IDictionary<int, IMatrix> Capacity
         {
             get
             {
-                if (capacityMatrices == null) BuildCapacityMatrices();
-                return capacityMatrices;
+                if (capacity == null) BuildCapacity();
+                return capacity;
             }
         }
 
-        private IDictionary<int, IMatrix> ConductivityMatrices
+        private IDictionary<int, IMatrix> Conductivity
         {
             get
             {
-                if (conductivityMatrices == null) BuildConductivityMatrices();
+                if (conductivityFreeFree == null) BuildConductivityFreeFree();
                 //else RebuildConductivityMatrices();
-                return conductivityMatrices;
+                return conductivityFreeFree;
             }
         }
 
-        private void BuildConductivityMatrices()
+        private void BuildConductivityFreeFree()
         {
-            conductivityMatrices = new Dictionary<int, IMatrix>(model.Subdomains.Count);
+            conductivityFreeFree = new Dictionary<int, IMatrix>(model.Subdomains.Count);
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
-                conductivityMatrices.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, conductivityProvider));
+                conductivityFreeFree.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, conductivityProvider));
             }
         }
 
-        private void RebuildConductivityMatrices()
+        private void BuildConductivitySubmatrices()
+        {
+            conductivityFreeFree = new Dictionary<int, IMatrix>(model.Subdomains.Count);
+            conductivityConstrFree = new Dictionary<int, IMatrix>(model.Subdomains.Count);
+            conductivityConstrConstr = new Dictionary<int, IMatrix>(model.Subdomains.Count);
+            foreach (ISubdomain_v2 subdomain in model.Subdomains)
+            {
+                (IMatrix Kff, IMatrix Kcf, IMatrix Kcc) = solver.BuildGlobalSubmatrices(subdomain, conductivityProvider);
+                conductivityFreeFree.Add(subdomain.ID, Kff);
+                conductivityConstrFree.Add(subdomain.ID, Kcf);
+                conductivityConstrConstr.Add(subdomain.ID, Kcc);
+            }
+        }
+
+        private void RebuildConductivityFreeFree()
         {
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 if (subdomain.MaterialsModified)
                 {
-                    conductivityMatrices[subdomain.ID] = solver.BuildGlobalMatrix(subdomain, conductivityProvider);
+                    conductivityFreeFree[subdomain.ID] = solver.BuildGlobalMatrix(subdomain, conductivityProvider);
                     subdomain.ResetMaterialsModifiedProperty();
                 }
             }
         }
 
-        private void BuildCapacityMatrices()
+        private void BuildCapacity()
         {
-            capacityMatrices = new Dictionary<int, IMatrix>(model.Subdomains.Count);
+            capacity = new Dictionary<int, IMatrix>(model.Subdomains.Count);
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
-                capacityMatrices.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, capacityProvider));
+                capacity.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, capacityProvider));
             }
         }
 
@@ -96,8 +111,10 @@ namespace ISAAR.MSolve.Problems
                 }
             }
 
-            conductivityMatrices = null;
-            capacityMatrices = null;
+            conductivityFreeFree = null;
+            conductivityConstrFree = null;
+            conductivityConstrConstr = null;
+            capacity = null;
         }
         #endregion 
 
@@ -109,7 +126,7 @@ namespace ISAAR.MSolve.Problems
             // The effective matrix should not overwrite the conductivity matrix. 
             // In a dynamic analysis that is not purely implicit we need the conductivity matrix.
             int id = subdomain.ID;
-            return ConductivityMatrices[id].LinearCombination(coefficients.Stiffness, CapacityMatrices[id], coefficients.Mass);
+            return Conductivity[id].LinearCombination(coefficients.Stiffness, Capacity[id], coefficients.Mass);
         }
 
         public void ProcessRhs(ImplicitIntegrationCoefficients coefficients, ISubdomain_v2 subdomain, IVector rhs)
@@ -140,11 +157,11 @@ namespace ISAAR.MSolve.Problems
         }
 
         public IVector MassMatrixVectorProduct(ISubdomain_v2 subdomain, IVectorView vector)
-            => this.CapacityMatrices[subdomain.ID].Multiply(vector);
+            => this.Capacity[subdomain.ID].Multiply(vector);
 
         //TODO: Ok this is weird. These methods should be named Second/First/ZeroOrderCoefficientTimesVector()
         public IVector DampingMatrixVectorProduct(ISubdomain_v2 subdomain, IVectorView vector)
-            => this.ConductivityMatrices[subdomain.ID].Multiply(vector);
+            => this.Conductivity[subdomain.ID].Multiply(vector);
 
         #endregion
 
@@ -152,10 +169,20 @@ namespace ISAAR.MSolve.Problems
 
         public IMatrixView CalculateMatrix(ISubdomain_v2 subdomain)
         {
-            if (conductivityMatrices == null) BuildConductivityMatrices();
-            return conductivityMatrices[subdomain.ID];
+            if (conductivityFreeFree == null) BuildConductivityFreeFree();
+            return conductivityFreeFree[subdomain.ID];
         }
 
+        public (IMatrixView matrixFreeFree, IMatrixView matrixConstrFree, IMatrixView matrixConstrConstr)
+            CalculateSubMatrices(ISubdomain_v2 subdomain)
+        {
+            int id = subdomain.ID;
+            if ((conductivityFreeFree == null) || (conductivityConstrFree == null) || (conductivityConstrConstr == null))
+            {
+                BuildConductivitySubmatrices();
+            }
+            return (conductivityFreeFree[id], conductivityConstrFree[id], conductivityConstrConstr[id]);
+        }
         #endregion
 
         #region INonLinearProvider Members

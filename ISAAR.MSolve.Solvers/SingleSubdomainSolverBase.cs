@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
@@ -45,6 +46,18 @@ namespace ISAAR.MSolve.Solvers
 
         public virtual IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
             => assembler.BuildGlobalMatrix(subdomain.FreeDofOrdering, subdomain.Elements, elementMatrixProvider);
+
+        public virtual (IMatrix matrixFreeFree, IMatrix matrixConstrFree, IMatrix matrixConstrConstr) BuildGlobalSubmatrices(
+            ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
+        {
+            if (subdomain.ConstrainedDofOrdering == null)
+            {
+                throw new InvalidOperationException("In order to build the matrices corresponding to constrained dofs,"
+                    + " they must have been ordered first.");
+            }
+            return assembler.BuildGlobalSubmatrices(subdomain.FreeDofOrdering, subdomain.ConstrainedDofOrdering,
+                subdomain.Elements, elementMatrixProvider);
+        }
 
         public void OrderDofs(bool alsoOrderConstrainedDofs)
         {

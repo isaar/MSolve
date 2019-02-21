@@ -4,6 +4,8 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Solvers.LinearSystems;
 
+//TODO: perhaps the solver should expose the assembler, instead of wrapping it. The assembler's interface would have to be 
+//      simplified a bit though. That would violate LoD, but so does MSolve in general.
 namespace ISAAR.MSolve.Solvers
 {
     /// <summary>
@@ -17,7 +19,7 @@ namespace ISAAR.MSolve.Solvers
         IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
         /// <summary>
-        /// Assembles the matrix that corresponds to the freedom degrees of the whole subdomain from the matrices of its 
+        /// Assembles the matrix that corresponds to the free freedom degrees of the whole subdomain from the matrices of its 
         /// elements.
         /// </summary>
         /// <param name="subdomain">The subdomain whose corresponding matrix will be assembled.</param>
@@ -25,6 +27,18 @@ namespace ISAAR.MSolve.Solvers
         /// Determines the matrix calculated for each element (e.g. stiffness, mass, etc.)
         /// </param>
         IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider); //TODO: Ideally the provider/analyzer will not even have to pass the subdomain.
+
+        /// <summary>
+        /// Assembles the matrices that correspond to the free and constrained freedom degrees of the whole subdomain 
+        /// from the matrices of its elements. If we denote the matrix as A, the free dofs as f and the constrained dofs as c
+        /// then: A = [ Aff Acf^T; Acf Acc ] (Matlab notation). This method returns Aff, Acf, Acc.
+        /// </summary>
+        /// <param name="subdomain">The subdomain whose corresponding matrix will be assembled.</param>
+        /// <param name="elementMatrixProvider">
+        /// Determines the matrix calculated for each element (e.g. stiffness, mass, etc.)
+        /// </param>
+        (IMatrix matrixFreeFree, IMatrix matrixConstrFree, IMatrix matrixConstrConstr) 
+            BuildGlobalSubmatrices(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider);
 
         /// <summary>
         /// Initializes the state of this <see cref="ISolver_v2"/> instance. This needs to be called only once, since it  

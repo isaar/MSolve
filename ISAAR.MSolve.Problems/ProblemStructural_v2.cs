@@ -13,12 +13,15 @@ using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.LinearSystems;
 
 //TODO: Usually the LinearSystem is passed in, but for GetRHSFromHistoryLoad() it is stored as a field. Decide on one method.
-//TODO: I am not too fond of the provider storing global sized matrices.
+//TODO: I am not too fond of the provider storing global sized matrices. However it is necessary to abstract from the analyzers 
+//      the various matrices in coupled problems (e.g. stiffness, porous, coupling).
+//TODO: Right now this class decides when to build or rebuild the matrices. The analyzer should decide that.
 namespace ISAAR.MSolve.Problems
 {
     public class ProblemStructural_v2 : IImplicitIntegrationProvider_v2, IStaticProvider_v2, INonLinearProvider_v2
     {
-        private Dictionary<int, IMatrix> ms, cs, ks;
+        private Dictionary<int, IMatrix> mass, damping, stiffnessFreeFree;
+        private Dictionary<int, IMatrix> stiffnessConstrFree, stiffnessConstrConstr;
         private readonly IStructuralModel_v2 model;
         private readonly ISolver_v2 solver;
         private IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
@@ -39,77 +42,91 @@ namespace ISAAR.MSolve.Problems
 
         public IDirichletEquivalentLoadsAssembler DirichletLoadsAssembler { get; } 
 
-        private IDictionary<int, IMatrix> Ms
+        private IDictionary<int, IMatrix> Mass
         {
             get
             {
-                if (ms == null) BuildMs();
-                return ms;
+                if (mass == null) BuildMass();
+                return mass;
             }
         }
 
-        private IDictionary<int, IMatrix> Cs
+        private IDictionary<int, IMatrix> Damping
         {
             get
             {
-                if (cs == null) BuildCs();
-                return cs;
+                if (damping == null) BuildDamping();
+                return damping;
             }
         }
 
-        private IDictionary<int, IMatrix> Ks
+        private IDictionary<int, IMatrix> StiffnessFreeFree
         {
             get
             {
-                if (ks == null)
-                    BuildKs();
+                if (stiffnessFreeFree == null)
+                    BuildStiffnessFreeFree();
                 else
                 {
                     //TODO I am not too fond of side effects, especially in getters
-                    RebuildKs(); // This is the same but also resets the material modified properties. 
+                    RebuildBuildStiffnessFreeFree(); // This is the same but also resets the material modified properties. 
                 }
-                return ks;
+                return stiffnessFreeFree;
             }
         }
 
-        private void BuildKs()
+        private void BuildStiffnessFreeFree()
         {
-            ks = new Dictionary<int, IMatrix>(model.Subdomains.Count);
+            stiffnessFreeFree = new Dictionary<int, IMatrix>(model.Subdomains.Count);
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
-                ks.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, stiffnessProvider));
+                stiffnessFreeFree.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, stiffnessProvider));
             }
         }
 
-        private void RebuildKs()
+        private void BuildStiffnessSubmatrices()
+        {
+            stiffnessFreeFree = new Dictionary<int, IMatrix>(model.Subdomains.Count);
+            stiffnessConstrFree = new Dictionary<int, IMatrix>(model.Subdomains.Count);
+            stiffnessConstrConstr = new Dictionary<int, IMatrix>(model.Subdomains.Count);
+            foreach (ISubdomain_v2 subdomain in model.Subdomains)
+            {
+                (IMatrix Kff, IMatrix Kcf, IMatrix Kcc) = solver.BuildGlobalSubmatrices(subdomain, stiffnessProvider);
+                stiffnessFreeFree.Add(subdomain.ID, Kff);
+                stiffnessConstrFree.Add(subdomain.ID, Kcf);
+                stiffnessConstrConstr.Add(subdomain.ID, Kcc);
+            }
+        }
+
+        private void RebuildBuildStiffnessFreeFree()
         {
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 if (subdomain.MaterialsModified)
                 {
-                    ks[subdomain.ID] = solver.BuildGlobalMatrix(subdomain, stiffnessProvider);
+                    stiffnessFreeFree[subdomain.ID] = solver.BuildGlobalMatrix(subdomain, stiffnessProvider);
                     subdomain.ResetMaterialsModifiedProperty();
                 }
             }
         }
 
-        private void BuildMs()
+        private void BuildMass()
         {
-            ms = new Dictionary<int, IMatrix>(model.Subdomains.Count);
+            mass = new Dictionary<int, IMatrix>(model.Subdomains.Count);
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
-                ms.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, massProvider));
+                mass.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, massProvider));
             }
         }
 
         //TODO: With Rayleigh damping, C is more efficiently built using linear combinations of global K, M, 
         //      instead of building and assembling element k, m matrices.
-        private void BuildCs()
+        private void BuildDamping()
         {
-            cs = new Dictionary<int, IMatrix>(model.Subdomains.Count);
+            damping = new Dictionary<int, IMatrix>(model.Subdomains.Count);
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
-                cs.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, dampingProvider));
+                damping.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, dampingProvider));
             }
         }
 
@@ -124,9 +141,11 @@ namespace ISAAR.MSolve.Problems
                 }
             }
 
-            cs = null;
-            ks = null;
-            ms = null;
+            damping = null;
+            stiffnessFreeFree = null;
+            stiffnessConstrFree = null;
+            stiffnessConstrConstr = null;
+            mass = null;
         }
         #endregion 
 
@@ -149,9 +168,9 @@ namespace ISAAR.MSolve.Problems
             //if (linearSystem.IsMatrixOverwrittenBySolver) BuildKs();
 
             int id = subdomain.ID;
-            IMatrix matrix = this.Ks[id];
-            matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[id], coefficients.Mass);
-            matrix.AxpyIntoThis(Cs[id], coefficients.Damping);
+            IMatrix matrix = this.StiffnessFreeFree[id];
+            matrix.LinearCombinationIntoThis(coefficients.Stiffness, Mass[id], coefficients.Mass);
+            matrix.AxpyIntoThis(Damping[id], coefficients.Damping);
             return matrix;
         }
 
@@ -238,10 +257,10 @@ namespace ISAAR.MSolve.Problems
         }
 
         public IVector MassMatrixVectorProduct(ISubdomain_v2 subdomain, IVectorView vector)
-            => this.Ms[subdomain.ID].Multiply(vector);
+            => this.Mass[subdomain.ID].Multiply(vector);
 
         public IVector DampingMatrixVectorProduct(ISubdomain_v2 subdomain, IVectorView vector)
-            => this.Cs[subdomain.ID].Multiply(vector);
+            => this.Damping[subdomain.ID].Multiply(vector);
 
         #endregion
 
@@ -249,8 +268,20 @@ namespace ISAAR.MSolve.Problems
 
         public IMatrixView CalculateMatrix(ISubdomain_v2 subdomain)
         {
-            if (ks == null) BuildKs();
-            return ks[subdomain.ID];
+            if (stiffnessFreeFree == null) BuildStiffnessFreeFree();
+            return stiffnessFreeFree[subdomain.ID];
+        }
+
+
+        public (IMatrixView matrixFreeFree, IMatrixView matrixConstrFree, IMatrixView matrixConstrConstr) 
+            CalculateSubMatrices(ISubdomain_v2 subdomain)
+        {
+            int id = subdomain.ID;
+            if ((stiffnessFreeFree == null) || (stiffnessConstrFree == null) || (stiffnessConstrConstr == null))
+            {
+                BuildStiffnessSubmatrices();
+            }
+            return (stiffnessFreeFree[id], stiffnessConstrFree[id], stiffnessConstrConstr[id]);
         }
 
         #endregion
