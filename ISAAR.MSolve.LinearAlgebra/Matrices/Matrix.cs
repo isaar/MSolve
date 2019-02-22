@@ -528,10 +528,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// that A = L * Q. Q is an orthogonal n-by-n matrix and L is a lower trapezoidal m-by-n matrix. Requires extra available  
         /// memory form * n + min(m, n) entries.
         /// </summary>
+        /// <param name="inPlace">
+        /// False, to copy the internal array before factorization. True, to overwrite it with the factorized data, thus saving 
+        /// memory and time. However, that will make this object unusable, so you MUST NOT call any other members afterwards.
+        /// </param>
         /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
-        public LQFactorization FactorLQ()
+        public LQFactorization FactorLQ(bool inPlace = false)
         {
-            return LQFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
+            if (inPlace)
+            {
+                var factor = LQFactorization.Factorize(NumRows, NumColumns, data);
+                // Set the internal array to null to force NullReferenceException if it is accessed again.
+                // TODO: perhaps there is a better way to handle this.
+                data = null;
+                return factor;
+            }
+            else return LQFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
         }
 
         /// <summary>
@@ -539,14 +551,24 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// that A = P * L * U. L is a lower triangular n-by-n matrix. U is an upper triangular n-by-n matrix. P is an n-by-n
         /// permutation matrix. Requires extra available memory n^2 + n entries. 
         /// </summary>
+        /// <param name="inPlace">
+        /// False, to copy the internal array before factorization. True, to overwrite it with the factorized data, thus saving 
+        /// memory and time. However, that will make this object unusable, so you MUST NOT call any other members afterwards.
+        /// </param>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
         /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
-        public LUFactorization FactorLU()
+        public LUFactorization FactorLU(bool inPlace = false)
         {
             Preconditions.CheckSquare(this);
-            // Copy matrix. This may exceed available memory and needs an extra O(n^2) space. 
-            // To avoid these, set "inPlace=true".
-            return LUFactorization.Factorize(NumColumns, CopyInternalData());
+            if (inPlace)
+            {
+                var factor = LUFactorization.Factorize(NumColumns, data);
+                // Set the internal array to null to force NullReferenceException if it is accessed again.
+                // TODO: perhaps there is a better way to handle this.
+                data = null;
+                return factor;
+            }
+            else return LUFactorization.Factorize(NumColumns, CopyInternalData());
         }
 
         /// <summary>
@@ -554,10 +576,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// that A = Q * R. Q is an orthogonal m-by-m matrix and R is an upper trapezoidal m-by-n matrix. Requires extra 
         /// available memory for m * n + min(m, n) entries. 
         /// </summary>
+        /// <param name="inPlace">
+        /// False, to copy the internal array before factorization. True, to overwrite it with the factorized data, thus saving 
+        /// memory and time. However, that will make this object unusable, so you MUST NOT call any other members afterwards.
+        /// </param>
         /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
-        public QRFactorization FactorQR()
+        public QRFactorization FactorQR(bool inPlace = false)
         {
-            return QRFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
+            if (inPlace)
+            {
+                var factor = QRFactorization.Factorize(NumRows, NumColumns, data);
+                // Set the internal array to null to force NullReferenceException if it is accessed again.
+                // TODO: perhaps there is a better way to handle this.
+                data = null;
+                return factor;
+            }
+            else return QRFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
         }
 
         /// <summary>
