@@ -599,6 +599,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public Vector GetColumn(int colIndex)
         {
+            Preconditions.CheckIndexCol(this, colIndex);
             double[] result = new double[NumRows];
             Array.Copy(data, colIndex * NumRows, result, 0, NumRows);
             return Vector.CreateFromArray(result, false);
@@ -627,11 +628,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public Vector GetRow(int rowIndex)
         {
+            Preconditions.CheckIndexRow(this, rowIndex);
             double[] result = new double[NumColumns];
-            for (int j = 0; j < NumColumns; ++j)
-            {
-                result[j] = data[j * NumRows + rowIndex];
-            }
+            for (int j = 0; j < NumColumns; ++j) result[j] = data[j * NumRows + rowIndex];
             return Vector.CreateFromArray(result, false);
         }
 
@@ -644,10 +643,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             int idxCounter = -1;
             foreach (var j in colIndices)
             {
-                foreach (var i in rowIndices)
-                {
-                    submatrix[++idxCounter] = data[j * NumRows + i];
-                }
+                foreach (var i in rowIndices) submatrix[++idxCounter] = data[j * NumRows + i];
             }
             return new Matrix(submatrix, rowIndices.Length, colIndices.Length);
         }
