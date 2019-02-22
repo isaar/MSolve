@@ -953,6 +953,9 @@ namespace ISAAR.MSolve.IGA.Tests
 		}
 		#endregion
 		
+
+
+
 		//[Fact]
 		public void IsogeometricHorseshoe3D()
 		{
@@ -1814,6 +1817,60 @@ namespace ISAAR.MSolve.IGA.Tests
 			// Run the analysis
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
+		}
+
+		[Fact]
+		public void Camshaft1()
+		{
+			VectorExtensions.AssignTotalAffinityCount();
+			Model model = new Model();
+			ModelCreator modelCreator = new ModelCreator(model);
+			string filename = "Camshaft1";
+			string filepath = $"..\\..\\..\\InputFiles\\{filename}.txt";
+			IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filepath);
+			modelReader.CreateModelFromFile();
+
+			// Forces and Boundary Conditions
+			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].FacesDictionary[1].ControlPointsDictionary
+				.Values)
+			{
+				model.Loads.Add(new Load()
+				{
+					Amount = 100,
+					ControlPoint = model.ControlPoints[controlPoint.ID],
+					DOF = DOFType.X
+				});
+			}
+
+
+			// Boundary Conditions - Dirichlet
+			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].FacesDictionary[0].ControlPointsDictionary
+				.Values)
+			{
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.X });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Y });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Z });
+			}
+
+			// Solvers
+			var solverBuilder = new SuiteSparseSolver.Builder();
+			solverBuilder.DofOrderer = new DofOrderer(
+				new NodeMajorDofOrderingStrategy(), new NullReordering());
+			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+
+			// Structural problem provider
+			var provider = new ProblemStructural_v2(model, solver);
+
+			// Linear static analysis
+			var childAnalyzer = new LinearAnalyzer_v2(solver);
+			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+
+			// Run the analysis
+			parentAnalyzer.Initialize();
+			parentAnalyzer.Solve();
+
+			var paraview = new ParaviewNurbs3D(model, solver.LinearSystems[0].Solution, filename);
+			paraview.CreateParaviewFile();
 		}
 	}
 }
