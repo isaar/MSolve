@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="matrix1"/> and <paramref name="matrix2"/>
         ///     have a different number of <see cref="IIndexable2D.NumRows"/> or 
         ///     <see cref="IIndexable2D.NumColumns"/>.</exception>
-        public static IMatrixView Add(this IMatrixView matrix1, IMatrixView matrix2) => matrix1.Axpy(matrix2, 1.0);
+        public static IMatrix Add(this IMatrixView matrix1, IMatrixView matrix2) => matrix1.Axpy(matrix2, 1.0);
 
         /// <summary>
         /// Performs the operation: 
@@ -300,7 +300,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="matrix1"/> and <paramref name="matrix2"/>
         ///     have a different number of <see cref="IIndexable2D.NumRows"/> or 
         ///     <see cref="IIndexable2D.NumColumns"/>.</exception>
-        public static IMatrixView Subtract(this IMatrixView matrix1, IMatrixView matrix2) => matrix1.Axpy(matrix2, -1.0);
+        public static IMatrix Subtract(this IMatrixView matrix1, IMatrixView matrix2) => matrix1.Axpy(matrix2, -1.0);
 
         /// <summary>
         /// Performs the operation: 

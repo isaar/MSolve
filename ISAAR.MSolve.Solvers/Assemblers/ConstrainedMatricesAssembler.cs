@@ -22,6 +22,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         {
             dokConstrFree.AddSubmatrix(elementMatrix, elementDofsConstrained, subdomainDofsConstrained, 
                 elementDofsFree, subdomainDofsFree);
+            dokConstrConstr.AddSubmatrixSymmetric(elementMatrix, elementDofsConstrained, subdomainDofsConstrained);
         }
 
         internal (CsrMatrix matrixConstrFree, CsrMatrix matrixConstrConstr) BuildMatrices()

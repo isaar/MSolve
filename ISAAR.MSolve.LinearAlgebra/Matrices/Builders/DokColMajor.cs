@@ -153,12 +153,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         public void AddSubmatrix(IIndexable2D subMatrix, int[] subMatrixRows, int[] globalMatrixRows, 
             int[] subMatrixCols, int[] globalMatrixCols)
         {
-            int numRows = subMatrix.NumRows;
-            int numCols = subMatrix.NumColumns;
-            Debug.Assert(subMatrixRows.Length == numRows);
-            Debug.Assert(globalMatrixRows.Length == numRows);
-            Debug.Assert(subMatrixCols.Length == numCols);
-            Debug.Assert(globalMatrixCols.Length == numCols);
+            int numRows = subMatrixRows.Length;
+            int numCols = subMatrixCols.Length;
+            Debug.Assert(numRows == globalMatrixRows.Length);
+            Debug.Assert(numCols == globalMatrixCols.Length);
 
             for (int j = 0; j < numCols; ++j)
             {
