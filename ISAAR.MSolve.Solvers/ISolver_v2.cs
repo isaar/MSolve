@@ -47,6 +47,16 @@ namespace ISAAR.MSolve.Solvers
         void Initialize();
 
         /// <summary>
+        /// Solves multiple linear systems A * X = B, where: A is one of the matrices stored in <see cref="LinearSystems"/>,
+        /// B is the corresponding matrix in <paramref name="otherMatrix"/> and X is the corresponding matrix that will be 
+        /// calculated as the result of inv(A) * B. 
+        /// </summary>
+        /// <param name="otherMatrix">
+        /// The right hand side matrix for each subdomain. If the linear systems are A * X = B, then B is one of the matrices in
+        /// <paramref name="otherMatrix"/>.</param>
+        Dictionary<int, Matrix> InverseSystemMatrixTimesOtherMatrix(Dictionary<int, IMatrixView> otherMatrix);
+
+        /// <summary>
         /// Orders the free and optionally the constrained freedom degrees of the model. Also remember to reset the linear 
         /// systems. 
         /// </summary>

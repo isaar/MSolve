@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.Solvers.Assemblers;
@@ -26,13 +27,13 @@ namespace ISAAR.MSolve.Solvers.Direct
             this.factorizationPivotTolerance = factorizationPivotTolerance;
         }
 
-        public override void Initialize() { }
-
         public override void HandleMatrixWillBeSet()
         {
             mustFactorize = true;
             factorizedMatrix = null;
         }
+
+        public override void Initialize() { }
 
         public override void PreventFromOverwrittingSystemMatrices() => factorizeInPlace = false;
 
@@ -51,6 +52,30 @@ namespace ISAAR.MSolve.Solvers.Direct
             }
 
             factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
+        }
+
+        protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)
+        {
+            // Factorization
+            if (mustFactorize)
+            {
+                factorizedMatrix = linearSystem.Matrix.FactorLdl(factorizeInPlace, factorizationPivotTolerance);
+                mustFactorize = false;
+            }
+
+            // Rhs vectors
+            Matrix rhsVectors;
+            if (otherMatrix is Matrix dense) rhsVectors = dense;
+            else rhsVectors = Matrix.CreateFromMatrix(otherMatrix);
+
+            // Solution vectors
+            int systemOrder = linearSystem.Matrix.NumColumns;
+            int numRhs = otherMatrix.NumColumns;
+            var solutionVectors = Matrix.CreateZero(systemOrder, numRhs);
+
+            // Solve the linear systems
+            factorizedMatrix.SolveLinearSystems(rhsVectors, solutionVectors);
+            return solutionVectors;
         }
 
         public class Builder : ISolverBuilder

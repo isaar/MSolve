@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
@@ -40,8 +41,6 @@ namespace ISAAR.MSolve.Solvers.Direct
             GC.SuppressFinalize(this);
         }
 
-        public override void Initialize() { }
-
         public override void HandleMatrixWillBeSet()
         {
             mustFactorize = true;
@@ -52,6 +51,8 @@ namespace ISAAR.MSolve.Solvers.Direct
             }
             //TODO: make sure the native memory allocated has been cleared. We need all the available memory we can get.
         }
+
+        public override void Initialize() { }
 
         public override void PreventFromOverwrittingSystemMatrices()
         {
@@ -73,6 +74,25 @@ namespace ISAAR.MSolve.Solvers.Direct
             }
 
             factorization.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
+        }
+
+        protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)
+        {
+            // Factorization
+            if (mustFactorize)
+            {
+                factorization = CholeskySuiteSparse.Factorize(linearSystem.Matrix, useSuperNodalFactorization);
+                mustFactorize = false;
+            }
+
+            // Rhs vectors
+            Matrix rhsVectors;
+            if (otherMatrix is Matrix dense) rhsVectors = dense;
+            else rhsVectors = Matrix.CreateFromMatrix(otherMatrix);
+
+            // Solve the linear systems
+            Matrix solutionVectors = factorization.SolveLinearSystems(rhsVectors);
+            return solutionVectors;
         }
 
         private void ReleaseResources()

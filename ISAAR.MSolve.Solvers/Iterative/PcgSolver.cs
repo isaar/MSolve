@@ -1,7 +1,10 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
+﻿using System.Collections.Generic;
+using System.Linq;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Ordering;
@@ -29,13 +32,13 @@ namespace ISAAR.MSolve.Solvers.Iterative
             this.preconditionerFactory = preconditionerFactory;
         }
 
-        public override void Initialize() { }
-
         public override void HandleMatrixWillBeSet()
         {
             mustUpdatePreconditioner = true;
             preconditioner = null;
         }
+
+        public override void Initialize() { }
 
         public override void PreventFromOverwrittingSystemMatrices()
         {
@@ -58,6 +61,40 @@ namespace ISAAR.MSolve.Solvers.Iterative
 
             CGStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, linearSystem.RhsVector,
                 linearSystem.Solution, true, () => linearSystem.CreateZeroVector()); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0
+        }
+
+        protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)
+        {
+            //TODO: Use a reorthogonalizetion approach when solving multiple rhs vectors. It would be even better if the CG
+            //      algorithm exposed a method for solving for multiple rhs vectors.
+
+            // Preconditioning
+            if (mustUpdatePreconditioner)
+            {
+                preconditioner = preconditionerFactory.CreatePreconditionerFor(linearSystem.Matrix);
+                mustUpdatePreconditioner = false;
+            }
+
+            // Solution vectors
+            int systemOrder = linearSystem.Matrix.NumColumns;
+            int numRhs = otherMatrix.NumColumns;
+            var solutionVectors = Matrix.CreateZero(systemOrder, numRhs);
+
+            // Solve each linear system
+            for (int j = 0; j < numRhs; ++j)
+            {
+                //TODO: we should make sure this is the same type as the vectors used by this solver, otherwise vector operations
+                //      in CG will be slow.
+                Vector rhsVector = otherMatrix.GetColumn(j);
+                Vector solutionVector = linearSystem.CreateZeroVector();
+
+                CGStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, rhsVector,
+                    solutionVector, true, () => linearSystem.CreateZeroVector()); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0
+
+                solutionVectors.SetSubcolumn(j, solutionVector);
+            }
+
+            return solutionVectors;
         }
 
         public class Builder : ISolverBuilder

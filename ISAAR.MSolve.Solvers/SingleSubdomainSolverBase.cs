@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
@@ -59,6 +61,17 @@ namespace ISAAR.MSolve.Solvers
                 subdomain.Elements, elementMatrixProvider);
         }
 
+        public Dictionary<int, Matrix> InverseSystemMatrixTimesOtherMatrix(Dictionary<int, IMatrixView> otherMatrix)
+        {
+            if (otherMatrix.Count != 1) throw new InvalidSolverException("There can only be 1 subdomain when using this solver");
+            KeyValuePair<int, IMatrixView> idMatrixPair = otherMatrix.First();
+            int id = idMatrixPair.Key;
+            Debug.Assert(id == subdomain.ID, 
+                "The matrix that will be multiplied with the inverse system matrix belongs to a different subdomain.");
+            Matrix result = InverseSystemMatrixTimesOtherMatrix(idMatrixPair.Value);
+            return new Dictionary<int, Matrix>() { { id, result } };
+        }
+
         public void OrderDofs(bool alsoOrderConstrainedDofs)
         {
             IGlobalFreeDofOrdering globalOrdering = dofOrderer.OrderFreeDofs(model);
@@ -81,5 +94,6 @@ namespace ISAAR.MSolve.Solvers
         public abstract void HandleMatrixWillBeSet();
         public abstract void PreventFromOverwrittingSystemMatrices();
         public abstract void Solve();
+        protected abstract Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix);
     }
 }
