@@ -81,7 +81,7 @@ namespace ISAAR.MSolve.Solvers.Direct
                 {
                     // If there is enough memory, copy the RHS matrix to a dense one, to speed up computations. 
                     //TODO: must be benchmarked, if it is actually more efficient than solving column by column.
-                    var rhsVectors = Matrix.CreateFromMatrix(otherMatrix);
+                    Matrix rhsVectors = otherMatrix.CopyToFullMatrix();
                     factorizedMatrix.SolveLinearSystems(rhsVectors, solutionVectors);
                     return solutionVectors;
                 }

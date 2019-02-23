@@ -217,8 +217,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public double[,] CopyToArray2D() => Conversions.PackedLowerRowMajorToArray2D(data);
 
         /// <summary>
-        /// Initializes a new <see cref="Matrix"/> instance by copying the entries of this <see cref="TriangularLower"/> into
-        /// the lower triangle of the new matrix.
+        /// See <see cref="IMatrixView.CopyToFullMatrix()"/>
         /// </summary>
         public Matrix CopyToFullMatrix()
         {

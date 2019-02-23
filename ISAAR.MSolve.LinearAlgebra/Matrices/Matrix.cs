@@ -111,22 +111,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="Matrix"/> that contains the entries of <paramref name="original"/>.
-        /// </summary>
-        /// <param name="original">The original matrix that will be copied.</param>
-        public static Matrix CreateFromMatrix(IIndexable2D original)
-        {
-            int m = original.NumRows;
-            int n = original.NumColumns;
-            var clone = new double[m * n];
-            for (int j = 0; j < n; ++j)
-            {
-                for (int i = 0; i < m; ++i) clone[j * m + i] = original[i, j];
-            }
-            return new Matrix(clone, m, n);
-        }
-
-        /// <summary>
         /// Initializes a new instance of <see cref="Matrix"/> that is equal to the identity matrix, namely a square matrix with 
         /// non-diagonal entries being equal to 0 and diagonal entries being equal to 1.
         /// </summary>
@@ -387,6 +371,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         {
             return Conversions.FullColMajorToArray2D(data, NumRows, NumColumns);
         }
+
+        /// <summary>
+        /// See <see cref="IMatrixView.CopyToFullMatrix()"/>
+        /// </summary>
+        public Matrix CopyToFullMatrix() => Copy();
 
         /// <summary>
         /// See <see cref="IMatrixView.DoEntrywise(IMatrixView, Func{double, double, double})"/>.
