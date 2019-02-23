@@ -22,6 +22,7 @@ using Xunit;
 using System.Linq;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Solvers.Direct;
+using ISAAR.MSolve.Analyzers.Multiscale;
 
 namespace ISAAR.MSolve.Tests.FEM
 {
@@ -43,12 +44,11 @@ namespace ISAAR.MSolve.Tests.FEM
 
             SkylineSolver solver = (new SkylineSolver.Builder()).BuildSolver(model);
             var provider = new ProblemThermal_v2(model, solver);
+            var rve = new Square2DRve();
+            var homogenization = new HomogenizationAnalyzer(model, solver, provider, null, rve);
 
-            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
-
-            parentAnalyzer.Initialize();
-            parentAnalyzer.Solve();
+            homogenization.Initialize();
+            homogenization.Solve();
         }
 
         public static void AddHostElements(Model_v2 model)
@@ -61,9 +61,10 @@ namespace ISAAR.MSolve.Tests.FEM
             nodes[3] = new Node_v2 { ID = 3, X = 0.0, Y = 1.0 };
             for (int i = 0; i < numNodes; ++i) model.NodesDictionary[i] = nodes[i];
 
+            // Boundary conditions should be handled by the RVE
             // Dirichlet BC
-            model.NodesDictionary[0].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 0.0 });
-            model.NodesDictionary[1].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 100.0 });
+            //model.NodesDictionary[0].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 0.0 });
+            //model.NodesDictionary[1].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 100.0 });
             //model.NodesDictionary[2].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 100.0 });
             //model.NodesDictionary[3].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 0.0 });
 
@@ -121,8 +122,8 @@ namespace ISAAR.MSolve.Tests.FEM
             AddHostElements(model);
             AddEmbeddedElements(model);
             var embeddedGrouping = new ThermalEmbeddedGrouping(model, 
-                model.ElementsDictionary.Where(x => x.Key == hostElementsIDStart).Select(kv => kv.Value), 
-                model.ElementsDictionary.Where(x => x.Key == embeddedElementsIDStart).Select(kv => kv.Value), 
+                model.ElementsDictionary.Where(x => x.Key <= 0).Select(kv => kv.Value), 
+                model.ElementsDictionary.Where(x => x.Key > 0).Select(kv => kv.Value), 
                 new ThermalElementTransformationVector());
             embeddedGrouping.ApplyEmbedding();
         }
