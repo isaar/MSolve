@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
@@ -85,14 +86,35 @@ namespace ISAAR.MSolve.Solvers.Direct
                 mustFactorize = false;
             }
 
-            // Rhs vectors
-            Matrix rhsVectors;
-            if (otherMatrix is Matrix dense) rhsVectors = dense;
-            else rhsVectors = Matrix.CreateFromMatrix(otherMatrix);
+            if (otherMatrix is Matrix otherDense) return factorization.SolveLinearSystems(otherDense);
+            else
+            {
+                try
+                {
+                    // If there is enough memory, copy the RHS matrix to a dense one, to speed up computations. 
+                    //TODO: must be benchmarked, if it is actually more efficient than solving column by column.
+                    var rhsVectors = Matrix.CreateFromMatrix(otherMatrix);
+                    return factorization.SolveLinearSystems(rhsVectors);
+                }
+                catch (InsufficientMemoryException) //TODO: what about OutOfMemoryException?
+                {
+                    // Solution vectors
+                    int systemOrder = linearSystem.Matrix.NumColumns;
+                    int numRhs = otherMatrix.NumColumns;
+                    var solutionVectors = Matrix.CreateZero(systemOrder, numRhs);
+                    Vector solutionVector = linearSystem.CreateZeroVector();
 
-            // Solve the linear systems
-            Matrix solutionVectors = factorization.SolveLinearSystems(rhsVectors);
-            return solutionVectors;
+                    // Solve each linear system separately, to avoid copying the RHS matrix to a dense one.
+                    for (int j = 0; j < numRhs; ++j)
+                    {
+                        if (j != 0) solutionVector.Clear();
+                        Vector rhsVector = otherMatrix.GetColumn(j);
+                        factorization.SolveLinearSystem(rhsVector, solutionVector);
+                        solutionVectors.SetSubcolumn(j, solutionVector);
+                    }
+                    return solutionVectors;
+                }
+            }
         }
 
         private void ReleaseResources()
