@@ -49,7 +49,8 @@ namespace ISAAR.MSolve.Solvers
         public virtual IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
             => assembler.BuildGlobalMatrix(subdomain.FreeDofOrdering, subdomain.Elements, elementMatrixProvider);
 
-        public virtual (IMatrix matrixFreeFree, IMatrix matrixConstrFree, IMatrix matrixConstrConstr) BuildGlobalSubmatrices(
+        public virtual (IMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree, 
+            IMatrixView matrixConstrConstr) BuildGlobalSubmatrices(
             ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
         {
             if (subdomain.ConstrainedDofOrdering == null)

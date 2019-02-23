@@ -302,8 +302,8 @@ namespace ISAAR.MSolve.Problems
             throw new NotImplementedException();
         }
 
-        public (IMatrixView matrixFreeFree, IMatrixView matrixConstrFree, IMatrixView matrixConstrConstr) CalculateSubMatrices(
-            ISubdomain_v2 subdomain)
+        public (IMatrixView matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
+            IMatrixView matrixConstrConstr) CalculateSubMatrices(ISubdomain_v2 subdomain)
         {
             throw new NotImplementedException();
         }

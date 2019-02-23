@@ -35,7 +35,8 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             return subdomainMatrix;
         }
 
-        public (Matrix matrixFreeFree, IMatrix matrixConstrFree, IMatrix matrixConstrConstr) BuildGlobalSubmatrices(
+        public (Matrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
+            IMatrixView matrixConstrConstr) BuildGlobalSubmatrices(
             ISubdomainFreeDofOrdering freeDofOrdering, ISubdomainConstrainedDofOrdering constrainedDofOrdering,
             IEnumerable<IElement_v2> elements, IElementMatrixProvider_v2 matrixProvider)
         {
@@ -60,7 +61,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             }
 
             (CsrMatrix matrixConstrFree, CsrMatrix matrixConstrConstr) = constrainedAssembler.BuildMatrices();
-            return (subdomainMatrix, matrixConstrFree, matrixConstrConstr);
+            return (subdomainMatrix, matrixConstrFree.TransposeToCSC(false), matrixConstrFree, matrixConstrConstr);
         }
 
         public void HandleDofOrderingWillBeModified()

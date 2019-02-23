@@ -31,13 +31,15 @@ namespace ISAAR.MSolve.Solvers
         /// <summary>
         /// Assembles the matrices that correspond to the free and constrained freedom degrees of the whole subdomain 
         /// from the matrices of its elements. If we denote the matrix as A, the free dofs as f and the constrained dofs as c
-        /// then: A = [ Aff Acf^T; Acf Acc ] (Matlab notation). This method returns Aff, Acf, Acc.
+        /// then: A = [ Aff Acf^T; Acf Acc ] (Matlab notation). This method returns Aff, Afc, Acf, Acc. If the linear system is 
+        /// symmetric, then Afc = Acf^T. In this case, these entries are only stored once and shared between the returned 
+        /// Afc, Acf.
         /// </summary>
         /// <param name="subdomain">The subdomain whose corresponding matrix will be assembled.</param>
         /// <param name="elementMatrixProvider">
         /// Determines the matrix calculated for each element (e.g. stiffness, mass, etc.)
         /// </param>
-        (IMatrix matrixFreeFree, IMatrix matrixConstrFree, IMatrix matrixConstrConstr) 
+        (IMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree, IMatrixView matrixConstrConstr) 
             BuildGlobalSubmatrices(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider);
 
         /// <summary>

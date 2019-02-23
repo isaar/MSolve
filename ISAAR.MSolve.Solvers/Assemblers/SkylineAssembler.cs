@@ -47,7 +47,8 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             return skylineBuilder.BuildSkylineMatrix();
         }
 
-        public (SkylineMatrix matrixFreeFree, IMatrix matrixConstrFree, IMatrix matrixConstrConstr) BuildGlobalSubmatrices(
+        public (SkylineMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree, 
+            IMatrixView matrixConstrConstr) BuildGlobalSubmatrices(
             ISubdomainFreeDofOrdering freeDofOrdering, ISubdomainConstrainedDofOrdering constrainedDofOrdering, 
             IEnumerable<IElement_v2> elements, IElementMatrixProvider_v2 matrixProvider)
         {
@@ -79,7 +80,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             // Create the free and constrained matrices. 
             SkylineMatrix matrixFreeFree = skylineBuilder.BuildSkylineMatrix();
             (CsrMatrix matrixConstrFree, CsrMatrix matrixConstrConstr) = constrainedAssembler.BuildMatrices();
-            return (matrixFreeFree, matrixConstrFree, matrixConstrConstr);
+            return (matrixFreeFree, matrixConstrFree.TransposeToCSC(false), matrixConstrFree, matrixConstrConstr);
         }
 
         public void HandleDofOrderingWillBeModified()

@@ -70,7 +70,8 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             return SymmetricCscMatrix.CreateFromArrays(numFreeDofs, values, cachedRowIndices, cachedColOffsets, false);
         }
 
-        public (SymmetricCscMatrix matrixFreeFree, IMatrix matrixConstrFree, IMatrix matrixConstrConstr) BuildGlobalSubmatrices(
+        public (SymmetricCscMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
+            IMatrixView matrixConstrConstr) BuildGlobalSubmatrices(
             ISubdomainFreeDofOrdering freeDofOrdering, ISubdomainConstrainedDofOrdering constrainedDofOrdering,
             IEnumerable<IElement_v2> elements, IElementMatrixProvider_v2 matrixProvider)
         {
@@ -113,7 +114,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             var matrixFreeFree =
                 SymmetricCscMatrix.CreateFromArrays(numFreeDofs, values, cachedRowIndices, cachedColOffsets, false);
             (CsrMatrix matrixConstrFree, CsrMatrix matrixConstrConstr) = constrainedAssembler.BuildMatrices();
-            return (matrixFreeFree, matrixConstrFree, matrixConstrConstr);
+            return (matrixFreeFree, matrixConstrFree.TransposeToCSC(false), matrixConstrFree, matrixConstrConstr);
         }
 
         public void HandleDofOrderingWillBeModified()

@@ -101,13 +101,13 @@ namespace ISAAR.MSolve.Tests.Solvers
             linearSystem.Reset(); // Necessary to define the linear system's size 
 
             // Build and assign global matrices
-            (IMatrixView Kff, IMatrixView Kcf, IMatrixView Kcc) = problem.CalculateSubMatrices(model.Subdomains.First());
+            (IMatrixView Kff, IMatrixView Kfc, IMatrixView Kcf, IMatrixView Kcc) = 
+                problem.CalculateSubMatrices(model.Subdomains.First());
             linearSystem.Matrix = Kff;
 
             // Static condensation: Kcondensed = Kcc - Kcf * inv(Kff) * Kfc
-            var Kfc = new Dictionary<int, IMatrixView>();
-            Kfc[id] = Kcf.Transpose(); //TODO: this should be avoided. Kfc should be returned, but use the same storage as Kcf.
-            Dictionary<int, Matrix> invKffTimesKfc = solver.InverseSystemMatrixTimesOtherMatrix(Kfc);
+            Dictionary<int, Matrix> invKffTimesKfc = solver.InverseSystemMatrixTimesOtherMatrix(
+                new Dictionary<int, IMatrixView>() { { id, Kfc } });
             IMatrixView condensedK = Kcc.Subtract(Kcf.MultiplyRight(invKffTimesKfc[id]));
 
             // Checks
@@ -134,11 +134,12 @@ namespace ISAAR.MSolve.Tests.Solvers
             linearSystem.Reset(); // Necessary to define the linear system's size 
 
             // Build and assign global matrices
-            (IMatrixView Kff, IMatrixView Kcf, IMatrixView Kcc) = 
+            (IMatrixView Kff, IMatrixView Kfc, IMatrixView Kcf, IMatrixView Kcc) = 
                 problem.CalculateSubMatrices(model.Subdomains.First());
 
             // Checks
             Assert.True(expectedKff.Equals(Kff, tolerance));
+            Assert.True(expectedKcf.Transpose().Equals(Kfc, tolerance));
             Assert.True(expectedKcf.Equals(Kcf, tolerance));
             Assert.True(expectedKcc.Equals(Kcc, tolerance));
 
