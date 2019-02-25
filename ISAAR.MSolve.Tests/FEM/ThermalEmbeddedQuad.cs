@@ -49,7 +49,6 @@ namespace ISAAR.MSolve.Tests.FEM
             var provider = new ProblemThermal_v2(model, solver);
             var rve = new ThermalSquareRve(model, Vector2.Create(minX, minY), Vector2.Create(maxX, maxY), thickness, 
                 temperatureGradient);
-            rve.ApplyBoundaryConditions();
             var homogenization = new HomogenizationAnalyzer(model, solver, provider, rve);
 
             homogenization.Initialize();

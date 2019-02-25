@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
         public void Initialize()
         {
             // The order in which the next initializations happen is very important.
-            rve.ApplyBoundaryConditions(model);
+            rve.ApplyBoundaryConditions();
             model.ConnectDataStructures();
             solver.OrderDofs(true);
             foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
@@ -52,11 +52,11 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
             foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
-                (IMatrixView matrixFreeFree, IMatrixView matrixConstrFree, IMatrixView matrixConstrConstr)
-                    = provider.CalculateSubMatrices(linearSystem.Subdomain);
+                (IMatrixView matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
+                    IMatrixView matrixConstrConstr) = provider.CalculateSubMatrices(linearSystem.Subdomain);
                 linearSystem.Matrix = matrixFreeFree;
 
-                matricesFreeConstr[id] = matrixConstrFree.Transpose();
+                matricesFreeConstr[id] = matrixFreeConstr;
                 matricesConstrFree[id] = matrixConstrFree;
                 matricesConstrConstr[id] = matrixConstrConstr;
             }
