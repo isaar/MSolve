@@ -31,6 +31,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Reduction
         }
 
         /// <summary>
+        /// Calculates the maximum absolute value of all entries of an <see cref="IReducible"/>.
+        /// </summary>
+        /// <param name="reducible">A matrix, vector or similar collection.</param>
+        public static double MaxAbsolute(this IReducible reducible)
+        {
+            return reducible.Reduce(double.MaxValue, (x, max) =>
+            {
+                double abs = Math.Abs(x);
+                return abs > max ? abs : max;
+            },
+            (nz, max) => 0.0 > max ? 0.0 : max, max => max);
+        }
+
+        /// <summary>
         /// Calculates the minimum value of all entries of an <see cref="IReducible"/>.
         /// </summary>
         /// <param name="reducible">A matrix, vector or similar collection.</param>
@@ -38,6 +52,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Reduction
         {
             return reducible.Reduce(double.MaxValue, (x, min) => x < min ? x : min,
                 (nz, min) => 0.0 < min ? 0.0 : min, min => min);
+        }
+
+        /// <summary>
+        /// Calculates the minimum absolute value of all entries of an <see cref="IReducible"/>.
+        /// </summary>
+        /// <param name="reducible">A matrix, vector or similar collection.</param>
+        public static double MinAbsolute(this IReducible reducible)
+        {
+            return reducible.Reduce(double.MaxValue, (x, min) =>
+            {
+                double abs = Math.Abs(x);
+                return abs < min ? abs : min;
+            },
+            (nz, min) => 0.0 < min ? 0.0 : min, min => min);
         }
 
         /// <summary>

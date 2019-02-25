@@ -23,6 +23,7 @@ using System.Linq;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Analyzers.Multiscale;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Tests.FEM
 {
@@ -31,7 +32,9 @@ namespace ISAAR.MSolve.Tests.FEM
         private const int subdomainID = 0;
         private const int hostElementsIDStart = 0;
         private const int embeddedElementsIDStart = 1;
-
+        private const double minX = -0.5, minY = -0.5, maxX = 0.5, maxY = 0.5;
+        private const double thickness = 1.0;
+        private static readonly Vector2 temperatureGradient = Vector2.Create(100.0, 100.0);
 
         [Fact]
         public static void ThermalEmbeddedElementExample()
@@ -44,8 +47,10 @@ namespace ISAAR.MSolve.Tests.FEM
 
             SkylineSolver solver = (new SkylineSolver.Builder()).BuildSolver(model);
             var provider = new ProblemThermal_v2(model, solver);
-            var rve = new Square2DRve();
-            var homogenization = new HomogenizationAnalyzer(model, solver, provider, null, rve);
+            var rve = new ThermalSquareRve(model, Vector2.Create(minX, minY), Vector2.Create(maxX, maxY), thickness, 
+                temperatureGradient);
+            rve.ApplyBoundaryConditions();
+            var homogenization = new HomogenizationAnalyzer(model, solver, provider, rve);
 
             homogenization.Initialize();
             homogenization.Solve();
@@ -55,9 +60,9 @@ namespace ISAAR.MSolve.Tests.FEM
         {
             int numNodes = 4;
             var nodes = new Node_v2[numNodes];
-            nodes[0] = new Node_v2 { ID = 0, X = 0.0, Y = 0.0 };
-            nodes[1] = new Node_v2 { ID = 1, X = 1.0, Y = 0.0 };
-            nodes[2] = new Node_v2 { ID = 2, X = 1.0, Y = 1.0 };
+            nodes[0] = new Node_v2 { ID = 0, X = minX, Y = minY };
+            nodes[1] = new Node_v2 { ID = 1, X = maxX, Y = minX };
+            nodes[2] = new Node_v2 { ID = 2, X = maxX, Y = maxY };
             nodes[3] = new Node_v2 { ID = 3, X = 0.0, Y = 1.0 };
             for (int i = 0; i < numNodes; ++i) model.NodesDictionary[i] = nodes[i];
 
@@ -103,8 +108,8 @@ namespace ISAAR.MSolve.Tests.FEM
             double c = 1.0;
             double crossSectionArea = 0.1;
 
-            model.NodesDictionary.Add(4, new Node_v2() { ID = 4, X = 0.25, Y = 0.25 });
-            model.NodesDictionary.Add(5, new Node_v2() { ID = 5, X = 0.50, Y = 0.50 });
+            model.NodesDictionary.Add(4, new Node_v2() { ID = 4, X = minX + 0.25, Y = minY + 0.25 });
+            model.NodesDictionary.Add(5, new Node_v2() { ID = 5, X = maxX + 0.50, Y = minY + 0.50 });
             Node_v2[] startEndNodes = { model.NodesDictionary[4], model.NodesDictionary[5] };
             var embeddedMaterial = new ThermalMaterial(density, c, k);
 

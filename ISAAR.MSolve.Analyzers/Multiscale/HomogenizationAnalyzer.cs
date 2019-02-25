@@ -12,21 +12,19 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
 {
     public class HomogenizationAnalyzer
     {
-        private readonly IKinematicRelationsStrategy kinematicRelationsStrategy;
         private readonly IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
         private readonly IStructuralModel_v2 model;
         private readonly IStaticProvider_v2 provider;
         private readonly IReferenceVolumeElement rve;
         private readonly ISolver_v2 solver;
 
-        public HomogenizationAnalyzer(IStructuralModel_v2 model, ISolver_v2 solver, IStaticProvider_v2 provider,
-            IKinematicRelationsStrategy kinematicRelations, IReferenceVolumeElement rve)
+        public HomogenizationAnalyzer(IStructuralModel_v2 model, ISolver_v2 solver, IStaticProvider_v2 provider, 
+            IReferenceVolumeElement rve)
         {
             this.model = model;
             this.linearSystems = solver.LinearSystems;
             this.solver = solver;
             this.provider = provider;
-            this.kinematicRelationsStrategy = kinematicRelations;
             this.rve = rve;
         }
 
@@ -79,7 +77,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
             foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
-                IMatrixView kinematicRelationsMatrix = kinematicRelationsStrategy.GetKinematicRelationsMatrix();
+                IMatrixView kinematicRelationsMatrix = rve.CalculateKinematicRelationsMatrix(linearSystem.Subdomain);
                 Matrix effectiveTensor = kinematicRelationsMatrix.ThisTimesOtherTimesThisTranspose(condensedMatrices[id]);
                 double rveVolume = rve.CalculateRveVolume();
                 effectiveTensor.ScaleIntoThis(rveVolume);

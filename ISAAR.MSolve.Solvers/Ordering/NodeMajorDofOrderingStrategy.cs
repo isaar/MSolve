@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
             IEnumerable<INode> sortedNodes, Table<INode, DOFType, double> constraints)
         {
             int totalDOFs = 0;
-            Dictionary<int, List<DOFType>> nodalDOFTypesDictionary = new Dictionary<int, List<DOFType>>(); //TODO: use Set isntead of List
+            Dictionary<int, List<DOFType>> nodalDOFTypesDictionary = new Dictionary<int, List<DOFType>>(); //TODO: use Set instead of List
             foreach (IElement_v2 element in elements)
             {
                 for (int i = 0; i < element.Nodes.Count; i++)
