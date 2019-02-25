@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.Problems
     public class ProblemStructural_v2 : IImplicitIntegrationProvider_v2, IStaticProvider_v2, INonLinearProvider_v2
     {
         private Dictionary<int, IMatrix> mass, damping, stiffnessFreeFree;
-        private Dictionary<int, IMatrix> stiffnessConstrFree, stiffnessConstrConstr;
+        private Dictionary<int, IMatrixView> stiffnessFreeConstr, stiffnessConstrFree, stiffnessConstrConstr;
         private readonly IStructuralModel_v2 model;
         private readonly ISolver_v2 solver;
         private IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
@@ -87,12 +87,15 @@ namespace ISAAR.MSolve.Problems
         private void BuildStiffnessSubmatrices()
         {
             stiffnessFreeFree = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            stiffnessConstrFree = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            stiffnessConstrConstr = new Dictionary<int, IMatrix>(model.Subdomains.Count);
+            stiffnessFreeConstr = new Dictionary<int, IMatrixView>(model.Subdomains.Count);
+            stiffnessConstrFree = new Dictionary<int, IMatrixView>(model.Subdomains.Count);
+            stiffnessConstrConstr = new Dictionary<int, IMatrixView>(model.Subdomains.Count);
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
-                (IMatrix Kff, IMatrix Kcf, IMatrix Kcc) = solver.BuildGlobalSubmatrices(subdomain, stiffnessProvider);
+                (IMatrix Kff, IMatrixView Kfc, IMatrixView Kcf, IMatrixView Kcc) = 
+                    solver.BuildGlobalSubmatrices(subdomain, stiffnessProvider);
                 stiffnessFreeFree.Add(subdomain.ID, Kff);
+                stiffnessFreeConstr.Add(subdomain.ID, Kfc);
                 stiffnessConstrFree.Add(subdomain.ID, Kcf);
                 stiffnessConstrConstr.Add(subdomain.ID, Kcc);
             }
@@ -273,15 +276,16 @@ namespace ISAAR.MSolve.Problems
         }
 
 
-        public (IMatrixView matrixFreeFree, IMatrixView matrixConstrFree, IMatrixView matrixConstrConstr) 
-            CalculateSubMatrices(ISubdomain_v2 subdomain)
+        public (IMatrixView matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree, 
+            IMatrixView matrixConstrConstr) CalculateSubMatrices(ISubdomain_v2 subdomain)
         {
             int id = subdomain.ID;
-            if ((stiffnessFreeFree == null) || (stiffnessConstrFree == null) || (stiffnessConstrConstr == null))
+            if ((stiffnessFreeFree == null) || (stiffnessFreeConstr == null) 
+                || (stiffnessConstrFree == null) || (stiffnessConstrConstr == null))
             {
                 BuildStiffnessSubmatrices();
             }
-            return (stiffnessFreeFree[id], stiffnessConstrFree[id], stiffnessConstrConstr[id]);
+            return (stiffnessFreeFree[id], stiffnessFreeConstr[id], stiffnessConstrFree[id], stiffnessConstrConstr[id]);
         }
 
         #endregion

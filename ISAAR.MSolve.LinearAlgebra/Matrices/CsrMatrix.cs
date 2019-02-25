@@ -224,8 +224,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Initializes a new <see cref="Matrix"/> instance by copying the entries of this <see cref="CsrMatrix"/>. 
-        /// Warning: there may not be enough memory.
+        /// See <see cref="IMatrixView.CopyToFullMatrix()"/>
         /// </summary>
         public Matrix CopyToFullMatrix()
         {

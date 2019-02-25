@@ -25,12 +25,16 @@ namespace ISAAR.MSolve.Solvers.Assemblers
 
         /// <summary>
         /// Builds the linear system matrices that correspond to the free and constrained freedom degrees of a subdomain.
+        /// If A denotes the full system matrix, f denotes the free dofs and c the coonstrained, then this method returns:
+        /// (Aff, Afc, Acf, Acc), where A = [ Aff Afc; Acf Acc] (Matlab notation). If the linear system is symmetric, then
+        /// Afc = Acf^T. In this case, these entries are only stored once and shared between the returned Afc, Acf.
         /// </summary>
         /// <param name="freeDofOrdering">The free freedom degree ordering of the subdomain.</param>
         /// <param name="constrainedDofOrdering">The constrained freedom degree ordering of the subdomain.</param>
         /// <param name="elements">The (finite) elements of the subdomain.</param>
         /// <param name="matrixProvider">Determines the matrix calculated for each element (e.g. stiffness, mass, etc.)</param>
-        (TMatrix matrixFreeFree, IMatrix matrixConstrFree, IMatrix matrixConstrConstr) BuildGlobalSubmatrices(
+        (TMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree, IMatrixView matrixConstrConstr)
+            BuildGlobalSubmatrices(
             ISubdomainFreeDofOrdering freeDofOrdering, ISubdomainConstrainedDofOrdering constrainedDofOrdering, 
             IEnumerable<IElement_v2> elements, IElementMatrixProvider_v2 matrixProvider);
 

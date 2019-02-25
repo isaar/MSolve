@@ -76,7 +76,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
                 msolveFromAbaqusDofMap[3 * node + 2] = 3 * msolveFromAbaqusNodeMap[node] + 2;
             }
 
-            var msolveMatrix = Matrix.CreateFromMatrix(abaqusMatrix);
+            Matrix msolveMatrix = abaqusMatrix.CopyToFullMatrix();
             return msolveMatrix.Reorder(msolveFromAbaqusDofMap, false);
         }
 

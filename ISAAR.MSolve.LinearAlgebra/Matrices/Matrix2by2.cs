@@ -270,6 +270,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public double[,] CopyToArray2D() => new double[,] { { data[0, 0], data[0, 1] }, { data[1, 0], data[1, 1] } };
 
         /// <summary>
+        /// See <see cref="IMatrixView.CopyToFullMatrix()"/>
+        /// </summary>
+        public Matrix CopyToFullMatrix() => Matrix.CreateFromArray(data);
+
+        /// <summary>
         /// See <see cref="IMatrixView.DoEntrywise(IMatrixView, Func{double, double, double})"/>.
         /// </summary>
         public IMatrix DoEntrywise(IMatrixView matrix, Func<double, double, double> binaryOperation)

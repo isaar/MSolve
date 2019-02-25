@@ -79,14 +79,16 @@ namespace ISAAR.MSolve.Solvers.Iterative
             int systemOrder = linearSystem.Matrix.NumColumns;
             int numRhs = otherMatrix.NumColumns;
             var solutionVectors = Matrix.CreateZero(systemOrder, numRhs);
+            Vector solutionVector = linearSystem.CreateZeroVector();
 
             // Solve each linear system
             for (int j = 0; j < numRhs; ++j)
             {
+                if (j != 0) solutionVector.Clear();
+
                 //TODO: we should make sure this is the same type as the vectors used by this solver, otherwise vector operations
                 //      in CG will be slow.
                 Vector rhsVector = otherMatrix.GetColumn(j);
-                Vector solutionVector = linearSystem.CreateZeroVector();
 
                 CGStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, rhsVector,
                     solutionVector, true, () => linearSystem.CreateZeroVector()); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0

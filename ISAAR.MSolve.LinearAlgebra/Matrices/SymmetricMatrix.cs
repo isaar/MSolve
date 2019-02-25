@@ -301,6 +301,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return Conversions.PackedUpperColMajorToArray2DSymm(data, Order);
         }
 
+        /// <summary>
+        /// See <see cref="IMatrixView.CopyToFullMatrix()"/>
+        /// </summary>
         public Matrix CopyToFullMatrix()
         {
             double[] fullData = Conversions.PackedUpperColMajorToFullSymmColMajor(data, Order);

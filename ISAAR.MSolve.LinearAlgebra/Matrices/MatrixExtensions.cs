@@ -183,7 +183,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             double pivotTolerance)
         {
             // Ported from octave's built-in implementation: https://searchcode.com/codesearch/view/9591940/.
-            var rref = Matrix.CreateFromMatrix(matrix);
+            var rref = matrix.CopyToFullMatrix();
             int numRows = rref.NumRows;
             int numCols = rref.NumColumns;
 

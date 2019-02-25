@@ -68,6 +68,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             return result;
         }
 
+        internal static Matrix CopyToFullMatrix(IIndexable2D matrix)
+        {
+            int m = matrix.NumRows;
+            int n = matrix.NumColumns;
+            var result = new double[m * n];
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = 0; i < m; ++i)
+                {
+                    result[m * j + i] = matrix[i, j];
+                }
+            }
+            return Matrix.CreateFromArray(result, m, n, false);
+        }
+
         internal static Vector DoEntrywise(IVectorView vector1, IVectorView vector2,
             Func<double, double, double> binaryOperation)
         {
