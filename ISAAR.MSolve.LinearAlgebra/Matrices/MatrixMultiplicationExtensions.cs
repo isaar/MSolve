@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         public static Matrix ThisTimesOtherTimesThisTranspose(this IMatrixView thisMatrix, IMatrixView other)
         {
-            return thisMatrix.MultiplyLeft(thisMatrix.MultiplyRight(other), true, false);
+            return thisMatrix.MultiplyLeft(thisMatrix.MultiplyRight(other, false, false), true, false);
         }
 
         /// <summary>
