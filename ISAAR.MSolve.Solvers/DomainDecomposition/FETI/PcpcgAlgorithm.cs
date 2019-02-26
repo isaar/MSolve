@@ -10,18 +10,18 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
     /// <summary>
     /// Implementation of the Preconditioned Conjugate Projected Gradient Method used in the FETI method.
     /// </summary>
-    class PcpcgAlgorithm
+    internal class PcpcgAlgorithm
     {
         private readonly int maxIterations;
         private readonly double residualNormTolerance;
 
-        public PcpcgAlgorithm(int maxIterations, double residualNormTolerance)
+        internal PcpcgAlgorithm(int maxIterations, double residualNormTolerance)
         {
             this.maxIterations = maxIterations;
             this.residualNormTolerance = residualNormTolerance;
         }
 
-        public PcpgStatistics Solve(BoundaryFlexibilityMatrix matrix, IFetiPreconditioner preconditioner,
+        internal PcpgStatistics Solve(BoundaryFlexibilityMatrix matrix, IFetiPreconditioner preconditioner,
             ProjectorMatrix projector, Vector forces, Vector boundaryDisplacements, Vector rigidBodyMotionsWork, 
             Vector lagrangeMultipliers)
         {

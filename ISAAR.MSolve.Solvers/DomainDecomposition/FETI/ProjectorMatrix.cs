@@ -5,7 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
 {
-    class ProjectorMatrix
+    internal class ProjectorMatrix
     {
         internal void CalculateRigidBodyMotionsCoefficients(Vector lagrangeMultipliers, Vector rbmCoeffs)
         {

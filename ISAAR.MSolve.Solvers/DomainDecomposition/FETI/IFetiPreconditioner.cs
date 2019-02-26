@@ -5,7 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
 {
-    interface IFetiPreconditioner
+    internal interface IFetiPreconditioner
     {
         void SolveLinearSystem(Vector rhs, Vector lhs);
     }

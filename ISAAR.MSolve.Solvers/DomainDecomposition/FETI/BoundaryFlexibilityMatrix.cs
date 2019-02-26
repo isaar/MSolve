@@ -5,7 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
 {
-    class BoundaryFlexibilityMatrix
+    internal class BoundaryFlexibilityMatrix
     {
         internal int Order { get; }
 
