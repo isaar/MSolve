@@ -107,6 +107,43 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             return result;
         }
 
+        internal static Vector GetColumn(IIndexable2D matrix, int colIdx)
+        {
+            var column = new double[matrix.NumRows];
+            for (int i = 0; i < matrix.NumRows; ++i) column[i] = matrix[i, colIdx];
+            return Vector.CreateFromArray(column, false);
+        }
+
+        internal static Vector GetRow(IIndexable2D matrix, int rowIdx)
+        {
+            var row = new double[matrix.NumColumns];
+            for (int j = 0; j < matrix.NumColumns; ++j) row[j] = matrix[rowIdx, j];
+            return Vector.CreateFromArray(row, false);
+        }
+
+        internal static Matrix GetSubmatrix(IIndexable2D matrix, int[] rowIndices, int[] colIndices)
+        {
+            var submatrix = Matrix.CreateZero(rowIndices.Length, colIndices.Length);
+            for (int j = 0; j < colIndices.Length; ++j)
+            {
+                for (int i = 0; i < rowIndices.Length; ++i) submatrix[i, j] = matrix[rowIndices[i], colIndices[j]];
+            }
+            return submatrix;
+        }
+
+        internal static Matrix GetSubmatrix(IIndexable2D matrix, int rowStartInclusive, int rowEndExclusive, 
+            int colStartInclusive, int colEndExclusive)
+        {
+            int numNewRows = rowEndExclusive - rowStartInclusive;
+            int numNewCols = colEndExclusive - colStartInclusive;
+            var submatrix = Matrix.CreateZero(numNewRows, numNewCols);
+            for (int j = 0; j < numNewCols; ++j)
+            {
+                for (int i = 0; i < numNewRows; ++i) submatrix[i, j] = matrix[rowStartInclusive + i, colStartInclusive + j];
+            }
+            return submatrix;
+        }
+
         /// <summary>
         /// 
         /// </summary>

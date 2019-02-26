@@ -83,25 +83,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Returns a vector with the entries of the original matrix's column at index = <paramref name="colIndex"/>.
-        /// </summary>
-        /// <param name="colIndex">
-        /// The index of the column to return. Constraints: 
-        /// 0 &lt;= <paramref name="colIndex"/> &lt; <see cref="IIndexable2D.NumColumns"/>.
-        /// </param>
-        /// <exception cref="IndexOutOfRangeException">
-        /// Thrown if <paramref name="colIndex"/> violates the described constraints.</exception>
-        public static Vector GetColumn(this IMatrixView matrix, int colIndex)
-        {
-            if (matrix is Matrix dense) return dense.GetColumn(colIndex);
-
-            Preconditions.CheckIndexCol(matrix, colIndex);
-            var column = new double[matrix.NumRows];
-            for (int i = 0; i < matrix.NumRows; ++i) column[i] = matrix[i, colIndex];
-            return Vector.CreateFromArray(column, false);
-        }
-
-        /// <summary>
         /// Returns a <see cref="Vector"/> with the entries of the matrix's main diagonal.
         /// </summary>
         /// <param name="matrix">The matrix whose diagonal will be copied. It must be square.</param>
@@ -119,25 +100,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             double[] diag = new double[matrix.NumRows];
             for (int i = 0; i < matrix.NumRows; ++i) diag[i] = matrix[i, i];
             return diag;
-        }
-
-        /// <summary>
-        /// Returns a vector with the entries of the original matrix's row at index = <paramref name="rowIndex"/>.
-        /// </summary>
-        /// <param name="rowIndex">
-        /// The index of the row to return. Constraints: 
-        /// 0 &lt;= <paramref name="rowIndex"/> &lt; <see cref="IIndexable2D.NumRows"/>.
-        /// </param>
-        /// <exception cref="IndexOutOfRangeException">
-        /// Thrown if <paramref name="rowIndex"/> violates the described constraints.</exception>
-        public static Vector GetRow(this IMatrixView matrix, int rowIndex)
-        {
-            if (matrix is Matrix dense) return dense.GetRow(rowIndex);
-
-            Preconditions.CheckIndexRow(matrix, rowIndex);
-            var row = new double[matrix.NumRows];
-            for (int j = 0; j < matrix.NumRows; ++j) row[j] = matrix[rowIndex, j];
-            return Vector.CreateFromArray(row, false);
         }
 
         /// <summary>

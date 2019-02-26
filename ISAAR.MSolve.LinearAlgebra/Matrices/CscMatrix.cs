@@ -7,14 +7,15 @@ using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
-// TODO: try to make general versions of row major and col major multiplication. The lhs matrix/vector will be supplied by the 
+//TODO: try to make general versions of row major and col major multiplication. The lhs matrix/vector will be supplied by the 
 // caller, depending on if it is a matrix, a transposed matrix, a vector, etc. Compare its performance with the verbose code and 
 // also try inlining. C preprocessor macros would be actually useful here. Otherwise, move all that boilerplate code to a 
 // CSRStrategies static class.
-// TODO: In matrix-matrix/vector multiplications: perhaps I should work with a column major array directly instead of an output   
-// Matrix and an array instead of an output Vector.
-// TODO: perhaps optimizations if (other is Matrix) are needed, to directly index into its raw col major array.
-// The access paterns are always the same
+//TODO: In matrix-matrix/vector multiplications: perhaps I should work with a column major array directly instead of an output   
+//      Matrix and an array instead of an output Vector.
+//TODO: perhaps optimizations if (other is Matrix) are needed, to directly index into its raw col major array.
+//      The access paterns are always the same.
+//TODO: The implementations of this class should call transposed operations on a backing CSR matrix.
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
@@ -26,6 +27,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class CscMatrix: IMatrix, ISparseMatrix
     {
+        private const int zeroEntryOffset = -1;
+
         private readonly double[] values;
         private readonly int[] rowIndices;
         private readonly int[] colOffsets;
@@ -56,9 +59,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         {
             get
             {
-                int index = FindOffsetOf(rowIdx, colIdx);
-                if (index == -1) return 0.0;
-                else return values[index];
+                int entryOffset = FindOffsetOf(rowIdx, colIdx);
+                if (entryOffset == zeroEntryOffset) return 0.0;
+                else return values[entryOffset];
             }
         }
 
@@ -413,6 +416,32 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
+        /// See <see cref="ISliceable2D.GetColumn(int)"/>.
+        /// </summary>
+        public Vector GetColumn(int colIndex)
+        {
+            Preconditions.CheckIndexCol(this, colIndex);
+            double[] colVector = new double[NumRows];
+            for (int k = colOffsets[colIndex]; k < colOffsets[colIndex + 1]; ++k) colVector[rowIndices[k]] = values[k];
+            return Vector.CreateFromArray(colVector, false);
+        }
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetRow(int)"/>.
+        /// </summary>
+        public Vector GetRow(int rowIndex)
+        {
+            Preconditions.CheckIndexRow(this, rowIndex);
+            double[] rowVector = new double[NumColumns];
+            for (int j = 0; j < NumColumns; ++j)
+            {
+                int entryOffset = FindOffsetOf(rowIndex, j);
+                if (entryOffset != zeroEntryOffset) rowVector[j] = values[entryOffset];
+            }
+            return Vector.CreateFromArray(rowVector, false);
+        }
+
+        /// <summary>
         /// See <see cref="ISparseMatrix.GetSparseFormat"/>.
         /// </summary>
         public SparseFormat GetSparseFormat()
@@ -424,6 +453,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             format.RawIndexArrays.Add("Column offsets", colOffsets);
             return format;
         }
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetSubmatrix(int[], int[])"/>.
+        /// </summary>
+        public Matrix GetSubmatrix(int[] rowIndices, int[] colIndices)
+            => DenseStrategies.GetSubmatrix(this, rowIndices, colIndices);
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetSubmatrix(int, int, int, int)"/>.
+        /// </summary>
+        public Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
+            => DenseStrategies.GetSubmatrix(this, rowStartInclusive, rowEndExclusive, colStartInclusive, colEndExclusive);
 
         /// <summary>
         /// See <see cref="IMatrixView.LinearCombination(double, IMatrixView, double)"/>.
@@ -762,9 +803,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)
         {
-            int index = FindOffsetOf(rowIdx, colIdx);
-            if (index == -1) throw new SparsityPatternModifiedException($"Cannot write to zero entry ({rowIdx}, {colIdx}).");
-            else values[index] = value;
+            int entryOfsset = FindOffsetOf(rowIdx, colIdx);
+            if (entryOfsset == zeroEntryOffset) throw new SparsityPatternModifiedException(
+                $"Cannot write to zero entry ({rowIdx}, {colIdx}).");
+            else values[entryOfsset] = value;
         }
 
         /// <summary>
@@ -815,13 +857,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         /// <summary>
         /// Return the index into values and rowIndices arrays, if the (rowIdx, colIdx) entry is within the pattern. 
-        /// Otherwise returns -1.
+        /// Otherwise returns <see cref="zeroEntryOffset"/>.
         /// </summary>
         /// <param name="rowIdx"></param>
         /// <param name="colIdx"></param>
-        /// <returns></returns>
         private int FindOffsetOf(int rowIdx, int colIdx)
         {
+            //TODO: if we have a true bool flag to indicate that the row indices of each column are sorted, then use binary search.
             Preconditions.CheckIndices(this, rowIdx, colIdx); //TODO: check indices?
             int colStart = colOffsets[colIdx]; //inclusive
             int colEnd = colOffsets[colIdx + 1]; //exclusive
@@ -829,7 +871,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             {
                 if (rowIndices[k] == rowIdx) return k;
             }
-            return -1;
+            return zeroEntryOffset;
         }
 
         private bool HasSameIndexer(CscMatrix other)

@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// around or allow acceess to it, consider using this interface instead of <see cref="Matrix"/> for extra safety.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public interface IMatrixView: IIndexable2D, IReducible
+    public interface IMatrixView: IIndexable2D, IReducible, ISliceable2D
     {
         /// <summary>
         /// Performs the following operation for all (i, j):

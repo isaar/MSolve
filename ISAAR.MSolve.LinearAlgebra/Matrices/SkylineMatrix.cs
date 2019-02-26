@@ -12,6 +12,8 @@ using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
 //TODO: Also linear combinations with other matrix types may be useful, e.g. Skyline (K) with diagonal (M), but I think 
 //      that for global matrices, this should be done through concrete class to use DoEntrywiseIntoThis methods. 
+//TODO: Checks like: col - row <= colHeight can be written more efficiently without calculating the height:
+//      entryOffset = diagOffsets[col] + col - row, entryOffset <= diagOffsets[col+1]
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
@@ -737,6 +739,34 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
+        /// See <see cref="ISliceable2D.GetColumn(int)"/>.
+        /// </summary>
+        public Vector GetColumn(int colIndex)
+        {
+            Preconditions.CheckIndexCol(this, colIndex);
+            var columnVector = new double[NumColumns];
+
+            // Upper triangle and diagonal entries of the column are stored explicitly and contiguously
+            int diagOffset = diagOffsets[colIndex];
+            int colHeight = diagOffsets[colIndex + 1] - diagOffset - 1; // excluding diagonal
+            for (int k = 0; k <= colHeight; ++k) columnVector[colIndex - k] = values[diagOffset + k];
+
+            // Lower triangle entries of the column can be found in the row with the same index
+            for (int j = colIndex + 1; j < NumColumns; ++j)
+            {
+                int otherDiagOffset = diagOffsets[j];
+                int otherColHeight = diagOffsets[j + 1] - otherDiagOffset - 1; // excluding diagonal
+                int entryHeight = j - colIndex; // excluding diagonal
+                if (entryHeight <= otherColHeight) // inside stored non zero pattern
+                {
+                    columnVector[j] = values[otherDiagOffset + entryHeight];
+                }
+            }
+
+            return Vector.CreateFromArray(columnVector);
+        }
+
+        /// <summary>
         /// Returns a <see cref="Vector"/> with the entries of the matrix's main diagonal.
         /// </summary>
         public Vector GetDiagonal() => Vector.CreateFromArray(GetDiagonalAsArray(), false);
@@ -753,6 +783,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
+        /// See <see cref="ISliceable2D.GetRow(int)"/>.
+        /// </summary>
+        public Vector GetRow(int rowIndex) => GetColumn(rowIndex);
+
+        /// <summary>
         /// See <see cref="ISparseMatrix.GetSparseFormat"/>.
         /// </summary>
         public SparseFormat GetSparseFormat()
@@ -763,6 +798,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             format.RawIndexArrays.Add("Diagonal offsets", diagOffsets);
             return format;
         }
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetSubmatrix(int[], int[])"/>.
+        /// </summary>
+        public Matrix GetSubmatrix(int[] rowIndices, int[] colIndices)
+            => DenseStrategies.GetSubmatrix(this, rowIndices, colIndices);
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetSubmatrix(int, int, int, int)"/>.
+        /// </summary>
+        public Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
+            => DenseStrategies.GetSubmatrix(this, rowStartInclusive, rowEndExclusive, colStartInclusive, colEndExclusive);
 
         /// <summary>
         /// See <see cref="IMatrixView.LinearCombination(double, IMatrixView, double)"/>.

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
@@ -34,7 +35,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         }
 
         [Fact]
-        private static void TestFullToSkylineConversion()
+        private static void TestConversionFullToSkyline()
         {
             var matrices = new List<double[,]>
             {
@@ -59,6 +60,32 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
             var skyline = SkylineMatrix.CreateFromArrays(SparsePosDef10by10.Order, 
                 SparsePosDef10by10.SkylineValues, SparsePosDef10by10.SkylineDiagOffsets, true, true);
             Assert.True(skyline.Equals(full));
+        }
+
+        [Fact]
+        private static void TestGetColumn()
+        {
+            var matrix = SkylineMatrix.CreateFromArrays(SparsePosDef10by10.Order,
+                SparsePosDef10by10.SkylineValues, SparsePosDef10by10.SkylineDiagOffsets, true, true);
+            for (int j = 0; j < SparsePosDef10by10.Order; ++j)
+            {
+                Vector colExpected = DenseStrategies.GetColumn(matrix, j);
+                Vector colComputed = matrix.GetColumn(j);
+                comparer.AssertEqual(colExpected, colComputed);
+            }
+        }
+
+        [Fact]
+        private static void TestGetRow()
+        {
+            var matrix = SkylineMatrix.CreateFromArrays(SparsePosDef10by10.Order,
+                SparsePosDef10by10.SkylineValues, SparsePosDef10by10.SkylineDiagOffsets, true, true);
+            for (int i = 0; i < SparsePosDef10by10.Order; ++i)
+            {
+                Vector rowExpected = DenseStrategies.GetRow(matrix, i);
+                Vector rowComputed = matrix.GetRow(i);
+                comparer.AssertEqual(rowExpected, rowComputed);
+            }
         }
 
         //TODO: Skyline operations are not part of the MKL SparseBLAS provider yet. There are only provided by the managed provider 

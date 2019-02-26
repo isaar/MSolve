@@ -589,9 +589,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public Vector GetColumn(int colIndex)
         {
             Preconditions.CheckIndexCol(this, colIndex);
-            double[] result = new double[NumRows];
-            Array.Copy(data, colIndex * NumRows, result, 0, NumRows);
-            return Vector.CreateFromArray(result, false);
+            double[] columnVector = new double[NumRows];
+            Array.Copy(data, colIndex * NumRows, columnVector, 0, NumRows);
+            return Vector.CreateFromArray(columnVector, false);
         }
 
         /// <summary>
@@ -618,9 +618,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public Vector GetRow(int rowIndex)
         {
             Preconditions.CheckIndexRow(this, rowIndex);
-            double[] result = new double[NumColumns];
-            for (int j = 0; j < NumColumns; ++j) result[j] = data[j * NumRows + rowIndex];
-            return Vector.CreateFromArray(result, false);
+            double[] rowVector = new double[NumColumns];
+            for (int j = 0; j < NumColumns; ++j) rowVector[j] = data[j * NumRows + rowIndex];
+            return Vector.CreateFromArray(rowVector, false);
         }
 
         /// <summary>
@@ -642,9 +642,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
         {
-            int newNumRows = rowEndExclusive - rowStartInclusive;
-            int newNumCols = colEndExclusive - colStartInclusive;
-            double[] submatrix = new double[newNumCols * newNumRows];
+            int numNewRows = rowEndExclusive - rowStartInclusive;
+            int numNewCols = colEndExclusive - colStartInclusive;
+            double[] submatrix = new double[numNewCols * numNewRows];
             int idxCounter = -1;
             for (int j = colStartInclusive; j < colEndExclusive; ++j)
             {
@@ -653,7 +653,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                     submatrix[++idxCounter] = data[j * NumRows + i];
                 }
             }
-            return new Matrix(submatrix, newNumRows, newNumCols);
+            return new Matrix(submatrix, numNewRows, numNewCols);
         }
 
         /// <summary>
