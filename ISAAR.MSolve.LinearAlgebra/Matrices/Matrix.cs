@@ -815,7 +815,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public Matrix MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
         {
-            if (other is Matrix) return MultiplyRight((Matrix)other, transposeThis);
+            if (other is Matrix dense) return MultiplyRight(dense, transposeThis, transposeOther);
             else return other.MultiplyLeft(this, transposeOther, transposeThis);
         }
 
