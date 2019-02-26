@@ -80,7 +80,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
                 IMatrixView kinematicRelationsMatrix = rve.CalculateKinematicRelationsMatrix(linearSystem.Subdomain);
                 Matrix effectiveTensor = kinematicRelationsMatrix.ThisTimesOtherTimesThisTranspose(condensedMatrices[id]);
                 double rveVolume = rve.CalculateRveVolume();
-                effectiveTensor.ScaleIntoThis(rveVolume);
+                effectiveTensor.ScaleIntoThis(1.0 / rveVolume);
                 EffectiveConstitutiveTensors[id] = effectiveTensor;
             }
         }
