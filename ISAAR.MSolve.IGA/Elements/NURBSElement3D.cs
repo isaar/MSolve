@@ -88,56 +88,55 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		//     public IMatrix StiffnessMatrix(IElement_v2 element)
-		//     {
-		//      var nurbsElement = (NURBSElement3D)element;
-		//      var controlPoints = nurbsElement.ControlPoints.ToArray();
-		//IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(nurbsElement);
-		//Matrix2D stiffnessMatrixElement = new Matrix2D(controlPoints.Length * 3, controlPoints.Length * 3);
+		//public IMatrix StiffnessMatrix(IElement_v2 element)
+		//{
+		//	var nurbsElement = (NURBSElement3D)element;
+		//	var controlPoints = nurbsElement.ControlPoints.ToArray();
+		//	IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(nurbsElement);
+		//	Matrix2D stiffnessMatrixElement = new Matrix2D(controlPoints.Length * 3, controlPoints.Length * 3);
 
-		//         NURBS3D nurbs = new NURBS3D(nurbsElement, controlPoints);
+		//	NURBS3D nurbs = new NURBS3D(nurbsElement, controlPoints);
 
-		//         for (int j = 0; j < gaussPoints.Count; j++)
-		//         {
-		//             var jacobianMatrix = CalculateJacobian(controlPoints, nurbs, j);
+		//	for (int j = 0; j < gaussPoints.Count; j++)
+		//	{
+		//		var jacobianMatrix = CalculateJacobian(controlPoints, nurbs, j);
 
-		//             double jacdet = CalculateJacobianDeterminant(jacobianMatrix);
+		//		double jacdet = CalculateJacobianDeterminant(jacobianMatrix);
 
-		//             var inverseJacobian = CalculateInverseJacobian(jacobianMatrix, jacdet);
+		//		var inverseJacobian = CalculateInverseJacobian(jacobianMatrix, jacdet);
 
-		//             var B1 = CalculateDeformationMatrix1(inverseJacobian);
+		//		var B1 = CalculateDeformationMatrix1(inverseJacobian);
 
-		//             var B2 = CalculateDeformationMatrix2(controlPoints, nurbs, j);
+		//		var B2 = CalculateDeformationMatrix2(controlPoints, nurbs, j);
 
-		//             var  B = new Matrix2D(B1) * new Matrix2D(B2);
+		//		var B = new Matrix2D(B1) * new Matrix2D(B2);
 
-		//             Matrix2D stiffnessMatrixGaussPoint = B.Transpose() * ((IContinuumMaterial3D)nurbsElement.Patch.Material).ConstitutiveMatrix * B * jacdet * gaussPoints[j].WeightFactor;
+		//		Matrix2D stiffnessMatrixGaussPoint = B.Transpose() * ((IContinuumMaterial3D)nurbsElement.Patch.Material).ConstitutiveMatrix * B * jacdet * gaussPoints[j].WeightFactor;
 
-		//             for (int m = 0; m < controlPoints.Length * 3; m++)
-		//             {
-		//                 for (int n = 0; n < controlPoints.Length * 3; n++)
-		//                 {
-		//                     stiffnessMatrixElement[m, n] += stiffnessMatrixGaussPoint[m, n];
-		//                 }
-		//             }
-		//         }
-		//         return Matrix.CreateFromArray(stiffnessMatrixElement.Data);
+		//		for (int m = 0; m < controlPoints.Length * 3; m++)
+		//		{
+		//			for (int n = 0; n < controlPoints.Length * 3; n++)
+		//			{
+		//				stiffnessMatrixElement[m, n] += stiffnessMatrixGaussPoint[m, n];
+		//			}
+		//		}
+		//	}
+		//	return Matrix.CreateFromArray(stiffnessMatrixElement.Data);
 
-		//     }
+		//}
 
 
 		public IMatrix StiffnessMatrix(IElement_v2 element)
 		{
-			var nurbsElement = (NURBSElement3D) element;
+			var nurbsElement = (NURBSElement3D)element;
 			var controlPoints = nurbsElement.ControlPoints.ToArray();
 			IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(nurbsElement);
-			Matrix2D stiffnessMatrixElement = new Matrix2D(controlPoints.Length * 3, controlPoints.Length * 3);
 
 			NURBS3D nurbs = new NURBS3D(nurbsElement, controlPoints);
 
 
 			var bRows = 6;
-			var bCols = nurbsElement.ControlPoints.Count * 3;
+			var bCols = controlPoints.Length * 3;
 			var stiffnessMatrix = new double[bCols, bCols];
 			var BTranspose = new double[bCols, bRows];
 			var BTransposeMultStiffness = new double[bCols, bRows];
@@ -157,9 +156,9 @@ namespace ISAAR.MSolve.IGA.Elements
 				var B = new double[B1.GetLength(0), B2.GetLength(1)];
 
 				for (int i = 0; i < B1.GetLength(0); i++)
-				for (int k = 0; k < B2.GetLength(1); k++)
-				for (int m = 0; m < B2.GetLength(0); m++)
-					B[i, k] += B1[i, m] * B2[m, k];
+					for (int k = 0; k < B2.GetLength(1); k++)
+						for (int m = 0; m < B2.GetLength(0); m++)
+							B[i, k] += B1[i, m] * B2[m, k];
 
 
 
@@ -168,12 +167,12 @@ namespace ISAAR.MSolve.IGA.Elements
 				Array.Clear(BTranspose, 0, bRows * bCols);
 
 				for (int i = 0; i < bRows; i++)
-				for (int k = 0; k < bCols; k++)
-					BTranspose[k, i] = B[i, k] * wFactor;
+					for (int k = 0; k < bCols; k++)
+						BTranspose[k, i] = B[i, k] * wFactor;
 
 				double tempcm = 0;
 				double tempb = 0;
-				var E = ((IContinuumMaterial3D) nurbsElement.Patch.Material).ConstitutiveMatrix;
+				var E = ((IContinuumMaterial3D)nurbsElement.Patch.Material).ConstitutiveMatrix.Data;
 				Array.Clear(BTransposeMultStiffness, 0, bRows * bCols);
 				for (int i = 0; i < bCols; i++)
 				{
@@ -188,6 +187,7 @@ namespace ISAAR.MSolve.IGA.Elements
 					}
 				}
 
+				tempb = 0;
 				for (int i = 0; i < bCols; i++)
 				{
 					for (int k = 0; k < bRows; k++)
@@ -201,7 +201,7 @@ namespace ISAAR.MSolve.IGA.Elements
 				}
 			}
 
-			return Matrix.CreateFromArray(stiffnessMatrixElement.Data);
+			return Matrix.CreateFromArray(stiffnessMatrix);
 		}
 
 		private static double[,] CalculateDeformationMatrix2(IList<ControlPoint> elementControlPoints, NURBS3D nurbs,

@@ -380,7 +380,7 @@ namespace ISAAR.MSolve.IGA.Tests
 				for (var j = 0; j < 192; j++)
 				{
 					Assert.True(Utilities.AreValuesEqual(_expectedStiffnessMatrix[i, j], stiffnessMatrix[i, j],
-						Tolerance));
+						1e-10));
 				}
 			}
 		}
