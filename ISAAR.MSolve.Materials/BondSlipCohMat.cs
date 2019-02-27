@@ -155,22 +155,22 @@ namespace ISAAR.MSolve.Materials
                     dmi_dai[1, 1] = -dmi_dti[1, 1];
 
                     Matrix drs_ds = (De * dmi_dti);
-                    drs_ds.Scale(Delta_l);
+                    drs_ds.ScaleIntoThis(Delta_l);
                     drs_ds[0, 0] += 1;
                     drs_ds[1, 1] += 1;
 
                     Matrix drs_da = (De * dmi_dai);
-                    drs_da.Scale(Delta_l);
+                    drs_da.ScaleIntoThis(Delta_l);
 
                     double[] drs_dl = new double[2];
                     for (int i1 = 0; i1 < 2; i1++) { for (int i2 = 0; i2 < 2; i2++) { drs_dl[i1] += De[i1, i2] * m[i2]; } }
 
 
                     Matrix dra_ds = Matrix.CreateFromArray(new double[2, 2] { { dmi_dti[0, 0], dmi_dti[0, 1] }, { dmi_dti[1, 0], dmi_dti[1, 1] } });
-                    dra_ds.Scale(-Delta_l * c1);
+                    dra_ds.ScaleIntoThis(-Delta_l * c1);
 
                     Matrix dra_dra =Matrix.CreateFromArray(new double[2, 2] { { dmi_dai[0, 0], dmi_dai[0, 1] }, { dmi_dai[1, 0], dmi_dai[1, 1] } });
-                    dra_dra.Scale(-Delta_l * c1);
+                    dra_dra.ScaleIntoThis(-Delta_l * c1);
                     dra_dra[0, 0] += 1;
                     dra_dra[1, 1] += 1; //TODO check new structures matrix for this
 

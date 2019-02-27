@@ -19,14 +19,15 @@ using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.LinearSystems;
+using Xunit;
+using ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses;
+using ISAAR.MSolve.LinearAlgebra.Commons;
 
-namespace ISAAR.MSolve.SamplesConsole.IntegrationTests2
+namespace ISAAR.MSolve.Tests.FEMpartB
 {
-    public static class NRNLAnalyzerDevelopTest_v2
-    {
-        //PROELEFSI: programElegxoiDdm opou eixan ginei comment out kai den htan updated apo ekdosh feat/prosthiki_allagwn 
-
-        public static void SolveDisplLoadsExample()
+    public static  class NRNLAnalyzerDevelopTest_v2 //PROELEFSI: programElegxoiDdm opou eixan ginei comment out kai den htan updated apo ekdosh feat/prosthiki_allagwn 
+    {        
+        public static (IVector, IVector) SolveDisplLoadsExample()
         {
             #region dhmiourgia montelou
             //VectorExtensions.AssignTotalAffinityCount();
@@ -82,10 +83,8 @@ namespace ISAAR.MSolve.SamplesConsole.IntegrationTests2
             #region create nesessary structures and analyzers And Solve 1st increment            
             var linearSystems = solver.LinearSystems; // elegxos me model.subdomainsDictionary[1]
             ProblemStructural_v2 provider = new ProblemStructural_v2(model, solver);
-            //var linearSystemsArray = new[] { linearSystems[1] };
             var subdomainUpdaters = new Dictionary<int, NonLinearSubdomainUpdaterWithInitialConditions_v2>(1);
             subdomainUpdaters.Add( 1 ,new NonLinearSubdomainUpdaterWithInitialConditions_v2(model.Subdomains[0]));
-            //var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
             var increments = 1;
 
             var childAnalyzer = new MicrostructureBvpNRNLAnalyzer(model,solver, subdomainUpdaters,  provider, increments, uInitialFreeDOFDisplacementsPerSubdomain,
@@ -93,14 +92,15 @@ namespace ISAAR.MSolve.SamplesConsole.IntegrationTests2
             childAnalyzer.SetMaxIterations = 100;
             childAnalyzer.SetIterationsForMatrixRebuild = 1;
             
-            StaticAnalyzer_v2 parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
-            //parentAnalyzer.BuildMatrices();
-            foreach (ILinearSystem_v2 linearSystem in solver.LinearSystems.Values)
-            {
-                linearSystem.Subdomain.Forces = Vector.CreateZero(linearSystem.Size); // antistoixo tou subdomain.Forces = linearSystem.CreateZeroVector();
-            }
+            MSParentAnalyzer parentAnalyzer = new MSParentAnalyzer(model, solver, provider, childAnalyzer);
+            //TODO MS
+            //foreach (ILinearSystem_v2 linearSystem in solver.LinearSystems.Values)
+            //{
+            //    linearSystem.Subdomain.Forces = Vector.CreateZero(linearSystem.Size); // antistoixo tou subdomain.Forces = linearSystem.CreateZeroVector();
+            //}
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
+            IVector uInitialFreeDOFs_state1 = childAnalyzer.GetConvergedSolutionVectorsOfFreeDofs()[1].Copy();
             #endregion
 
             #region save state and update structures and vectors for second increment
@@ -149,15 +149,18 @@ namespace ISAAR.MSolve.SamplesConsole.IntegrationTests2
             childAnalyzer2.SetMaxIterations = 100;
             childAnalyzer2.SetIterationsForMatrixRebuild = 1;
 
-            StaticAnalyzer_v2 parentAnalyzer2 = new StaticAnalyzer_v2(model, solver2, provider2, childAnalyzer2);
+            MSParentAnalyzer parentAnalyzer2 = new MSParentAnalyzer(model, solver2, provider2, childAnalyzer2);
             //parentAnalyzer2.BuildMatrices();
             //DdmCalculationsGeneral_v2.UndoModelInterconnectionDataBuild(model);
             childAnalyzer2.Initialize(); //parentAnalyzer2.Initialize();
             parentAnalyzer2.Solve();
+            IVector uInitialFreeDOFs_state2 = childAnalyzer.GetConvergedSolutionVectorsOfFreeDofs()[1].Copy();
             #endregion
+
+            return (uInitialFreeDOFs_state1, uInitialFreeDOFs_state2);
         }
 
-        public static void HexaCantileverBuilderDispControl(Model_v2 model, double load_value)
+        public static bool HexaCantileverBuilderDispControl(Model_v2 model, double load_value)
         {
             ElasticMaterial3D_v2 material1 = new ElasticMaterial3D_v2()
             {
@@ -237,6 +240,22 @@ namespace ISAAR.MSolve.SamplesConsole.IntegrationTests2
                 //model.Loads.Add(load1);
                 model.NodesDictionary[k].Constraints.Add(new Constraint { DOF = DOFType.X });
             }
+
+            return true;
+        }
+
+        public static bool AreDisplacementsSame_v2(double[] expectedValues,
+            double[] computedValues)
+        {
+            var comparer = new ValueComparer(1E-14);
+            for (int i1 = 0; i1 < expectedValues.GetLength(0); i1++)
+            {                
+                    if (!comparer.AreEqual(expectedValues[i1], computedValues[i1]))
+                    {
+                        return false;
+                    }               
+            }
+            return true;
         }
     }
 }

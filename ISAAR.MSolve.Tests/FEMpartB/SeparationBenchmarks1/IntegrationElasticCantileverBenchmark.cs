@@ -20,7 +20,7 @@ using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Analyzers.NonLinear;
 
-namespace ISAAR.MSolve.SamplesConsole.DdmBenchmarks1
+namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks1
 {
     public static class IntegrationElasticCantileverBenchmark //checked
     {
@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.SamplesConsole.DdmBenchmarks1
         
         //PROELEFSI opou htan checked branch example/ms_development_nl_elements_merge
         //allages: egine v2
-        public static void RunExample()
+        public static TotalDisplacementsPerIterationLog_v2 RunExample()
         {
             //VectorExtensions.AssignTotalAffinityCount();
             Model_v2 model = new Model_v2();
@@ -69,7 +69,7 @@ namespace ISAAR.MSolve.SamplesConsole.DdmBenchmarks1
             parentAnalyzer.Solve();
 
 
-            //return log1;
+            return log1;
         }
 
         public static void HexaCantileverBuilder_copyMS_222(Model_v2 model, double load_value)

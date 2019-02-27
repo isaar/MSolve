@@ -1,4 +1,5 @@
 ﻿using ISAAR.MSolve.FEM.Materials;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.Interfaces; //using ISAAR.MSolve.PreProcessor.Interfaces;
 using ISAAR.MSolve.MultiscaleAnalysis;
@@ -11,12 +12,13 @@ using ISAAR.MSolve.Solvers.Skyline;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Xunit;
 
-namespace ISAAR.MSolve.SamplesConsole
+namespace ISAAR.MSolve.Tests.FEMpartB
 {
     public class SeparateCodeCheckingClass4
-    {
-        public static void Check05bStressIntegrationObje_v2_Integration()
+    {              
+        public static (double[], double[], double[], double[], IVector, IVector) Check05bStressIntegrationObje_v2_Integration()
         {
             //PROELEFSI: SeparateCodeCheckingClass.Check05bStressIntegration
             //allages: tha xrhsimopoithei h nea microstructure me obje kapoia subdomainCalculations
@@ -36,11 +38,12 @@ namespace ISAAR.MSolve.SamplesConsole
             material1.SaveState();
             double[] stressesCheck2 = material1.Stresses.Data;
 
-            VectorExtensions.AssignTotalAffinityCount();
+            //VectorExtensions.AssignTotalAffinityCount();
             IRVEbuilder_v2 homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheck27Hexa_v2();
             //IRVEbuilder homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheckEnaHexa();
 
-            IContinuumMaterial3DDefGrad_v2 microstructure3 = new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2(homogeneousRveBuilder1, new SkylineSolver.Builder(), false, 1);
+            //IContinuumMaterial3DDefGrad_v2
+            var microstructure3 = new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2(homogeneousRveBuilder1, new SkylineSolver.Builder(), false, 1);
             //IContinuumMaterial3DDefGrad microstructure3copyConsCheck = new Microstructure3copyConsCheckEna(homogeneousRveBuilder1);
             double[,] consCheck1 = new double[6, 6];
             for (int i1 = 0; i1 < 6; i1++) { for (int i2 = 0; i2 < 6; i2++) { consCheck1[i1, i2] = microstructure3.ConstitutiveMatrix[i1, i2]; } }
@@ -48,12 +51,19 @@ namespace ISAAR.MSolve.SamplesConsole
             microstructure3.UpdateMaterial(new double[9] { 1.10, 1, 1, 0, 0, 0, 0, 0, 0 });
             double[] stressesCheck3 = microstructure3.Stresses;
             microstructure3.SaveState();
+            IVector uInitialFreeDOFs_state1 = microstructure3.uInitialFreeDOFDisplacementsPerSubdomain[1].Copy();
+
             microstructure3.UpdateMaterial(new double[9] { 1.20, 1, 1, 0, 0, 0, 0, 0, 0 });
             double[] stressesCheck4 = microstructure3.Stresses;
+            IVector uInitialFreeDOFs_state2 = microstructure3.uInitialFreeDOFDisplacementsPerSubdomain[1].Copy();
+            PrintUtilities.WriteToFileVector(uInitialFreeDOFs_state1.CopyToArray(), @"C:\Users\turbo-x\Desktop\notes_elegxoi\MSOLVE_output_2\uInitialFreeDOFs_state1.txt");
+            PrintUtilities.WriteToFileVector(uInitialFreeDOFs_state2.CopyToArray(), @"C:\Users\turbo-x\Desktop\notes_elegxoi\MSOLVE_output_2\uInitialFreeDOFs_state2.txt");
+
+            return (stressesCheck1, stressesCheck2, stressesCheck3, stressesCheck4, uInitialFreeDOFs_state1, uInitialFreeDOFs_state2);
 
         }
 
-        public static void Check_Graphene_rve_Obje_v2_Integration()
+        public static (double[], double[], double[,], IVector, IVector) Check_Graphene_rve_Obje_v2_Integration()
         {
             //PROELEFSI: SeparateCodeCheckingClass4.Check05bStressIntegrationObje_v2_Integration parontos
             //allages: tha xrhsimopoithei o GrapheneBuilder...35...v2 gia epilush enos paradeigmatos GrapheneReinforcedRVEBuilderCHECK
@@ -75,11 +85,12 @@ namespace ISAAR.MSolve.SamplesConsole
             material1.SaveState();
             double[] stressesCheck2 = material1.Stresses.Data;
 
-            VectorExtensions.AssignTotalAffinityCount();
+            //VectorExtensions.AssignTotalAffinityCount();
             IRVEbuilder_v2 homogeneousRveBuilder1 = new GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_forCheck_v2(1);
             //IRVEbuilder homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheckEnaHexa();
 
-            IContinuumMaterial3DDefGrad_v2 microstructure3 = new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2(homogeneousRveBuilder1, new SkylineSolver.Builder(), false, 1);
+            //IContinuumMaterial3DDefGrad_v2 
+            var microstructure3 = new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2(homogeneousRveBuilder1, new SkylineSolver.Builder(), false, 1);
             //IContinuumMaterial3DDefGrad microstructure3copyConsCheck = new Microstructure3copyConsCheckEna(homogeneousRveBuilder1);
             double[,] consCheck1 = new double[6, 6];
             for (int i1 = 0; i1 < 6; i1++) { for (int i2 = 0; i2 < 6; i2++) { consCheck1[i1, i2] = microstructure3.ConstitutiveMatrix[i1, i2]; } }
@@ -87,9 +98,20 @@ namespace ISAAR.MSolve.SamplesConsole
             microstructure3.UpdateMaterial(new double[9] { 1.05, 1, 1, 0, 0, 0, 0, 0, 0 });
             double[] stressesCheck3 = microstructure3.Stresses;
             microstructure3.SaveState();
+            IVector uInitialFreeDOFs_state1 = microstructure3.uInitialFreeDOFDisplacementsPerSubdomain[1].Copy();
+
             microstructure3.UpdateMaterial(new double[9] { 1.10, 1, 1, 0, 0, 0, 0, 0, 0 });
             double[] stressesCheck4 = microstructure3.Stresses;
+            IVector uInitialFreeDOFs_state2 = microstructure3.uInitialFreeDOFDisplacementsPerSubdomain[1].Copy();
 
+            PrintUtilities.WriteToFileVector(stressesCheck3, @"C:\Users\turbo-x\Desktop\notes_elegxoi\MSOLVE_output_2\stressesCheck3.txt");
+            PrintUtilities.WriteToFileVector(stressesCheck4, @"C:\Users\turbo-x\Desktop\notes_elegxoi\MSOLVE_output_2\stressesCheck4.txt");
+            PrintUtilities.WriteToFile(consCheck1, @"C:\Users\turbo-x\Desktop\notes_elegxoi\MSOLVE_output_2\consCheck1.txt");
+            PrintUtilities.WriteToFileVector(uInitialFreeDOFs_state1.CopyToArray(), @"C:\Users\turbo-x\Desktop\notes_elegxoi\MSOLVE_output_2\uInitialFreeDOFs_state1.txt");
+            PrintUtilities.WriteToFileVector(uInitialFreeDOFs_state2.CopyToArray(), @"C:\Users\turbo-x\Desktop\notes_elegxoi\MSOLVE_output_2\uInitialFreeDOFs_state2.txt");
+
+
+            return (stressesCheck3, stressesCheck4, consCheck1, uInitialFreeDOFs_state1, uInitialFreeDOFs_state2);
         }
 
         #region transformation methods

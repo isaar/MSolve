@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         private bool EstimateOnlyLinearResponse;
         //private NewtonRaphsonNonLinearAnalyzer microAnalyzer;
         private double volume;
-        Dictionary<int, IVector> uInitialFreeDOFDisplacementsPerSubdomain;
+        public Dictionary<int, IVector> uInitialFreeDOFDisplacementsPerSubdomain { get; private set; }
         Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements;
         private IScaleTransitions_v2 scaleTransitions = new DefGradVec3DScaleTransition_v2();
         Random rnd1 = new Random();
@@ -144,7 +144,6 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             {
                 this.InitializeMatrices();
                 this.InitializeData();
-                solverBuilder.DofOrderer = new DofOrderer(new SimpleDofOrderingStrategy(), new NodeMajorReordering());
                 solver = solverBuilder.BuildSolver(model);
                 solver.OrderDofsAndClearLinearSystems(); //model.GlobalDofOrdering = solver.DofOrderer.OrderDofs(model); //TODO find out if new structures cause any problems
                 solver.ResetSubdomainForcesVector();
@@ -152,7 +151,6 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             }
             else
             {
-                solverBuilder.DofOrderer = new DofOrderer(new SimpleDofOrderingStrategy(), new NodeMajorReordering());
                 solver = solverBuilder.BuildSolver(model);
                 solver.OrderDofsAndClearLinearSystems(); //v2.1
                 //solver.ResetSubdomainForcesVector();
@@ -624,7 +622,6 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             {
                 this.InitializeMatrices();
                 this.InitializeData();
-                solverBuilder.DofOrderer = new DofOrderer(new SimpleDofOrderingStrategy(), new NodeMajorReordering());
                 solver = solverBuilder.BuildSolver(model);
                 solver.OrderDofsAndClearLinearSystems(); //model.GlobalDofOrdering = solver.DofOrderer.OrderDofs(model); //TODO find out if new structures cause any problems
                 solver.ResetSubdomainForcesVector();
@@ -632,7 +629,6 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             }
             else
             {
-                solverBuilder.DofOrderer = new DofOrderer(new SimpleDofOrderingStrategy(), new NodeMajorReordering());
                 solver = solverBuilder.BuildSolver(model);
                 solver.OrderDofsAndClearLinearSystems(); //v2.1
                 //solver.ResetSubdomainForcesVector();
