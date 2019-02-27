@@ -13,6 +13,6 @@ namespace ISAAR.MSolve.MultiscaleAnalysis.Interfaces
     /// </summary>
     public interface IdegenerateRVEbuilder_v2 : IRVEbuilder_v2
     {
-        Dictionary<Node, IList<DOFType>> GetModelRigidBodyNodeConstraints(Model_v2 model);
+        Dictionary<Node_v2, IList<DOFType>> GetModelRigidBodyNodeConstraints(Model_v2 model);
     }
 }

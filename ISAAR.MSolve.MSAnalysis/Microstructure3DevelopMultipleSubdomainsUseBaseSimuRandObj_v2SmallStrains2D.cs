@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     /// Primary multiscale analysis class that connects all nesessary structures for a FE2 simulation
     /// Authors: Gerasimos Sotiropoulos
     /// </summary>
-    public class Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2SmallStrains2D : StructuralProblemsMicrostructureBase_v2, IContinuumMaterial3DDefGrad_v2
+    public class Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2SmallStrains2DplaneStress : StructuralProblemsMicrostructureBase_v2, IContinuumMaterial2D_v2
     {
         //PROELEFSI Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2
         //allages apo defgrad egine smallstrains2d me odhgo Microstructure3DevelopMultipleSubdomainsUseBaseSmallStrains2D se sxesh me to Microstructure3DevelopMultipleSubdomainsUseBase.cs
@@ -44,19 +44,19 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         //private readonly Dictionary<int, Node> nodesDictionary = new Dictionary<int, Node>();
         private Dictionary<int, Node_v2> boundaryNodes { get; set; }
         Dictionary<int, Dictionary<int, Element_v2>> boundaryElements;
-        private IRVEbuilder_v2 rveBuilder;
+        private IdegenerateRVEbuilder_v2 rveBuilder;
         private bool EstimateOnlyLinearResponse;
         //private NewtonRaphsonNonLinearAnalyzer microAnalyzer;
         private double volume;
         public Dictionary<int, IVector> uInitialFreeDOFDisplacementsPerSubdomain { get; private set; }
         Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements;
-        private IScaleTransitions_v2 scaleTransitions = new DefGradVec3DScaleTransition_v2();
+        private IScaleTransitions_v2 scaleTransitions = new SmallStrain3Dto2DplaneStressScaleTransition();
         Random rnd1 = new Random();
         ISolverBuilder_v2 solverBuilder;
 
         // aparaithta gia to implementation tou IFiniteElementMaterial3D
         Matrix constitutiveMatrix;
-        private double[] SPK_vec=new double[6];
+        private double[] trueStressVec = new double[6];
         private bool modified; // opws sto MohrCoulomb gia to modified
 
         private double[,] Cijrs_prev;
@@ -64,10 +64,10 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         private double tol;
         public void InitializeMatrices()
         {
-            Cijrs_prev = new double[6, 6];
+            Cijrs_prev = new double[3, 3];
             matrices_not_initialized = false;
             tol = Math.Pow(10, -19);
-            constitutiveMatrix = Matrix.CreateZero(6, 6);
+            constitutiveMatrix = Matrix.CreateZero(3,3);
         }
 
 
@@ -77,7 +77,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         //Random properties 
         private int database_size;
 
-        public Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2SmallStrains2D(IRVEbuilder_v2 rveBuilder, ISolverBuilder_v2 solverBuilder, bool EstimateOnlyLinearResponse, int database_size)
+        public Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2SmallStrains2DplaneStress(IdegenerateRVEbuilder_v2 rveBuilder, ISolverBuilder_v2 solverBuilder, bool EstimateOnlyLinearResponse, int database_size)
         {
             this.rveBuilder = rveBuilder;
             this.solverBuilder = solverBuilder;
@@ -99,9 +99,10 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
 
         private void DefineAppropriateConstraintsForBoundaryNodes()
         {
-            foreach(Node_v2 boundaryNode in boundaryNodes.Values)
+            var RigidBodyNodeConstraints = rveBuilder.GetModelRigidBodyNodeConstraints(model);
+            foreach (Node_v2 boundaryNode in boundaryNodes.Values)
             {
-                scaleTransitions.ImposeAppropriateConstraintsPerBoundaryNode(model, boundaryNode);
+                scaleTransitions.ImposeAppropriateAndRigidBodyConstraintsPerBoundaryNode(model, boundaryNode, RigidBodyNodeConstraints);
             }
         }
 
@@ -112,20 +113,19 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             {
                 uInitialFreeDOFDisplacementsPerSubdomain.Add(subdomain.ID, Vector.CreateZero(subdomain.DofOrdering.NumFreeDofs));// prosoxh sto Id twn subdomain
             }
-            double[,] DGtr = new double[3, 3] { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
-            double[] DefGradVec = new double[9] { DGtr[0, 0], DGtr[1, 1], DGtr[2, 2], DGtr[1, 0], DGtr[2, 1], DGtr[0, 2], DGtr[2, 0], DGtr[0, 1], DGtr[1, 2], };
+            double[] smallStrainVec = new double[3];
             initialConvergedBoundaryDisplacements = new Dictionary<int, Dictionary<DOFType, double>>();
             foreach (Node_v2 boundaryNode in boundaryNodes.Values)
             {
                 scaleTransitions.ModifyMicrostructureTotalPrescribedBoundaryDisplacementsVectorForMacroStrainVariable(boundaryNode,
-                DefGradVec, initialConvergedBoundaryDisplacements);
+                smallStrainVec, initialConvergedBoundaryDisplacements);
             }            
         }
 
         public object Clone()
         {
             int new_rve_id = rnd1.Next(1, database_size + 1);
-            return new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2SmallStrains2D(rveBuilder.Clone(new_rve_id),solverBuilder.Clone(), EstimateOnlyLinearResponse, database_size);
+            return new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2SmallStrains2DplaneStress((IdegenerateRVEbuilder_v2)rveBuilder.Clone(new_rve_id),solverBuilder.Clone(), EstimateOnlyLinearResponse, database_size);
         }
 
         public Dictionary<int, Node_v2> BoundaryNodesDictionary
@@ -137,7 +137,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             get { return boundaryNodes.Values.ToList<Node_v2>(); }
         }
 
-        public void UpdateMaterial(double[] DefGradVec)
+        public void UpdateMaterial(double[] smallStrainVec)
         {
             ISolver_v2 solver;
             if (matrices_not_initialized)
@@ -160,9 +160,9 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
                 }
             }
 
-            for (int i1 = 0; i1 < 6; i1++)
+            for (int i1 = 0; i1 < 3; i1++)
             {
-                for (int j1 = 0; j1 < 6; j1++)
+                for (int j1 = 0; j1 < 3; j1++)
                 {Cijrs_prev[i1, j1] = constitutiveMatrix[i1, j1];}
             }
 
@@ -172,7 +172,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             foreach (Node_v2 boundaryNode in boundaryNodes.Values)
             {
                 scaleTransitions.ModifyMicrostructureTotalPrescribedBoundaryDisplacementsVectorForMacroStrainVariable(boundaryNode,
-                DefGradVec, totalPrescribedBoundaryDisplacements);
+                smallStrainVec, totalPrescribedBoundaryDisplacements);
             }
             #endregion
                      
@@ -241,14 +241,12 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
 
             double[] DqFpp = SubdomainCalculations_v2.CalculateDqFpp_v2(FppReactionVector, scaleTransitions, boundaryNodes);
 
-            double[] FPK_vec = new double [DqFpp.Length];
+            trueStressVec = new double [DqFpp.Length];
             for (int i1 = 0; i1 < DqFpp.Length; i1++)
-            { FPK_vec[i1]=(1 / volume) * DqFpp[i1]; }
+            { trueStressVec[i1]=(1 / volume) * DqFpp[i1]; }
 
-            double[,] DefGradMat = new double[3, 3] { { DefGradVec[0], DefGradVec[3], DefGradVec[6] }, { DefGradVec[7], DefGradVec[1], DefGradVec[4] }, { DefGradVec[5], DefGradVec[8], DefGradVec[2] } };
-            double[,] FPK_mat = new double[3, 3] { { FPK_vec[0], FPK_vec[3], FPK_vec[6] }, { FPK_vec[7], FPK_vec[1], FPK_vec[4] }, { FPK_vec[5], FPK_vec[8], FPK_vec[2] } };
-            double[,] SPK_mat = transformFPKtoSPK(DefGradMat, FPK_mat);
-            SPK_vec = new double[6] { SPK_mat[0,0], SPK_mat[1,1], SPK_mat[2,2], SPK_mat[0,1], SPK_mat[1,2], SPK_mat[0,2] };
+           
+            //SPK_vec = new double[6] { SPK_mat[0,0], SPK_mat[1,1], SPK_mat[2,2], SPK_mat[0,1], SPK_mat[1,2], SPK_mat[0,2] };
             //TODOna elegxthei h parapanw anadiataxh kai o pollaplasiasmos
             #endregion
 
@@ -320,12 +318,12 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             double[][] f4_vectors = SubdomainCalculations_v2.SubtractConsecutiveVectors_v2(KppDqVectors, f3_vectors);
             double[,] DqCondDq = SubdomainCalculations_v2.CalculateDqCondDq_v2(f4_vectors, scaleTransitions, boundaryNodes);
 
-            double[,] d2W_dfdf = new double[DqCondDq.GetLength(0), DqCondDq.GetLength(1)];
+            double[,] constitutiveMat = new double[DqCondDq.GetLength(0), DqCondDq.GetLength(1)];
             for (int i1 = 0; i1 < DqCondDq.GetLength(0); i1++)
             {
                 for (int i2 = 0; i2 < DqCondDq.GetLength(1); i2++)
                 {
-                    d2W_dfdf[i1, i2] = (1 / volume) * DqCondDq[i1, i2];
+                    constitutiveMat[i1, i2] = (1 / volume) * DqCondDq[i1, i2];
                 }
             }
             #endregion
@@ -335,15 +333,11 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             #endregion
 
             #region constitutive tensors transformation methods
-            double[,] d2W_dFtrdFtr = Reorder_d2Wdfdf_to_d2W_dFtrdFtr(d2W_dfdf);
-
-            double[,] Cinpk = Transform_d2WdFtrdFtr_to_Cijrs(d2W_dFtrdFtr, SPK_mat, DefGradMat); // to onomazoume Cinpk epeidh einai to 9x9 kai to diakrinoume etsi apo to Cijrs 6x6
             
-            double[,] Cijrs = CombineCinpkTensorTermsIntoMatrix(Cinpk);
             
             #endregion
 
-            constitutiveMatrix = Matrix.CreateFromArray(Cijrs);
+            this.constitutiveMatrix = Matrix.CreateFromArray(constitutiveMat);
 
             //PrintMethodsForDebug(KfpDq, f2_vectors, f3_vectors, KppDqVectors, f4_vectors, DqCondDq, d2W_dfdf, Cijrs);
             this.modified = CheckIfConstitutiveMatrixChanged(); 
@@ -351,8 +345,8 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
 
         private bool CheckIfConstitutiveMatrixChanged()
         {
-            for (int i = 0; i < 6; i++)
-                for (int j = 0; j < 6; j++)
+            for (int i = 0; i < 3; i++)
+                for (int j = 0; j < 3; j++)
                     if (Math.Abs(Cijrs_prev[i, j] - constitutiveMatrix[i, j]) > 1e-10)
                         return true;
 
@@ -374,7 +368,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
 
         public double[] Stresses // opws xrhsimopoeitai sto mohrcoulomb kai hexa8
         {
-            get { return SPK_vec; }
+            get { return trueStressVec; }
         }
 
         public void SaveState()
@@ -425,195 +419,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         public double PoissonRatio => throw new NotSupportedException();
 
 
-        #region transformation methods
-        private double[,] transformFPKtoSPK(double[,] DefGradMat, double[,] FPK_mat)
-        {
-            //IMatrix2D DefGradMat2D = new Matrix2D(DefGradMat);
-            //int linearsystemID = 1;
-            //SkylineLinearSystem linearSystem = new SkylineLinearSystem(linearsystemID, new double[3] { FPK_mat[0, 0], FPK_mat[1, 0], FPK_mat[2, 0] });
-            //var solver = new SolverSkyline(linearSystem);
-
-            //// BuildMatrices();
-            //linearSystem.Matrix = DefGradMat2D;
-
-            ////solver.Initialize();
-            //solver.Initialize(); // dld factorize
-
-            //// me thn parakatw commented out entolh anathetoume to linearSystem.RHS se ena vector sto opoio mporoumen na anaferthoume na kanoume copyTo klp.
-            ////Vector linearSystemRHS = ((Vector)linearSystem.RHS); // opws fainetai sth diadikasia pou kanei o NRNLAnalyzer sthn clculateInternalRHS sto telos tou loop
-
-            double[,] SPK_Mat = new double[3, 3];
-            //Vector solution = new Vector(new double[3]);
-
-            for (int j1 = 0; j1 < 3; j1++)
-            {
-                double[] RHS = new double[3] { FPK_mat[0, j1], FPK_mat[1, j1], FPK_mat[2, j1] };
-                double[] solution = commonCalculations.invert3by3(DefGradMat, RHS);                
-                for (int i1 = 0; i1 < 3; i1++)
-                {
-                    SPK_Mat[i1, j1] = solution[i1];
-                }
-            }
-
-            return SPK_Mat;
-        }
-
         
-        private double[,] Transform_d2WdFtrdFtr_to_Cijrs(double[,] Aijkl, double[,] SPK, double[,] F)
-        {
-            int[,] i_seira = { { 1, 2, 3 }, { 3, 1, 2 }, { 2, 3, 1 } };
-            int[,] k_seira = { { 1, 2, 3 }, { 3, 1, 2 }, { 2, 3, 1 } };
-
-            double[,] Cinpk = new double[9, 9];
-
-            double[,] F__F__ = new double[9, 9];
-            
-
-            for (int i1 = 0; i1 < 3; i1++)
-            {
-                for (int j1 = 0; j1 < 3; j1++)
-                {
-                    for (int k = 0; k < 3; k++)
-                    {
-                        for (int l = 0; l < 3; l++)
-                        {
-                            F__F__[3 * i1 + k, 3 * j1 + l] = F[k, j1] * F[i1, l];
-                        }
-                    }
-
-                }
-            }
-
-            Matrix F__F__Mat = Matrix.CreateFromArray(F__F__);            
-
-            double[,] multipleRHSs=new double [9,9];
-            for (int i1 = 0; i1 < 3; i1++)
-            {
-                for (int k1 = 0; k1 < 3; k1++)
-                {
-                    double[] A_j_l = new double[9] { Aijkl[3 * (i_seira[i1, 0] - 1) + i1, 3 * (k_seira[k1, 0] - 1) + k1],
-                    Aijkl[3 * (i_seira[i1, 1] - 1) + i1, 3 * (k_seira[k1, 0] - 1) + k1],
-                    Aijkl[3 * (i_seira[i1, 2] - 1) + i1, 3 * (k_seira[k1, 0] - 1) + k1],
-                    Aijkl[3 * (i_seira[i1, 0] - 1) + i1, 3 * (k_seira[k1, 1] - 1) + k1],
-                    Aijkl[3 * (i_seira[i1, 1] - 1) + i1, 3 * (k_seira[k1, 1] - 1) + k1],
-                    Aijkl[3 * (i_seira[i1, 2] - 1) + i1, 3 * (k_seira[k1, 1] - 1) + k1],
-                    Aijkl[3 * (i_seira[i1, 0] - 1) + i1, 3 * (k_seira[k1, 2] - 1) + k1],
-                    Aijkl[3 * (i_seira[i1, 1] - 1) + i1, 3 * (k_seira[k1, 2] - 1) + k1],
-                    Aijkl[3 * (i_seira[i1, 2] - 1) + i1, 3 * (k_seira[k1, 2] - 1) + k1]};
-
-                    double[] sec_term = new double[9] { -SPK[i1 , k1 ], 0, 0, 0, -SPK[i1 , k1 ], 0, 0, 0, -SPK[i1, k1] };
-                    
-                    int RHScolumn = i1 * 3 + k1;
-                    for (int a1 = 0; a1 < 9; a1++)
-                    {
-                        multipleRHSs[a1, RHScolumn] = A_j_l[a1] + sec_term[a1];
-                    }
-                    
-                }
-            }
-
-            //TODO use solution multiple RHSs when pavailable :Matrix2D MultipleSolutions = F__F__Mat.SolveLU(new Matrix2D(multipleRHSs), true);
-            Matrix inverse = F__F__Mat.Invert();
-            Matrix MultipleSolutions = Matrix.CreateZero(9, 9);
-            for (int i1=0; i1<9; i1++)
-            {
-                double[] RHS = new double[9];
-                for (int i2 = 0; i2 < 9; i2++)
-                {
-                    RHS[i2] = multipleRHSs[i2, i1];
-                }
-                Vector solution = inverse * Vector.CreateFromArray(RHS);
-                for (int i2 = 0; i2 < 9; i2++)
-                {
-                    MultipleSolutions[i2,i1] = solution[i2];
-                }
-
-            }
-
-
-            for (int i1 = 0; i1 < 3; i1++)
-            {
-                for (int k1 = 0; k1 < 3; k1++)
-                {                    
-                    int RHScolumn = i1 * 3 + k1;                    
-
-                    Cinpk[3 * (i_seira[i1, 0] - 1) + i1, 3 * (k_seira[0, k1] - 1) + 0] = MultipleSolutions[0,RHScolumn];
-                    Cinpk[3 * (i_seira[i1, 0] - 1) + i1, 3 * (k_seira[1, k1] - 1) + 1] = MultipleSolutions[1,RHScolumn];
-                    Cinpk[3 * (i_seira[i1, 0] - 1) + i1, 3 * (k_seira[2, k1] - 1) + 2] = MultipleSolutions[2,RHScolumn];
-                    Cinpk[3 * (i_seira[i1, 1] - 1) + i1, 3 * (k_seira[0, k1] - 1) + 0] = MultipleSolutions[3,RHScolumn];
-                    Cinpk[3 * (i_seira[i1, 1] - 1) + i1, 3 * (k_seira[1, k1] - 1) + 1] = MultipleSolutions[4,RHScolumn];
-                    Cinpk[3 * (i_seira[i1, 1] - 1) + i1, 3 * (k_seira[2, k1] - 1) + 2] = MultipleSolutions[5,RHScolumn];
-                    Cinpk[3 * (i_seira[i1, 2] - 1) + i1, 3 * (k_seira[0, k1] - 1) + 0] = MultipleSolutions[6,RHScolumn];
-                    Cinpk[3 * (i_seira[i1, 2] - 1) + i1, 3 * (k_seira[1, k1] - 1) + 1] = MultipleSolutions[7,RHScolumn];
-                    Cinpk[3 * (i_seira[i1, 2] - 1) + i1, 3 * (k_seira[2, k1] - 1) + 2] = MultipleSolutions[8,RHScolumn];
-
-                }
-            }
-
-
-            return Cinpk;
-        }
-
-        private double[,] CombineCinpkTensorTermsIntoMatrix(double[,] Cinpk)
-        {
-            // transformation se 6x6 se 2 vhmata
-
-            double[,] Cijrs_columns = new double[9, 6];
-            for (int i1 = 0; i1 < 9; i1++)
-            {
-                Cijrs_columns[i1, 0] = Cinpk[i1, 0];
-                Cijrs_columns[i1, 1] = Cinpk[i1, 1];
-                Cijrs_columns[i1, 2] = Cinpk[i1, 2];
-                Cijrs_columns[i1, 3] = 0.5 * (Cinpk[i1, 3] + Cinpk[i1, 7]);
-                Cijrs_columns[i1, 4] = 0.5 * (Cinpk[i1, 4] + Cinpk[i1, 8]);
-                Cijrs_columns[i1, 5] = 0.5 * (Cinpk[i1, 5] + Cinpk[i1, 6]);
-            }
-
-            double[,] Cijrs = new double[6, 6];
-
-            for (int j1 = 0; j1 < 6; j1++)
-            {
-                Cijrs[0, j1] = Cijrs_columns[0, j1];
-                Cijrs[1, j1] = Cijrs_columns[1, j1];
-                Cijrs[2, j1] = Cijrs_columns[2, j1];
-                Cijrs[3, j1] = 0.5 * (Cijrs_columns[3, j1] + Cijrs_columns[7, j1]);
-                Cijrs[4, j1] = 0.5 * (Cijrs_columns[4, j1] + Cijrs_columns[8, j1]);
-                Cijrs[5, j1] = 0.5 * (Cijrs_columns[5, j1] + Cijrs_columns[6, j1]);
-            }
-
-            return Cijrs;
-        }
-
-        private double[,] Reorder_d2Wdfdf_to_d2W_dFtrdFtr(double[,] d2W_dfdf)
-        {
-            int[,] matLineData = new int[3, 3] { { 1, 4, 7 }, { 8, 2, 5 }, { 6, 9, 3 } };
-
-            double[,] d2W_dFtrdFtr = new double[9, 9];
-
-            for (int i1 = 1; i1 < 4; i1++)
-            {
-                for (int i2 = 1; i2 < 4; i2++)
-                {
-                    for (int i3 = 1; i3 < 4; i3++)
-                    {
-                        for (int i4 = 1; i4 < 4; i4++)
-                        {
-
-                            int d2 = i1; int d1 = i2; int d4 = i3; int d3 = i4;
-
-                            int matLineA = matLineData[i1 - 1, i2 - 1]; //meion 1 logw zero based
-                            int matRowA = matLineData[i3 - 1, i4 - 1];
-                            int matLineW = matLineData[d1 - 1, d2 - 1];
-                            int matRowW = matLineData[d3 - 1, d4 - 1];
-
-                            d2W_dFtrdFtr[matLineA - 1, matRowA - 1] = d2W_dfdf[matLineW - 1, matRowW - 1];
-                        }
-                    }
-                }
-            }
-            return d2W_dFtrdFtr;
-        }
-        #endregion
 
         public void CalculateOriginalConstitutiveMatrixWithoutNLAnalysis()
         {
@@ -671,26 +477,19 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             double[][] f4_vectors = SubdomainCalculations_v2.SubtractConsecutiveVectors_v2(KppDqVectors, f3_vectors);
             double[,] DqCondDq = SubdomainCalculations_v2.CalculateDqCondDq_v2(f4_vectors, scaleTransitions, boundaryNodes);
 
-            double[,] d2W_dfdf = new double[DqCondDq.GetLength(0), DqCondDq.GetLength(1)];
+            double[,] constitutiveMat = new double[DqCondDq.GetLength(0), DqCondDq.GetLength(1)];
             for (int i1 = 0; i1 < DqCondDq.GetLength(0); i1++)
             {
                 for (int i2 = 0; i2 < DqCondDq.GetLength(1); i2++)
                 {
-                    d2W_dfdf[i1, i2] = (1 / volume) * DqCondDq[i1, i2];
+                    constitutiveMat[i1, i2] = (1 / volume) * DqCondDq[i1, i2];
                 }
             }
             
             #endregion
 
-            #region constitutive tensors transformation methods
-            double[,] d2W_dFtrdFtr = Reorder_d2Wdfdf_to_d2W_dFtrdFtr(d2W_dfdf);
-
-            double[,] SPK_mat = new double[3, 3] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }; double[,] DefGradMat=new double[3, 3] { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
-            double[,] Cinpk = Transform_d2WdFtrdFtr_to_Cijrs(d2W_dFtrdFtr, SPK_mat, DefGradMat); // to onomazoume Cinpk epeidh einai to 9x9 kai to diakrinoume etsi apo to Cijrs 6x6
-
-            double[,] Cijrs = CombineCinpkTensorTermsIntoMatrix(Cinpk);
-           
-            constitutiveMatrix = Matrix.CreateFromArray(Cijrs);
+            #region constitutive tensors transformation methods                       
+            constitutiveMatrix = Matrix.CreateFromArray(constitutiveMat);
             #endregion
 
             //PrintMethodsForDebug(KfpDq, f2_vectors, f3_vectors, KppDqVectors, f4_vectors, DqCondDq, d2W_dfdf, Cijrs);
