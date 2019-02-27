@@ -36,7 +36,7 @@ using ISAAR.MSolve.Preprocessor.Meshes.Custom;
 //     |     
 //   width
 
-namespace ISAAR.MSolve.Tests.Solvers
+namespace ISAAR.MSolve.Solvers.Tests
 {
     public class CantileverBeam
     {

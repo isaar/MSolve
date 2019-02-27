@@ -12,7 +12,7 @@ using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using Xunit;
 
 //TODO: add performance logging for solvers and gather all these in the same method.
-namespace ISAAR.MSolve.Tests.Solvers
+namespace ISAAR.MSolve.Solvers.Tests
 {
     public static class SingleSubdomainTests
     {

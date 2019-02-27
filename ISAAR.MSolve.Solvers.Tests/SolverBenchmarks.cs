@@ -1,7 +1,7 @@
 ﻿using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
-using ISAAR.MSolve.Tests.Solvers;
+using ISAAR.MSolve.Solvers.Tests;
 
 namespace ISAAR.MSolve.SamplesConsole.Solvers
 {

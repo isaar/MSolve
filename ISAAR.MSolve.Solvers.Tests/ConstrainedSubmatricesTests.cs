@@ -11,7 +11,7 @@ using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.LinearSystems;
 using Xunit;
 
-namespace ISAAR.MSolve.Tests.Solvers
+namespace ISAAR.MSolve.Solvers.Tests
 {
     public static class ConstrainedSubmatricesTests
     {
