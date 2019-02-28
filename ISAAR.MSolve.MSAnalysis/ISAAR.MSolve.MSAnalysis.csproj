@@ -13,4 +13,8 @@
     <ProjectReference Include="..\ISAAR.MSolve.Problems\ISAAR.MSolve.Problems.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="RveTemplates\" />
+  </ItemGroup>
+
 </Project>

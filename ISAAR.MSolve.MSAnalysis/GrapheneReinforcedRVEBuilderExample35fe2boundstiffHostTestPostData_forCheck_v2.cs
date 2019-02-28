@@ -68,11 +68,14 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             //rveMatrixParameters mp;
             //grapheneSheetParameters gp;
             var rve_id_data = RVE_id.ToString();
-            renumbering_vector_path = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2_forCheck\RVE_database\rve_no_{0}\REF_new_total_numbering.txt";
+            //renumbering_vector_path = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2_forCheck\RVE_database\rve_no_{0}\REF_new_total_numbering.txt";
+            renumbering_vector_path = "..\\..\\..\\RveTemplates\\Input\\RveGrShOne\\rve_no_{0}\\REF_new_total_numbering.txt";
             renumbering_vector_path = string.Format(renumbering_vector_path, rve_id_data);
-            string Fxk_p_komvoi_rve_path = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2_forCheck\RVE_database\rve_no_{0}\Fxk_p_komvoi_rve.txt";
+            //string Fxk_p_komvoi_rve_path = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2_forCheck\RVE_database\rve_no_{0}\Fxk_p_komvoi_rve.txt";
+            string Fxk_p_komvoi_rve_path = "..\\..\\..\\RveTemplates\\Input\\RveGrShOne\\rve_no_{0}\\Fxk_p_komvoi_rve.txt";
             Fxk_p_komvoi_rve_path = string.Format(Fxk_p_komvoi_rve_path, rve_id_data);
-            string o_xsunol_input_path_gen = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2_forCheck\RVE_database\rve_no_{0}\o_xsunol_gs_";
+            //string o_xsunol_input_path_gen = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2_forCheck\RVE_database\rve_no_{0}\o_xsunol_gs_";
+            string o_xsunol_input_path_gen = "..\\..\\..\\RveTemplates\\Input\\RveGrShOne\\rve_no_{0}\\o_xsunol_gs_";
             o_xsunol_input_path_gen = string.Format(o_xsunol_input_path_gen, rve_id_data);
             o_xsunol_input_path_gen = o_xsunol_input_path_gen + "{0}.txt";
             int subdiscr1 = 6;

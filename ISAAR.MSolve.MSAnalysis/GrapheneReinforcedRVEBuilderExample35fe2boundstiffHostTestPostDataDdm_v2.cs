@@ -29,6 +29,11 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         //PROELEFSI branch: example/ms_development_nl_elements_merge (xwris sto telos _v2)
         // allages update se v2
 
+        public int[] hexaPrint { get; private set; }
+        public int[] cohePrint { get; private set; }
+        public int[] shellPrint { get; private set; }
+        
+
         Tuple<rveMatrixParameters, grapheneSheetParameters> mpgp;
         rveMatrixParameters mp;
         grapheneSheetParameters gp;
@@ -60,11 +65,14 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             //rveMatrixParameters mp;
             //grapheneSheetParameters gp;
             var rve_id_data = RVE_id.ToString();
-            renumbering_vector_path = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2\RVE_database\rve_no_{0}\REF_new_total_numbering.txt";
+            //renumbering_vector_path = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2\RVE_database\rve_no_{0}\REF_new_total_numbering.txt";
+            renumbering_vector_path = "..\\..\\..\\RveTemplates\\Input\\RveGrShMultiple\\rve_no_{0}\\REF_new_total_numbering.txt";
             renumbering_vector_path = string.Format(renumbering_vector_path, rve_id_data);
-            string Fxk_p_komvoi_rve_path = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2\RVE_database\rve_no_{0}\Fxk_p_komvoi_rve.txt";
+            //string Fxk_p_komvoi_rve_path = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2\RVE_database\rve_no_{0}\Fxk_p_komvoi_rve.txt";
+            string Fxk_p_komvoi_rve_path = "..\\..\\..\\RveTemplates\\Input\\RveGrShMultiple\\rve_no_{0}\\Fxk_p_komvoi_rve.txt";
             Fxk_p_komvoi_rve_path = string.Format(Fxk_p_komvoi_rve_path, rve_id_data);
-            string o_xsunol_input_path_gen = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2\RVE_database\rve_no_{0}\o_xsunol_gs_";
+            //string o_xsunol_input_path_gen = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2\RVE_database\rve_no_{0}\o_xsunol_gs_";
+            string o_xsunol_input_path_gen = "..\\..\\..\\RveTemplates\\Input\\RveGrShMultiple\\rve_no_{0}\\o_xsunol_gs_";
             o_xsunol_input_path_gen = string.Format(o_xsunol_input_path_gen, rve_id_data);
             o_xsunol_input_path_gen = o_xsunol_input_path_gen + "{0}.txt";
             string subdomainOutputPath_gen = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2\RVE_database\rve_no_{0}";
@@ -155,7 +163,18 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             int[][] subdElementIds2 = DdmCalculationsGeneral_v2.CombineSubdomainElementsIdsArraysIntoOne(subdElementIds1, subdShellElementIds);
             DdmCalculationsGeneral_v2.UndoModelInterconnectionDataBuild(model);
             DdmCalculations_v2.SeparateSubdomains(model, subdElementIds2);
-            DdmCalculationsGeneral_v2.PrintSubdomainDataForPostPro(subdHexaIds, subdCohElementIds, subdShellElementIds, subdomainOutputPath);
+
+            bool print_subdomain_data = false;
+            if (print_subdomain_data)
+            {
+                DdmCalculationsGeneral_v2.PrintSubdomainDataForPostPro(subdHexaIds, subdCohElementIds, subdShellElementIds, subdomainOutputPath);
+            }
+
+            bool get_subdomain_data = true;
+            if (get_subdomain_data)
+            {
+                (hexaPrint, cohePrint, shellPrint) = DdmCalculationsGeneral_v2.GetSubdomainDataForPostPro(subdHexaIds, subdCohElementIds, subdShellElementIds, subdomainOutputPath);
+            }
 
             return new Tuple<Model_v2, Dictionary<int, Node_v2>,double>(model, boundaryNodes,volume);
 

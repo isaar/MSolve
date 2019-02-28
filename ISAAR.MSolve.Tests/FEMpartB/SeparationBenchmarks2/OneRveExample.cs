@@ -68,7 +68,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks2
             return (stressesCheck3, stressesCheck4, consCheck1, uInitialFreeDOFs_state1, uInitialFreeDOFs_state2);
         }
 
-        public static void Check_Graphene_rve_parallel() //palio "Check_Graphene_rve_Obje_v2_Integration()"
+        public static (int[], int[], int[]) Check_Graphene_rve_parallel() //palio "Check_Graphene_rve_Obje_v2_Integration()"
         {
             //PROELEFSI h methodos Check_Graphene_rve_serial() tou parontos
             //PROELEFSI: SeparateCodeCheckingClass4.Check_Graphene_rve_Obje_v2_Integration apo to branch: example/ms_development_nl_elements_merge
@@ -93,13 +93,15 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks2
             double[] stressesCheck2 = material1.Stresses;
 
             // den xreiazetai poia VectorExtensions.AssignTotalAffinityCount();
-            IRVEbuilder_v2 grapheneRveBuilder1 = new GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostDataDdm_v2(1);
+            var grapheneRveBuilder1 = new GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostDataDdm_v2(1);
             //IRVEbuilder homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheckEnaHexa();
 
             // pros to paron
-            var ModelAndNodes = grapheneRveBuilder1.GetModelAndBoundaryNodes();
-            var breakpoint = "here";
-
+            var ModelAndNodes = grapheneRveBuilder1.GetModelAndBoundaryNodes();            
+            int[] hexaPrint = grapheneRveBuilder1.hexaPrint;
+            int[] cohePrint = grapheneRveBuilder1.cohePrint;
+            int[] shellPrint = grapheneRveBuilder1.shellPrint;
+            return (hexaPrint, cohePrint, shellPrint);
 
             IContinuumMaterial3DDefGrad_v2 microstructure3 = new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2(grapheneRveBuilder1, new SkylineSolver.Builder(), false, 1);
             //IContinuumMaterial3DDefGrad microstructure3copyConsCheck = new Microstructure3copyConsCheckEna(homogeneousRveBuilder1);
@@ -111,6 +113,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks2
             microstructure3.SaveState();
             microstructure3.UpdateMaterial(new double[9] { 1.10, 1, 1, 0, 0, 0, 0, 0, 0 });
             double[] stressesCheck4 = microstructure3.Stresses;
+
 
         }
 

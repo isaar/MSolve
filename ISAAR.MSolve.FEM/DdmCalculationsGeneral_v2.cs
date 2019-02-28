@@ -463,6 +463,126 @@ namespace ISAAR.MSolve.SamplesConsole.SupportiveClasses
 
         }
 
+        public static (int[], int[], int[]) GetSubdomainDataForPostPro(int[][] subdHexaIds, int[][] subdCohElementIds, int[][] subdShellElementIds, string generalPath)
+        {
+            string hexaPath = generalPath + @"\subdomainHexas.txt";
+            string cohPath = generalPath + @"\subdomainCohesiveElements.txt";
+            string shellPath = generalPath + @"\subdomainShellElements.txt";
+
+            #region hexa elements
+            int hexaPrintLength = 0;
+            for (int i1 = 0; i1 < subdHexaIds.Length; i1++)
+            {
+                if (subdHexaIds[i1] == null)
+                {
+                    hexaPrintLength += 1;
+                }
+                else
+                {
+                    hexaPrintLength += 1 + subdHexaIds[i1].Length;
+                }
+            }
+
+            var hexaPrint = new int[hexaPrintLength];
+            int hexaPrintCounter = 0;
+            for (int i1 = 0; i1 < subdHexaIds.Length; i1++)
+            {
+                if (subdHexaIds[i1] == null)
+                {
+                    hexaPrint[hexaPrintCounter] = 0;
+                    hexaPrintCounter += 1;
+                }
+                else
+                {
+                    hexaPrint[hexaPrintCounter] = subdHexaIds[i1].Length;
+                    hexaPrintCounter += 1;
+                    for (int i2 = 0; i2 < subdHexaIds[i1].Length; i2++)
+                    {
+                        hexaPrint[hexaPrintCounter] = subdHexaIds[i1][i2];
+                        hexaPrintCounter += 1;
+                    }
+                }
+            }
+            //WriteToFileVector(hexaPrint, hexaPath);
+            #endregion
+
+            #region cohesive elements
+            int cohePrintLength = 0;
+            for (int i1 = 0; i1 < subdCohElementIds.Length; i1++)
+            {
+                if (subdCohElementIds[i1] == null)
+                {
+                    cohePrintLength += 1;
+                }
+                else
+                {
+                    cohePrintLength += 1 + subdCohElementIds[i1].Length;
+                }
+            }
+
+            var cohePrint = new int[cohePrintLength];
+            int cohePrintCounter = 0;
+            for (int i1 = 0; i1 < subdCohElementIds.Length; i1++)
+            {
+                if (subdCohElementIds[i1] == null)
+                {
+                    cohePrint[cohePrintCounter] = 0;
+                    cohePrintCounter += 1;
+                }
+                else
+                {
+                    cohePrint[cohePrintCounter] = subdCohElementIds[i1].Length;
+                    cohePrintCounter += 1;
+                    for (int i2 = 0; i2 < subdCohElementIds[i1].Length; i2++)
+                    {
+                        cohePrint[cohePrintCounter] = subdCohElementIds[i1][i2];
+                        cohePrintCounter += 1;
+                    }
+                }
+            }
+            //WriteToFileVector(cohePrint, cohPath);
+            #endregion
+
+            #region shell elements
+            int shellPrintLength = 0;
+            for (int i1 = 0; i1 < subdShellElementIds.Length; i1++)
+            {
+                if (subdShellElementIds[i1] == null)
+                {
+                    shellPrintLength += 1;
+                }
+                else
+                {
+                    shellPrintLength += 1 + subdShellElementIds[i1].Length;
+                }
+            }
+
+            var shellPrint = new int[shellPrintLength];
+            int shellPrintCounter = 0;
+            for (int i1 = 0; i1 < subdShellElementIds.Length; i1++)
+            {
+                if (subdShellElementIds[i1] == null)
+                {
+                    shellPrint[shellPrintCounter] = 0;
+                    shellPrintCounter += 1;
+                }
+                else
+                {
+                    shellPrint[shellPrintCounter] = subdShellElementIds[i1].Length;
+                    shellPrintCounter += 1;
+                    for (int i2 = 0; i2 < subdShellElementIds[i1].Length; i2++)
+                    {
+                        shellPrint[shellPrintCounter] = subdShellElementIds[i1][i2];
+                        shellPrintCounter += 1;
+                    }
+                }
+            }
+            //WriteToFileVector(shellPrint, shellPath);
+            #endregion
+
+            return (hexaPrint, cohePrint, shellPrint);
+        }
+
         public static void WriteToFileVector(int[] array, string path2)
         {
             var writer2 = new StreamWriter(path2);

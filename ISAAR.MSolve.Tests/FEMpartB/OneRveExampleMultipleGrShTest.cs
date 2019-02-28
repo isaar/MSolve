@@ -45,5 +45,41 @@ namespace ISAAR.MSolve.Tests.FEMpartB
 
 
         }
+
+        [Fact]
+        public static void CheckOneRveParallel()
+        {
+            (int[] hexaPrint,int[] cohePrint, int[] shellPrint) = OneRveExample.Check_Graphene_rve_parallel();
+
+            string results_file1 = "..\\..\\..\\RveTemplates\\Input\\RveGrShMultiple\\rve_no_1\\subdomainHexas.txt";
+            string results_file2 = "..\\..\\..\\RveTemplates\\Input\\RveGrShMultiple\\rve_no_1\\subdomainCohesiveElements.txt";
+            string results_file3 = "..\\..\\..\\RveTemplates\\Input\\RveGrShMultiple\\rve_no_1\\subdomainShellElements.txt";
+            //string results_file4 = "..\\..\\..\\InputFiles\\MicroStructureAndIntegrationOneRveMultipleGrSh\\stressesCheck3.txt";
+            //string results_file5 = "..\\..\\..\\InputFiles\\MicroStructureAndIntegrationOneRveMultipleGrSh\\stressesCheck4.txt";
+            int[] hexaPrintExpected = PrintUtilities.ReadIntVector(results_file1);
+            int[] cohePrintExpected = PrintUtilities.ReadIntVector(results_file2);
+            int[] shellPrintExpected = PrintUtilities.ReadIntVector(results_file3);
+            
+
+            Assert.True(AreDisplacementsSame_v2(hexaPrint, hexaPrintExpected));
+            Assert.True(AreDisplacementsSame_v2(cohePrint, cohePrintExpected));
+            Assert.True(AreDisplacementsSame_v2(shellPrint, shellPrintExpected));
+
+
+        }
+
+        public static bool AreDisplacementsSame_v2(int[] expectedValues,
+            int[] computedValues)
+        {
+            var comparer = new ValueComparer(1E-14);
+            for (int i1 = 0; i1 < expectedValues.GetLength(0); i1++)
+            {
+                if (!comparer.AreEqual(expectedValues[i1], computedValues[i1]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 }
