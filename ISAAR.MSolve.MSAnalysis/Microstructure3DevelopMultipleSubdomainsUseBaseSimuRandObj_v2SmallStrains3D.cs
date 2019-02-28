@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     /// Primary multiscale analysis class that connects all nesessary structures for a FE2 simulation
     /// Authors: Gerasimos Sotiropoulos
     /// </summary>
-    public class Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2SmallStrains2DplaneStress : StructuralProblemsMicrostructureBase_v2, IContinuumMaterial2D_v2
+    public class Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2SmallStrains3D : StructuralProblemsMicrostructureBase_v2, IContinuumMaterial3D_v2
     {
         //PROELEFSI Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2
         //allages apo defgrad egine smallstrains2d me odhgo Microstructure3DevelopMultipleSubdomainsUseBaseSmallStrains2D se sxesh me to Microstructure3DevelopMultipleSubdomainsUseBase.cs
@@ -44,13 +44,13 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         //private readonly Dictionary<int, Node> nodesDictionary = new Dictionary<int, Node>();
         private Dictionary<int, Node_v2> boundaryNodes { get; set; }
         Dictionary<int, Dictionary<int, Element_v2>> boundaryElements;
-        private IdegenerateRVEbuilder_v2 rveBuilder;
+        private IRVEbuilder_v2 rveBuilder;
         private bool EstimateOnlyLinearResponse;
         //private NewtonRaphsonNonLinearAnalyzer microAnalyzer;
         private double volume;
         public Dictionary<int, IVector> uInitialFreeDOFDisplacementsPerSubdomain { get; private set; }
         Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements;
-        private IScaleTransitions_v2 scaleTransitions = new SmallStrain3Dto2DplaneStressScaleTransition();
+        private IScaleTransitions_v2 scaleTransitions = new SmallStrain3DScaleTransition();
         Random rnd1 = new Random();
         ISolverBuilder_v2 solverBuilder;
 
@@ -64,10 +64,10 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         private double tol;
         public void InitializeMatrices()
         {
-            Cijrs_prev = new double[3, 3];
+            Cijrs_prev = new double[6,6];
             matrices_not_initialized = false;
             tol = Math.Pow(10, -19);
-            constitutiveMatrix = Matrix.CreateZero(3,3);
+            constitutiveMatrix = Matrix.CreateZero(6,6);
         }
 
 
@@ -77,7 +77,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         //Random properties 
         private int database_size;
 
-        public Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2SmallStrains2DplaneStress(IdegenerateRVEbuilder_v2 rveBuilder, ISolverBuilder_v2 solverBuilder, bool EstimateOnlyLinearResponse, int database_size)
+        public Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2SmallStrains3D(IRVEbuilder_v2 rveBuilder, ISolverBuilder_v2 solverBuilder, bool EstimateOnlyLinearResponse, int database_size)
         {
             this.rveBuilder = rveBuilder;
             this.solverBuilder = solverBuilder;
@@ -99,10 +99,9 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
 
         private void DefineAppropriateConstraintsForBoundaryNodes()
         {
-            var RigidBodyNodeConstraints = rveBuilder.GetModelRigidBodyNodeConstraints(model);
             foreach (Node_v2 boundaryNode in boundaryNodes.Values)
             {
-                scaleTransitions.ImposeAppropriateAndRigidBodyConstraintsPerBoundaryNode(model, boundaryNode, RigidBodyNodeConstraints);
+                scaleTransitions.ImposeAppropriateConstraintsPerBoundaryNode(model, boundaryNode);
             }
         }
 
@@ -113,7 +112,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             {
                 uInitialFreeDOFDisplacementsPerSubdomain.Add(subdomain.ID, Vector.CreateZero(subdomain.DofOrdering.NumFreeDofs));// prosoxh sto Id twn subdomain
             }
-            double[] smallStrainVec = new double[3];
+            double[] smallStrainVec = new double[6];
             initialConvergedBoundaryDisplacements = new Dictionary<int, Dictionary<DOFType, double>>();
             foreach (Node_v2 boundaryNode in boundaryNodes.Values)
             {
@@ -125,7 +124,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         public object Clone()
         {
             int new_rve_id = rnd1.Next(1, database_size + 1);
-            return new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2SmallStrains2DplaneStress((IdegenerateRVEbuilder_v2)rveBuilder.Clone(new_rve_id),solverBuilder.Clone(), EstimateOnlyLinearResponse, database_size);
+            return new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2SmallStrains3D(rveBuilder.Clone(new_rve_id),solverBuilder.Clone(), EstimateOnlyLinearResponse, database_size);
         }
 
         public Dictionary<int, Node_v2> BoundaryNodesDictionary
@@ -160,9 +159,9 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
                 }
             }
 
-            for (int i1 = 0; i1 < 3; i1++)
+            for (int i1 = 0; i1 < 6; i1++)
             {
-                for (int j1 = 0; j1 < 3; j1++)
+                for (int j1 = 0; j1 < 6; j1++)
                 {Cijrs_prev[i1, j1] = constitutiveMatrix[i1, j1];}
             }
 
@@ -345,8 +344,8 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
 
         private bool CheckIfConstitutiveMatrixChanged()
         {
-            for (int i = 0; i < 3; i++)
-                for (int j = 0; j < 3; j++)
+            for (int i = 0; i < 6; i++)
+                for (int j = 0; j < 6; j++)
                     if (Math.Abs(Cijrs_prev[i, j] - constitutiveMatrix[i, j]) > 1e-10)
                         return true;
 
@@ -508,7 +507,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         }
 
         #region transformation methods
-        //TODO: implement and use methods for shell transformation
+        //TODO: these methods can be deleted or implemented only for the case of an oriented rve
         private double[] transformTrueStressVec(double[] trueStressVec, double[] tangent1, double[] tangent2, double[] normal)
         {
             throw new NotImplementedException();
