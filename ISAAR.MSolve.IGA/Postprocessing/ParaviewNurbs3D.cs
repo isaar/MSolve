@@ -25,9 +25,9 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 
 		public void CreateParaviewFile()
 		{
-			var uniqueKnotsKsi = _model.PatchesDictionary[0].KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity();
-			var uniqueKnotsHeta = _model.PatchesDictionary[0].KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity();
-			var uniqueKnotsZeta = _model.PatchesDictionary[0].KnotValueVectorZeta.RemoveDuplicatesFindMultiplicity();
+			var uniqueKnotsKsi = new Vector(_model.PatchesDictionary[0].KnotValueVectorKsi).RemoveDuplicatesFindMultiplicity();
+			var uniqueKnotsHeta = new Vector(_model.PatchesDictionary[0].KnotValueVectorHeta).RemoveDuplicatesFindMultiplicity();
+			var uniqueKnotsZeta = new Vector(_model.PatchesDictionary[0].KnotValueVectorZeta).RemoveDuplicatesFindMultiplicity();
 
 			var numberOfKnotsKsi = uniqueKnotsKsi[0].Length;
 			var numberOfKnotsHeta = uniqueKnotsHeta[0].Length;
@@ -106,9 +106,9 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 		{
 			var patch = _model.PatchesDictionary[0];
 
-			var numberOfKnotsKsi = patch.KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0].Length;
-			var numberOfKnotsHeta = patch.KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0].Length;
-			var numberOfKnotZeta = patch.KnotValueVectorZeta.RemoveDuplicatesFindMultiplicity()[0].Length;
+			var numberOfKnotsKsi = new Vector(patch.KnotValueVectorKsi).RemoveDuplicatesFindMultiplicity()[0].Length;
+			var numberOfKnotsHeta = new Vector(patch.KnotValueVectorHeta).RemoveDuplicatesFindMultiplicity()[0].Length;
+			var numberOfKnotZeta = new Vector(patch.KnotValueVectorZeta).RemoveDuplicatesFindMultiplicity()[0].Length;
 
 			var numberOfNodes = nodeCoordinates.GetLength(0);
 
@@ -143,9 +143,9 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 
 		}
 
-		public static Vector SolidPoint3D(int numberOfCPKsi, int degreeKsi, IVector knotValueVectorKsi,
-			int numberOfCPHeta, int degreeHeta, IVector knotValueVectorHeta, int numberOfCPZeta, int degreeZeta,
-			IVector knotValueVectorZeta, double[,] projectiveControlPointCoordinates, double ksiCoordinate, double hetaCoordinate,
+		public static Vector SolidPoint3D(int numberOfCPKsi, int degreeKsi, double[] knotValueVectorKsi,
+			int numberOfCPHeta, int degreeHeta, double[] knotValueVectorHeta, int numberOfCPZeta, int degreeZeta,
+			double[] knotValueVectorZeta, double[,] projectiveControlPointCoordinates, double ksiCoordinate, double hetaCoordinate,
 			double zetaCoordinate)
 		{
 			var spanKsi = ParaviewNurbs2D.FindSpan(numberOfCPKsi, degreeKsi, ksiCoordinate, knotValueVectorKsi);

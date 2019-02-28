@@ -92,13 +92,14 @@ namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
             return gaussPointsofElement;
         }
 
-        public IList<GaussLegendrePoint3D> CalculateElementGaussPoints(int degreeKsi, int degreeHeta, int degreeZeta, IList<Knot> knotsOfElement)
+        public GaussLegendrePoint3D[] CalculateElementGaussPoints(int degreeKsi, int degreeHeta, int degreeZeta, IList<Knot> knotsOfElement)
         {
-            IList<GaussLegendrePoint3D> gaussPointsofElement = new List<GaussLegendrePoint3D>();
+            
             int numberOfGPKsi = degreeKsi + 1;
             int numberOfGPHeta = degreeHeta + 1;
             int numberOfGPZeta = degreeZeta + 1;
-            double[] coordinatesKsi = new double[numberOfGPKsi];
+            var gaussPointsofElement = new GaussLegendrePoint3D[numberOfGPKsi * numberOfGPHeta * numberOfGPZeta];
+			double[] coordinatesKsi = new double[numberOfGPKsi];
             double[] weightKsi = new double[numberOfGPKsi];
             double[] coordinatesHeta = new double[numberOfGPHeta];
             double[] weightHeta = new double[numberOfGPHeta];
@@ -126,14 +127,14 @@ namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
                 weightZeta[i] = 0.5 * ((knotsOfElement[1].Zeta - knotsOfElement[0].Zeta) * weight[degreeZeta][i]);
             }
 
-
+            var index = 0;
             for (int i = 0; i < numberOfGPKsi; i++)
             {
                 for (int j = 0; j < numberOfGPHeta; j++)
                 {
                     for (int k = 0; k < numberOfGPZeta; k++)
                     {
-                        gaussPointsofElement.Add(new GaussLegendrePoint3D(coordinatesKsi[i], coordinatesHeta[j], coordinatesZeta[k], null, weightKsi[i] * weightHeta[j]* weightZeta[k]));
+                        gaussPointsofElement[index++]=new GaussLegendrePoint3D(coordinatesKsi[i], coordinatesHeta[j], coordinatesZeta[k], null, weightKsi[i] * weightHeta[j]* weightZeta[k]);
                     }                    
                 }
             }

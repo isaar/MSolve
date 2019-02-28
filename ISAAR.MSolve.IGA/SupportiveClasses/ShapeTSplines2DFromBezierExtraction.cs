@@ -30,20 +30,20 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 				    new Knot(){ID=3,Ksi=1,Heta = 1,Zeta = 0}
 				});
 
-		    IVector parametricGaussPointKsi = new Vector(element.DegreeKsi + 1);
+		    var parametricGaussPointKsi = new double[element.DegreeKsi + 1];
 		    for (int i = 0; i < element.DegreeKsi + 1; i++)
 		    {
 			    parametricGaussPointKsi[i] = gaussPoints[i * (element.DegreeHeta + 1)].Ksi;
 		    }
 
-		    IVector parametricGaussPointHeta = new Vector(element.DegreeHeta + 1);
+		    var parametricGaussPointHeta = new double[element.DegreeHeta + 1];
 		    for (int i = 0; i < element.DegreeHeta + 1; i++)
 		    {
 			    parametricGaussPointHeta[i] = gaussPoints[i].Heta;
 		    }
 
-		    Vector knotValueVectorKsi = new Vector((element.DegreeKsi + 1) * 2);
-		    Vector knotValueVectorHeta = new Vector((element.DegreeHeta + 1) * 2);
+		    var knotValueVectorKsi = new double[(element.DegreeKsi + 1) * 2];
+		    var knotValueVectorHeta = new double[(element.DegreeHeta + 1) * 2];
 		    for (int i = 0; i < element.DegreeKsi + 1; i++)
 		    {
 			    knotValueVectorKsi[i]= -1;
@@ -124,20 +124,20 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 					new Knot(){ID=3,Ksi=1,Heta = 1,Zeta = 0}
 				});
 
-			IVector parametricGaussPointKsi = new Vector(element.DegreeKsi + 1);
+			var parametricGaussPointKsi = new double[element.DegreeKsi + 1];
 			for (int i = 0; i < element.DegreeKsi + 1; i++)
 			{
 				parametricGaussPointKsi[i] = gaussPoints[i * (element.DegreeHeta + 1)].Ksi;
 			}
 
-			IVector parametricGaussPointHeta = new Vector(element.DegreeHeta + 1);
+			var parametricGaussPointHeta = new double[element.DegreeHeta + 1];
 			for (int i = 0; i < element.DegreeHeta + 1; i++)
 			{
 				parametricGaussPointHeta[i] = gaussPoints[i].Heta;
 			}
 
-			Vector knotValueVectorKsi = new Vector((element.DegreeKsi + 1) * 2);
-			Vector knotValueVectorHeta = new Vector((element.DegreeHeta + 1) * 2);
+			var knotValueVectorKsi = new double[(element.DegreeKsi + 1) * 2];
+			var knotValueVectorHeta = new double[(element.DegreeHeta + 1) * 2];
 			for (int i = 0; i < element.DegreeKsi + 1; i++)
 			{
 				knotValueVectorKsi[i] = -1;
@@ -248,11 +248,11 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 		}
 
 
-		public ShapeTSplines2DFromBezierExtraction(TSplineKirchhoffLoveShellElement element, IList<ControlPoint> controlPoints, Vector parametricGaussPointKsi, Vector parametricGaussPointHeta)
+		public ShapeTSplines2DFromBezierExtraction(TSplineKirchhoffLoveShellElement element, IList<ControlPoint> controlPoints, double[] parametricGaussPointKsi, double[] parametricGaussPointHeta)
 		{
 
-			Vector knotValueVectorKsi = new Vector((element.DegreeKsi + 1) * 2);
-			Vector knotValueVectorHeta = new Vector((element.DegreeHeta + 1) * 2);
+			var knotValueVectorKsi = new double[(element.DegreeKsi + 1) * 2];
+			var knotValueVectorHeta = new double[(element.DegreeHeta + 1) * 2];
 			for (int i = 0; i < element.DegreeKsi + 1; i++)
 			{
 				knotValueVectorKsi[i] = -1;
@@ -364,11 +364,11 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 			}
 		}
 
-		public ShapeTSplines2DFromBezierExtraction(TSplineKirchhoffLoveShellElementMaterial element, IList<ControlPoint> controlPoints, Vector parametricGaussPointKsi, Vector parametricGaussPointHeta)
+		public ShapeTSplines2DFromBezierExtraction(TSplineKirchhoffLoveShellElementMaterial element, IList<ControlPoint> controlPoints, double[] parametricGaussPointKsi, double[] parametricGaussPointHeta)
 		{
 
-			Vector knotValueVectorKsi = new Vector((element.DegreeKsi + 1) * 2);
-			Vector knotValueVectorHeta = new Vector((element.DegreeHeta + 1) * 2);
+			var knotValueVectorKsi = new double[(element.DegreeKsi + 1) * 2];
+			var knotValueVectorHeta = new double[(element.DegreeHeta + 1) * 2];
 			for (int i = 0; i < element.DegreeKsi + 1; i++)
 			{
 				knotValueVectorKsi[i] = -1;
@@ -481,11 +481,11 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 		}
 
 
-		public ShapeTSplines2DFromBezierExtraction(TSplineElement2D element, IList<ControlPoint> controlPoints, Vector parametricGaussPointKsi, Vector parametricGaussPointHeta)
+		public ShapeTSplines2DFromBezierExtraction(TSplineElement2D element, IList<ControlPoint> controlPoints, double[] parametricGaussPointKsi, double[] parametricGaussPointHeta)
 		{
 
-			Vector knotValueVectorKsi = new Vector((element.DegreeKsi + 1) * 2);
-			Vector knotValueVectorHeta = new Vector((element.DegreeHeta + 1) * 2);
+			var knotValueVectorKsi = new double[(element.DegreeKsi + 1) * 2];
+			var knotValueVectorHeta = new double[(element.DegreeHeta + 1) * 2];
 			for (int i = 0; i < element.DegreeKsi + 1; i++)
 			{
 				knotValueVectorKsi[i] = -1;
@@ -611,20 +611,20 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 					new Knot(){ID=3,Ksi=1,Heta = 1,Zeta = 0}
 				});
 
-			IVector parametricGaussPointKsi = new Vector(element.DegreeKsi + 1);
+			var parametricGaussPointKsi = new double[element.DegreeKsi + 1];
 			for (int i = 0; i < element.DegreeKsi + 1; i++)
 			{
 				parametricGaussPointKsi[i] = gaussPoints[i * (element.DegreeHeta + 1)].Ksi;
 			}
 
-			IVector parametricGaussPointHeta = new Vector(element.DegreeHeta + 1);
+			var parametricGaussPointHeta = new double[element.DegreeHeta + 1];
 			for (int i = 0; i < element.DegreeHeta + 1; i++)
 			{
 				parametricGaussPointHeta[i] = gaussPoints[i].Heta;
 			}
 
-			Vector knotValueVectorKsi = new Vector((element.DegreeKsi + 1) * 2);
-			Vector knotValueVectorHeta = new Vector((element.DegreeHeta + 1) * 2);
+			var knotValueVectorKsi = new double[(element.DegreeKsi + 1) * 2];
+			var knotValueVectorHeta = new double[(element.DegreeHeta + 1) * 2];
 			for (int i = 0; i < element.DegreeKsi + 1; i++)
 			{
 				knotValueVectorKsi[i] = -1;

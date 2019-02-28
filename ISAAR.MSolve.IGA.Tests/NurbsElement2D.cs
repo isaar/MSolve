@@ -45,13 +45,13 @@ namespace ISAAR.MSolve.IGA.Tests
 			};
 		}
 
-		private Vector KnotValueVector()
+		private double[] KnotValueVector()
 		{
-			return new Vector(new double[16]
+			return new double[16]
 			{
 				0.0, 0.0, 0.0, 0.0, 0.111111111, 0.22222222, 0.33333333, 0.44444444, 0.55555555, 0.66666666, 0.77777777,
 				0.88888888, 1.0, 1.0, 1.0, 1.0
-			});
+			};
 		}
 
 		private NURBSElement2D Element

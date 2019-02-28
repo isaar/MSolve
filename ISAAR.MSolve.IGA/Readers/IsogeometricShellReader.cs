@@ -110,7 +110,7 @@ namespace ISAAR.MSolve.IGA.Readers
 						double[] KnotValueVectorKsi = new double[numberOfValues];
 						for (int j = 0; j < numberOfValues; j++)
 							KnotValueVectorKsi[j] = Double.Parse(line[j + 1], CultureInfo.InvariantCulture);
-						Model.PatchesDictionary[patchID].KnotValueVectorKsi= new Vector(KnotValueVectorKsi);
+						Model.PatchesDictionary[patchID].KnotValueVectorKsi= KnotValueVectorKsi;
 						break;
 					case IsogeometricShellReader.Attributes.knotvaluevectorheta:
 						if (patchID == -1)
@@ -121,7 +121,7 @@ namespace ISAAR.MSolve.IGA.Readers
 						double[] KnotValueVectorHeta = new double[numberOfValues];
 						for (int j = 0; j < numberOfValues; j++)
 							KnotValueVectorHeta[j] = Double.Parse(line[j + 1], CultureInfo.InvariantCulture);
-						Model.PatchesDictionary[patchID].KnotValueVectorHeta=new Vector(KnotValueVectorHeta);
+						Model.PatchesDictionary[patchID].KnotValueVectorHeta=KnotValueVectorHeta;
 						break;
 					case IsogeometricShellReader.Attributes.patchcpid:
 						if (patchID == -1)

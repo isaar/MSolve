@@ -27,8 +27,8 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 
 		public void CreateParaview2DFile()
 		{
-			var uniqueKnotsKsi = _model.PatchesDictionary[0].KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity();
-			var uniqueKnotsHeta = _model.PatchesDictionary[0].KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity();
+			var uniqueKnotsKsi = new Vector(_model.PatchesDictionary[0].KnotValueVectorKsi).RemoveDuplicatesFindMultiplicity();
+			var uniqueKnotsHeta = new Vector(_model.PatchesDictionary[0].KnotValueVectorHeta).RemoveDuplicatesFindMultiplicity();
 
 			var numberOfKnotsKsi = uniqueKnotsKsi[0].Length;
 			var numberOfKnotsHeta = uniqueKnotsHeta[0].Length;
@@ -211,7 +211,7 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 		/// <param name="pointCoordinate"></param>
 		/// <param name="knotValueVector"></param>
 		/// <returns></returns>
-		public static int FindSpan(int numberOfBasisFunctions, int degree, double pointCoordinate, IVector knotValueVector)
+		public static int FindSpan(int numberOfBasisFunctions, int degree, double pointCoordinate, double[] knotValueVector)
 		{
 			if (pointCoordinate == knotValueVector[numberOfBasisFunctions + 1]) return numberOfBasisFunctions;
 			int minimum = degree;
@@ -238,7 +238,7 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 		/// <param name="degree"></param>
 		/// <param name="knotValueVector"></param>
 		/// <returns></returns>
-		public static Vector BasisFunctions(int spanId, double pointCoordinate, int degree, IVector knotValueVector)
+		public static Vector BasisFunctions(int spanId, double pointCoordinate, int degree, double[] knotValueVector)
 		{
 			var basisFunctions = new Vector(degree + 1);
 			var left = new Vector(degree + 1);
@@ -277,8 +277,8 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 		/// <param name="coordinateKsi"></param>
 		/// <param name="coordinateHeta"></param>
 		/// <returns></returns>
-		public static Vector SurfacePoint2D(int numberOfCPKsi, int degreeKsi, IVector knotValueVectorKsi, int numberOfCPHeta,
-			int degreeHeta, IVector knotValueVectorHeta, double[,] projectiveControlPointCoordinates,
+		public static Vector SurfacePoint2D(int numberOfCPKsi, int degreeKsi, double[] knotValueVectorKsi, int numberOfCPHeta,
+			int degreeHeta, double[] knotValueVectorHeta, double[,] projectiveControlPointCoordinates,
 			double coordinateKsi, double coordinateHeta)
 		{
 			var spanKsi = FindSpan(numberOfCPKsi, degreeKsi, coordinateKsi, knotValueVectorKsi);

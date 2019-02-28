@@ -72,9 +72,9 @@ namespace ISAAR.MSolve.IGA
                     NumberOfControlPointsZeta = (NumberOfDimensions == 2) ? 0 : NumberOfControlPointsZetaDictionary[patchID],
                     Material = this.Material,
                     Thickness = (NumberOfDimensions == 2) ? this.Thickness : 0,
-                    KnotValueVectorKsi = new Vector(KnotValueVectorsKsiDictionary[patchID]),
-                    KnotValueVectorHeta = new Vector(KnotValueVectorsHetaDictionary[patchID]),
-                    KnotValueVectorZeta = (NumberOfDimensions == 2) ? null : new Vector(KnotValueVectorsZetaDictionary[patchID]),
+                    KnotValueVectorKsi = KnotValueVectorsKsiDictionary[patchID],
+                    KnotValueVectorHeta = KnotValueVectorsHetaDictionary[patchID],
+                    KnotValueVectorZeta = (NumberOfDimensions == 2) ? null : KnotValueVectorsZetaDictionary[patchID],
                 };
                 
                 for (int j = 0; j < ControlPointIDsDictionary[patchID].Length; j++)
@@ -98,15 +98,15 @@ namespace ISAAR.MSolve.IGA
                 #region FindSubPatches
                 var tupleKsi = DetectSubPatches(new Vector(KnotValueVectorsKsiDictionary[patchID]), DegreeKsiDictionary[patchID]);
                 int subpatchesKsi = tupleKsi.Item1;
-                Dictionary<int, Vector> subKnotVectorsKsi = tupleKsi.Item2;
+                Dictionary<int, double[]> subKnotVectorsKsi = tupleKsi.Item2;
 
                 var tupleHeta = DetectSubPatches(new Vector(KnotValueVectorsHetaDictionary[patchID]), DegreeHetaDictionary[patchID]);
                 int subpatchesHeta = tupleHeta.Item1;
-                Dictionary<int, Vector> subKnotVectorsHeta = tupleHeta.Item2;
+                Dictionary<int, double[]> subKnotVectorsHeta = tupleHeta.Item2;
 
                 int subpatchesZeta = 1;
-                Tuple<int, Dictionary<int, Vector>> tupleZeta=new Tuple<int, Dictionary<int, Vector>>(1,null);
-                Dictionary<int, Vector> subKnotVectorsZeta = new Dictionary<int, Vector>();
+                Tuple<int, Dictionary<int, double[]>> tupleZeta=new Tuple<int, Dictionary<int, double[]>>(1,null);
+                Dictionary<int, double[]> subKnotVectorsZeta = new Dictionary<int, double[]>();
                 if (this.NumberOfDimensions==3)
                 {
                     tupleZeta = DetectSubPatches(new Vector(KnotValueVectorsZetaDictionary[patchID]), DegreeZetaDictionary[patchID]);
@@ -153,9 +153,9 @@ namespace ISAAR.MSolve.IGA
             //Model.ConnectDataStructures();
         }
 
-        private Tuple<int, Dictionary<int, Vector>> DetectSubPatches(Vector knotValueVector, int degree)
+        private Tuple<int, Dictionary<int, double[]>> DetectSubPatches(Vector knotValueVector, int degree)
         {
-            Dictionary<int, Vector> SubKnotVectors = new Dictionary<int, Vector>();
+            Dictionary<int, double[]> SubKnotVectors = new Dictionary<int, double[]>();
             Vector[] result =knotValueVector.RemoveDuplicatesFindMultiplicity();
             Vector singleValues = result[0];
             Vector multiplicity = result[1];
@@ -171,7 +171,7 @@ namespace ISAAR.MSolve.IGA
                     if (initialKnotVectorPosition==0)
                     {
                         int length = endingKnotVectorPosition - initialKnotVectorPosition + 1+degree;
-                        Vector subKnotVector = new Vector(length);
+                        double[] subKnotVector = new double[length];
                         for (int j = 0 ; j < endingKnotVectorPosition- initialKnotVectorPosition + 1; j++)
                             subKnotVector[j] = knotValueVector[initialKnotVectorPosition + j];
                         for (int j = endingKnotVectorPosition - initialKnotVectorPosition + 1; j < length; j++)
@@ -182,7 +182,7 @@ namespace ISAAR.MSolve.IGA
                     else
                     {
                         int length = endingKnotVectorPosition - initialKnotVectorPosition + 2 + degree;
-                        Vector subKnotVector = new Vector(length);
+                        var subKnotVector = new double[length];
                         subKnotVector[0]= knotValueVector[initialKnotVectorPosition];
                         for (int j = 1; j < endingKnotVectorPosition - initialKnotVectorPosition + 2; j++)
                             subKnotVector[j] = knotValueVector[initialKnotVectorPosition + j-1];
@@ -197,11 +197,11 @@ namespace ISAAR.MSolve.IGA
                     endingKnotVectorPosition = knotValueVector.Length - 1;
                     if (initialKnotVectorPosition == 0)
                     {
-                        SubKnotVectors.Add(counterPatch++, knotValueVector);
+                        SubKnotVectors.Add(counterPatch++, knotValueVector.Data);
                     }else
                     {
                         int length = endingKnotVectorPosition - initialKnotVectorPosition + 2;
-                        Vector subKnotVector = new Vector(length);
+                        var subKnotVector = new double[length];
                         subKnotVector[0] = knotValueVector[initialKnotVectorPosition];
                         for (int j = 1; j < endingKnotVectorPosition - initialKnotVectorPosition + 2; j++)
                             subKnotVector[j] = knotValueVector[initialKnotVectorPosition + j-1];
@@ -212,7 +212,7 @@ namespace ISAAR.MSolve.IGA
                 {
                     endingKnotVectorPosition = knotValueVector.Length - 1;
                     int length = endingKnotVectorPosition - initialKnotVectorPosition + 2;
-                    Vector subKnotVector = new Vector(length);
+                    var subKnotVector = new double[length];
                     subKnotVector[0] = knotValueVector[initialKnotVectorPosition];
                     for (int j = 1; j < endingKnotVectorPosition - initialKnotVectorPosition + 2; j++)
                         subKnotVector[j] = knotValueVector[initialKnotVectorPosition + j-1];
@@ -220,10 +220,10 @@ namespace ISAAR.MSolve.IGA
                     break;
                 }                
             }
-            return new Tuple<int, Dictionary<int, Vector>>(counterPatch, SubKnotVectors);
+            return new Tuple<int, Dictionary<int, double[]>>(counterPatch, SubKnotVectors);
         }
 
-        private int[,,][] FindControlPointsOfEachSubPatch(int patchID,Tuple<int, Dictionary<int, Vector>> tupleKsi, Tuple<int, Dictionary<int, Vector>> tupleHeta, Tuple<int, Dictionary<int, Vector>> tupleZeta)
+        private int[,,][] FindControlPointsOfEachSubPatch(int patchID,Tuple<int, Dictionary<int, double[]>> tupleKsi, Tuple<int, Dictionary<int, double[]>> tupleHeta, Tuple<int, Dictionary<int, double[]>> tupleZeta)
         {
             int[,,][] controlPointIDs;
             if (NumberOfDimensions == 2)
@@ -347,10 +347,10 @@ namespace ISAAR.MSolve.IGA
 
         }
 
-        private int[][] CalculateAxisControlPointsIDs(Tuple<int, Dictionary<int, Vector>> tupleAxis,Dictionary<int,int> DegreeDictionary, int patchID)
+        private int[][] CalculateAxisControlPointsIDs(Tuple<int, Dictionary<int, double[]>> tupleAxis,Dictionary<int,int> DegreeDictionary, int patchID)
         {
             int numberOfSubpatches = tupleAxis.Item1;
-            Dictionary<int, Vector> subKnotVectorsKsi = tupleAxis.Item2;
+            Dictionary<int, double[]> subKnotVectorsKsi = tupleAxis.Item2;
             int[][] axisControlPointIDs = new int[numberOfSubpatches][];
             int counterCPKsi = 0;
             for (int i = 0; i < numberOfSubpatches; i++)

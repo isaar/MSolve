@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
             GaussQuadrature gauss = new GaussQuadrature();
             IList<GaussLegendrePoint3D> gaussPoints = gauss.CalculateElementGaussPoints(element.Patch.DegreeKsi, element.Knots);
 
-            IVector parametricGaussPointKsi = new Vector(element.Patch.DegreeKsi + 1);
+            var parametricGaussPointKsi = new double[element.Patch.DegreeKsi + 1];
             for (int i = 0; i < element.Patch.DegreeKsi + 1; i++)
             {
                 parametricGaussPointKsi[i] = gaussPoints[i].Ksi;
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
             GaussQuadrature gauss = new GaussQuadrature();
             IList<GaussLegendrePoint3D> gaussPoints = gauss.CalculateElementGaussPoints(edge.Degree, element.Knots);
 
-            IVector parametricGaussPointKsi = new Vector(edge.Degree + 1);
+            var parametricGaussPointKsi = new double[edge.Degree + 1];
             for (int i = 0; i < edge.Degree + 1; i++)
             {
                 parametricGaussPointKsi[i] = gaussPoints[i].Ksi;

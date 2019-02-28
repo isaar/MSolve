@@ -16,14 +16,14 @@ namespace ISAAR.MSolve.IGA.Tests
 		private readonly int numberOfControlPointsKsi = 9;
 		private readonly int degreeKsi = 2;
 		private readonly double coordinateKsi = 0.25;
-		private readonly Vector knotValueVectorKsi = new Vector(new double[]
-			{0, 0, 0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1, 1, 1});
+		private readonly double[] knotValueVectorKsi = new double[]
+			{0, 0, 0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1, 1, 1};
 
 		private readonly int numberOfControlPointsHeta = 5;
 		private readonly int degreeHeta = 2;
 		private readonly double coordinateHeta = 0.0;
-		private readonly Vector knotValueVectorHeta = new Vector(new double[]
-			{0,  0 ,  0,   0.25,   0.5,   0.75,   1,   1,   1});
+		private readonly double[] knotValueVectorHeta = new double[]
+			{0,  0 ,  0,   0.25,   0.5,   0.75,   1,   1,   1};
 
 		private readonly double[,] projectiveCoordinates = new double[,]
 		{
@@ -135,26 +135,26 @@ namespace ISAAR.MSolve.IGA.Tests
 
 		private int numberOfCPKsi3D = 20;
 		private int degreeKsi3D = 2;
-		private Vector knotValueVectorKsi3D = new Vector(new double[]
+		private double[] knotValueVectorKsi3D = new double[]
 		{
 			0,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,19,19
-		});
+		};
 		private double coordinateKsi3D = 0.052631578947368;
 
 		private int numberOfCPHeta3D = 6;
 		private int degreeHeta3D = 2;
-		private Vector knotValueVectorHeta3D = new Vector(new double[]
+		private double[] knotValueVectorHeta3D = new double[]
 		{
 			0,0,0,1,2,3,4,5,5,5
-		});
+		};
 		private double coordinateHeta3D = 0.0;
 
 		private int numberofCPZeta3D = 4;
 		private int degreeZeta3D = 2;
-		private Vector knotValueVectorZeta3D = new Vector(new double[]
+		private double[] knotValueVectorZeta3D = new double[]
 		{
 			0, 0, 0, 1, 2, 3, 3, 3
-		});
+		};
 		private double coordinateZeta3D = 0.0;
 
 		[Fact]

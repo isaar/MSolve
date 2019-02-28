@@ -909,20 +909,20 @@ namespace ISAAR.MSolve.IGA.Tests
 			};
 		}
 
-		private Vector KnotValueVectorKsi()
+		private double[] KnotValueVectorKsi()
 		{
-			return new Vector(new double[8]
+			return new double[8]
 			{
 				0, 0, 0, 0, 1, 1, 1, 1
-			});
+			};
 		}
 
-		private Vector KnotValueVectorHeta()
+		private double[] KnotValueVectorHeta()
 		{
-			return new Vector(new double[6]
+			return new double[6]
 			{
 				0, 0, 0, 1, 1, 1
-			});
+			};
 		}
 
 		private NURBSKirchhoffLoveShellElement Element

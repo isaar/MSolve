@@ -112,23 +112,23 @@ namespace ISAAR.MSolve.IGA.Tests
 			};
 		}
 
-		private Vector KnotValueVectorKsi()
+		private double[] KnotValueVectorKsi()
 		{
-			return new Vector(new double[] { 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 1.0, 1.0, 1.0, 1.0 });
+			return new double[] { 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 1.0, 1.0, 1.0, 1.0 };
 		}
 
-		private Vector KnotValueVectorHeta()
+		private double[] KnotValueVectorHeta()
 		{
-			return new Vector(new double[] { 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0 });
+			return new double[] { 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0 };
 		}
 
-		private Vector KnotValueVectorZeta()
+		private double[] KnotValueVectorZeta()
 		{
-			return new Vector(new double[]
+			return new double[]
 			{
 				0.0, 0.0, 0.0, 0.0, 0.166666666666667, 0.166666666666667, 0.333333333333333, 0.333333333333333, 0.5,
 				0.5, 0.5, 0.666666666666667, 0.666666666666667, 0.833333333333333, 0.833333333333333, 1.0, 1.0, 1.0, 1.0
-			});
+			};
 		}
 
 		private NURBSElement3D Element

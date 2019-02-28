@@ -24,13 +24,13 @@ namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
             GaussQuadrature gauss = new GaussQuadrature();
             IList<GaussLegendrePoint3D> gaussPoints = gauss.CalculateElementGaussPoints(element.Patch.DegreeKsi, element.Patch.DegreeHeta, element.Knots);
 
-            IVector parametricGaussPointKsi = new Vector(element.Patch.DegreeKsi + 1);
+            var parametricGaussPointKsi = new double[element.Patch.DegreeKsi + 1];
             for (int i = 0; i < element.Patch.DegreeKsi+1; i++)
             {
                 parametricGaussPointKsi[i] = gaussPoints[i * (element.Patch.DegreeHeta + 1)].Ksi;
             }
 
-            IVector parametricGaussPointHeta = new Vector(element.Patch.DegreeHeta + 1);
+            var parametricGaussPointHeta = new double[element.Patch.DegreeHeta + 1];
             for (int i = 0; i < element.Patch.DegreeHeta + 1; i++)
             {
                 parametricGaussPointHeta[i] = gaussPoints[i ].Heta;
@@ -140,7 +140,7 @@ namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
             }
         }
 
-		public NURBS2D(Element element, IList<ControlPoint> controlPoints, IVector parametricGaussPointKsi, IVector parametricGaussPointHeta)
+		public NURBS2D(Element element, IList<ControlPoint> controlPoints, double[] parametricGaussPointKsi, double[] parametricGaussPointHeta)
 		{
 			var parametricPointsCount = parametricGaussPointKsi.Length * parametricGaussPointHeta.Length;
 
@@ -252,20 +252,20 @@ namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
 		{
 			var degreeKsi = face.Degrees[0];
 			var degreeHeta = face.Degrees[1];
-			var knotValueVectorKsi = face.KnotValueVectors[0];
-			var knotValueVectorHeta = face.KnotValueVectors[1];
+			var knotValueVectorKsi = (face.KnotValueVectors[0] as Vector).Data;
+			var knotValueVectorHeta = (face.KnotValueVectors[1] as Vector).Data;
 			var numberOfControlPointsHeta = knotValueVectorHeta.Length - degreeHeta - 1;
 
 			GaussQuadrature gauss = new GaussQuadrature();
 			IList<GaussLegendrePoint3D> gaussPoints = gauss.CalculateElementGaussPoints(degreeKsi, degreeHeta, element.Knots);
 
-			IVector parametricGaussPointKsi = new Vector(degreeKsi + 1);
+			var parametricGaussPointKsi = new double[degreeKsi + 1];
 			for (int i = 0; i < degreeKsi + 1; i++)
 			{
 				parametricGaussPointKsi[i] = gaussPoints[i * (degreeHeta + 1)].Ksi;
 			}
 
-			IVector parametricGaussPointHeta = new Vector(degreeHeta + 1);
+			var parametricGaussPointHeta = new double[degreeHeta + 1];
 			for (int i = 0; i < degreeHeta + 1; i++)
 			{
 				parametricGaussPointHeta[i] = gaussPoints[i].Heta;

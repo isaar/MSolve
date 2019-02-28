@@ -12,9 +12,9 @@ namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
     {
         public int Degree { get; private set; }
 
-        public IVector KnotValueVector { get; private set; }
+        public double[] KnotValueVector { get; private set; }
 
-        public IVector ParametricCoordinates { get; private set; }
+        public double[] ParametricCoordinates { get; private set; }
 
         public double[,] BSPLineValues { get; private set; }
 
@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
 
 		public double [,] BSPLineSecondDerivativeValues { get; private set; }
 
-        public BSPLines1D(int degree, IVector knotValueVector, IVector parametricCoordinates)
+        public BSPLines1D(int degree, double[] knotValueVector, double[] parametricCoordinates)
         {
             if (degree <= 0)
             {

@@ -130,9 +130,12 @@ namespace ISAAR.MSolve.IGA.Elements
 		{
 			var nurbsElement = (NURBSElement3D)element;
 			var controlPoints = nurbsElement.ControlPoints.ToArray();
-			IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(nurbsElement);
+			GaussLegendrePoint3D[] gaussPoints = CreateElementGaussPoints(nurbsElement);
 
-			NURBS3D nurbs = new NURBS3D(nurbsElement, controlPoints);
+			NURBS3D nurbs = new NURBS3D(nurbsElement.Patch.NumberOfControlPointsKsi, nurbsElement.Patch.NumberOfControlPointsHeta,
+				nurbsElement.Patch.NumberOfControlPointsZeta, nurbsElement.Patch.DegreeKsi, nurbsElement.Patch.DegreeHeta,
+				nurbsElement.Patch.DegreeZeta, nurbsElement.Patch.KnotValueVectorKsi, nurbsElement.Patch.KnotValueVectorHeta,
+				nurbsElement.Patch.KnotValueVectorZeta, nurbsElement.ControlPoints.ToArray(),gaussPoints);
 
 
 			var bRows = 6;
@@ -141,7 +144,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			var BTranspose = new double[bCols, bRows];
 			var BTransposeMultStiffness = new double[bCols, bRows];
 
-			for (int j = 0; j < gaussPoints.Count; j++)
+			for (int j = 0; j < gaussPoints.Length; j++)
 			{
 				var jacobianMatrix = CalculateJacobian(controlPoints, nurbs, j);
 
@@ -323,7 +326,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			return jacobianMatrix;
 		}
 
-		private IList<GaussLegendrePoint3D> CreateElementGaussPoints(Element element)
+		private GaussLegendrePoint3D[] CreateElementGaussPoints(Element element)
 		{
 			GaussQuadrature gauss = new GaussQuadrature();
 			return gauss.CalculateElementGaussPoints(element.Patch.DegreeKsi, element.Patch.DegreeHeta,
@@ -357,10 +360,13 @@ namespace ISAAR.MSolve.IGA.Elements
 		public double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements)
 		{
 			var nurbsElement = (NURBSElement3D) element;
-			var knotParametricCoordinatesKsi = new Vector(new double[] {element.Knots[0].Ksi, element.Knots[4].Ksi});
-			var knotParametricCoordinatesHeta = new Vector(new double[] {element.Knots[0].Heta, element.Knots[2].Heta});
-			var knotParametricCoordinatesΖeta = new Vector(new double[] {element.Knots[0].Zeta, element.Knots[1].Zeta});
-			NURBS3D nurbs = new NURBS3D(nurbsElement, nurbsElement.ControlPoints, knotParametricCoordinatesKsi,
+			var knotParametricCoordinatesKsi = new double[] {element.Knots[0].Ksi, element.Knots[4].Ksi};
+			var knotParametricCoordinatesHeta = new double[] {element.Knots[0].Heta, element.Knots[2].Heta};
+			var knotParametricCoordinatesΖeta = new double[] {element.Knots[0].Zeta, element.Knots[1].Zeta};
+			NURBS3D nurbs = new NURBS3D(element.Patch.NumberOfControlPointsKsi, element.Patch.NumberOfControlPointsHeta,
+				element.Patch.NumberOfControlPointsZeta, element.Patch.DegreeKsi, element.Patch.DegreeHeta,
+				element.Patch.DegreeZeta, element.Patch.KnotValueVectorKsi, element.Patch.KnotValueVectorHeta,
+				element.Patch.KnotValueVectorZeta, nurbsElement.ControlPoints.ToArray(), knotParametricCoordinatesKsi,
 				knotParametricCoordinatesHeta, knotParametricCoordinatesΖeta);
 			var knotDisplacements = new double[8, 3];
 			var paraviewKnotRenumbering = new int[] {0, 4, 2, 6, 1, 5, 3, 7};

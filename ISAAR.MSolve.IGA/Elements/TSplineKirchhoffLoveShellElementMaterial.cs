@@ -742,8 +742,8 @@ namespace ISAAR.MSolve.IGA.Elements
 		public double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements)
 		{
 			var tsplineElement = (TSplineKirchhoffLoveShellElementMaterial)element;
-			var knotParametricCoordinatesKsi = new Vector(new double[] { -1, 1 });
-			var knotParametricCoordinatesHeta = new Vector(new double[] { -1, 1 });
+			var knotParametricCoordinatesKsi = new double[] { -1, 1 };
+			var knotParametricCoordinatesHeta = new double[] { -1, 1 };
 
 			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(tsplineElement, tsplineElement.ControlPoints, knotParametricCoordinatesKsi, knotParametricCoordinatesHeta);
 
@@ -772,8 +772,8 @@ namespace ISAAR.MSolve.IGA.Elements
 				{1, 1}
 			};
 
-			var knotParametricCoordinatesKsi = new Vector(new double[] { -1, 1 });
-			var knotParametricCoordinatesHeta = new Vector(new double[] { -1, 1 });
+			var knotParametricCoordinatesKsi = new double[] { -1, 1 };
+			var knotParametricCoordinatesHeta = new double[] { -1, 1 };
 
 			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(element, element.ControlPoints, knotParametricCoordinatesKsi, knotParametricCoordinatesHeta);
 

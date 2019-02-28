@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using ISAAR.MSolve.IGA.Elements;
 using ISAAR.MSolve.IGA.Entities;
@@ -112,23 +113,23 @@ namespace ISAAR.MSolve.IGA.Tests
 			};
 		}
 
-		private Vector KnotValueVectorKsi()
+		private double[] KnotValueVectorKsi()
 		{
-			return new Vector(new double[]{ 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 1.0, 1.0, 1.0, 1.0 });
+			return new double[]{ 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 1.0, 1.0, 1.0, 1.0 };
 		}
 
-		private Vector KnotValueVectorHeta()
+		private double[] KnotValueVectorHeta()
 		{
-			return new Vector(new double[]{ 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0 });
+			return new double[]{ 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0 };
 		}
 
-		private Vector KnotValueVectorZeta()
+		private double[] KnotValueVectorZeta()
 		{
-			return new Vector(new double[]
+			return new double[]
 			{
 				0.0, 0.0, 0.0, 0.0, 0.166666666666667, 0.166666666666667, 0.333333333333333, 0.333333333333333, 0.5,
 				0.5, 0.5, 0.666666666666667, 0.666666666666667, 0.833333333333333, 0.833333333333333, 1.0, 1.0, 1.0, 1.0
-			});
+			};
 		}
 
 		private NURBSElement3D Element
@@ -446,12 +447,17 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void TestShapeNurbs3DPartitionOfUnity()
 		{
 			var element = Element;
-			var nurbs3D = new NURBS3D(element, element.ControlPoints);
+			GaussQuadrature gauss = new GaussQuadrature();
+			var gaussPoints=gauss.CalculateElementGaussPoints(element.Patch.DegreeKsi, element.Patch.DegreeHeta,
+				element.Patch.DegreeZeta, element.Knots);
+			var nurbs3D = new NURBS3D(element.Patch.NumberOfControlPointsKsi, element.Patch.NumberOfControlPointsHeta, element.Patch.NumberOfControlPointsZeta,
+				element.Patch.DegreeKsi, element.Patch.DegreeHeta, element.Patch.DegreeZeta,element.Patch.KnotValueVectorKsi, element.Patch.KnotValueVectorHeta, element.Patch.KnotValueVectorZeta,
+				element.ControlPoints.ToArray(), gaussPoints);
 
-			for (var p = 0; p < nurbs3D.NurbsValues.Columns; p++)
+			for (var p = 0; p < nurbs3D.NurbsValues.GetLength(1); p++)
 			{
 				var sum = 0.0;
-				for (var f = 0; f < nurbs3D.NurbsValues.Rows; f++)
+				for (var f = 0; f < nurbs3D.NurbsValues.GetLength(0); f++)
 					sum += nurbs3D.NurbsValues[f, p];
 				Assert.True(Utilities.AreValuesEqual(1.0, sum, Tolerance));
 			}
@@ -461,7 +467,12 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void TestShapeNurbs3DValues()
 		{
 			var element = Element;
-			var nurbs3D = new NURBS3D(element, element.ControlPoints);
+			GaussQuadrature gauss = new GaussQuadrature();
+			var gaussPoints = gauss.CalculateElementGaussPoints(element.Patch.DegreeKsi, element.Patch.DegreeHeta,
+				element.Patch.DegreeZeta, element.Knots);
+			var nurbs3D = new NURBS3D(element.Patch.NumberOfControlPointsKsi, element.Patch.NumberOfControlPointsHeta, element.Patch.NumberOfControlPointsZeta,
+				element.Patch.DegreeKsi, element.Patch.DegreeHeta, element.Patch.DegreeZeta, element.Patch.KnotValueVectorKsi, element.Patch.KnotValueVectorHeta, element.Patch.KnotValueVectorZeta,
+				element.ControlPoints.ToArray(), gaussPoints);
 
 			for (var i = 0; i < 64; i++)
 			{
@@ -478,7 +489,12 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void TestShapeNurbs3DDerivativeValuesKsi()
 		{
 			var element = Element;
-			var nurbs3D = new NURBS3D(element, element.ControlPoints);
+			GaussQuadrature gauss = new GaussQuadrature();
+			var gaussPoints = gauss.CalculateElementGaussPoints(element.Patch.DegreeKsi, element.Patch.DegreeHeta,
+				element.Patch.DegreeZeta, element.Knots);
+			var nurbs3D = new NURBS3D(element.Patch.NumberOfControlPointsKsi, element.Patch.NumberOfControlPointsHeta, element.Patch.NumberOfControlPointsZeta,
+				element.Patch.DegreeKsi, element.Patch.DegreeHeta, element.Patch.DegreeZeta, element.Patch.KnotValueVectorKsi, element.Patch.KnotValueVectorHeta, element.Patch.KnotValueVectorZeta,
+				element.ControlPoints.ToArray(), gaussPoints);
 
 			for (var i = 0; i < 64; i++)
 			{
@@ -494,7 +510,12 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void TestShapeNurbs3DDerivativeValuesHeta()
 		{
 			var element = Element;
-			var nurbs3D = new NURBS3D(element, element.ControlPoints);
+			GaussQuadrature gauss = new GaussQuadrature();
+			var gaussPoints = gauss.CalculateElementGaussPoints(element.Patch.DegreeKsi, element.Patch.DegreeHeta,
+				element.Patch.DegreeZeta, element.Knots);
+			var nurbs3D = new NURBS3D(element.Patch.NumberOfControlPointsKsi, element.Patch.NumberOfControlPointsHeta, element.Patch.NumberOfControlPointsZeta,
+				element.Patch.DegreeKsi, element.Patch.DegreeHeta, element.Patch.DegreeZeta, element.Patch.KnotValueVectorKsi, element.Patch.KnotValueVectorHeta, element.Patch.KnotValueVectorZeta,
+				element.ControlPoints.ToArray(), gaussPoints);
 
 			for (var i = 0; i < 64; i++)
 			{
@@ -510,7 +531,12 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void TestShapeNurbs3DDerivativeValuesZeta()
 		{
 			var element = Element;
-			var nurbs3D = new NURBS3D(element, element.ControlPoints);
+			GaussQuadrature gauss = new GaussQuadrature();
+			var gaussPoints = gauss.CalculateElementGaussPoints(element.Patch.DegreeKsi, element.Patch.DegreeHeta,
+				element.Patch.DegreeZeta, element.Knots);
+			var nurbs3D = new NURBS3D(element.Patch.NumberOfControlPointsKsi, element.Patch.NumberOfControlPointsHeta, element.Patch.NumberOfControlPointsZeta,
+				element.Patch.DegreeKsi, element.Patch.DegreeHeta, element.Patch.DegreeZeta, element.Patch.KnotValueVectorKsi, element.Patch.KnotValueVectorHeta, element.Patch.KnotValueVectorZeta,
+				element.ControlPoints.ToArray(), gaussPoints);
 
 			for (var i = 0; i < 64; i++)
 			{

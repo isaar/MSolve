@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.IGA.Entities
 		public Patch Patch { get; set; }
 		//public Patch_v2 Patch_v2 { get; set; }
 
-		public IVector KnotValueVector { get; set; }
+		public double[] KnotValueVector { get; set; }
 
 		private readonly Dictionary<int, ControlPoint> controlPointsDictionary = new Dictionary<int, ControlPoint>();
 
@@ -135,7 +135,7 @@ namespace ISAAR.MSolve.IGA.Entities
 		{
 			#region Knots
 
-			Vector singleKnotValuesKsi = KnotValueVector.RemoveDuplicatesFindMultiplicity()[0];
+			Vector singleKnotValuesKsi = new Vector(KnotValueVector).RemoveDuplicatesFindMultiplicity()[0];
 
 			List<Knot> knots = new List<Knot>();
 
@@ -150,7 +150,7 @@ namespace ISAAR.MSolve.IGA.Entities
 
 			#region Elements
 
-			Vector multiplicityKsi = KnotValueVector.RemoveDuplicatesFindMultiplicity()[1];
+			Vector multiplicityKsi = new Vector(KnotValueVector).RemoveDuplicatesFindMultiplicity()[1];
 
 			int numberOfElementsKsi = singleKnotValuesKsi.Length - 1;
 			if (numberOfElementsKsi == 0)
