@@ -228,7 +228,7 @@ namespace ISAAR.MSolve.FEM.Elements
             Jacobian3D jacobian, ShapeFunctionNaturalDerivatives3D[] shapeFunctionDerivatives)
         {
             double[,] jacobianInverse = jacobian.CalculateJacobianInverse();
-            double[,] b = new double[8, 24];
+            double[,] b = new double[6, 24];
 
             for (int shapeFunction = 0; shapeFunction < 8; shapeFunction++)
             {
