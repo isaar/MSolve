@@ -7,7 +7,6 @@ using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
 using ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses;
 using ISAAR.MSolve.MultiscaleAnalysisMerge;
 using ISAAR.MSolve.Numerical.LinearAlgebra; //using ISAAR.MSolve.Matrices;
-using ISAAR.MSolve.SamplesConsole.SupportiveClasses;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.Skyline;
 using System;

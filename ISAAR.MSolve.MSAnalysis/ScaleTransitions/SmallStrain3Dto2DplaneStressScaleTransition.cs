@@ -15,6 +15,10 @@ using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.MultiscaleAnalysis
 {
+    /// <summary>
+    /// Micro to macro transitions for (3D degenerate to) 2D plane stress problems
+    /// Authors: Gerasimos Sotiropoulos
+    /// </summary>
     public class SmallStrain3Dto2DplaneStressScaleTransition : IScaleTransitions_v2
     {
         public SmallStrain3Dto2DplaneStressScaleTransition()

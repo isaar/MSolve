@@ -31,7 +31,7 @@ using ISAAR.MSolve.Solvers.LinearSystems;
 namespace ISAAR.MSolve.MultiscaleAnalysis
 {
     /// <summary>
-    /// Primary multiscale analysis class that connects all nesessary structures for a FE2 simulation
+    /// Primary multiscale analysis class that connects all nesessary structures for a FE2 simulation (with an 3D to 2D degenerate Rve)
     /// Authors: Gerasimos Sotiropoulos
     /// </summary>
     public class Microstructure2DplaneStress : StructuralProblemsMicrostructureBase_v2, IContinuumMaterial2D_v2

@@ -23,6 +23,10 @@ using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.MultiscaleAnalysis
 {
+    /// <summary>
+    /// Creates a elastic matrix rve
+    /// Authors Gerasimos Sotiropoulos
+    /// </summary>
     public class HomogeneousRVEBuilderLinear : IRVEbuilder_v2
     {
         //HomogeneousRVEBuilderCheck27HexaLinear

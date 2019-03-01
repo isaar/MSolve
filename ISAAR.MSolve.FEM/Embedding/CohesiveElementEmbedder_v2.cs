@@ -11,7 +11,8 @@ using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 namespace ISAAR.MSolve.FEM.Embedding
 {
     /// <summary>
-    /// This class should only be used with <see cref="FEM.Elements.cohesive_shell_to_hexaCopyGetEmbeRAM_11_tlk"/>
+    /// Appropriate superelement dofenumerator for problems with embedding of <see cref="FEM.Elements.CohesiveShell8ToHexa20_v2"/> elements.
+    /// update of the original <see cref="FEM.Embedding.ElementEmbedder_v2"/> class Authors: Gerasimos Sotiropoulos     
     /// </summary>
     public class CohesiveElementEmbedder_v2 : IElementDofEnumerator_v2
     {

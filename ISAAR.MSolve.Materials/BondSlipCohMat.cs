@@ -11,6 +11,10 @@ using ISAAR.MSolve.LinearAlgebra.Factorizations;
 
 namespace ISAAR.MSolve.Materials
 {
+    /// <summary>
+    /// cohesion only friction type response in shear separation mode (with kinematic hardening like behaviour). Linear elastic behaviour in normal mode
+    /// Authors Gerasimos Sotiropoulos
+    /// </summary>
     public class BondSlipCohMat_v2 : ICohesiveZoneMaterial3D_v2 // TODOGerasimos
     {
         private bool modified; // opws sto MohrCoulomb gia to modified

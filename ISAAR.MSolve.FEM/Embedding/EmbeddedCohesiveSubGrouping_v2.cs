@@ -8,6 +8,10 @@ using System.Linq;
 //TODO: this and EmbeddedGrouping have most things in common. Use a base class for them and template method or use polymorhism from the composed classes.
 namespace ISAAR.MSolve.PreProcessor.Embedding
 {
+    /// <summary>
+    /// Appropriate for iplementing embedding kinematic constraints only for some nodes of the embedded element so that bond slip phenomena can be modeled.
+    /// Element specific host groups Authors: Gerasimos Sotiropoulos
+    /// </summary>
     public class EmbeddedCohesiveSubGrouping_v2
     {
         private readonly Model_v2 model;

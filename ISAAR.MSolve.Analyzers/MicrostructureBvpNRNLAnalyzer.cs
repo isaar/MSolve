@@ -7,7 +7,6 @@ using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Solvers.Interfaces;
 using System.Collections;
 using System.Linq;
-using ISAAR.MSolve.Analyzers.SupportiveClasses;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.Discretization.Interfaces;

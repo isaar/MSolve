@@ -8,6 +8,10 @@ using ISAAR.MSolve.Numerical.LinearAlgebra;//using ISAAR.MSolve.Matrices;
 
 namespace ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses
 {
+    /// <summary>
+    /// Supportive class with print methods for results output creation or data input
+    /// Authors: Gerasimos Sotiropoulos
+    /// </summary>
     public static class PrintUtilities
     {
         public static void WriteToFile(double[,] array, string path)

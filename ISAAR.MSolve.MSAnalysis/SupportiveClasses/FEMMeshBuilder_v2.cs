@@ -24,6 +24,10 @@ using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses
 {
+    /// <summary>
+    /// Mesh and model creation supportive class, that can be used for 3d or 2d rve problems or structured meshing of parts in general
+    /// Authors: Gerasimos Sotiropoulos
+    /// </summary>
     public static class FEMMeshBuilder_v2   
     {
         public static int[,] topologia_shell_coh(int elements, int elem1, int elem2, object komvoi_8)

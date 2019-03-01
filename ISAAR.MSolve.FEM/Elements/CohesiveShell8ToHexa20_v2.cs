@@ -16,6 +16,10 @@ using ISAAR.MSolve.Materials.Interfaces;
 //TODO: perhaps separate the cases fot when the shell is over or under the cohesive element ibto 2 subclasses
 namespace ISAAR.MSolve.FEM.Elements
 {
+    /// <summary>
+    /// Cohesive element for modeling of delamination and debonding effects between parts modeled with shell and hexa20 elements.
+    /// Authors: Gerasimos Sotiropoulos
+    /// </summary>
     public class CohesiveShell8ToHexa20_v2 : IStructuralFiniteElement_v2, IEmbeddedElement_v2
     {
         protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };

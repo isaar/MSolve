@@ -24,8 +24,8 @@ using ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses;
 namespace ISAAR.MSolve.MultiscaleAnalysis
 {
     /// <summary>
-    /// Model builder that can be used to create homogeneous rves for testing of scale transitions
-    /// Authors: Gerasimos Sotiropoulos
+    /// Creates an elastic matrix rve meshed with <see cref="ISAAR.MSolve.FEM.Elements.Hexa8NonLinear_v2"/> elements
+    /// Authors Gerasimos Sotiropoulos
     /// </summary>
     public class HomogeneousRVEBuilderNonLinear : IRVEbuilder_v2
     {

@@ -15,6 +15,10 @@ using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
+    /// <summary>
+    /// Continuum finite Element for 3d problems with material and geometric nonlinearities. It should be used with IContinuumMaterial3DDefGrad_v2 based material implementations.
+    /// Authors: Gerasimos Sotiropoulos
+    /// </summary>
     public class Hexa8NonLinearDefGrad_v2 : IStructuralFiniteElement_v2, IEmbeddedHostElement_v2
     {
         protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };

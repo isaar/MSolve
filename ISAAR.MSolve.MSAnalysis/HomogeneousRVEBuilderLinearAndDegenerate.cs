@@ -23,6 +23,10 @@ using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.MultiscaleAnalysis
 {
+    /// <summary>
+    /// Creates an elastic matrix rve for (3d generate to) 2D problems
+    /// Authors Gerasimos Sotiropoulos
+    /// </summary>
     public class HomogeneousRVEBuilderLinearAndDegenerate : IdegenerateRVEbuilder_v2
     {
         // PROELEFSI: HomogeneousRVEBuilderCheck27HexaDegenerateAndLinear

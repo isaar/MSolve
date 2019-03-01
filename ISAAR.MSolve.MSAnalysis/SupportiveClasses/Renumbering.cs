@@ -4,6 +4,10 @@ using System.Text;
 
 namespace ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses
 {
+    /// <summary>
+    /// renumbering of model based on nodes (and not dofs)
+    /// Authors: Gerasimos Sotiropoulos
+    /// </summary>
     public class renumbering
     {
         public int[] sunol_nodes_numbering { get; set; }

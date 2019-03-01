@@ -24,6 +24,10 @@ using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.MultiscaleAnalysis
 {
+    /// <summary>
+    /// Creates a elastic matrix rve with embedded graphene sheets, with the asumption of damage behaviour for the material interface.
+    /// Authors Gerasimos Sotiropoulos
+    /// </summary>
     public class RveGrShMultiple : IRVEbuilder_v2 //IdegenerateRVEbuilder
     {
         //GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_v2

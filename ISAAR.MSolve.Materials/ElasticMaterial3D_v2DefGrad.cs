@@ -10,6 +10,10 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Materials
 {
+    /// <summary>
+    /// Deformation Gradient based implementation of a linear elastic isotropic material
+    /// Authors Gerasimos Sotiropoulos
+    /// </summary>
     public class ElasticMaterial3D_v2DefGrad : IContinuumMaterial3DDefGrad_v2
     {
         private readonly double[] strains = new double[6];
