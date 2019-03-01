@@ -8,6 +8,7 @@ using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Postprocessing;
 using ISAAR.MSolve.IGA.Readers;
+using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
@@ -1822,6 +1823,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		[Fact]
 		public void Camshaft1()
 		{
+			LibrarySettings.LinearAlgebraProviders = LinearAlgebraProviderChoice.MKL;
 			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
