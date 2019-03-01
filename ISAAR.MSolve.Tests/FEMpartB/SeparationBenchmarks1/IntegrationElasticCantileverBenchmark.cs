@@ -76,7 +76,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks1
         {
             //PROELEFSI: ParadeigmataElegxwnBuilder.HexaCantileverBuilder_copyMS_222(Model model, double load_value)
 
-            IRVEbuilder_v2 homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheck27Hexa_v2();
+            IRVEbuilder_v2 homogeneousRveBuilder1 = new HomogeneousRVEBuilderNonLinear();
 
             IContinuumMaterial3DDefGrad_v2 material1 = new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2(homogeneousRveBuilder1, new SkylineSolver.Builder(), false, 1);
 

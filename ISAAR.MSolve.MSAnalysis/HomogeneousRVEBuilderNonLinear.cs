@@ -19,14 +19,18 @@ using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
 using ISAAR.MSolve.PreProcessor.Embedding;
 using ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses;
-using ISAAR.MSolve.Discretization.Interfaces;
+
 
 namespace ISAAR.MSolve.MultiscaleAnalysis
 {
-    public class HomogeneousRVEBuilderCheck27HexaLinearAndDegenerate : IdegenerateRVEbuilder_v2
+    /// <summary>
+    /// Model builder that can be used to create homogeneous rves for testing of scale transitions
+    /// Authors: Gerasimos Sotiropoulos
+    /// </summary>
+    public class HomogeneousRVEBuilderNonLinear : IRVEbuilder_v2
     {
-        // PROELEFSI: HomogeneousRVEBuilderCheck27HexaDegenerateAndLinear
-        // allagh: ta peripheral boundary nodes
+        //HomogeneousRVEBuilderCheck27Hexa_v2
+        //PROELEFSI: apo to nl_elements_test
 
         //TODOGerasimos gia na ta krataei mesa kai na kanei build model oses fores tou zhththei
         // omoiws na ginei kai to RVE me graphene sheets 
@@ -34,40 +38,33 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         // int subdiscr1;
 
 
-        private Tuple<rveMatrixParameters, grapheneSheetParameters> mpgp ;
-        private rveMatrixParameters mp;
-        private grapheneSheetParameters gp;
-        private string renumbering_vector_path;
-
-        public HomogeneousRVEBuilderCheck27HexaLinearAndDegenerate()
+        public HomogeneousRVEBuilderNonLinear()
         {
             //TODOGerasimos
             // this.renumbering_vector_path=renumbering_vector_path,
             // this.subdiscr1=subdiscr1
         }
-        public IRVEbuilder_v2 Clone(int a) => new HomogeneousRVEBuilderCheck27HexaLinearAndDegenerate();
+        public IRVEbuilder_v2 Clone(int a) => new HomogeneousRVEBuilderNonLinear();
 
         public Tuple<Model_v2, Dictionary<int, Node_v2>,double> GetModelAndBoundaryNodes()
         {
            return Reference2RVEExample10_000withRenumbering_mono_hexa();
         }
 
-        
-
-        public Tuple<Model_v2, Dictionary<int, Node_v2>,double> Reference2RVEExample10_000withRenumbering_mono_hexa()
+        public static Tuple<Model_v2, Dictionary<int, Node_v2>,double> Reference2RVEExample10_000withRenumbering_mono_hexa()
         {
             Model_v2 model = new Model_v2();
-            model.SubdomainsDictionary.Add(1, new Subdomain_v2( 1 ));
+            model.SubdomainsDictionary.Add(1, new Subdomain_v2(1)); // subdomainId=1 //
 
             Dictionary<int, Node_v2> boundaryNodes= new Dictionary<int, Node_v2>();
             // COPY APO: Reference2RVEExample100_000withRenumbering_mono_hexa
             double[,] Dq = new double[1, 1];
-            //Tuple<rveMatrixParameters, grapheneSheetParameters> mpgp;
-            //rveMatrixParameters mp;
-            //grapheneSheetParameters gp;
+            Tuple<rveMatrixParameters, grapheneSheetParameters> mpgp;
+            rveMatrixParameters mp;
+            grapheneSheetParameters gp;
             //C:\Users\cluster 5\Desktop\Gerasimos\REFERENCE_Examples_me_develop\10_000_mono_hexa\REF_new_total_numbering.txt einai link sto PC LAB
             //string renumbering_vector_path = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_fe2_diafora_check\fe2_tax_me1_arxiko_chol_dixws_me1_OriginalRVEExampleChol_me_a1_REF2_10_000_renu_new_multiple_algorithms_check_stress_27hexa\REF_new_total_numbering27.txt";
-            renumbering_vector_path = "..\\..\\..\\RveTemplates\\Input\\RveHomogeneous\\REF_new_total_numbering27.txt";
+            string renumbering_vector_path = "..\\..\\..\\RveTemplates\\Input\\RveHomogeneous\\REF_new_total_numbering27.txt";
             //string Fxk_p_komvoi_rve_path = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_fe2_diafora_check\fe2_tax_me1_arxiko_chol_dixws_me1_OriginalRVEExampleChol_me_a1_REF2_10_000_renu_new_multiple_algorithms_check_stress_27hexa\Fxk_p_komvoi_rve.txt";
             string Fxk_p_komvoi_rve_path = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_fe2_diafora_check\fe2_tax_me1_arxiko_chol_dixws_me1_OriginalRVEExampleChol_me_a1_REF2_10_000_renu_new_multiple_algorithms_check_stress_27hexa\Fxk_p_komvoi_rve.txt";
             int subdiscr1 = 1;
@@ -86,7 +83,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             o_x_parameters[] model_o_x_parameteroi = new o_x_parameters[graphene_sheets_number];
 
 
-            FEMMeshBuilder_v2.LinearHexaElementsOnlyRVEwithRenumbering_forMS_PeripheralNodes(model, mp, Dq, renumbering_vector_path, boundaryNodes);
+            FEMMeshBuilder_v2.HexaElementsOnlyRVEwithRenumbering_forMS(model, mp, Dq, renumbering_vector_path, boundaryNodes);
             double volume = mp.L01 * mp.L02 * mp.L03;
 
             // MS: oi epomenes 6 grammes aforoun embedding commented out 
@@ -127,13 +124,5 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
 
             return new Tuple<Model_v2, Dictionary<int, Node_v2>,double>(model, boundaryNodes,volume);
         }
-
-        public Dictionary<Node_v2, IList<DOFType>> GetModelRigidBodyNodeConstraints(Model_v2 model)
-        {
-            return FEMMeshBuilder_v2.GetConstraintsOfDegenerateRVEForNonSingularStiffnessMatrix_withRenumbering(model, mp.hexa1, mp.hexa2, mp.hexa3, renumbering_vector_path);
-            //TODO:  Pithanws na epistrefetai apo GetModelAndBoundaryNodes ... AndConstraints.
-        }
-
-
     }
 }

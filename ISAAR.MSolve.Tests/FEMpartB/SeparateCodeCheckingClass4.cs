@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             double[] stressesCheck2 = material1.Stresses.Data;
 
             //VectorExtensions.AssignTotalAffinityCount();
-            IRVEbuilder_v2 homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheck27Hexa_v2();
+            IRVEbuilder_v2 homogeneousRveBuilder1 = new HomogeneousRVEBuilderNonLinear();
             //IRVEbuilder homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheckEnaHexa();
 
             //IContinuumMaterial3DDefGrad_v2
@@ -86,7 +86,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             double[] stressesCheck2 = material1.Stresses.Data;
 
             //VectorExtensions.AssignTotalAffinityCount();
-            IRVEbuilder_v2 homogeneousRveBuilder1 = new GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_forCheck_v2(1);
+            IRVEbuilder_v2 homogeneousRveBuilder1 = new RveGrShOne(1);
             //IRVEbuilder homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheckEnaHexa();
 
             //IContinuumMaterial3DDefGrad_v2 

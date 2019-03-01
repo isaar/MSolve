@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             double[] stressesCheck3 = new double[3] { material3.Stresses[0], material3.Stresses[1], material3.Stresses[2] };
 
             //VectorExtensions.AssignTotalAffinityCount();
-            IdegenerateRVEbuilder_v2 homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheck27HexaLinearAndDegenerate();
+            IdegenerateRVEbuilder_v2 homogeneousRveBuilder1 = new HomogeneousRVEBuilderLinearAndDegenerate();
             //IRVEbuilder homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheckEnaHexa();
 
             //IContinuumMaterial2D microstructure3 = new Microstructure3DevelopMultipleSubdomainsUseBaseSmallStrains2D(homogeneousRveBuilder1);
@@ -86,7 +86,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             double[] stressesCheck2 = new double[3] { material1.Stresses[0], material1.Stresses[1], material1.Stresses[2] };
 
             //VectorExtensions.AssignTotalAffinityCount();
-            IdegenerateRVEbuilder_v2 homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheck27HexaLinearAndDegenerate();
+            IdegenerateRVEbuilder_v2 homogeneousRveBuilder1 = new HomogeneousRVEBuilderLinearAndDegenerate();
             //IRVEbuilder homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheckEnaHexa();
 
             IContinuumMaterial2D_v2 microstructure3 = new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2SmallStrains2DplaneStress(homogeneousRveBuilder1, new SkylineSolver.Builder(), false, 1);
@@ -129,7 +129,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             double[] stressesCheck2 = new double[6] { material1.Stresses[0], material1.Stresses[1], material1.Stresses[2], material1.Stresses[3], material1.Stresses[4], material1.Stresses[5] };
 
             //VectorExtensions.AssignTotalAffinityCount();
-            IRVEbuilder_v2 homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheck27HexaLinear();
+            IRVEbuilder_v2 homogeneousRveBuilder1 = new HomogeneousRVEBuilderLinear();
             //IRVEbuilder homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheckEnaHexa();
 
             IContinuumMaterial3D_v2 microstructure3 = new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2SmallStrains3D(homogeneousRveBuilder1, new SkylineSolver.Builder(), false, 1);

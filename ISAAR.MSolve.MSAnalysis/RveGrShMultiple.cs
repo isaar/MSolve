@@ -24,8 +24,9 @@ using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.MultiscaleAnalysis
 {
-    public class GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_v2 : IRVEbuilder_v2 //IdegenerateRVEbuilder
+    public class RveGrShMultiple : IRVEbuilder_v2 //IdegenerateRVEbuilder
     {
+        //GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_v2
         //PROELEFSI branch: example/ms_development_nl_elements_merge (xwris sto telos _v2)
         // allages update se v2
 
@@ -35,12 +36,12 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         string renumbering_vector_path;
         int RVE_id;
 
-        public GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_v2(int RVE_id)
+        public RveGrShMultiple(int RVE_id)
         {
             this.RVE_id = RVE_id;
         }
 
-        public IRVEbuilder_v2 Clone(int a) => new GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_v2(a);
+        public IRVEbuilder_v2 Clone(int a) => new RveGrShMultiple(a);
     
         public Tuple<Model_v2, Dictionary<int, Node_v2>,double> GetModelAndBoundaryNodes()
         {

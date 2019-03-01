@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks2
             double[] stressesCheck2 = material1.Stresses;
 
             // den xreiazetai poia VectorExtensions.AssignTotalAffinityCount();
-            IRVEbuilder_v2 homogeneousRveBuilder1 = new GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_v2(1);
+            IRVEbuilder_v2 homogeneousRveBuilder1 = new RveGrShMultiple(1);
             //IRVEbuilder homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheckEnaHexa();
 
             var microstructure3 = new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2(homogeneousRveBuilder1, new SkylineSolver.Builder(), false, 1);
@@ -93,7 +93,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks2
             double[] stressesCheck2 = material1.Stresses;
 
             // den xreiazetai poia VectorExtensions.AssignTotalAffinityCount();
-            var grapheneRveBuilder1 = new GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostDataDdm_v2(1);
+            var grapheneRveBuilder1 = new RveGrShMultipleSeparated(1);
             //IRVEbuilder homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheckEnaHexa();
 
             // pros to paron

@@ -237,15 +237,15 @@ namespace ISAAR.MSolve.FEM.Entities
             Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements,
             int nIncrement, int totalIncrements)
         {
-            //prosthiki print
+            ////prosthiki print
 
-            ekteleseis_counter2 += 1;
-            string counter_data = ekteleseis_counter2.ToString();
-            string path = string.Format(string2, counter_data);
-            //solution.WriteToFile(path);
-            double[] solution_data = new double[solution.Length];
-            solution_data = solution.CopyToArray();
-            WriteToFileVector(solution_data, path);
+            //ekteleseis_counter2 += 1;
+            //string counter_data = ekteleseis_counter2.ToString();
+            //string path = string.Format(string2, counter_data);
+            ////solution.WriteToFile(path);
+            //double[] solution_data = new double[solution.Length];
+            //solution_data = solution.CopyToArray();
+            //WriteToFileVector(solution_data, path);
 
             var forces = Vector.CreateZero(DofOrdering.NumFreeDofs); //TODO: use Vector
             foreach (Element_v2 element in Elements)
@@ -268,52 +268,7 @@ namespace ISAAR.MSolve.FEM.Entities
             double[] elementNodalDisplacements = DofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector);
             return elementNodalDisplacements;
         }
-
-        //// prosthiki print
-        int ekteleseis_counter = 0;
-        int ekteleseis_counter2 = 0;
-        string string1 = @"C:\Users\turbo-x\Desktop\notes_elegxoi\MSOLVE_output_2\U_sunol_{0}.txt";
-        string string2 = @"C:\Users\turbo-x\Desktop\notes_elegxoi\MSOLVE_output_2\U_sunol_micro_{0}.txt";
-
-        //public IVector GetRhsFromSolution(IVectorView solution, IVectorView dSolution)
-        //{
-        //    // prosthiki print
-        //    ekteleseis_counter += 1;
-        //    string counter_data = ekteleseis_counter.ToString();
-        //    string path = string.Format(string1, counter_data);
-        //    //solution.WriteToFile(path);
-        //    //double[] solution_data = new double[solution.Length];
-        //    //solution.CopyTo(solution_data, 0);
-        //    var solution_data = solution.CopyToArray();
-        //    WriteToFileVector(solution_data, path);
-
-        //    var forces = Vector.CreateZero(DofOrdering.NumFreeDofs);
-        //    foreach (Element_v2 element in Elements)
-        //    {
-        //        var localSolution = GetLocalVectorFromGlobalWithoutPrescribedDisplacements(element, solution);
-        //        var localdSolution = GetLocalVectorFromGlobalWithoutPrescribedDisplacements(element, dSolution);
-        //        element.ElementType.CalculateStresses(element, localSolution, localdSolution);
-        //        if (element.ElementType.MaterialModified)
-        //            element.Subdomain.MaterialsModified = true;
-        //        double[] f = element.ElementType.CalculateForces(element, localSolution, localdSolution);
-        //        DofOrdering.AddVectorElementToSubdomain(element, f, forces);
-        //    }
-        //    return forces;
-        //}
-
-        // prosthiki print
-        public static void WriteToFileVector(double[] array, string path2)
-        {
-            var writer2 = new StreamWriter(path2);
-            for (int i = 0; i < array.GetLength(0); ++i)
-            {
-                writer2.Write(array[i]);
-                writer2.Write(' ');
-                writer2.WriteLine(); // allagh seiras (dld grafei oti exei mesa h parenths=esh edw keno kai allazei seira)
-            }
-            writer2.Flush();
-
-        }
+        
 
         public void ImposePrescribedDisplacementsWithInitialConditionSEffect(Element_v2 element, double[] localSolution, Dictionary<int, Node_v2> boundaryNodes,
             Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements,

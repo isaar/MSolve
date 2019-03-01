@@ -23,8 +23,9 @@ using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.MultiscaleAnalysis
 {
-    public class HomogeneousRVEBuilderCheck27HexaLinear : IRVEbuilder_v2
+    public class HomogeneousRVEBuilderLinear : IRVEbuilder_v2
     {
+        //HomogeneousRVEBuilderCheck27HexaLinear
         //TODOGerasimos gia na ta krataei mesa kai na kanei build model oses fores tou zhththei
         // omoiws na ginei kai to RVE me graphene sheets 
         // string renumbering_vector_path; 
@@ -36,13 +37,13 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         private grapheneSheetParameters gp;
         private string renumbering_vector_path;
 
-        public HomogeneousRVEBuilderCheck27HexaLinear()
+        public HomogeneousRVEBuilderLinear()
         {
             //TODOGerasimos
             // this.renumbering_vector_path=renumbering_vector_path,
             // this.subdiscr1=subdiscr1
         }
-        public IRVEbuilder_v2 Clone(int a) => new HomogeneousRVEBuilderCheck27HexaLinear();
+        public IRVEbuilder_v2 Clone(int a) => new HomogeneousRVEBuilderLinear();
 
         public Tuple<Model_v2, Dictionary<int, Node_v2>,double> GetModelAndBoundaryNodes()
         {
