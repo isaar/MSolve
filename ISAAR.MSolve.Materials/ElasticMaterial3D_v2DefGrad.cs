@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Materials.Interfaces; //using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces; //using ISAAR.MSolve.Matrices.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra; //using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.LinearAlgebra; //using ISAAR.MSolve.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
+
 
 namespace ISAAR.MSolve.Materials
 {
-    public class ElasticMaterial3D_v2DefGrad : IContinuumMaterial3DDefGrad
+    public class ElasticMaterial3D_v2DefGrad : IContinuumMaterial3DDefGrad_v2
     {
         private readonly double[] strains = new double[6];
-        private readonly double[] stresses = new double[6];
+        private  double[] stresses = new double[6];
         private double[,] constitutiveMatrix = null;
         public double YoungModulus { get; set; }
         public double PoissonRatio { get; set; }
@@ -37,8 +39,8 @@ namespace ISAAR.MSolve.Materials
             afE[4, 4] = fE4;
             afE[5, 5] = fE4;
 
-            Vector s = (new Matrix2D(afE)) * (new Vector(strains));
-            s.Data.CopyTo(stresses, 0);
+            Vector s = ( Matrix.CreateFromArray(afE)) * (Vector.CreateFromArray(strains));
+            stresses=s.CopyToArray();            
 
             return afE;
         }
@@ -63,14 +65,14 @@ namespace ISAAR.MSolve.Materials
 
         #region IFiniteElementMaterial3D Members
 
-        public Vector Stresses { get { return new Vector(stresses); } }
+        public double[] Stresses { get { return (stresses); } }
         
-        public Matrix2D ConstitutiveMatrix
+        public IMatrixView ConstitutiveMatrix
         {
             get
             {
                 if (constitutiveMatrix == null) UpdateMaterial(new double[9]);
-                return new Matrix2D(constitutiveMatrix);
+                return  Matrix.CreateFromArray(constitutiveMatrix);
             }
         }
 
