@@ -62,6 +62,12 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             material4.SaveState();
             material4.UpdateMaterial(new double[3] { 2 * strain[0], 2 * strain[1], 2 * strain[2] });
             double[] stressesCheck5 = new double[3] { material4.Stresses[0], material4.Stresses[1], material4.Stresses[2] };
+
+            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(stressesCheck3, stressesCheck4));
+            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(new double[3] { 2 * stressesCheck3[0], 2 * stressesCheck3[1], 2 * stressesCheck3[2] },
+                                                                            stressesCheck5));
+            Assert.True(BondSlipTest.AreDisplacementsSame_v2(Matrix1.CopyToArray2D(), consCheck1));
+            Assert.True(AreDisplacementsSame_v2(Matrix1.CopyToArray2D(), material4.ConstitutiveMatrix));
         }
 
         [Fact]
@@ -97,6 +103,14 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             microstructure3.SaveState();
             microstructure3.UpdateMaterial(new double[3] { 0.030, 0, 0 });
             double[] stressesCheck5 = new double[3] { microstructure3.Stresses[0], microstructure3.Stresses[1], microstructure3.Stresses[2] };
+            var Matrix1 = Matrix.CreateZero(3, 3); for (int i1 = 0; i1 < 3; i1++) { for (int i2 = 0; i2 < 3; i2++) { Matrix1[i1, i2] = microstructure3.ConstitutiveMatrix[i1, i2]; } }
+
+            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(stressesCheck1, stressesCheck3));
+            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(stressesCheck2, stressesCheck4));
+            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(new double[3] { 3 * stressesCheck1[0], 3 * stressesCheck1[1], 3 * stressesCheck1[2] },
+                                                                            stressesCheck5));
+            Assert.True(AreDisplacementsSame_v2( consCheck1, material1.ConstitutiveMatrix));
+            Assert.True(AreDisplacementsSame_v2(Matrix1.CopyToArray2D(), material1.ConstitutiveMatrix));
         }
 
         [Fact]
@@ -132,7 +146,31 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             microstructure3.SaveState();
             microstructure3.UpdateMaterial(new double[6] { 0.030, 0, 0, 0, 0, 0 });
             double[] stressesCheck5 = new double[6] { microstructure3.Stresses[0], microstructure3.Stresses[1], microstructure3.Stresses[2], microstructure3.Stresses[3], microstructure3.Stresses[4], microstructure3.Stresses[5] };
+            var Matrix1 = Matrix.CreateZero(3, 3); for (int i1 = 0; i1 < 3; i1++) { for (int i2 = 0; i2 < 3; i2++) { Matrix1[i1, i2] = microstructure3.ConstitutiveMatrix[i1, i2]; } }
 
+            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(stressesCheck1, stressesCheck3));
+            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(stressesCheck2, stressesCheck4));
+            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(new double[6] { 3 * stressesCheck1[0], 3 * stressesCheck1[1], 3 * stressesCheck1[2], 3 * stressesCheck1[3], 3 * stressesCheck1[4], 3 * stressesCheck1[5] },
+                                                                            stressesCheck5));
+            Assert.True(AreDisplacementsSame_v2(consCheck1, material1.ConstitutiveMatrix));
+            Assert.True(AreDisplacementsSame_v2(Matrix1.CopyToArray2D(), material1.ConstitutiveMatrix));
+        }
+
+        public static bool AreDisplacementsSame_v2(double[,] expectedValues,
+            IMatrixView computedValues)
+        {
+            var comparer = new ValueComparer(1E-14);
+            for (int i1 = 0; i1 < expectedValues.GetLength(0); i1++)
+            {
+                for (int i2 = 0; i2 < expectedValues.GetLength(1); i2++)
+                {
+                    if (!comparer.AreEqual(expectedValues[i1, i2], computedValues[i1, i2]))
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
 
     }

@@ -226,7 +226,7 @@ namespace ISAAR.MSolve.Tests
 
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
             int increments = 10;
-            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
+            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments, 1E-3);
             LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
 
             // Choose parent analyzer -> Parent: Static
