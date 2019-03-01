@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     /// Primary multiscale analysis class that connects all nesessary structures for a FE2 simulation
     /// Authors: Gerasimos Sotiropoulos
     /// </summary>
-    public class MicrostructureSmallStrains2DplaneStress : StructuralProblemsMicrostructureBase_v2, IContinuumMaterial2D_v2
+    public class Microstructure2DplaneStress : StructuralProblemsMicrostructureBase_v2, IContinuumMaterial2D_v2
     {
         //Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2SmallStrains2DplaneStress
         //PROELEFSI Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2
@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         //Random properties 
         private int database_size;
 
-        public MicrostructureSmallStrains2DplaneStress(IdegenerateRVEbuilder_v2 rveBuilder, ISolverBuilder_v2 solverBuilder, bool EstimateOnlyLinearResponse, int database_size)
+        public Microstructure2DplaneStress(IdegenerateRVEbuilder_v2 rveBuilder, ISolverBuilder_v2 solverBuilder, bool EstimateOnlyLinearResponse, int database_size)
         {
             this.rveBuilder = rveBuilder;
             this.solverBuilder = solverBuilder;
@@ -126,7 +126,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         public object Clone()
         {
             int new_rve_id = rnd1.Next(1, database_size + 1);
-            return new MicrostructureSmallStrains2DplaneStress((IdegenerateRVEbuilder_v2)rveBuilder.Clone(new_rve_id),solverBuilder.Clone(), EstimateOnlyLinearResponse, database_size);
+            return new Microstructure2DplaneStress((IdegenerateRVEbuilder_v2)rveBuilder.Clone(new_rve_id),solverBuilder.Clone(), EstimateOnlyLinearResponse, database_size);
         }
 
         public Dictionary<int, Node_v2> BoundaryNodesDictionary
