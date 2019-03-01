@@ -26,8 +26,8 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks1
     {
         //checked: apotelesmata C:\Users\turbo-x\Desktop\notes_elegxoi\MSOLVE_output_2\APOTELESMATA_MS_hexa8_cantilever_nea\IntegrationElasticCantileverBenchmark RunExample
         
-        //PROELEFSI opou htan checked branch example/ms_development_nl_elements_merge
-        //allages: egine v2
+        //Origin opou htan checked branch example/ms_development_nl_elements_merge
+        //modifications: egine v2
         public static TotalDisplacementsPerIterationLog_v2 RunExample()
         {
             //VectorExtensions.AssignTotalAffinityCount();
@@ -74,7 +74,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks1
 
         public static void HexaCantileverBuilder_copyMS_222(Model_v2 model, double load_value)
         {
-            //PROELEFSI: ParadeigmataElegxwnBuilder.HexaCantileverBuilder_copyMS_222(Model model, double load_value)
+            //Origin: ParadeigmataElegxwnBuilder.HexaCantileverBuilder_copyMS_222(Model model, double load_value)
 
             IRVEbuilder_v2 homogeneousRveBuilder1 = new HomogeneousRVEBuilderNonLinear();
 

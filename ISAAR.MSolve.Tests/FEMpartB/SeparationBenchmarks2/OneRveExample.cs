@@ -19,8 +19,8 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks2
     {
         public static (double[], double[], double[,], IVector, IVector) Check_Graphene_rve_serial() //palio "Check_Graphene_rve_Obje_v2_Integration()"
         {
-            //PROELEFSI: SeparateCodeCheckingClass4.Check_Graphene_rve_Obje_v2_Integration apo to branch: example/ms_development_nl_elements_merge
-            //allages: update kai tha xrhsimopoithei o GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_v2 
+            //Origin: SeparateCodeCheckingClass4.Check_Graphene_rve_Obje_v2_Integration apo to branch: example/ms_development_nl_elements_merge
+            //modifications: update kai tha xrhsimopoithei o GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_v2 
             //o opoios exei kai antistoixo ddm: GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostDataDdm_v2 pou tha trexei akrivws apo katw
             //PROSOXH gia na elegxei kai h defterh iteration u_sunol_micro_2 prepei na valoume ston graphenebuilder Addgraphenesheet xwris to bondslip.
 
@@ -69,9 +69,9 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks2
 
         public static (int[], int[], int[]) Check_Graphene_rve_parallel() //palio "Check_Graphene_rve_Obje_v2_Integration()"
         {
-            //PROELEFSI h methodos Check_Graphene_rve_serial() tou parontos
-            //PROELEFSI: SeparateCodeCheckingClass4.Check_Graphene_rve_Obje_v2_Integration apo to branch: example/ms_development_nl_elements_merge
-            //allages: update kai tha xrhsimopoithei o GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_v2 
+            //Origin h methodos Check_Graphene_rve_serial() tou parontos
+            //Origin: SeparateCodeCheckingClass4.Check_Graphene_rve_Obje_v2_Integration apo to branch: example/ms_development_nl_elements_merge
+            //modifications: update kai tha xrhsimopoithei o GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_v2 
             //o opoios exei kai antistoixo ddm: GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostDataDdm_v2 pou tha trexei akrivws apo katw
             //PROSOXH gia na elegxei kai h defterh iteration u_sunol_micro_2 prepei na valoume ston graphenebuilder Addgraphenesheet xwris to bondslip.
 
@@ -162,8 +162,8 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks2
         #region methodoi ths palaias SeparateCodeCheckingClass4
         //public static void Check05bStressIntegrationObjeIntegration()
         //{
-        //    //PROELEFSI: SeparateCodeCheckingClass.Check05bStressIntegration
-        //    //allages: tha xrhsimopoithei h nea microstructure me obje kapoia subdomainCalculations
+        //    //Origin: SeparateCodeCheckingClass.Check05bStressIntegration
+        //    //modifications: tha xrhsimopoithei h nea microstructure me obje kapoia subdomainCalculations
 
         //    double E_disp = 3.5; /*Gpa*/ double ni_disp = 0.4; // stather Poisson
         //    ElasticMaterial3D material1 = new ElasticMaterial3D()
@@ -198,8 +198,8 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks2
 
         //public static void Check05bStressIntegrationObje_v2_Integration()
         //{
-        //    //PROELEFSI: SeparateCodeCheckingClass.Check05bStressIntegration
-        //    //allages: tha xrhsimopoithei h nea microstructure me obje kapoia subdomainCalculations
+        //    //Origin: SeparateCodeCheckingClass.Check05bStressIntegration
+        //    //modifications: tha xrhsimopoithei h nea microstructure me obje kapoia subdomainCalculations
 
         //    double E_disp = 3.5; /*Gpa*/ double ni_disp = 0.4; // stather Poisson
         //    ElasticMaterial3D material1 = new ElasticMaterial3D()

@@ -607,8 +607,8 @@ namespace ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses
 
         public static Dictionary<Node_v2, IList<DOFType>> GetConstraintsOfDegenerateRVEForNonSingularStiffnessMatrix_withRenumbering(Model_v2 model, int hexa1, int hexa2, int hexa3, string renumberingVectorPath)
         {
-            //PROELEFSI: RVEExamplesBuilder.AddConstraintsForNonSingularStiffnessMatrix_withRenumbering()
-            //ALLAGES: return type and nodes and dofs to be constrained
+            //Origin : RVEExamplesBuilder.AddConstraintsForNonSingularStiffnessMatrix_withRenumbering()
+            //modifications: return type and nodes and dofs to be constrained
 
             Dictionary<Node_v2, IList<DOFType>> RigidBodyNodeConstraints = new Dictionary<Node_v2, IList<DOFType>>();
 
@@ -896,7 +896,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses
         public static void LinearHexaElementsOnlyRVEwithRenumbering_forMS(Model_v2 model, rveMatrixParameters mp, double[,] Dq, string renumberingVectorPath, Dictionary<int, Node_v2> boundaryNodes)
         {
             //COPY apo FEMMeshBuilder.HexaElementsOnlyRVEwithRenumbering_forMS()
-            //allages grammika elements kai artihmisi nodes pou afta xreiazontai
+            //modifications grammika elements kai artihmisi nodes pou afta xreiazontai
 
             // Perioxh renumbering initialization 
             renumbering renumbering = new renumbering(PrintUtilities.ReadIntVector(renumberingVectorPath));
@@ -1023,7 +1023,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses
         public static void LinearHexaElementsOnlyRVEwithRenumbering_forMS_PeripheralNodes(Model_v2 model, rveMatrixParameters mp, double[,] Dq, string renumberingVectorPath, Dictionary<int, Node_v2> boundaryNodes)
         {
             //COPY apo FEMMeshBuilder.LinearHexaElementsOnlyRVEwithRenumbering_forMS()
-            //allages boundary nodes mono ta peripheral 
+            //modifications boundary nodes mono ta peripheral 
 
             // Perioxh renumbering initialization 
             renumbering renumbering = new renumbering(PrintUtilities.ReadIntVector(renumberingVectorPath));

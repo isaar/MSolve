@@ -31,8 +31,8 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     public class RveGrShOne : IRVEbuilder_v2 //IdegenerateRVEbuilder
     {
         //GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_forCheck_v2
-        //PROELEFSI einai o updated GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData( _v2 to idio einai) apo thn ekdosh ms_development_nl_elements_merge
-        // allages: discretization data kai paths wste
+        //Origin  einai o updated GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData( _v2 to idio einai) apo thn ekdosh ms_development_nl_elements_merge
+        // modifications: discretization data kai paths wste
         //anti gia REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2
         //na trexoume REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2_forCHECK
         // pou exei th gewmetria tou REFERENCE_kanonikh_gewmetria_2\REF2_10__000_renu_new_multiple_algorithms_check_develop_1GrSh_correct_coh_CHECK_integration
@@ -63,7 +63,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
 
             Dictionary<int, Node_v2> boundaryNodes = new Dictionary<int, Node_v2>();
 
-            //PROELEFSI public static void Reference2RVEExample10000withRenumberingwithInput(Model model)
+            //Origin  public static void Reference2RVEExample10000withRenumberingwithInput(Model model)
             double[,] Dq;
             //Tuple<rveMatrixParameters, grapheneSheetParameters> mpgp;
             //rveMatrixParameters mp;

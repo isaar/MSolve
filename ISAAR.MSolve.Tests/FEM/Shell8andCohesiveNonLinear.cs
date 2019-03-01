@@ -176,7 +176,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
         private static void ShellAndCohesiveRAM_11tlkShellPaktwsh(Model model)
         {
-            //PROELEFSI: dhmiourgithike kata to ParadeigmataElegxwnBuilder.ShellAndCohesiveRAM_11ShellPaktwsh(model);
+            //Origin: dhmiourgithike kata to ParadeigmataElegxwnBuilder.ShellAndCohesiveRAM_11ShellPaktwsh(model);
             // allaxame to cohesive element
             // gewmetria
             double Tk = 0.5;
@@ -391,7 +391,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
         private static void ShellAndCohesiveRAM_11tlkShellPaktwsh_v2(Model_v2 model)
         {
-            //PROELEFSI: dhmiourgithike kata to ParadeigmataElegxwnBuilder.ShellAndCohesiveRAM_11ShellPaktwsh(model);
+            //Origin: dhmiourgithike kata to ParadeigmataElegxwnBuilder.ShellAndCohesiveRAM_11ShellPaktwsh(model);
             // allaxame to cohesive element
             // gewmetria
             double Tk = 0.5;

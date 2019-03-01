@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     /// </summary>
     public class HomogeneousRVEBuilderLinearAndDegenerate : IdegenerateRVEbuilder_v2
     {
-        // PROELEFSI: HomogeneousRVEBuilderCheck27HexaDegenerateAndLinear
+        // Origin : HomogeneousRVEBuilderCheck27HexaDegenerateAndLinear
         // allagh: ta peripheral boundary nodes
 
         //TODOGerasimos gia na ta krataei mesa kai na kanei build model oses fores tou zhththei

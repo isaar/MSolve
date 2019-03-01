@@ -26,8 +26,10 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     /// Supportive class  that implements nesessary integration methods associated with FE2 multiscale analysis 
     /// Authors: Gerasimos Sotiropoulos
     /// </summary>
-    public class SubdomainCalculationsSimultaneousObje_v2
-    {        
+    public class SubdomainCalculationsAndAssembly
+    {
+        //SubdomainCalculationsSimultaneousObje_v2
+
         private double[][] KfpDqVectors;
         private double[][] KppDqVectors;
         ISubdomainFreeDofOrdering dofOrdering;

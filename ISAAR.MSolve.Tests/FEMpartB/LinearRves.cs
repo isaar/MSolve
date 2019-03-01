@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB
         [Fact]
         public static void CheckShellScaleTransitionsAndMicrostructure()
         {
-            //proelefsi: Check05fStressIntegration
+            //Origin: Check05fStressIntegration
             //alllages: use of updated v2 classes
 
 

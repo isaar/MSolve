@@ -179,7 +179,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
         private static void ShellPlateBuilder(Model model, double load_value)
         {
-            // proelefsi: branch master idio onoma ParadeigmataElegxwnBuilder2.ShellPlateBuilder(Model model, double load_value)
+            // Origin: branch master idio onoma ParadeigmataElegxwnBuilder2.ShellPlateBuilder(Model model, double load_value)
             ShellElasticMaterial3D material1 = new ShellElasticMaterial3D()
             {
                 YoungModulus = 135300,
@@ -335,7 +335,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
         private static void ShellPlateBuilder_v2(Model_v2 model, double load_value)
         {
-            // proelefsi: branch master idio onoma ParadeigmataElegxwnBuilder2.ShellPlateBuilder(Model model, double load_value)
+            // Origin: branch master idio onoma ParadeigmataElegxwnBuilder2.ShellPlateBuilder(Model model, double load_value)
             var material1 = new ShellElasticMaterial_v2()
             {
                 YoungModulus = 135300,

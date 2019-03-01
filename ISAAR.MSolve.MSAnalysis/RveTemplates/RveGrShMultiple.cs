@@ -31,8 +31,8 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     public class RveGrShMultiple : IRVEbuilder_v2 //IdegenerateRVEbuilder
     {
         //GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_v2
-        //PROELEFSI branch: example/ms_development_nl_elements_merge (xwris sto telos _v2)
-        // allages update se v2
+        //Origin  branch: example/ms_development_nl_elements_merge (xwris sto telos _v2)
+        // modifications update se v2
 
         Tuple<rveMatrixParameters, grapheneSheetParameters> mpgp;
         rveMatrixParameters mp;
@@ -59,7 +59,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
 
             Dictionary<int, Node_v2> boundaryNodes = new Dictionary<int, Node_v2>();
 
-            //PROELEFSI public static void Reference2RVEExample10000withRenumberingwithInput(Model model)
+            //Origin  public static void Reference2RVEExample10000withRenumberingwithInput(Model model)
             double[,] Dq;
             //Tuple<rveMatrixParameters, grapheneSheetParameters> mpgp;
             //rveMatrixParameters mp;

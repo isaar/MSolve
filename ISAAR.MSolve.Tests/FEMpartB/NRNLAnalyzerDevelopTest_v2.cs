@@ -25,7 +25,7 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 
 namespace ISAAR.MSolve.Tests.FEMpartB
 {
-    public static  class NRNLAnalyzerDevelopTest_v2 //PROELEFSI: programElegxoiDdm opou eixan ginei comment out kai den htan updated apo ekdosh feat/prosthiki_allagwn 
+    public static  class NRNLAnalyzerDevelopTest_v2 //Origin: programElegxoiDdm opou eixan ginei comment out kai den htan updated apo ekdosh feat/prosthiki_allagwn 
     {        
         public static (IVector, IVector) SolveDisplLoadsExample()
         {

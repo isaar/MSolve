@@ -37,8 +37,8 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     public class MicrostructureShell2D : StructuralProblemsMicrostructureBase_v2, IShellMaterial_v2 //A.1
     {
         //Microstructure3DevelopMultipleSubdomainsUseBaseSmallStrainsShelltransformationSimuRandObj_v2
-        // proelefsi: Microstructure3DevelopMultipleSubdomainsUseBaseSmallStrainsShelltransformationSimuRand
-        // allages: --> updated se v2
+        // Origin: Microstructure3DevelopMultipleSubdomainsUseBaseSmallStrainsShelltransformationSimuRand
+        // modifications: --> updated se v2
 
 
         //A.2
@@ -273,7 +273,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             //arxiko (dixws object gia thn oloklhrwsh)
             //(Dictionary<int, double[][]> KfpDqSubdomains, Dictionary<int, double[][]> KppDqVectorsSubdomains) = SubdomainCalculationsSimultaneous.UpdateSubdomainKffAndCalculateKfpDqAndKppDqpMultiple(model, elementProvider, scaleTransitions, boundaryNodes, boundaryElements, linearSystems);
             //neo (object gia thn oloklhrwsh)
-            var integrationSimultaneous = new SubdomainCalculationsSimultaneousObje_v2();
+            var integrationSimultaneous = new SubdomainCalculationsAndAssembly();
             (Dictionary<int, double[][]> KfpDqSubdomains, Dictionary<int, double[][]> KppDqVectorsSubdomains) =
                 integrationSimultaneous.UpdateSubdomainKffAndCalculateKfpDqAndKppDqpMultipleObje_v2(model, elementProvider, scaleTransitions, boundaryNodes, boundaryElements, solver);
 
@@ -547,7 +547,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             //arxiko (dixws object gia thn oloklhrwsh)
             //(Dictionary<int, double[][]> KfpDqSubdomains, Dictionary<int, double[][]> KppDqVectorsSubdomains) = SubdomainCalculationsSimultaneous.UpdateSubdomainKffAndCalculateKfpDqAndKppDqpMultiple(model, elementProvider, scaleTransitions, boundaryNodes, boundaryElements, linearSystems);
             //neo (object gia thn oloklhrwsh)
-            var integrationSimultaneous = new SubdomainCalculationsSimultaneousObje_v2();
+            var integrationSimultaneous = new SubdomainCalculationsAndAssembly();
             (Dictionary<int, double[][]> KfpDqSubdomains, Dictionary<int, double[][]> KppDqVectorsSubdomains) =
                 integrationSimultaneous.UpdateSubdomainKffAndCalculateKfpDqAndKppDqpMultipleObje_v2(model, elementProvider, scaleTransitions, boundaryNodes, boundaryElements, solver);
 

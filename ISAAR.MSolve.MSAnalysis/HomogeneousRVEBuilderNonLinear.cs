@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     public class HomogeneousRVEBuilderNonLinear : IRVEbuilder_v2
     {
         //HomogeneousRVEBuilderCheck27Hexa_v2
-        //PROELEFSI: apo to nl_elements_test
+        //Origin : apo to nl_elements_test
 
         //TODOGerasimos gia na ta krataei mesa kai na kanei build model oses fores tou zhththei
         // omoiws na ginei kai to RVE me graphene sheets 

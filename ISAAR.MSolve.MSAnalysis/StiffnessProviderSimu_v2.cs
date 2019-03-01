@@ -15,9 +15,9 @@ namespace ISAAR.MSolve.MultiscaleAnalysisMerge
     public class StiffnessProviderSimu_v2 : IElementMatrixProvider_v2
     {
         #region IElementMatrixProvider Members
-        private SubdomainCalculationsSimultaneousObje_v2 host;
+        private SubdomainCalculationsAndAssembly host;
 
-        public StiffnessProviderSimu_v2(SubdomainCalculationsSimultaneousObje_v2 host)
+        public StiffnessProviderSimu_v2(SubdomainCalculationsAndAssembly host)
         {
             this.host = host;
         }

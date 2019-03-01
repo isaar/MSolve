@@ -177,7 +177,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
         public static void Reference2RVEExample1000ddm_test_for_Msolve_release_version_v2(Model_v2 model)
         {
-            // Proelefsi: RVEkanoninkhsGewmetriasBuilder.Reference2RVEExample1000ddm(....)
+            // Origin: RVEkanoninkhsGewmetriasBuilder.Reference2RVEExample1000ddm(....)
             double[,] Dq; //TODOGerasimos this will be used TOUSE to use ox rotated creation entos MSOLVE
             Tuple<rveMatrixParameters, grapheneSheetParameters> mpgp;
             rveMatrixParameters mp;
@@ -283,7 +283,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
         public static void Reference2RVEExample1000ddm_test_for_Msolve_release_version(Model model)
         {
-            // Proelefsi: RVEkanoninkhsGewmetriasBuilder.Reference2RVEExample1000ddm(....)
+            // Origin: RVEkanoninkhsGewmetriasBuilder.Reference2RVEExample1000ddm(....)
             double[,] Dq; //TODOGerasimos this will be used TOUSE to use ox rotated creation entos MSOLVE
             Tuple<rveMatrixParameters, grapheneSheetParameters> mpgp;
             rveMatrixParameters mp;

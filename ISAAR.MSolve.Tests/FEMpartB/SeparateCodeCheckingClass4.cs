@@ -20,8 +20,8 @@ namespace ISAAR.MSolve.Tests.FEMpartB
     {              
         public static (double[], double[], double[], double[], IVector, IVector) Check05bStressIntegrationObje_v2_Integration()
         {
-            //PROELEFSI: SeparateCodeCheckingClass.Check05bStressIntegration
-            //allages: tha xrhsimopoithei h nea microstructure me obje kapoia subdomainCalculations
+            //Origin: SeparateCodeCheckingClass.Check05bStressIntegration
+            //modifications: tha xrhsimopoithei h nea microstructure me obje kapoia subdomainCalculations
 
             double E_disp = 3.5; /*Gpa*/ double ni_disp = 0.4; // stather Poisson
             ElasticMaterial3D material1 = new ElasticMaterial3D()
@@ -65,8 +65,8 @@ namespace ISAAR.MSolve.Tests.FEMpartB
 
         public static (double[], double[], double[,], IVector, IVector) Check_Graphene_rve_Obje_v2_Integration()
         {
-            //PROELEFSI: SeparateCodeCheckingClass4.Check05bStressIntegrationObje_v2_Integration parontos
-            //allages: tha xrhsimopoithei o GrapheneBuilder...35...v2 gia epilush enos paradeigmatos GrapheneReinforcedRVEBuilderCHECK
+            //Origin: SeparateCodeCheckingClass4.Check05bStressIntegrationObje_v2_Integration parontos
+            //modifications: tha xrhsimopoithei o GrapheneBuilder...35...v2 gia epilush enos paradeigmatos GrapheneReinforcedRVEBuilderCHECK
             //gia elegxo twn newn domwn
             //PROSOXH gia na elegxei kai h defterh iteration u_sunol_micro_2 prepei na valoume ston graphenebuilder Addgraphenesheet xwris to bondslip.
 
