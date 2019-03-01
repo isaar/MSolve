@@ -28,16 +28,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     /// Authors Gerasimos Sotiropoulos
     /// </summary>
     public class HomogeneousRVEBuilderNonLinear : IRVEbuilder_v2
-    {
-        //HomogeneousRVEBuilderCheck27Hexa_v2
-        //Origin : apo to nl_elements_test
-
-        //TODOGerasimos gia na ta krataei mesa kai na kanei build model oses fores tou zhththei
-        // omoiws na ginei kai to RVE me graphene sheets 
-        // string renumbering_vector_path; 
-        // int subdiscr1;
-
-
+    {        
         public HomogeneousRVEBuilderNonLinear()
         {
             //TODOGerasimos
@@ -62,10 +53,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             Tuple<rveMatrixParameters, grapheneSheetParameters> mpgp;
             rveMatrixParameters mp;
             grapheneSheetParameters gp;
-            //C:\Users\cluster 5\Desktop\Gerasimos\REFERENCE_Examples_me_develop\10_000_mono_hexa\REF_new_total_numbering.txt einai link sto PC LAB
-            //string renumbering_vector_path = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_fe2_diafora_check\fe2_tax_me1_arxiko_chol_dixws_me1_OriginalRVEExampleChol_me_a1_REF2_10_000_renu_new_multiple_algorithms_check_stress_27hexa\REF_new_total_numbering27.txt";
             string renumbering_vector_path = "..\\..\\..\\RveTemplates\\Input\\RveHomogeneous\\REF_new_total_numbering27.txt";
-            //string Fxk_p_komvoi_rve_path = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_fe2_diafora_check\fe2_tax_me1_arxiko_chol_dixws_me1_OriginalRVEExampleChol_me_a1_REF2_10_000_renu_new_multiple_algorithms_check_stress_27hexa\Fxk_p_komvoi_rve.txt";
             string Fxk_p_komvoi_rve_path = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_fe2_diafora_check\fe2_tax_me1_arxiko_chol_dixws_me1_OriginalRVEExampleChol_me_a1_REF2_10_000_renu_new_multiple_algorithms_check_stress_27hexa\Fxk_p_komvoi_rve.txt";
             int subdiscr1 = 1;
             int discr1 = 3;
@@ -85,44 +73,17 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
 
             FEMMeshBuilder_v2.HexaElementsOnlyRVEwithRenumbering_forMS(model, mp, Dq, renumbering_vector_path, boundaryNodes);
             double volume = mp.L01 * mp.L02 * mp.L03;
-
-            // MS: oi epomenes 6 grammes aforoun embedding commented out 
-            //int hexaElementsNumber = model.ElementsDictionary.Count();
-            //IEnumerable<Element> hostGroup = model.ElementsDictionary.Where(x => (x.Key < hexaElementsNumber + 1)).Select(kv => kv.Value);
-            //List<int> EmbeddedElementsIDs = new List<int>();
-            //int element_counter_after_Adding_sheet;
-            //element_counter_after_Adding_sheet = hexaElementsNumber; // initial value before adding first graphene sheet
-            //int shellElementsNumber;
-
-
-            //  MS: to loop commented out afou  graphene_sheets_number=0
-            //for (int j = 0; j < graphene_sheets_number; j++)
-            //{
-            //    RVEExamplesBuilder.AddGrapheneSheet_with_o_x_parameters_withRenumbering(model, gp, ekk_xyz[j], model_o_x_parameteroi[j], renumbering_vector_path);
-            //    shellElementsNumber = (model.ElementsDictionary.Count() - element_counter_after_Adding_sheet) / 3; //tha xrhsimefsei
-            //    //embdeddedGroup_adittion= model.ElementsDictionary.Where(x => (x.Key >= shellElementsNumber + element_counter_after_Adding_sheet + 1)).Select(kv => kv.Value);
-            //    //embdeddedGroup.Concat(embdeddedGroup_adittion);
-            //    for (int k = shellElementsNumber + element_counter_after_Adding_sheet + 1; k < model.ElementsDictionary.Count() + 1; k++)
-            //    {
-            //        EmbeddedElementsIDs.Add(model.ElementsDictionary[k].ID);
-            //    }
-            //    element_counter_after_Adding_sheet = model.ElementsDictionary.Count();
-            //}
-
-            // model: add loads
-            //RVEExamplesBuilder.AddLoadsOnRveFromFile_withRenumbering(model, mp.hexa1, mp.hexa2, mp.hexa3, Fxk_p_komvoi_rve_path, renumbering_vector_path);
-            // commented out MS
-
-            // model: add constraints
-            //RVEExamplesBuilder.AddConstraintsForNonSingularStiffnessMatrix_withRenumbering(model, mp.hexa1, mp.hexa2, mp.hexa3, renumbering_vector_path);
-            // commented out MS
-
-            // MS: den uparxei pia embedding oi 3 epomenes grammes commented out 
-            //int[] EmbElementsIds = EmbeddedElementsIDs.ToArray();
-            //IEnumerable<Element> embdeddedGroup = model.ElementsDictionary.Where(x => (Array.IndexOf(EmbElementsIds, x.Key) > -1)).Select(kv => kv.Value); // dld einai null afth th stigmh
-            //var embeddedGrouping = new EmbeddedCohesiveGrouping(model, hostGroup, embdeddedGroup);
+            
 
             return new Tuple<Model_v2, Dictionary<int, Node_v2>,double>(model, boundaryNodes,volume);
         }
     }
+    //HomogeneousRVEBuilderCheck27Hexa_v2
+    //Origin : apo to nl_elements_test
+
+    //TODOGerasimos gia na ta krataei mesa kai na kanei build model oses fores tou zhththei
+    // omoiws na ginei kai to RVE me graphene sheets 
+    // string renumbering_vector_path; 
+    // int subdiscr1;
+
 }

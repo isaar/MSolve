@@ -69,13 +69,13 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             //rveMatrixParameters mp;
             //grapheneSheetParameters gp;
             var rve_id_data = RVE_id.ToString();
-            //renumbering_vector_path = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2_forCheck\RVE_database\rve_no_{0}\REF_new_total_numbering.txt";
+            
             renumbering_vector_path = "..\\..\\..\\RveTemplates\\Input\\RveGrShOne\\rve_no_{0}\\REF_new_total_numbering.txt";
             renumbering_vector_path = string.Format(renumbering_vector_path, rve_id_data);
-            //string Fxk_p_komvoi_rve_path = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2_forCheck\RVE_database\rve_no_{0}\Fxk_p_komvoi_rve.txt";
+            
             string Fxk_p_komvoi_rve_path = "..\\..\\..\\RveTemplates\\Input\\RveGrShOne\\rve_no_{0}\\Fxk_p_komvoi_rve.txt";
             Fxk_p_komvoi_rve_path = string.Format(Fxk_p_komvoi_rve_path, rve_id_data);
-            //string o_xsunol_input_path_gen = @"C:\Users\turbo-x\Desktop\notes_elegxoi\REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2_forCheck\RVE_database\rve_no_{0}\o_xsunol_gs_";
+            
             string o_xsunol_input_path_gen = "..\\..\\..\\RveTemplates\\Input\\RveGrShOne\\rve_no_{0}\\o_xsunol_gs_";
             o_xsunol_input_path_gen = string.Format(o_xsunol_input_path_gen, rve_id_data);
             o_xsunol_input_path_gen = o_xsunol_input_path_gen + "{0}.txt";
@@ -94,7 +94,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             int graphene_sheets_number = 1;
             o_x_parameters[] model_o_x_parameteroi = new o_x_parameters[graphene_sheets_number];
             double[][] ekk_xyz = new double[graphene_sheets_number][];
-            //double[][] ekk_xyz = new double[2][] { new double[] { 0, 0, 0 }, new double[] { 0.25 * 105, 0, 0.25 * 40 } };
+            
 
 
             Dq = new double[9, 3 * (((mp.hexa1 + 1) * (mp.hexa2 + 1) * (mp.hexa3 + 1)) - ((mp.hexa1 - 1) * (mp.hexa2 - 1) * (mp.hexa3 - 1)))];
@@ -123,13 +123,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
 
             }
 
-            // model: add loads         
-            //RVEExamplesBuilder.AddLoadsOnRveFromFile_withRenumbering(model, mp.hexa1, mp.hexa2, mp.hexa3, Fxk_p_komvoi_rve_path, renumbering_vector_path);
-            // commented out MS
-
-            // model: add constraints
-            //RVEExamplesBuilder.AddConstraintsForNonSingularStiffnessMatrix_withRenumbering(model, mp.hexa1, mp.hexa2, mp.hexa3, renumbering_vector_path);
-            // commented out MS
+           
 
             int[] EmbElementsIds = EmbeddedElementsIDs.ToArray();
             IEnumerable<Element_v2> embdeddedGroup = model.ElementsDictionary.Where(x => (Array.IndexOf(EmbElementsIds, x.Key) > -1)).Select(kv => kv.Value); // dld einai null afth th stigmh
