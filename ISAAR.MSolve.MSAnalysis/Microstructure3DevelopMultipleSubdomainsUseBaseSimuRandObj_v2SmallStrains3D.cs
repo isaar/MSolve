@@ -34,8 +34,9 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     /// Primary multiscale analysis class that connects all nesessary structures for a FE2 simulation
     /// Authors: Gerasimos Sotiropoulos
     /// </summary>
-    public class Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2SmallStrains3D : StructuralProblemsMicrostructureBase_v2, IContinuumMaterial3D_v2
+    public class MicrostructureSmallStrains3D : StructuralProblemsMicrostructureBase_v2, IContinuumMaterial3D_v2
     {
+        //Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2SmallStrains3D
         //PROELEFSI Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2
         //allages apo defgrad egine smallstrains2d me odhgo Microstructure3DevelopMultipleSubdomainsUseBaseSmallStrains2D se sxesh me to Microstructure3DevelopMultipleSubdomainsUseBase.cs
 
@@ -77,7 +78,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         //Random properties 
         private int database_size;
 
-        public Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2SmallStrains3D(IRVEbuilder_v2 rveBuilder, ISolverBuilder_v2 solverBuilder, bool EstimateOnlyLinearResponse, int database_size)
+        public MicrostructureSmallStrains3D(IRVEbuilder_v2 rveBuilder, ISolverBuilder_v2 solverBuilder, bool EstimateOnlyLinearResponse, int database_size)
         {
             this.rveBuilder = rveBuilder;
             this.solverBuilder = solverBuilder;
@@ -124,7 +125,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         public object Clone()
         {
             int new_rve_id = rnd1.Next(1, database_size + 1);
-            return new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2SmallStrains3D(rveBuilder.Clone(new_rve_id),solverBuilder.Clone(), EstimateOnlyLinearResponse, database_size);
+            return new MicrostructureSmallStrains3D(rveBuilder.Clone(new_rve_id),solverBuilder.Clone(), EstimateOnlyLinearResponse, database_size);
         }
 
         public Dictionary<int, Node_v2> BoundaryNodesDictionary

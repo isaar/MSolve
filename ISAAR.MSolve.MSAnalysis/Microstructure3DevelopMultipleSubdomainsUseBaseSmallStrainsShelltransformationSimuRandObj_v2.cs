@@ -34,11 +34,12 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     /// Primary multiscale analysis class that connects all nesessary structures for a FE2 simulation of shell structures 
     /// Authors: Gerasimos Sotiropoulos
     /// </summary>
-    public class Microstructure3DevelopMultipleSubdomainsUseBaseSmallStrainsShelltransformationSimuRandObj_v2 : StructuralProblemsMicrostructureBase_v2, IShellMaterial_v2 //A.1
+    public class MicrostructureShell2D : StructuralProblemsMicrostructureBase_v2, IShellMaterial_v2 //A.1
     {
+        //Microstructure3DevelopMultipleSubdomainsUseBaseSmallStrainsShelltransformationSimuRandObj_v2
         // proelefsi: Microstructure3DevelopMultipleSubdomainsUseBaseSmallStrainsShelltransformationSimuRand
         // allages: --> updated se v2
-       
+
 
         //A.2
         public double[] NormalVectorV3 { get; set; }
@@ -84,7 +85,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         //Random properties 
         private int database_size;
 
-        public Microstructure3DevelopMultipleSubdomainsUseBaseSmallStrainsShelltransformationSimuRandObj_v2(IdegenerateRVEbuilder_v2 rveBuilder, ISolverBuilder_v2 solverBuilder, bool EstimateOnlyLinearResponse, int database_size)
+        public MicrostructureShell2D(IdegenerateRVEbuilder_v2 rveBuilder, ISolverBuilder_v2 solverBuilder, bool EstimateOnlyLinearResponse, int database_size)
         {
             this.rveBuilder = rveBuilder;
             this.solverBuilder = solverBuilder;
@@ -132,14 +133,14 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         {
             Random rnd1 = new Random();
             int new_rve_id = rnd1.Next(1, database_size+1);
-            return new Microstructure3DevelopMultipleSubdomainsUseBaseSmallStrainsShelltransformationSimuRandObj_v2((IdegenerateRVEbuilder_v2)rveBuilder.Clone(new_rve_id), solverBuilder.Clone(), EstimateOnlyLinearResponse,database_size);
+            return new MicrostructureShell2D((IdegenerateRVEbuilder_v2)rveBuilder.Clone(new_rve_id), solverBuilder.Clone(), EstimateOnlyLinearResponse,database_size);
         }
 
         object ICloneable.Clone()
         {
             Random rnd1 = new Random();
             int new_rve_id = rnd1.Next(1, database_size + 1);
-            return new Microstructure3DevelopMultipleSubdomainsUseBaseSmallStrainsShelltransformationSimuRandObj_v2((IdegenerateRVEbuilder_v2)rveBuilder.Clone(new_rve_id), solverBuilder.Clone(), EstimateOnlyLinearResponse, database_size);
+            return new MicrostructureShell2D((IdegenerateRVEbuilder_v2)rveBuilder.Clone(new_rve_id), solverBuilder.Clone(), EstimateOnlyLinearResponse, database_size);
         }
 
         public Dictionary<int, Node_v2> BoundaryNodesDictionary
