@@ -186,7 +186,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
 
             // Create boolean matrices
             var continuityEquations = new ContinuityEquationsCalculator(new FullyRedundantConstraints());
-            return continuityEquations.CreateBooleanMatrices(model);
+            continuityEquations.CreateBooleanMatrices(model);
+            return continuityEquations.BooleanMatrices;
         }
 
         private static Model_v2 CreateModel()
