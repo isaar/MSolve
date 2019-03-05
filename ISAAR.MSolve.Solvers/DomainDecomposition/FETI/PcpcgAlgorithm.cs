@@ -12,24 +12,23 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
     /// </summary>
     internal class PcpcgAlgorithm
     {
-        private readonly int maxIterations;
-        private readonly double residualNormTolerance;
+        private readonly double maxIterationsOverSystemSize, residualNormTolerance;
 
-        internal PcpcgAlgorithm(int maxIterations, double residualNormTolerance)
+        internal PcpcgAlgorithm(double maxIterationsOverSystemSize, double residualNormTolerance)
         {
-            this.maxIterations = maxIterations;
+            this.maxIterationsOverSystemSize = maxIterationsOverSystemSize;
             this.residualNormTolerance = residualNormTolerance;
         }
 
-        internal PcpgStatistics Solve(BoundaryFlexibilityMatrix matrix, IFetiPreconditioner preconditioner,
-            ProjectorMatrix projector, Vector forces, Vector boundaryDisplacements, Vector rigidBodyMotionsWork, 
+        internal PcpgStatistics Solve(InterfaceFlexibilityMatrix matrix, IFetiPreconditioner preconditioner,
+            InterfaceProjection projector, double forcesNorm, Vector boundaryDisplacements, Vector rigidBodyModesWork, 
             Vector lagrangeMultipliers)
         {
             int n = matrix.Order;
-            double forcesNorm = forces.Norm2();
+            int maxIterations = (int)Math.Ceiling(n * maxIterationsOverSystemSize);
 
             // λ0 = Q * G * inv(G^T * Q * G) * e
-            projector.InitializeLagrangeMultipliers(rigidBodyMotionsWork, lagrangeMultipliers);
+            projector.InitializeLagrangeMultipliers(rigidBodyModesWork, lagrangeMultipliers);
 
             // r0 = d - F * λ0
             var residual = Vector.CreateZero(n);

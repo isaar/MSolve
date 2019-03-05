@@ -38,7 +38,7 @@ namespace ISAAR.MSolve.FEM.Entities
         public Dictionary<int, Node_v2> NodesDictionary { get; } = new Dictionary<int, Node_v2>();
 
         IReadOnlyList<ISubdomain_v2> IStructuralModel_v2.Subdomains => SubdomainsDictionary.Values.ToList();
-        public IList<Subdomain_v2> Subdomains => SubdomainsDictionary.Values.ToList();
+        public IReadOnlyList<Subdomain_v2> Subdomains => SubdomainsDictionary.Values.ToList();
         public Dictionary<int, Subdomain_v2> SubdomainsDictionary { get; } = new Dictionary<int, Subdomain_v2>();
 
         public IList<ITimeDependentNodalLoad> TimeDependentNodalLoads { get; } = new List<ITimeDependentNodalLoad>();
@@ -99,6 +99,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
             foreach (Load_v2 load in Loads)
             {
+                //WARNING: Computing the forces vector norm from the subdomains requires that the total load is distributed evenly
                 double amountPerSubdomain = load.Amount / load.Node.SubdomainsDictionary.Count;
                 foreach (Subdomain_v2 subdomain in load.Node.SubdomainsDictionary.Values)
                 {
@@ -120,6 +121,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public void AssignTimeDependentNodalLoads(int timeStep)
         {
+            //WARNING: Computing the forces vector norm from the subdomains requires that the total load is distributed evenly
             foreach (ITimeDependentNodalLoad load in TimeDependentNodalLoads)
             {
                 double amountPerSubdomain = load.GetLoadAmount(timeStep) / load.Node.SubdomainsDictionary.Count;

@@ -9,7 +9,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
 {
-    internal class ProjectorMatrix
+    internal class InterfaceProjection
     {
         private readonly Dictionary<int, SignedBooleanMatrix> booleanMatrices;
         private readonly Dictionary<int, List<Vector>> rigidBodyModes;
@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
         private Matrix matrixG;
         private CholeskyFull factorGQG; // Because Karmath suggests using POTRF, POTRS.
 
-        internal ProjectorMatrix(Dictionary<int, SignedBooleanMatrix> booleanMatrices, 
+        internal InterfaceProjection(Dictionary<int, SignedBooleanMatrix> booleanMatrices, 
             Dictionary<int, List<Vector>> rigidBodyModes, Matrix matrixQ)
         {
             this.booleanMatrices = booleanMatrices;
@@ -40,8 +40,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
         /// </summary>
         /// <param name="flexibilityTimeslagrangeMultipliers"></param>
         /// <param name="boundaryDisplacements"></param>
-        /// <returns></returns>
-        internal Vector CalculateRigidBodyMotionsCoefficients(Vector flexibilityTimeslagrangeMultipliers, 
+        internal Vector CalculateRigidBodyModesCoefficients(Vector flexibilityTimeslagrangeMultipliers, 
             Vector boundaryDisplacements)
         {
             Vector x = flexibilityTimeslagrangeMultipliers - boundaryDisplacements;
@@ -51,9 +50,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
         /// <summary>
         /// λ0 = Q * G * inv(G^T * Q * G) * e
         /// </summary>
-        internal void InitializeLagrangeMultipliers(Vector rigidBodyMotionsWork, Vector lagrange)
+        internal void InitializeLagrangeMultipliers(Vector rigidBodyModesWork, Vector lagrange)
         {
-            matrixQ.MultiplyIntoResult(matrixG * (factorGQG.SolveLinearSystem(rigidBodyMotionsWork)), lagrange);
+            matrixQ.MultiplyIntoResult(matrixG * (factorGQG.SolveLinearSystem(rigidBodyModesWork)), lagrange);
         }
 
         /// <summary>
@@ -83,7 +82,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
                 List<Vector> matrixR = rigidBodyModes[subdomain];
                 foreach (Vector columnR in matrixR)
                 {
-                    Vector columnG = matrixB.MultiplyRight(columnR, false);
+                    Vector columnG = matrixB.Multiply(columnR, false);
                     matrixG.SetSubcolumn(colCounter++, columnG);
                 }
             }

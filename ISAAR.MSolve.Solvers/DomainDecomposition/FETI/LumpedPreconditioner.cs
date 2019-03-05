@@ -12,21 +12,22 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
     {
         private readonly IReadOnlyList<Subdomain_v2> subdomains;
         private readonly ContinuityEquationsCalculator continuityEquations;
+        private readonly Dictionary<int, int[]> boundaryDofs;
 
-        private Dictionary<int, int[]> boundaryDofs;
         private Dictionary<int, Matrix> boundaryBooleanMatrices;
         private Dictionary<int, Matrix> boundaryStiffnessMatrices;
 
-        public LumpedPreconditioner(IReadOnlyList<Subdomain_v2> subdomains, ContinuityEquationsCalculator continuityEquations)
+        public LumpedPreconditioner(IReadOnlyList<Subdomain_v2> subdomains, ContinuityEquationsCalculator continuityEquations,
+            Dictionary<int, int[]> boundaryDofs)
         {
             this.subdomains = subdomains;
             this.continuityEquations = continuityEquations;
+            this.boundaryDofs = boundaryDofs;
         }
 
         public void CreatePreconditioner(Dictionary<int, IMatrixView> stiffnessMatrices)
         {
-            ExtractBoundaryDofs(); //TODO: this should be done somewhere more centrally.
-            ExtractBoundaryBooleanMatrices(); //TODO: perhaps this too.
+            ExtractBoundaryBooleanMatrices(); //TODO: perhaps this should be done somewhere more centrally too.
             ExtractBoundaryStiffnessMatrices(stiffnessMatrices);
         }
 
@@ -56,27 +57,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
                 Matrix booleanMatrix = continuityEquations.BooleanMatrices[id].CopyToFullMatrix(false);
                 Matrix boundaryBooleanMatrix = booleanMatrix.GetSubmatrix(rowsToKeep, boundaryDofs[id]);
                 boundaryBooleanMatrices.Add(id, boundaryBooleanMatrix);
-            }
-        }
-
-        private void ExtractBoundaryDofs()
-        {
-            boundaryDofs = new Dictionary<int, int[]>();
-            foreach (Subdomain_v2 subdomain in subdomains)
-            {
-                var boundaryDofsOfSubdomain = new SortedSet<int>();
-                foreach (Node_v2 node in subdomain.Nodes)
-                {
-                    int multiplicity = node.SubdomainsDictionary.Count;
-                    if (multiplicity > 1) // boundary node
-                    {
-                        foreach (int dof in subdomain.FreeDofOrdering.FreeDofs.GetValuesOfRow(node))
-                        {
-                            boundaryDofsOfSubdomain.Add(dof);
-                        }
-                    }
-                }
-                boundaryDofs.Add(subdomain.ID, boundaryDofsOfSubdomain.ToArray());
             }
         }
 
