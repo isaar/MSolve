@@ -84,14 +84,14 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
                     // β(m) = (y(m-1) * w(m-1)) / (y(m-2) * w(m-2))
                     beta = residualDotProductCurrent / residualDotProductPrevious;
 
-                    // p(m) = y(m-1) + β(m) * p(m-1), if m > 1. Else p(1) = y0
+                    // p(m) = y(m-1) + β(m) * p(m-1), if m > 1
                     direction.LinearCombinationIntoThis(beta, preconditionedResidual, 1.0);
                 }
                 residualDotProductPrevious = residualDotProductCurrent;
 
                 // γ(m) = (y(m-1) * w(m-1)) / (p(m) * F * p(m))
                 matrix.Multiply(direction, matrixTimesDirection);
-                double stepSize = direction.DotProduct(matrixTimesDirection);
+                double stepSize = (preconditionedResidual * projectedResidual) / (direction * matrixTimesDirection);
 
                 // λ(m) = λ(m-1) + γ(m) * p(m)
                 lagrangeMultipliers.AxpyIntoThis(direction, stepSize);

@@ -12,6 +12,7 @@ using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Preprocessor.Meshes;
 using ISAAR.MSolve.Preprocessor.Meshes.Custom;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.FETI;
 using Xunit;
 
@@ -19,22 +20,30 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
 {
     public static class Feti1Tests
     {
+        private const int subdomainIDsStart = 0;
+
         [Fact]
         internal static void TestFeti1Solver()
         {
-            Model_v2 model = CreateModel();
-            Vector globalU = SolveModel(model);
+            int numElementsX = 20, numElementsY = 10;
+            double factorizationTolerance = 1E-4, equalityTolerance = 1E-7;
+            IVectorView expectedDisplacements = SolveModelWithoutSubdomains(numElementsX, numElementsY);
+            IVectorView computedDisplacements = SolveModelWithSubdomains(numElementsX, numElementsY, factorizationTolerance);
+            Assert.True(expectedDisplacements.Equals(computedDisplacements, equalityTolerance));
         }
 
-        private static Model_v2 CreateModel()
+        private static Model_v2 CreateModel(int numElementsX, int numElementsY)
         {
-            // 6 ----- 7 ----- 8
+            // if numElementsX = numElementsY = 2:
+            // 6 ----- 7 ----- 8  -->
             // |  (3)  |  (4)  |
             // |       |       |
-            // 3 ----- 4 ----- 5
+            // 3 ----- 4 ----- 5  -->
             // |  (1)  |  (2)  |
             // |       |       |
-            // 0 ----- 1 ----- 2
+            // 0 ----- 1 ----- 2  -->
+            // Δ               Δ    
+            // --              o
 
             // Material
             double thickness = 1.0;
@@ -50,7 +59,6 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
 
             // Generate mesh
             double minX = 0.0, minY = 0.0, maxX = 2.0, maxY = 2.0;
-            int numElementsX = 2, numElementsY = 2;
             var meshGenerator = new UniformMeshGenerator2D_v2(minX, minY, maxX, maxY, numElementsX, numElementsY);
             (IReadOnlyList<Node_v2> vertices, IReadOnlyList<CellConnectivity_v2> cells) = meshGenerator.CreateMesh();
 
@@ -67,19 +75,19 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
                 int subdomainID;
                 if (cells[e].Vertices.All(node => (node.X <= verticalBoundaryX) && (node.Y <= horizontalBoundaryY)))
                 {
-                    subdomainID = 0;
+                    subdomainID = subdomainIDsStart + 0;
                 }
                 else if (cells[e].Vertices.All(node => (node.X >= verticalBoundaryX) && (node.Y <= horizontalBoundaryY)))
                 {
-                    subdomainID = 1;
+                    subdomainID = subdomainIDsStart + 1;
                 }
                 else if (cells[e].Vertices.All(node => (node.X <= verticalBoundaryX) && (node.Y >= horizontalBoundaryY)))
                 {
-                    subdomainID = 2;
+                    subdomainID = subdomainIDsStart + 2;
                 }
                 else if (cells[e].Vertices.All(node => (node.X >= verticalBoundaryX) && (node.Y >= horizontalBoundaryY)))
                 {
-                    subdomainID = 3;
+                    subdomainID = subdomainIDsStart + 3;
                 }
                 else throw new Exception("This element does not belong to any subdomain");
 
@@ -102,13 +110,23 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
                 node => (Math.Abs(node.X - maxX) <= tol) && (Math.Abs(node.Y - minY) <= tol)).First();
             bottomRight.Constraints.Add(new Constraint() { DOF = DOFType.Y, Amount = 0.0 });
 
+            // Loads
+            double loadX = 100.0;
+            Node_v2[] rightSideNodes = model.Nodes.Where(node => (Math.Abs(node.X - maxX) <= tol)).ToArray();
+            foreach (Node_v2 node in rightSideNodes)
+            {
+                model.Loads.Add(new Load_v2() { Node = node, DOF = DOFType.X, Amount = loadX / rightSideNodes.Length });
+            }
+
             return model;
         }
 
-        private static Vector SolveModel(Model_v2 model)
+        private static IVectorView SolveModelWithSubdomains(int numElementsX, int numElementsY, double factorizationTolerance)
         {
+            Model_v2 model = CreateModel(numElementsX, numElementsY);
+
             // Solver
-            var solver = new FetiLvl1Solver(model, 1E-7);
+            var solver = new FetiLvl1Solver(model, factorizationTolerance);
 
             // Structural problem provider
             var provider = new ProblemStructural_v2(model, solver);
@@ -122,6 +140,33 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
             parentAnalyzer.Solve();
 
             return solver.GatherGlobalDisplacements();
+        }
+
+        private static IVectorView SolveModelWithoutSubdomains(int numElementsX, int numElementsY)
+        {
+            Model_v2 model = CreateModel(numElementsX, numElementsY);
+
+            // Replace the existing subdomains with a single one 
+            model.SubdomainsDictionary.Clear();
+            var subdomain = new Subdomain_v2(subdomainIDsStart);
+            model.SubdomainsDictionary.Add(subdomainIDsStart, subdomain);
+            foreach (Element_v2 element in model.Elements) subdomain.Elements.Add(element);
+
+            // Solver
+            SkylineSolver solver = (new SkylineSolver.Builder()).BuildSolver(model);
+
+            // Structural problem provider
+            var provider = new ProblemStructural_v2(model, solver);
+
+            // Linear static analysis
+            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
+            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+
+            // Run the analysis
+            parentAnalyzer.Initialize();
+            parentAnalyzer.Solve();
+
+            return solver.LinearSystems[subdomainIDsStart].Solution;
         }
     }
 }

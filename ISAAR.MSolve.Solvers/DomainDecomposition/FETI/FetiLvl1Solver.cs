@@ -97,7 +97,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
                 // Internal dofs are copied as is.
                 foreach (int internalDof in internalDofs[id])
                 {
-                    globalDisplacements.AddNonContiguouslyFrom(subdomainToGlobalDofs, linearSystem.Solution); //TODO: implement a copy version of this method.
+                    int globalDofIdx = subdomainToGlobalDofs[internalDof];
+                    globalDisplacements[globalDofIdx] = linearSystem.Solution[internalDof];
                 }
 
                 // For boundary dofs we take the mean value across subdomains. 
@@ -212,10 +213,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
             // Calculate the rigid body modes coefficients
             var flexibilityTimesLagranges = Vector.CreateZero(continuityEquations.NumContinuityEquations);
             flexibility.Multiply(lagranges, flexibilityTimesLagranges);
-            projector.CalculateRigidBodyModesCoefficients(flexibilityTimesLagranges, displacements);
+            Vector rbmCoeffs = projector.CalculateRigidBodyModesCoefficients(flexibilityTimesLagranges, displacements);
 
             // Calculate the displacements of each subdomain
-            CalculateBoundaryDisplacements();
+            CalculateFinalDisplacements(lagranges, rbmCoeffs);
         }
 
         /// <summary>

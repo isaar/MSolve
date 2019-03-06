@@ -17,6 +17,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
         {
             this.continuityEquations = continuityEquations;
             this.factorizations = factorizations;
+            this.Order = continuityEquations.NumContinuityEquations;
         }
 
         internal int Order { get; }
