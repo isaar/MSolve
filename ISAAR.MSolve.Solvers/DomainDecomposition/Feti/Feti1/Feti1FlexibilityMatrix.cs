@@ -4,15 +4,16 @@ using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Feti;
 
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
 {
-    internal class InterfaceFlexibilityMatrix 
+    internal class Feti1FlexibilityMatrix : IInterfaceFlexibilityMatrix
     {
         private readonly ContinuityEquationsCalculator continuityEquations;
         private readonly Dictionary<int, SemidefiniteCholeskySkyline> factorizations;
 
-        internal InterfaceFlexibilityMatrix(Dictionary<int, SemidefiniteCholeskySkyline> factorizations,
+        internal Feti1FlexibilityMatrix(Dictionary<int, SemidefiniteCholeskySkyline> factorizations,
             ContinuityEquationsCalculator continuityEquations)
         {
             this.continuityEquations = continuityEquations;
@@ -20,9 +21,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
             this.Order = continuityEquations.NumContinuityEquations;
         }
 
-        internal int Order { get; }
+        public int Order { get; }
 
-        internal void Multiply(Vector lhs, Vector rhs)
+        public void Multiply(Vector lhs, Vector rhs)
         {
             rhs.Clear(); //TODO: perhaps this should be done outside.
             foreach (var keyFactor in factorizations)

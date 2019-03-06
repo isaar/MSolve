@@ -8,7 +8,7 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 //TODO: This should only calculate them. Another object should manage them.
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
     /// <summary>
     /// Calculates the signed boolean matrices of the equations that enforce continuity between the multiple instances of 

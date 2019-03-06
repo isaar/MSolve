@@ -5,10 +5,11 @@ using System.Text;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Feti;
 
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
 {
-    internal class LumpedPreconditioner : IFetiPreconditioner
+    internal class Feti1LumpedPreconditioner : IFetiPreconditioner
     {
         private readonly IReadOnlyList<Subdomain_v2> subdomains;
         private readonly ContinuityEquationsCalculator continuityEquations;
@@ -17,7 +18,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
         private Dictionary<int, Matrix> boundaryBooleanMatrices;
         private Dictionary<int, Matrix> boundaryStiffnessMatrices;
 
-        public LumpedPreconditioner(IReadOnlyList<Subdomain_v2> subdomains, ContinuityEquationsCalculator continuityEquations,
+        public Feti1LumpedPreconditioner(IReadOnlyList<Subdomain_v2> subdomains, ContinuityEquationsCalculator continuityEquations,
             Dictionary<int, int[]> boundaryDofs)
         {
             this.subdomains = subdomains;

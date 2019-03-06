@@ -13,20 +13,25 @@ using ISAAR.MSolve.Preprocessor.Meshes;
 using ISAAR.MSolve.Preprocessor.Meshes.Custom;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
-using ISAAR.MSolve.Solvers.DomainDecomposition.FETI;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Feti1;
 using Xunit;
 
-namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
+namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
 {
-    public static class Feti1Tests
+    /// <summary>
+    /// Tests the correctness of the FETI-1 solver, with lumped preconditioner in a simple homogeneous problem.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
+    public static class SimplePlateTest
     {
         private const int subdomainIDsStart = 0;
 
         [Fact]
-        internal static void TestFeti1Solver()
+        internal static void Run()
         {
             int numElementsX = 20, numElementsY = 10;
-            double factorizationTolerance = 1E-4, equalityTolerance = 1E-7;
+            double factorizationTolerance = 1E-4; // Defining the rigid body modes is very sensitive to this. TODO: The user shouldn't have to specify such a volatile parameter.
+            double equalityTolerance = 1E-7;
             IVectorView expectedDisplacements = SolveModelWithoutSubdomains(numElementsX, numElementsY);
             IVectorView computedDisplacements = SolveModelWithSubdomains(numElementsX, numElementsY, factorizationTolerance);
             Assert.True(expectedDisplacements.Equals(computedDisplacements, equalityTolerance));
@@ -43,7 +48,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
             // |       |       |
             // 0 ----- 1 ----- 2  -->
             // Δ               Δ    
-            // --              o
+            // -               o
 
             // Material
             double thickness = 1.0;
@@ -126,7 +131,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
             Model_v2 model = CreateModel(numElementsX, numElementsY);
 
             // Solver
-            var solver = new FetiLvl1Solver(model, factorizationTolerance);
+            var solver = new Feti1Solver(model, factorizationTolerance);
 
             // Structural problem provider
             var provider = new ProblemStructural_v2(model, solver);

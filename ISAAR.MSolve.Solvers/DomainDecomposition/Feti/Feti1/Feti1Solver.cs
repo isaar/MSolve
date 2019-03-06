@@ -10,14 +10,15 @@ using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Feti;
 using ISAAR.MSolve.Solvers.LinearSystems;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
 //TODO: Rigid body modes do not have to be computed each time the stiffness matrix changes. 
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
 {
-    public class FetiLvl1Solver : ISolver_v2
+    public class Feti1Solver : ISolver_v2
     {
         private readonly Dictionary<int, SkylineAssembler> assemblers;
         private readonly ContinuityEquationsCalculator continuityEquations;
@@ -38,11 +39,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
         private Dictionary<int, SemidefiniteCholeskySkyline> factorizations;
         private Dictionary<int, List<Vector>> rigidBodyModes;
 
-        public FetiLvl1Solver(Model_v2 model, double factorizationPivotTolerance) :
+        public Feti1Solver(Model_v2 model, double factorizationPivotTolerance) :
             this(model, new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering()), factorizationPivotTolerance)
         { }
 
-        public FetiLvl1Solver(Model_v2 model, IDofOrderer dofOrderer, double factorizationPivotTolerance)
+        public Feti1Solver(Model_v2 model, IDofOrderer dofOrderer, double factorizationPivotTolerance)
         {
             if (model.Subdomains.Count == 1) throw new InvalidSolverException(
                 $"{name} cannot be used if there is only 1 subdomain");
@@ -165,7 +166,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
 
             // Create the preconditioner. 
             //TODO: this should be done simultaneously with the factorizations to avoid duplicate factorizations.
-            var preconditioner = new LumpedPreconditioner(model.Subdomains, continuityEquations, boundaryDofs);
+            var preconditioner = new Feti1LumpedPreconditioner(model.Subdomains, continuityEquations, boundaryDofs);
             var stiffnessMatrices = new Dictionary<int, IMatrixView>();
             foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
@@ -191,7 +192,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
                 }
                 mustFactorize = false;
             }
-            var flexibility = new InterfaceFlexibilityMatrix(factorizations, continuityEquations);
+            var flexibility = new Feti1FlexibilityMatrix(factorizations, continuityEquations);
 
             // Calculate the rhs vectors of the interface system
             Vector displacements = CalculateBoundaryDisplacements();
@@ -199,7 +200,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
 
             // Define and initilize the projection
             var Q = Matrix.CreateIdentity(continuityEquations.NumContinuityEquations);
-            var projector = new InterfaceProjection(continuityEquations.BooleanMatrices, rigidBodyModes, Q);
+            var projector = new Feti1Projection(continuityEquations.BooleanMatrices, rigidBodyModes, Q);
             projector.InvertCoarseProblemMatrix();
 
             // Calculate the norm of the forces vector Ku=f

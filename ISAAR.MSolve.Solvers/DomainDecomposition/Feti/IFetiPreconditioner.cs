@@ -4,7 +4,7 @@ using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
     internal interface IFetiPreconditioner
     {

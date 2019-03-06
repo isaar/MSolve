@@ -5,7 +5,7 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 //TODO: extend this to methods other than FEM.
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
     /// <summary>
     /// Finds the combinations of subdomains that contain same boundary node.

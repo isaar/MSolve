@@ -5,7 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: rearrange the PCPCG algorithm such that unnecessary operations are avoided.
 //TODO: rearrange the PCPCG algorithm, rename variables and use CG utility classes such that PCPCG is consistent with the CG and PCG algorithms.
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
     /// <summary>
     /// Implementation of the Preconditioned Conjugate Projected Gradient Method used in the FETI method.
@@ -20,8 +20,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
             this.residualNormTolerance = residualNormTolerance;
         }
 
-        internal PcpgStatistics Solve(InterfaceFlexibilityMatrix matrix, IFetiPreconditioner preconditioner,
-            InterfaceProjection projector, double forcesNorm, Vector boundaryDisplacements, Vector rigidBodyModesWork, 
+        internal PcpgStatistics Solve(IInterfaceFlexibilityMatrix matrix, IFetiPreconditioner preconditioner,
+            IInterfaceProjection projector, double forcesNorm, Vector boundaryDisplacements, Vector rigidBodyModesWork, 
             Vector lagrangeMultipliers)
         {
             int n = matrix.Order;

@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Feti;
 
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
 {
-    internal class InterfaceProjection
+    internal class Feti1Projection : IInterfaceProjection
     {
         private readonly Dictionary<int, SignedBooleanMatrix> booleanMatrices;
         private readonly Dictionary<int, List<Vector>> rigidBodyModes;
@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
         private Matrix matrixG;
         private CholeskyFull factorGQG; // Because Karmath suggests using POTRF, POTRS.
 
-        internal InterfaceProjection(Dictionary<int, SignedBooleanMatrix> booleanMatrices, 
+        internal Feti1Projection(Dictionary<int, SignedBooleanMatrix> booleanMatrices, 
             Dictionary<int, List<Vector>> rigidBodyModes, Matrix matrixQ)
         {
             this.booleanMatrices = booleanMatrices;
@@ -26,21 +26,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
         }
 
         /// <summary>
-        /// inv(G^T * Q * G)
-        /// </summary>
-        internal void InvertCoarseProblemMatrix()
-        {
-            CalculateMatrixG();
-            Matrix GQG = matrixG.ThisTransposeTimesOtherTimesThis(matrixQ);
-            factorGQG = GQG.FactorCholesky(true);
-        }
-
-        /// <summary>
         /// a = inv(G^T*Q*G) * G^T * Q * (Fe * λ - d)
         /// </summary>
         /// <param name="flexibilityTimeslagrangeMultipliers"></param>
         /// <param name="boundaryDisplacements"></param>
-        internal Vector CalculateRigidBodyModesCoefficients(Vector flexibilityTimeslagrangeMultipliers, 
+        public Vector CalculateRigidBodyModesCoefficients(Vector flexibilityTimeslagrangeMultipliers, 
             Vector boundaryDisplacements)
         {
             Vector x = flexibilityTimeslagrangeMultipliers - boundaryDisplacements;
@@ -50,15 +40,25 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.FETI
         /// <summary>
         /// λ0 = Q * G * inv(G^T * Q * G) * e
         /// </summary>
-        internal void InitializeLagrangeMultipliers(Vector rigidBodyModesWork, Vector lagrange)
+        public void InitializeLagrangeMultipliers(Vector rigidBodyModesWork, Vector lagrange)
         {
             matrixQ.MultiplyIntoResult(matrixG * (factorGQG.SolveLinearSystem(rigidBodyModesWork)), lagrange);
         }
 
         /// <summary>
+        /// inv(G^T * Q * G)
+        /// </summary>
+        public void InvertCoarseProblemMatrix()
+        {
+            CalculateMatrixG();
+            Matrix GQG = matrixG.ThisTransposeTimesOtherTimesThis(matrixQ);
+            factorGQG = GQG.FactorCholesky(true);
+        }
+
+        /// <summary>
         ///  P = I - Q * G * inv(G^T*Q*G) * G^T,  projected = P * original
         /// </summary>
-        internal void ProjectVector(Vector original, Vector projected)
+        public void ProjectVector(Vector original, Vector projected)
         {
             // P * x = x - Q * (G * (inv(G^T*Q*G) * (G^T * x))
             projected.CopyFrom(original);

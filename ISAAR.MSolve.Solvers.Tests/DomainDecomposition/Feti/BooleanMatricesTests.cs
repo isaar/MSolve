@@ -11,12 +11,12 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Preprocessor.Meshes;
 using ISAAR.MSolve.Preprocessor.Meshes.Custom;
-using ISAAR.MSolve.Solvers.DomainDecomposition.FETI;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Feti;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using Xunit;
 
-namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
+namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti
 {
     public static class BooleanMatricesTests
     {
