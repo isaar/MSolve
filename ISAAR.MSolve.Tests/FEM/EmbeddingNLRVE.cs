@@ -15,6 +15,7 @@ using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.PreProcessor.Embedding;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
@@ -147,14 +148,14 @@ namespace ISAAR.MSolve.Tests.FEM
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
             // Problem type
             var provider = new ProblemStructural_v2(model, solver);
 
             // Analyzers
             int increments = 2;
-            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
+            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments, 1E-8);
             childAnalyzerBuilder.MaxIterationsPerIncrement = 100;
             childAnalyzerBuilder.NumIterationsForMatrixRebuild = 1;
             //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) }; // This is the default
@@ -176,7 +177,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
         public static void Reference2RVEExample1000ddm_test_for_Msolve_release_version_v2(Model_v2 model)
         {
-            // Proelefsi: RVEkanoninkhsGewmetriasBuilder.Reference2RVEExample1000ddm(....)
+            // Origin: RVEkanoninkhsGewmetriasBuilder.Reference2RVEExample1000ddm(....)
             double[,] Dq; //TODOGerasimos this will be used TOUSE to use ox rotated creation entos MSOLVE
             Tuple<rveMatrixParameters, grapheneSheetParameters> mpgp;
             rveMatrixParameters mp;
@@ -282,7 +283,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
         public static void Reference2RVEExample1000ddm_test_for_Msolve_release_version(Model model)
         {
-            // Proelefsi: RVEkanoninkhsGewmetriasBuilder.Reference2RVEExample1000ddm(....)
+            // Origin: RVEkanoninkhsGewmetriasBuilder.Reference2RVEExample1000ddm(....)
             double[,] Dq; //TODOGerasimos this will be used TOUSE to use ox rotated creation entos MSOLVE
             Tuple<rveMatrixParameters, grapheneSheetParameters> mpgp;
             rveMatrixParameters mp;

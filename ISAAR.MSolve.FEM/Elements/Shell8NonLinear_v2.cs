@@ -14,6 +14,10 @@ using System.Collections.Generic;
 //TODO: move stuff to Shell8DirectionVectorUtilities
 namespace ISAAR.MSolve.FEM.Elements
 {
+    /// <summary>
+    /// Shell elements for 3d problems with material and geometric nonlinearities. Out of plane shear deformation of the modeled shell structure is assumpted.
+    /// Authors: Gerasimos Sotiropoulos
+    /// </summary>
     public class Shell8NonLinear_v2 : IStructuralFiniteElement_v2
     {
         protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.RotX, DOFType.RotY };
