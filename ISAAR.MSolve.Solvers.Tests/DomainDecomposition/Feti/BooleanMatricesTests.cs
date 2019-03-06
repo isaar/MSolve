@@ -172,7 +172,6 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti
         private static Dictionary<int, SignedBooleanMatrix> CreateBooleanMatrices(Model_v2 model)
         {
             // Initialize model
-            
             model.ConnectDataStructures();
 
             // Order freedom degrees
@@ -193,80 +192,28 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti
         private static Model_v2 CreateModel()
         {
             // 6 ----- 7 ----- 8
-            // |  (3)  |  (4)  |
+            // |  (2)  |  (3)  |
             // |       |       |
             // 3 ----- 4 ----- 5
-            // |  (1)  |  (2)  |
+            // |  (0)  |  (1)  |
             // |       |       |
             // 0 ----- 1 ----- 2
+            // Δ               Δ    
+            // -               o
 
-            // Material
-            double thickness = 1.0;
-            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress) { YoungModulus = 2.1E7, PoissonRatio = 0.3 };
-            var dynamicProperties = new DynamicMaterial(1.0, 0.0, 0.0);
+            var builder = new Uniform2DModelBuilder();
+            builder.DomainLengthX = 2.0;
+            builder.DomainLengthY = 2.0;
+            builder.NumSubdomainsX = 2;
+            builder.NumSubdomainsY = 2;
+            builder.NumElementsPerSubdomainX = 1;
+            builder.NumElementsPerSubdomainY = 1;
+            builder.YoungModulus = 2.1E7;
+            builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerLeftCorner, DOFType.X, 0.0);            
+            builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerLeftCorner, DOFType.Y, 0.0);
+            builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerRightCorner, DOFType.Y, 0.0);
 
-            // Model with 4 subdomain
-            var model = new Model_v2();
-            model.SubdomainsDictionary.Add(0, new Subdomain_v2(0));
-            model.SubdomainsDictionary.Add(1, new Subdomain_v2(1));
-            model.SubdomainsDictionary.Add(2, new Subdomain_v2(2));
-            model.SubdomainsDictionary.Add(3, new Subdomain_v2(3));
-
-            // Generate mesh
-            double minX = 0.0, minY = 0.0, maxX = 2.0, maxY = 2.0;
-            int numElementsX = 2, numElementsY = 2;
-            var meshGenerator = new UniformMeshGenerator2D_v2(minX, minY, maxX, maxY, numElementsX, numElementsY);
-            (IReadOnlyList<Node_v2> vertices, IReadOnlyList<CellConnectivity_v2> cells) = meshGenerator.CreateMesh();
-
-            // Add nodes to the model
-            for (int n = 0; n < vertices.Count; ++n) model.NodesDictionary.Add(n, vertices[n]);
-
-            // Elements
-            double horizontalBoundaryY = minY + (maxY - minY) / 2.0;
-            double verticalBoundaryX = minX + (maxX - minX) / 2.0;
-            var factory = new ContinuumElement2DFactory(thickness, material, dynamicProperties);
-            for (int e = 0; e < cells.Count; ++e)
-            {
-                // Domain decomposition
-                int subdomainID;
-                if (cells[e].Vertices.All(node => (node.X <= verticalBoundaryX) && (node.Y <= horizontalBoundaryY)))
-                {
-                    subdomainID = 0;
-                }
-                else if (cells[e].Vertices.All(node => (node.X >= verticalBoundaryX) && (node.Y <= horizontalBoundaryY)))
-                {
-                    subdomainID = 1;
-                }
-                else if (cells[e].Vertices.All(node => (node.X <= verticalBoundaryX) && (node.Y >= horizontalBoundaryY)))
-                {
-                    subdomainID = 2;
-                }
-                else if (cells[e].Vertices.All(node => (node.X >= verticalBoundaryX) && (node.Y >= horizontalBoundaryY)))
-                {
-                    subdomainID = 3;
-                }
-                else throw new Exception("This element does not belong to any subdomain");
-
-                // Create elements
-                ContinuumElement2D element = factory.CreateElement(cells[e].CellType, cells[e].Vertices);
-                var elementWrapper = new Element_v2() { ID = e, ElementType = element };
-                foreach (Node_v2 node in element.Nodes) elementWrapper.AddNode(node);
-                model.ElementsDictionary.Add(e, elementWrapper);
-                model.SubdomainsDictionary[subdomainID++].Elements.Add(elementWrapper);
-            }
-
-            // Boundary conditions
-            double tol = 1E-10;
-            Node_v2 bottomLeft = model.Nodes.Where(
-                node => (Math.Abs(node.X - minX) <= tol) && (Math.Abs(node.Y - minY) <= tol)).First();
-            bottomLeft.Constraints.Add(new Constraint() { DOF = DOFType.X, Amount = 0.0 });
-            bottomLeft.Constraints.Add(new Constraint() { DOF = DOFType.Y, Amount = 0.0 });
-
-            Node_v2 bottomRight = model.Nodes.Where(
-                node => (Math.Abs(node.X- maxX) <= tol) && (Math.Abs(node.Y - minY) <= tol)).First();
-            bottomRight.Constraints.Add(new Constraint() { DOF = DOFType.Y, Amount = 0.0 });
-
-            return model;
+            return builder.CreateModel();
         }
     }
 }
