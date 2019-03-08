@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
@@ -26,10 +25,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
         private readonly IDofOrderer dofOrderer;
         private readonly double factorizationPivotTolerance;
         private readonly Dictionary<int, SingleSubdomainSystem<SkylineMatrix>> linearSystems;
+        private readonly FetiLogger logger;
         private readonly Model_v2 model;
         private readonly string name = "FETI-1 Solver"; // for error messages
-        private readonly double pcpgMaxIterationsOverSize = 1.0;
-        private readonly double pcpgResidualTolerance = 1E-7;
+        private readonly IExactResidualCalculator pcpgExactResidual;
+        private readonly double pcpgMaxIterationsOverSize;
+        private readonly double pcpgResidualTolerance;
 
         private Dictionary<int, int[]> boundaryDofs;
         private Dictionary<int, int[]> boundaryDofsMultiplicity;
@@ -39,11 +40,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
         private Dictionary<int, SemidefiniteCholeskySkyline> factorizations;
         private Dictionary<int, List<Vector>> rigidBodyModes;
 
-        public Feti1Solver(Model_v2 model, double factorizationPivotTolerance) :
-            this(model, new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering()), factorizationPivotTolerance)
-        { }
-
-        public Feti1Solver(Model_v2 model, IDofOrderer dofOrderer, double factorizationPivotTolerance)
+        private Feti1Solver(Model_v2 model, IDofOrderer dofOrderer, double factorizationPivotTolerance,
+            double pcpgMaxIterationsOverSize, double pcpgResidualTolerance, IExactResidualCalculator pcpgExactResidual, 
+            FetiLogger logger)
         {
             if (model.Subdomains.Count == 1) throw new InvalidSolverException(
                 $"{name} cannot be used if there is only 1 subdomain");
@@ -64,7 +63,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
             LinearSystems = tempLinearSystems;
 
             this.dofOrderer = dofOrderer;
+            this.logger = logger;
             this.factorizationPivotTolerance = factorizationPivotTolerance;
+
+            this.pcpgMaxIterationsOverSize = pcpgMaxIterationsOverSize;
+            this.pcpgResidualTolerance = pcpgResidualTolerance;
+            this.pcpgExactResidual = pcpgExactResidual;
 
             this.continuityEquations = new ContinuityEquationsCalculator(crosspointStrategy);
         }
@@ -72,7 +76,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
         public IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
-            => assemblers[subdomain.ID].BuildGlobalMatrix(subdomain.FreeDofOrdering, subdomain.Elements, elementMatrixProvider);
+        {
+            return assemblers[subdomain.ID].BuildGlobalMatrix(
+                subdomain.FreeDofOrdering, subdomain.Elements, elementMatrixProvider);
+        }
 
         public (IMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree, 
             IMatrixView matrixConstrConstr) BuildGlobalSubmatrices(
@@ -87,19 +94,21 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
                 subdomain.Elements, elementMatrixProvider);
         }
 
-        public Vector GatherGlobalDisplacements() //TODO: this and the fields should be handled by a class that handles dofs.
+        //TODO: this and the fields should be handled by a class that handles dofs.
+        public Vector GatherGlobalDisplacements(Dictionary<int, IVectorView> subdomainDisplacements) 
         {
             var globalDisplacements = Vector.CreateZero(model.GlobalDofOrdering.NumGlobalFreeDofs);
-            foreach (var linearSystem in linearSystems.Values)
+            foreach (var subdomain in model.Subdomains)
             {
-                int id = linearSystem.Subdomain.ID;
-                int[] subdomainToGlobalDofs = model.GlobalDofOrdering.MapFreeDofsSubdomainToGlobal(linearSystem.Subdomain);
+                int id = subdomain.ID;
+                int[] subdomainToGlobalDofs = model.GlobalDofOrdering.MapFreeDofsSubdomainToGlobal(subdomain);
+                IVectorView displacements = subdomainDisplacements[id]; //TODO: benchmark the performance if this was concrete Vector
 
                 // Internal dofs are copied as is.
                 foreach (int internalDof in internalDofs[id])
                 {
                     int globalDofIdx = subdomainToGlobalDofs[internalDof];
-                    globalDisplacements[globalDofIdx] = linearSystem.Solution[internalDof];
+                    globalDisplacements[globalDofIdx] = displacements[internalDof];
                 }
 
                 // For boundary dofs we take the mean value across subdomains. 
@@ -108,7 +117,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
                     int multiplicity = boundaryDofsMultiplicity[id][i];
                     int subdomainDofIdx = boundaryDofs[id][i];
                     int globalDofIdx = subdomainToGlobalDofs[subdomainDofIdx];
-                    globalDisplacements[globalDofIdx] += linearSystem.Solution[subdomainDofIdx] / multiplicity;
+                    globalDisplacements[globalDofIdx] += displacements[subdomainDofIdx] / multiplicity;
                 }
             }
             return globalDisplacements;
@@ -195,35 +204,71 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
             var flexibility = new Feti1FlexibilityMatrix(factorizations, continuityEquations);
 
             // Calculate the rhs vectors of the interface system
-            Vector displacements = CalculateBoundaryDisplacements();
+            Vector disconnectedDisplacements = CalculateDisconnectedDisplacements();
             Vector rbmWork = CalculateRigidBodyModesWork();
 
             // Define and initilize the projection
             var Q = Matrix.CreateIdentity(continuityEquations.NumContinuityEquations);
-            var projector = new Feti1Projection(continuityEquations.BooleanMatrices, rigidBodyModes, Q);
-            projector.InvertCoarseProblemMatrix();
+            var projection = new Feti1Projection(continuityEquations.BooleanMatrices, rigidBodyModes, Q);
+            projection.InvertCoarseProblemMatrix();
 
             // Calculate the norm of the forces vector Ku=f
-            double globalForcesNorm = CalculateGlobalForcesNorm();
+            var subdomainForces = new Dictionary<int, Vector>();
+            foreach (var linearSystem in linearSystems.Values)
+            {
+                subdomainForces[linearSystem.Subdomain.ID] = linearSystem.RhsVector;
+            }
+            double globalForcesNorm = CalculateGlobalForcesNorm(subdomainForces);
+
+            // Handle exact residual calculations if they are enabled during testing
+            CalculateExactResidualNorm calcExactResidualNorm = null;
+            if (pcpgExactResidual != null)
+            {
+                calcExactResidualNorm = lagranges => CalculateExactResidualNorm(lagranges, flexibility, projection, 
+                    disconnectedDisplacements);
+            }
 
             // Run the PCPG algorithm
-            var pcpg = new PcpcgAlgorithm(pcpgMaxIterationsOverSize, pcpgResidualTolerance);
-            var lagranges = Vector.CreateZero(continuityEquations.NumContinuityEquations);
-            pcpg.Solve(flexibility, preconditioner, projector, globalForcesNorm, displacements, rbmWork, lagranges);
-
-            // Calculate the rigid body modes coefficients
-            var flexibilityTimesLagranges = Vector.CreateZero(continuityEquations.NumContinuityEquations);
-            flexibility.Multiply(lagranges, flexibilityTimesLagranges);
-            Vector rbmCoeffs = projector.CalculateRigidBodyModesCoefficients(flexibilityTimesLagranges, displacements);
+            var pcpg = new PcpgAlgorithm(pcpgMaxIterationsOverSize, pcpgResidualTolerance, calcExactResidualNorm);
+            var lagrangeMultipliers = Vector.CreateZero(continuityEquations.NumContinuityEquations);
+            PcpgStatistics stats = pcpg.Solve(flexibility, preconditioner, projection, disconnectedDisplacements, rbmWork,
+                globalForcesNorm, lagrangeMultipliers);
+            if (logger != null)
+            {
+                logger.PcpgIterations = stats.NumIterations;
+                logger.PcpgResidualNormEstimateRatio = stats.ResidualNormEstimateRatio;
+            }
 
             // Calculate the displacements of each subdomain
-            CalculateFinalDisplacements(lagranges, rbmCoeffs);
+            Vector rbmCoeffs = CalculateRigidBodyModesCoefficients(flexibility, projection, disconnectedDisplacements, 
+                lagrangeMultipliers);
+            Dictionary<int, Vector> actualDisplacements = CalculateActualDisplacements(lagrangeMultipliers, rbmCoeffs);
+            foreach (var idSystem in linearSystems) idSystem.Value.Solution = actualDisplacements[idSystem.Key];
+        }
+
+        private Dictionary<int, Vector> CalculateActualDisplacements(Vector lagranges, Vector rigidBodyModeCoeffs)
+        {
+            var actualdisplacements = new Dictionary<int, Vector>();
+            int rbmOffset = 0; //TODO: For this to work in parallel, each subdomain must store its offset.
+            foreach (var linearSystem in linearSystems.Values)
+            {
+                // u = inv(K) * (f - B^T * λ), for non floating subdomains
+                // u = generalizedInverse(K) * (f - B^T * λ) + R * a, for floating subdomains
+                int id = linearSystem.Subdomain.ID;
+                Vector forces = linearSystem.RhsVector - continuityEquations.BooleanMatrices[id].Multiply(lagranges, true);
+                Vector displacements = factorizations[id].MultiplyGeneralizedInverseMatrixTimesVector(forces);
+
+                foreach (Vector rbm in rigidBodyModes[id]) displacements.AxpyIntoThis(rbm, rigidBodyModeCoeffs[rbmOffset++]);
+
+                actualdisplacements[id] = displacements;
+            }
+            return actualdisplacements;
         }
 
         /// <summary>
         /// d = sum(Bs * generalInverse(Ks) * fs), where fs are the nodal forces applied to the dofs of subdomain s.
         /// </summary>
-        private Vector CalculateBoundaryDisplacements()
+        private Vector CalculateDisconnectedDisplacements()
         {
             var displacements = Vector.CreateZero(continuityEquations.NumContinuityEquations);
             foreach (var linearSystem in linearSystems.Values)
@@ -238,45 +283,53 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
             return displacements;
         }
 
-        private void CalculateFinalDisplacements(Vector lagranges, Vector rigidBodyModeCoeffs)
+        /// <summary>
+        /// This is only used by the corresponeing PCPG convergence criteria, which itself is fro testing purposes only.
+        /// </summary>
+        private double CalculateExactResidualNorm(Vector lagranges, Feti1FlexibilityMatrix flexibility, //TODO: move to another class
+            Feti1Projection projection, Vector disconnectedDisplacements)
         {
-            //TODO: Should I also average the displacements here? 
-            int rbmOffset = 0; //TODO: For this to work in parallel, each subdomain must store its offset.
-            foreach (var linearSystem in linearSystems.Values)
+            Vector rbmCoeffs = CalculateRigidBodyModesCoefficients(flexibility, projection, disconnectedDisplacements, lagranges);
+            var subdomainDisplacements = new Dictionary<int, IVectorView>();
+            foreach (var idDisplacements in CalculateActualDisplacements(lagranges, rbmCoeffs))
             {
-                // u = inv(K) * (f - B^T * λ), for non floating subdomains
-                // u = generalizedInverse(K) * (f - B^T * λ) + R * a, for floating subdomains
-                int id = linearSystem.Subdomain.ID;
-                Vector forces = linearSystem.RhsVector - continuityEquations.BooleanMatrices[id].Multiply(lagranges, true);
-                Vector displacements = factorizations[id].MultiplyGeneralizedInverseMatrixTimesVector(forces);
-
-                foreach (Vector rbm in rigidBodyModes[id]) displacements.AxpyIntoThis(rbm, rigidBodyModeCoeffs[rbmOffset++]);
-
-                linearSystem.Solution = displacements;
+                subdomainDisplacements[idDisplacements.Key] = idDisplacements.Value;
             }
+            Vector globalDisplacements = GatherGlobalDisplacements(subdomainDisplacements);
+            return pcpgExactResidual.CalculateExactResidualNorm(globalDisplacements);
         }
 
         //TODO: this should be used for non linear analyzers as well (instead of building the global RHS)
         //TODO: this should be implemented by a different class.
-        private double CalculateGlobalForcesNorm() 
+        //TODO: Is this correct? For the residual, it would be wrong to find f-K*u for each subdomain and then call this.
+        private double CalculateGlobalForcesNorm(Dictionary<int, Vector> subdomainForces) 
         {
             double globalSum = 0.0;
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 int id = subdomain.ID;
                 double subdomainSum = 0.0;
-                foreach (int internalDof in internalDofs[id]) subdomainSum += subdomain.Forces[internalDof];
+                Vector forces = subdomainForces[id];
+                foreach (int internalDof in internalDofs[id]) subdomainSum += forces[internalDof];
                 for (int i = 0; i < boundaryDofs[id].Length; ++i)
                 {
                     // E.g. 2 subdomains. Originally: sum += f * f. Now: sum += (2*f/2)(2*f/2)/2 + (2*f/2)(2*f/2)/2
                     // WARNING: This works only if nodal loads are distributed evenly among subdomains.
                     int multiplicity = boundaryDofsMultiplicity[id][i];
-                    double totalForce = subdomain.Forces[boundaryDofs[id][i]] * multiplicity;
+                    double totalForce = forces[boundaryDofs[id][i]] * multiplicity;
                     subdomainSum += (totalForce * totalForce) / multiplicity;
                 }
                 globalSum += subdomainSum;
             }
             return Math.Sqrt(globalSum);
+        }
+
+        private Vector CalculateRigidBodyModesCoefficients(Feti1FlexibilityMatrix flexibility, Feti1Projection projection,
+            Vector disconnectedDisplacements, Vector lagrangeMultipliers)
+        {
+            var flexibilityTimesLagranges = Vector.CreateZero(continuityEquations.NumContinuityEquations);
+            flexibility.Multiply(lagrangeMultipliers, flexibilityTimesLagranges);
+            return projection.CalculateRigidBodyModesCoefficients(flexibilityTimesLagranges, disconnectedDisplacements);
         }
 
         /// <summary>
@@ -328,6 +381,27 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
                 boundaryDofsMultiplicity.Add(subdomain.ID, boundaryDofsOfSubdomain.Values.ToArray()); // sorted the same as Keys
                 internalDofs.Add(subdomain.ID, internalDofsOfSubdomain.ToArray());
             }
+        }
+
+        public class Builder
+        {
+            private readonly double factorizationPivotTolerance;
+
+            public Builder(double factorizationPivotTolerance)
+            {
+                //TODO: This is a very volatile parameter and the user should not have to specify it. 
+                this.factorizationPivotTolerance = factorizationPivotTolerance; 
+            }
+
+            public IDofOrderer DofOrderer { get; set; } = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
+            public FetiLogger Logger { get; set; } = null;
+            internal IExactResidualCalculator PcpgExactResidual { get; set; } = null;
+            public double PcpgMaxIterationsOverSize { get; set; } = 1.0;
+            public double PcpgResidualTolerance { get; set; } = 1E-7;
+
+            public Feti1Solver BuildSolver(Model_v2 model)
+                => new Feti1Solver(model, DofOrderer, factorizationPivotTolerance, PcpgMaxIterationsOverSize, 
+                    PcpgResidualTolerance, PcpgExactResidual, Logger);
         }
     }
 }

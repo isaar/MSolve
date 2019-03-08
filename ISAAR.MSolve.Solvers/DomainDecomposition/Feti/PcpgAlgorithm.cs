@@ -9,19 +9,23 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
     /// <summary>
     /// Implementation of the Preconditioned Conjugate Projected Gradient Method used in the FETI method.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
-    internal class PcpcgAlgorithm
+    internal class PcpgAlgorithm
     {
         private readonly double maxIterationsOverSystemSize, residualNormTolerance;
+        private readonly CalculateExactResidualNorm calcExactResidualNorm;
 
-        internal PcpcgAlgorithm(double maxIterationsOverSystemSize, double residualNormTolerance)
+        internal PcpgAlgorithm(double maxIterationsOverSystemSize, double residualNormTolerance,
+            CalculateExactResidualNorm calcExactResidualNorm)
         {
             this.maxIterationsOverSystemSize = maxIterationsOverSystemSize;
             this.residualNormTolerance = residualNormTolerance;
+            this.calcExactResidualNorm = calcExactResidualNorm;
         }
 
         internal PcpgStatistics Solve(IInterfaceFlexibilityMatrix matrix, IFetiPreconditioner preconditioner,
-            IInterfaceProjection projector, double forcesNorm, Vector boundaryDisplacements, Vector rigidBodyModesWork, 
+            IInterfaceProjection projector, Vector boundaryDisplacements, Vector rigidBodyModesWork, double initialForcesNorm, 
             Vector lagrangeMultipliers)
         {
             int n = matrix.Order;
@@ -53,8 +57,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
                 // z(m-1) = preconditioner * w(m-1)
                 preconditioner.SolveLinearSystem(projectedResidual, preconditionedProjectedResidual);
 
-                // Check ||z|| / ||f|| < tolearance
-                residualNormEstimateRatio = preconditionedProjectedResidual.Norm2() / forcesNorm;
+                // Check convergence: usually if ||z|| / ||f|| < tolerance
+                if (calcExactResidualNorm != null) 
+                {
+                    residualNormEstimateRatio = calcExactResidualNorm(lagrangeMultipliers.Copy()) / initialForcesNorm;
+                }
+                else residualNormEstimateRatio = preconditionedProjectedResidual.Norm2() / initialForcesNorm;
                 if (residualNormEstimateRatio <= residualNormTolerance) 
                 {
                     //TODO: is it correct to check for convergence here? How many iterations should I return?

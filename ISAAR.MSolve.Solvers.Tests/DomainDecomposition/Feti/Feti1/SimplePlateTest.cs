@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Analyzers;
@@ -13,6 +14,7 @@ using ISAAR.MSolve.Preprocessor.Meshes;
 using ISAAR.MSolve.Preprocessor.Meshes.Custom;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Feti;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Feti1;
 using Xunit;
 
@@ -32,8 +34,11 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             int numElementsX = 20, numElementsY = 10;
             double factorizationTolerance = 1E-4; // Defining the rigid body modes is very sensitive to this. TODO: The user shouldn't have to specify such a volatile parameter.
             double equalityTolerance = 1E-7;
+            var logger = new FetiLogger();
             IVectorView expectedDisplacements = SolveModelWithoutSubdomains(numElementsX, numElementsY);
-            IVectorView computedDisplacements = SolveModelWithSubdomains(numElementsX, numElementsY, factorizationTolerance);
+            IVectorView computedDisplacements = SolveModelWithSubdomains(numElementsX, numElementsY, factorizationTolerance, 
+                logger, true);
+            Debug.WriteLine($"Iterations: {logger.PcpgIterations}");
             Assert.True(expectedDisplacements.Equals(computedDisplacements, equalityTolerance));
         }
 
@@ -66,36 +71,56 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             return builder.CreateModel();
         }
 
-        private static IVectorView SolveModelWithSubdomains(int numElementsX, int numElementsY, double factorizationTolerance)
+        private static Model_v2 CreateSingleSubdomainModel(int numElementsX, int numElementsY)
         {
+            // Replace the existing subdomains with a single one 
             Model_v2 model = CreateModel(numElementsX, numElementsY);
+            model.SubdomainsDictionary.Clear();
+            var subdomain = new Subdomain_v2(subdomainIDsStart);
+            model.SubdomainsDictionary.Add(subdomainIDsStart, subdomain);
+            foreach (Element_v2 element in model.Elements) subdomain.Elements.Add(element);
+            return model;
+        }
 
+        private static IVectorView SolveModelWithSubdomains(int numElementsX, int numElementsY, double factorizationTolerance,
+            FetiLogger logger, bool exactResidual)
+        {
             // Solver
-            var solver = new Feti1Solver(model, factorizationTolerance);
+            Model_v2 multiSubdomainModel = CreateModel(numElementsX, numElementsY);
+            var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
+            solverBuilder.Logger = logger;
+
+            // If PCPG needs to use the exact residual (only useful for testing) 
+            if (exactResidual)
+            {
+                Model_v2 singleSubdomainModel = CreateSingleSubdomainModel(numElementsX, numElementsY);
+                var exactResidualCalculator = new ExactPcpgResidualCalculator(singleSubdomainModel, 
+                    solverBuilder.DofOrderer, (model, solver) => new ProblemStructural_v2(model, solver));
+                exactResidualCalculator.BuildLinearSystem();
+                solverBuilder.PcpgExactResidual = exactResidualCalculator;
+            }
 
             // Structural problem provider
-            var provider = new ProblemStructural_v2(model, solver);
+            Feti1Solver fetiSolver = solverBuilder.BuildSolver(multiSubdomainModel);
+            var provider = new ProblemStructural_v2(multiSubdomainModel, fetiSolver);
 
             // Linear static analysis
-            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+            var childAnalyzer = new LinearAnalyzer_v2(multiSubdomainModel, fetiSolver, provider);
+            var parentAnalyzer = new StaticAnalyzer_v2(multiSubdomainModel, fetiSolver, provider, childAnalyzer);
 
             // Run the analysis
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            return solver.GatherGlobalDisplacements();
+            // Gather the global displacements
+            var sudomainDisplacements = new Dictionary<int, IVectorView>();
+            foreach (var ls in fetiSolver.LinearSystems) sudomainDisplacements[ls.Key] = ls.Value.Solution;
+            return fetiSolver.GatherGlobalDisplacements(sudomainDisplacements);
         }
 
         private static IVectorView SolveModelWithoutSubdomains(int numElementsX, int numElementsY)
         {
-            Model_v2 model = CreateModel(numElementsX, numElementsY);
-
-            // Replace the existing subdomains with a single one 
-            model.SubdomainsDictionary.Clear();
-            var subdomain = new Subdomain_v2(subdomainIDsStart);
-            model.SubdomainsDictionary.Add(subdomainIDsStart, subdomain);
-            foreach (Element_v2 element in model.Elements) subdomain.Elements.Add(element);
+            Model_v2 model = CreateSingleSubdomainModel(numElementsX, numElementsY);
 
             // Solver
             SkylineSolver solver = (new SkylineSolver.Builder()).BuildSolver(model);
