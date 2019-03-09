@@ -1,17 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Preprocessor.Meshes;
-using ISAAR.MSolve.Preprocessor.Meshes.Custom;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Feti;
@@ -26,7 +18,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
     /// </summary>
     public static class SimplePlateTest
     {
-        private const int subdomainIDsStart = 0;
+        private const int singleSubdomainID = 0;
 
         [Fact]
         internal static void Run()
@@ -36,8 +28,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             double equalityTolerance = 1E-7;
             var logger = new FetiLogger();
             IVectorView expectedDisplacements = SolveModelWithoutSubdomains(numElementsX, numElementsY);
-            IVectorView computedDisplacements = SolveModelWithSubdomains(numElementsX, numElementsY, factorizationTolerance, 
-                logger, true);
+            IVectorView computedDisplacements = SolveModelWithSubdomains(numElementsX, numElementsY, factorizationTolerance,
+                logger);
             Debug.WriteLine($"Iterations: {logger.PcpgIterations}");
             Assert.True(expectedDisplacements.Equals(computedDisplacements, equalityTolerance));
         }
@@ -60,15 +52,15 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             builder.DomainLengthY = 2.0;
             builder.NumSubdomainsX = 2;
             builder.NumSubdomainsY = 2;
-            builder.NumElementsPerSubdomainX = numElementsX / builder.NumSubdomainsX;
-            builder.NumElementsPerSubdomainY = numElementsY / builder.NumSubdomainsY;
+            builder.NumTotalElementsX = numElementsX;
+            builder.NumTotalElementsY = numElementsY;
             builder.YoungModulus = 2.1E7;
             builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerLeftCorner, DOFType.X, 0.0);
             builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerLeftCorner, DOFType.Y, 0.0);
             builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerRightCorner, DOFType.Y, 0.0);
             builder.PrescribeDistributedLoad(Uniform2DModelBuilder.BoundaryRegion.RightSide, DOFType.X, 100.0);
 
-            return builder.CreateModel();
+            return builder.BuildModel();
         }
 
         private static Model_v2 CreateSingleSubdomainModel(int numElementsX, int numElementsY)
@@ -76,32 +68,23 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             // Replace the existing subdomains with a single one 
             Model_v2 model = CreateModel(numElementsX, numElementsY);
             model.SubdomainsDictionary.Clear();
-            var subdomain = new Subdomain_v2(subdomainIDsStart);
-            model.SubdomainsDictionary.Add(subdomainIDsStart, subdomain);
+            var subdomain = new Subdomain_v2(singleSubdomainID);
+            model.SubdomainsDictionary.Add(singleSubdomainID, subdomain);
             foreach (Element_v2 element in model.Elements) subdomain.Elements.Add(element);
             return model;
         }
 
         private static IVectorView SolveModelWithSubdomains(int numElementsX, int numElementsY, double factorizationTolerance,
-            FetiLogger logger, bool exactResidual)
+            FetiLogger logger)
         {
-            // Solver
             Model_v2 multiSubdomainModel = CreateModel(numElementsX, numElementsY);
+
+            // Solver
             var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
             solverBuilder.Logger = logger;
-
-            // If PCPG needs to use the exact residual (only useful for testing) 
-            if (exactResidual)
-            {
-                Model_v2 singleSubdomainModel = CreateSingleSubdomainModel(numElementsX, numElementsY);
-                var exactResidualCalculator = new ExactPcpgResidualCalculator(singleSubdomainModel, 
-                    solverBuilder.DofOrderer, (model, solver) => new ProblemStructural_v2(model, solver));
-                exactResidualCalculator.BuildLinearSystem();
-                solverBuilder.PcpgExactResidual = exactResidualCalculator;
-            }
+            Feti1Solver fetiSolver = solverBuilder.BuildSolver(multiSubdomainModel);
 
             // Structural problem provider
-            Feti1Solver fetiSolver = solverBuilder.BuildSolver(multiSubdomainModel);
             var provider = new ProblemStructural_v2(multiSubdomainModel, fetiSolver);
 
             // Linear static analysis
@@ -136,7 +119,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            return solver.LinearSystems[subdomainIDsStart].Solution;
+            return solver.LinearSystems[singleSubdomainID].Solution;
         }
     }
 }

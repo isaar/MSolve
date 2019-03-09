@@ -206,14 +206,14 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti
             builder.DomainLengthY = 2.0;
             builder.NumSubdomainsX = 2;
             builder.NumSubdomainsY = 2;
-            builder.NumElementsPerSubdomainX = 1;
-            builder.NumElementsPerSubdomainY = 1;
+            builder.NumTotalElementsX = 2;
+            builder.NumTotalElementsY = 2;
             builder.YoungModulus = 2.1E7;
             builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerLeftCorner, DOFType.X, 0.0);            
             builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerLeftCorner, DOFType.Y, 0.0);
             builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerRightCorner, DOFType.Y, 0.0);
 
-            return builder.CreateModel();
+            return builder.BuildModel();
         }
     }
 }

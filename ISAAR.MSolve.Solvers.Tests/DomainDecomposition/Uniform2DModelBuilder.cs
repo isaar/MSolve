@@ -20,7 +20,6 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
         }
 
         private const double minX = 0.0, minY = 0.0;
-        private double maxX = 1.0, maxY = 1.0;
         private List<(BoundaryRegion region, DOFType dof, double displacement)> prescribedDisplacements;
         private List<(BoundaryRegion region, DOFType dof, double load)> prescribedLoads;
 
@@ -30,12 +29,12 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
             prescribedLoads = new List<(BoundaryRegion region, DOFType dof, double load)>();
         }
 
-        public double DomainLengthX { get => maxX; set => maxX = value; }
-        public double DomainLengthY { get => maxX; set => maxX = value; }
+        public double DomainLengthX { get; set; } = 1.0;
+        public double DomainLengthY { get; set; } = 1.0;
         public int NumSubdomainsX { get; set; } = 1;
         public int NumSubdomainsY { get; set; } = 1;
-        public int NumElementsPerSubdomainX { get; set; } = 1;
-        public int NumElementsPerSubdomainY { get; set; } = 1;
+        public int NumTotalElementsX { get; set; } = 1;
+        public int NumTotalElementsY { get; set; } = 1;
 
         public double YoungModulus { get; set; } = 1.0;
 
@@ -50,16 +49,14 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
         /// </summary>
         public double[,] YoungModuliOfSubdomains { get; set; } = null;
 
-        public Model_v2 CreateModel()
+        public Model_v2 BuildModel()
         {
             // Generate global mesh
-            double dx = DomainLengthX / (NumSubdomainsX * NumElementsPerSubdomainX);
-            double dy = DomainLengthY / (NumSubdomainsY * NumElementsPerSubdomainY);
+            double dx = DomainLengthX / NumTotalElementsX;
+            double dy = DomainLengthY / NumTotalElementsY;
             double meshTolerance = 1E-10 * Math.Min(dx, dy);
-            int numTotalElementsX = NumSubdomainsX * NumElementsPerSubdomainX;
-            int numTotalElementsY = NumSubdomainsY * NumElementsPerSubdomainY;
             var meshGenerator = new UniformMeshGenerator2D_v2(0, 0, DomainLengthX, DomainLengthY,
-                numTotalElementsX, numTotalElementsY);
+                NumTotalElementsX, NumTotalElementsY);
             (IReadOnlyList<Node_v2> vertices, IReadOnlyList<CellConnectivity_v2> cells) = meshGenerator.CreateMesh();
 
             // Define subdomain boundaries
@@ -159,6 +156,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
 
         private Node_v2[] FindBoundaryNodes(BoundaryRegion region, Model_v2 model, double tol)
         {
+            double minX = 0.0, minY = 0.0, maxX = DomainLengthX, maxY = DomainLengthY; // for brevity
+
             IEnumerable<Node_v2> nodes;
             if (region == BoundaryRegion.LeftSide) nodes = model.Nodes.Where(node => Math.Abs(node.X - minX) <= tol);
             else if (region == BoundaryRegion.RightSide) nodes = model.Nodes.Where(node => Math.Abs(node.X - maxX) <= tol);

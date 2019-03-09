@@ -39,10 +39,15 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
                 int nodeMultiplicity = node.SubdomainsDictionary.Count;
                 if (nodeMultiplicity > 1)
                 {
+                    DOFType[] dofsOfNode = model.GlobalDofOrdering.GlobalFreeDofs.GetColumnsOfRow(node).ToArray(); //TODO: interacting with the table can be optimized.
+                    
+                    // If all dofs of this node are constrained, then it is not considered boundary.
+                    if (dofsOfNode.Length == 0) continue;
+                    
                     IEnumerable<Subdomain_v2> nodeSubdomains = node.SubdomainsDictionary.Values;
                     (Subdomain_v2[] subdomainsPlus, Subdomain_v2[] subdomainsMinus) =
                         crosspointStrategy.FindSubdomainCombinations(nodeMultiplicity, nodeSubdomains);
-                    DOFType[] dofsOfNode = model.GlobalDofOrdering.GlobalFreeDofs.GetColumnsOfRow(node).ToArray(); //TODO: interacting with the table can be optimized.
+                    
                     boundaryNodes.Add((node, dofsOfNode, subdomainsPlus, subdomainsMinus));
                     NumContinuityEquations += dofsOfNode.Length * subdomainsPlus.Length;
                 }

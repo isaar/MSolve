@@ -29,8 +29,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
         private readonly Model_v2 model;
         private readonly string name = "FETI-1 Solver"; // for error messages
         private readonly IExactResidualCalculator pcpgExactResidual;
+        private readonly double pcpgConvergenceTolerance;
         private readonly double pcpgMaxIterationsOverSize;
-        private readonly double pcpgResidualTolerance;
 
         private Dictionary<int, int[]> boundaryDofs;
         private Dictionary<int, int[]> boundaryDofsMultiplicity;
@@ -41,7 +41,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
         private Dictionary<int, List<Vector>> rigidBodyModes;
 
         private Feti1Solver(Model_v2 model, IDofOrderer dofOrderer, double factorizationPivotTolerance,
-            double pcpgMaxIterationsOverSize, double pcpgResidualTolerance, IExactResidualCalculator pcpgExactResidual, 
+            double pcpgMaxIterationsOverSize, double pcpgConvergenceTolerance, IExactResidualCalculator pcpgExactResidual, 
             FetiLogger logger)
         {
             if (model.Subdomains.Count == 1) throw new InvalidSolverException(
@@ -67,7 +67,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
             this.factorizationPivotTolerance = factorizationPivotTolerance;
 
             this.pcpgMaxIterationsOverSize = pcpgMaxIterationsOverSize;
-            this.pcpgResidualTolerance = pcpgResidualTolerance;
+            this.pcpgConvergenceTolerance = pcpgConvergenceTolerance;
             this.pcpgExactResidual = pcpgExactResidual;
 
             this.continuityEquations = new ContinuityEquationsCalculator(crosspointStrategy);
@@ -229,12 +229,19 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
             }
 
             // Run the PCPG algorithm
-            var pcpg = new PcpgAlgorithm(pcpgMaxIterationsOverSize, pcpgResidualTolerance, calcExactResidualNorm);
+            var pcpg = new PcpgAlgorithm(pcpgMaxIterationsOverSize, pcpgConvergenceTolerance, calcExactResidualNorm);
             var lagrangeMultipliers = Vector.CreateZero(continuityEquations.NumContinuityEquations);
             PcpgStatistics stats = pcpg.Solve(flexibility, preconditioner, projection, disconnectedDisplacements, rbmWork,
                 globalForcesNorm, lagrangeMultipliers);
             if (logger != null)
             {
+                logger.NumUniqueGlobalFreeDofs = model.GlobalDofOrdering.NumGlobalFreeDofs;
+                logger.NumExpandedDomainFreeDofs = 0;
+                foreach (var subdomain in model.Subdomains)
+                {
+                    logger.NumExpandedDomainFreeDofs += subdomain.FreeDofOrdering.NumFreeDofs;
+                }
+                logger.NumLagrangeMultipliers = lagrangeMultipliers.Length;
                 logger.PcpgIterations = stats.NumIterations;
                 logger.PcpgResidualNormEstimateRatio = stats.ResidualNormEstimateRatio;
             }
@@ -396,12 +403,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
             public IDofOrderer DofOrderer { get; set; } = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
             public FetiLogger Logger { get; set; } = null;
             internal IExactResidualCalculator PcpgExactResidual { get; set; } = null;
+            public double PcpgConvergenceTolerance { get; set; } = 1E-7;
             public double PcpgMaxIterationsOverSize { get; set; } = 1.0;
-            public double PcpgResidualTolerance { get; set; } = 1E-7;
 
             public Feti1Solver BuildSolver(Model_v2 model)
                 => new Feti1Solver(model, DofOrderer, factorizationPivotTolerance, PcpgMaxIterationsOverSize, 
-                    PcpgResidualTolerance, PcpgExactResidual, Logger);
+                    PcpgConvergenceTolerance, PcpgExactResidual, Logger);
         }
     }
 }
