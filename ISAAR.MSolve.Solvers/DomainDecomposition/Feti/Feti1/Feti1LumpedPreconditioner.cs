@@ -1,75 +1,51 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Feti;
 
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 {
-    internal class Feti1LumpedPreconditioner : IFetiPreconditioner
+    public class Feti1LumpedPreconditioner : IFetiPreconditioner
     {
-        private readonly IReadOnlyList<Subdomain_v2> subdomains;
-        private readonly ContinuityEquationsCalculator continuityEquations;
-        private readonly Dictionary<int, int[]> boundaryDofs;
+        private readonly Dictionary<int, Matrix> boundaryBooleanMatrices;
+        private readonly Dictionary<int, Matrix> boundaryStiffnessMatrices;
+        private readonly int[] subdomainIDs;
+        private readonly DiagonalMatrix weightMatrix;
 
-        private Dictionary<int, Matrix> boundaryBooleanMatrices;
-        private Dictionary<int, Matrix> boundaryStiffnessMatrices;
-
-        public Feti1LumpedPreconditioner(IReadOnlyList<Subdomain_v2> subdomains, ContinuityEquationsCalculator continuityEquations,
-            Dictionary<int, int[]> boundaryDofs)
+        private Feti1LumpedPreconditioner(int[] subdomainIDs, DiagonalMatrix weightMatrix,
+            Dictionary<int, Matrix> boundaryBooleanMatrices, Dictionary<int, Matrix> boundaryStiffnessMatrices)
         {
-            this.subdomains = subdomains;
-            this.continuityEquations = continuityEquations;
-            this.boundaryDofs = boundaryDofs;
-        }
-
-        public void CreatePreconditioner(Dictionary<int, IMatrixView> stiffnessMatrices)
-        {
-            ExtractBoundaryBooleanMatrices(); //TODO: perhaps this should be done somewhere more centrally too.
-            ExtractBoundaryStiffnessMatrices(stiffnessMatrices);
+            this.subdomainIDs = subdomainIDs;
+            this.weightMatrix = weightMatrix;
+            this.boundaryBooleanMatrices = boundaryBooleanMatrices;
+            this.boundaryStiffnessMatrices = boundaryStiffnessMatrices;
         }
 
         public void SolveLinearSystem(Vector rhs, Vector lhs)
         {
             lhs.Clear(); //TODO: this should be avoided
-            DiagonalMatrix W = continuityEquations.WeightMatrix;
-            Vector Wy = W.Multiply(rhs);
-            foreach (Subdomain_v2 subdomain in subdomains)
+            Vector Wy = weightMatrix.Multiply(rhs);
+            foreach (int id in subdomainIDs)
             {
-                int id = subdomain.ID;
                 Matrix Bb = boundaryBooleanMatrices[id];
                 Matrix Kbb = boundaryStiffnessMatrices[id];
-                Vector contribution = W.Multiply(Bb.Multiply(Kbb.Multiply(Bb.Multiply(Wy, true))));
+                Vector contribution = weightMatrix.Multiply(Bb.Multiply(Kbb.Multiply(Bb.Multiply(Wy, true))));
                 lhs.AddIntoThis(contribution);
             }
         }
 
-        private void ExtractBoundaryBooleanMatrices()
+        public class Factory : FetiPreconditionerFactoryBase
         {
-            int numContinuityEquations = continuityEquations.NumContinuityEquations;
-            int[] rowsToKeep = Enumerable.Range(0, numContinuityEquations).ToArray(); // Same for all subdomains
-            boundaryBooleanMatrices = new Dictionary<int, Matrix>();
-            foreach (Subdomain_v2 subdomain in subdomains)
+            public override IFetiPreconditioner CreatePreconditioner(Dictionary<int, int[]> boundaryDofs, 
+                Dictionary<int, int[]> internalDofs, ContinuityEquationsCalculator continuityEquations, 
+                Dictionary<int, IMatrixView> stiffnessMatrices)
             {
-                int id = subdomain.ID;
-                Matrix booleanMatrix = continuityEquations.BooleanMatrices[id].CopyToFullMatrix(false);
-                Matrix boundaryBooleanMatrix = booleanMatrix.GetSubmatrix(rowsToKeep, boundaryDofs[id]);
-                boundaryBooleanMatrices.Add(id, boundaryBooleanMatrix);
-            }
-        }
-
-        private void ExtractBoundaryStiffnessMatrices(Dictionary<int, IMatrixView> stiffnessMatrices)
-        {
-            boundaryStiffnessMatrices = new Dictionary<int, Matrix>();
-            foreach (Subdomain_v2 subdomain in subdomains)
-            {
-                int id = subdomain.ID;
-                IMatrixView stiffnessMatrix = stiffnessMatrices[subdomain.ID];
-                Matrix boundaryStiffnessMatrix = stiffnessMatrix.GetSubmatrix(boundaryDofs[id], boundaryDofs[id]);
-                boundaryStiffnessMatrices.Add(id, boundaryStiffnessMatrix);
+                int[] subdomainIDs = boundaryDofs.Keys.ToArray();
+                Dictionary<int, Matrix> boundaryBooleans = ExtractBoundaryBooleanMatrices(boundaryDofs, continuityEquations);
+                Dictionary<int, Matrix> boundaryStiffnesses = ExtractBoundaryStiffnessMatrices(boundaryDofs, stiffnessMatrices);
+                return new Feti1LumpedPreconditioner(subdomainIDs, continuityEquations.WeightMatrix, boundaryBooleans, 
+                    boundaryStiffnesses);
             }
         }
     }

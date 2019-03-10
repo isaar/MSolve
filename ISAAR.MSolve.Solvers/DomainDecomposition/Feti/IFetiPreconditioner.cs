@@ -4,11 +4,17 @@ using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
+//TODO: there should be a preconditioner factory and a preconditioner class.
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
-    internal interface IFetiPreconditioner
+    public interface IFetiPreconditioner
     {
-        void CreatePreconditioner(Dictionary<int, IMatrixView> stiffnessMatrices);
         void SolveLinearSystem(Vector rhs, Vector lhs);
+    }
+
+    public interface IFetiPreconditionerFactory
+    {
+        IFetiPreconditioner CreatePreconditioner(Dictionary<int, int[]> boundaryDofs, Dictionary<int, int[]> internalDofs,
+            ContinuityEquationsCalculator continuityEquations, Dictionary<int, IMatrixView> stiffnessMatrices);
     }
 }

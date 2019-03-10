@@ -4,9 +4,8 @@ using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Feti;
 
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 {
     internal class Feti1FlexibilityMatrix : IInterfaceFlexibilityMatrix
     {

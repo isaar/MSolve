@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
     /// boundary dofs.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    internal class ContinuityEquationsCalculator
+    public class ContinuityEquationsCalculator
     {
         private readonly ICrosspointStrategy crosspointStrategy;
 

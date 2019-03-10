@@ -7,7 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Feti;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Feti1;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1;
 using Xunit;
 
 namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
@@ -81,13 +81,12 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
 
             // Solver
             var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
+            solverBuilder.PreconditionerFactory = new Feti1LumpedPreconditioner.Factory();
             solverBuilder.Logger = logger;
             Feti1Solver fetiSolver = solverBuilder.BuildSolver(multiSubdomainModel);
 
-            // Structural problem provider
-            var provider = new ProblemStructural_v2(multiSubdomainModel, fetiSolver);
-
             // Linear static analysis
+            var provider = new ProblemStructural_v2(multiSubdomainModel, fetiSolver);
             var childAnalyzer = new LinearAnalyzer_v2(multiSubdomainModel, fetiSolver, provider);
             var parentAnalyzer = new StaticAnalyzer_v2(multiSubdomainModel, fetiSolver, provider, childAnalyzer);
 
@@ -108,10 +107,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             // Solver
             SkylineSolver solver = (new SkylineSolver.Builder()).BuildSolver(model);
 
-            // Structural problem provider
-            var provider = new ProblemStructural_v2(model, solver);
-
             // Linear static analysis
+            var provider = new ProblemStructural_v2(model, solver);
             var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 

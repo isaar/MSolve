@@ -9,13 +9,12 @@ using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Feti;
 using ISAAR.MSolve.Solvers.LinearSystems;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
 //TODO: Rigid body modes do not have to be computed each time the stiffness matrix changes. 
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 {
     public class Feti1Solver : ISolver_v2
     {
@@ -31,6 +30,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
         private readonly IExactResidualCalculator pcpgExactResidual;
         private readonly double pcpgConvergenceTolerance;
         private readonly double pcpgMaxIterationsOverSize;
+        private readonly IFetiPreconditionerFactory preconditionerFactory;
 
         private Dictionary<int, int[]> boundaryDofs;
         private Dictionary<int, int[]> boundaryDofsMultiplicity;
@@ -40,9 +40,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
         private Dictionary<int, SemidefiniteCholeskySkyline> factorizations;
         private Dictionary<int, List<Vector>> rigidBodyModes;
 
-        private Feti1Solver(Model_v2 model, IDofOrderer dofOrderer, double factorizationPivotTolerance,
-            double pcpgMaxIterationsOverSize, double pcpgConvergenceTolerance, IExactResidualCalculator pcpgExactResidual, 
-            FetiLogger logger)
+        private Feti1Solver(Model_v2 model, IDofOrderer dofOrderer, double factorizationPivotTolerance, 
+            double pcpgMaxIterationsOverSize, double pcpgConvergenceTolerance, IExactResidualCalculator pcpgExactResidual,
+            IFetiPreconditionerFactory preconditionerFactory, FetiLogger logger)
         {
             if (model.Subdomains.Count == 1) throw new InvalidSolverException(
                 $"{name} cannot be used if there is only 1 subdomain");
@@ -65,6 +65,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
             this.dofOrderer = dofOrderer;
             this.logger = logger;
             this.factorizationPivotTolerance = factorizationPivotTolerance;
+            this.preconditionerFactory = preconditionerFactory;
 
             this.pcpgMaxIterationsOverSize = pcpgMaxIterationsOverSize;
             this.pcpgConvergenceTolerance = pcpgConvergenceTolerance;
@@ -175,13 +176,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
 
             // Create the preconditioner. 
             //TODO: this should be done simultaneously with the factorizations to avoid duplicate factorizations.
-            var preconditioner = new Feti1LumpedPreconditioner(model.Subdomains, continuityEquations, boundaryDofs);
             var stiffnessMatrices = new Dictionary<int, IMatrixView>();
             foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
                 stiffnessMatrices.Add(linearSystem.Subdomain.ID, linearSystem.Matrix);
             }
-            preconditioner.CreatePreconditioner(stiffnessMatrices);
+            IFetiPreconditioner preconditioner = preconditionerFactory.CreatePreconditioner(boundaryDofs, internalDofs, 
+                continuityEquations, stiffnessMatrices);
 
             // Calculate generalized inverses and rigid body modes of subdomains to assemble the interface flexibility matrix. 
             if (mustFactorize)
@@ -397,7 +398,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
             public Builder(double factorizationPivotTolerance)
             {
                 //TODO: This is a very volatile parameter and the user should not have to specify it. 
-                this.factorizationPivotTolerance = factorizationPivotTolerance; 
+                this.factorizationPivotTolerance = factorizationPivotTolerance;
             }
 
             public IDofOrderer DofOrderer { get; set; } = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
@@ -405,10 +406,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti1
             internal IExactResidualCalculator PcpgExactResidual { get; set; } = null;
             public double PcpgConvergenceTolerance { get; set; } = 1E-7;
             public double PcpgMaxIterationsOverSize { get; set; } = 1.0;
+            public IFetiPreconditionerFactory PreconditionerFactory { get; set; } = new Feti1LumpedPreconditioner.Factory(); 
 
             public Feti1Solver BuildSolver(Model_v2 model)
                 => new Feti1Solver(model, DofOrderer, factorizationPivotTolerance, PcpgMaxIterationsOverSize, 
-                    PcpgConvergenceTolerance, PcpgExactResidual, Logger);
+                    PcpgConvergenceTolerance, PcpgExactResidual, PreconditionerFactory, Logger);
         }
     }
 }

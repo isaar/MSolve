@@ -6,7 +6,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Feti;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Feti1;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1;
 using Xunit;
 
 namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
@@ -86,6 +86,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             // Solver
             var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
             solverBuilder.PcpgConvergenceTolerance = pcpgConvergenceTolerance;
+            solverBuilder.PreconditionerFactory = new Feti1LumpedPreconditioner.Factory();
             solverBuilder.Logger = new FetiLogger();
 
             // PCPG needs to use the exact residual for the comparison with the expected values
