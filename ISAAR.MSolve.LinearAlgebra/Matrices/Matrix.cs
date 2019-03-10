@@ -680,6 +680,33 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
+        /// Calculates the inverse matrix and writes it over the entries of this object, in order to conserve memory 
+        /// and possibly time.
+        /// </summary>
+        /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
+        /// <exception cref="SingularMatrixException">Thrown if the matrix is not invertible.</exception>
+        /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
+        public void InvertInPlace()
+        {
+            //TODO: implement efficient 2x2 and 3x3 inplace operations to avoid copying. 
+            if ((NumRows == 2) && (NumColumns == 2))
+            {
+                (double[] inverse, double det) = AnalyticFormulas.Matrix2x2ColMajorInvert(data);
+                Array.Copy(inverse, data, 4);
+            }
+            else if ((NumRows == 3) && (NumColumns == 3))
+            {
+                (double[] inverse, double det) = AnalyticFormulas.Matrix3x3ColMajorInvert(data);
+                Array.Copy(inverse, data, 9);
+            }
+            else
+            {
+                // The next will update the entries of this matrix, but we do not need the intermediate objects
+                LUFactorization.Factorize(NumColumns, data).Invert(true); 
+            }
+        }
+
+        /// <summary>
         /// Calculates the determinant and the inverse matrix and returns the latter in a new <see cref="Matrix"/> instance. 
         /// This only works if this <see cref="Matrix"/> is square and invertible.
         /// </summary>

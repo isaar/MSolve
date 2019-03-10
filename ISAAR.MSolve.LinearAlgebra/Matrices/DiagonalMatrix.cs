@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Commons;
+using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
@@ -92,6 +93,26 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="order">The number of rows/columns of the matrix.</param>
         public static DiagonalMatrix CreateZero(int order) => new DiagonalMatrix(new double[order]);
+
+        /// <summary>
+        /// Calculates the inverse matrix and writes it over the entries of this object, in order to conserve memory 
+        /// and possibly time.
+        /// </summary>
+        /// <param name="pivotTolerance">
+        /// If the Math.Abs(this[i,i]) &lt;= <paramref name="pivotTolerance"/>, then the pivot i is considered to be zero and  
+        /// the matrix cannot be inverted.
+        /// </param>
+        /// <exception cref="SingularMatrixException">Thrown if a (near) zero pivot is encountered.</exception>
+        public void Invert(double pivotTolerance = 1E-10)
+        {
+            for (int i = 0; i < NumColumns; ++i)
+            {
+                //TODO: Should this check be turned off in release builds? Should the user decide to turn it off?
+                if (Math.Abs(diagonal[i]) <= pivotTolerance) throw new SingularMatrixException(
+                    $"Near zero pivot entry: D[{i},{i}] = {diagonal[i]}");
+                diagonal[i] = 1.0 / diagonal[i];
+            }
+        }
 
         /// <summary>
         /// Multiplies this matrix with a vector.
