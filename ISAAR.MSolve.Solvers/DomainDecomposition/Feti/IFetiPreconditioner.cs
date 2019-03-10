@@ -4,7 +4,6 @@ using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-//TODO: there should be a preconditioner factory and a preconditioner class.
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
     public interface IFetiPreconditioner

@@ -20,12 +20,51 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
         private const int singleSubdomainID = 0;
 
         [Fact]
+        public static void TestDiagonalDirichletPreconditioner()
+        {
+            double factorizationTol = 1E-3, pcpgConvergenceTol = 1E-5;
+            IVectorView directDisplacements = SolveModelWithoutSubdomains();
+            (IVectorView ddDisplacements, FetiLogger logger, int numUniqueGlobalDofs, int numExtenedDomainDofs) =
+                SolveModelWithSubdomains(new Feti1DiagonalDirichletPreconditioner.Factory(), factorizationTol, 
+                pcpgConvergenceTol, true);
+            double normalizedError = directDisplacements.Subtract(ddDisplacements).Norm2() / directDisplacements.Norm2();
+
+            Assert.Equal(882, numUniqueGlobalDofs);    // 882 includes constrained and free dofs
+            Assert.Equal(1056, numExtenedDomainDofs); // 1056 includes constrained and free dofs
+            Assert.Equal(190, logger.NumLagrangeMultipliers);
+            Assert.Equal(11, logger.PcpgIterations);
+
+            // In the reference solution the error is 1.23E-9, but it is almost impossible for two different codes run on 
+            // different machines to achieve the exact same accuracy.
+            Assert.Equal(0.0, normalizedError, 8);
+        }
+
+        [Fact]
+        public static void TestDirichletPreconditioner()
+        {
+            double factorizationTol = 1E-3, pcpgConvergenceTol = 1E-5;
+            IVectorView directDisplacements = SolveModelWithoutSubdomains();
+            (IVectorView ddDisplacements, FetiLogger logger, int numUniqueGlobalDofs, int numExtenedDomainDofs) =
+                SolveModelWithSubdomains(new Feti1DirichletPreconditioner.Factory(), factorizationTol, pcpgConvergenceTol, true);
+            double normalizedError = directDisplacements.Subtract(ddDisplacements).Norm2() / directDisplacements.Norm2();
+
+            Assert.Equal(882, numUniqueGlobalDofs);    // 882 includes constrained and free dofs
+            Assert.Equal(1056, numExtenedDomainDofs); // 1056 includes constrained and free dofs
+            Assert.Equal(190, logger.NumLagrangeMultipliers);
+            Assert.Equal(10, logger.PcpgIterations);
+
+            // In the reference solution the error is 2.59E-10, but it is almost impossible for two different codes run on 
+            // different machines to achieve the exact same accuracy.
+            Assert.Equal(0.0, normalizedError, 8);
+        }
+
+        [Fact]
         public static void TestLumpedPreconditioner()
         {
             double factorizationTol = 1E-3, pcpgConvergenceTol = 1E-5;
             IVectorView directDisplacements = SolveModelWithoutSubdomains();
             (IVectorView ddDisplacements, FetiLogger logger, int numUniqueGlobalDofs, int numExtenedDomainDofs) = 
-                SolveModelWithSubdomains(factorizationTol, pcpgConvergenceTol, true);
+                SolveModelWithSubdomains(new Feti1LumpedPreconditioner.Factory(), factorizationTol, pcpgConvergenceTol, true);
             double normalizedError = directDisplacements.Subtract(ddDisplacements).Norm2() / directDisplacements.Norm2();
 
             Assert.Equal(882, numUniqueGlobalDofs);    // 882 includes constrained and free dofs
@@ -78,7 +117,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
         }
 
         private static (IVectorView globalDisplacements, FetiLogger logger, int numUniqueGlobalDofs, int numExtenedDomainDofs) 
-            SolveModelWithSubdomains(double factorizationTolerance, double pcpgConvergenceTolerance, bool exactResidual)
+            SolveModelWithSubdomains(IFetiPreconditionerFactory preconditioning, double factorizationTolerance, 
+                double pcpgConvergenceTolerance, bool exactResidual)
         {
             // Model
             Model_v2 multiSubdomainModel = CreateModel();
@@ -86,7 +126,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             // Solver
             var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
             solverBuilder.PcpgConvergenceTolerance = pcpgConvergenceTolerance;
-            solverBuilder.PreconditionerFactory = new Feti1LumpedPreconditioner.Factory();
+            solverBuilder.PreconditionerFactory = preconditioning;
             solverBuilder.Logger = new FetiLogger();
 
             // PCPG needs to use the exact residual for the comparison with the expected values

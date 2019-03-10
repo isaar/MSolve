@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-//TODO: perhaps these helper methods should be somewhere more centrally.
+//TODO: perhaps these helper methods should be somewhere more centrally, which will also include extracting Kib, Kii
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
     public abstract class FetiPreconditionerFactoryBase : IFetiPreconditionerFactory
@@ -28,17 +27,28 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
             return boundaryBooleanMatrices;
         }
 
-        protected Dictionary<int, Matrix> ExtractBoundaryStiffnessMatrices(Dictionary<int, int[]> boundaryDofs, 
+        protected Dictionary<int, Matrix> ExtractStiffnessesBoundaryBoundary(Dictionary<int, int[]> boundaryDofs, 
             Dictionary<int, IMatrixView> stiffnessMatrices)
         {
-            var boundaryStiffnessMatrices = new Dictionary<int, Matrix>();
+            var stiffnessesBoundaryBoundary = new Dictionary<int, Matrix>();
             foreach (int id in boundaryDofs.Keys)
             {
-                IMatrixView stiffnessMatrix = stiffnessMatrices[id];
-                Matrix boundaryStiffnessMatrix = stiffnessMatrix.GetSubmatrix(boundaryDofs[id], boundaryDofs[id]);
-                boundaryStiffnessMatrices.Add(id, boundaryStiffnessMatrix);
+                Matrix stiffnessBoundaryBoundary = stiffnessMatrices[id].GetSubmatrix(boundaryDofs[id], boundaryDofs[id]);
+                stiffnessesBoundaryBoundary.Add(id, stiffnessBoundaryBoundary);
             }
-            return boundaryStiffnessMatrices;
+            return stiffnessesBoundaryBoundary;
+        }
+
+        protected Dictionary<int, Matrix> ExtractStiffnessBoundaryInternal(Dictionary<int, int[]> boundaryDofs,
+            Dictionary<int, int[]> internalDofs, Dictionary<int, IMatrixView> stiffnessMatrices)
+        {
+            var stiffnessesBoundaryInternal = new Dictionary<int, Matrix>();
+            foreach (int id in boundaryDofs.Keys)
+            {
+                Matrix stiffnessBoundaryInternal = stiffnessMatrices[id].GetSubmatrix(boundaryDofs[id], internalDofs[id]);
+                stiffnessesBoundaryInternal.Add(id, stiffnessBoundaryInternal);
+            }
+            return stiffnessesBoundaryInternal;
         }
     }
 }
