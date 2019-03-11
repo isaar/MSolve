@@ -48,6 +48,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public static void AddIntoThis(this IMatrix matrix1, IMatrixView matrix2) => matrix1.AxpyIntoThis(matrix2, 1.0);
 
         /// <summary>
+        /// Copies the entries of the matrix into a 2-dimensional array. The returned array has length(0) = number of rows 
+        /// and length(1) = number of columns. 
+        /// </summary>
+        public static double[,] CopytoArray2D(this IMatrixView matrix)
+        {
+            var clone = new double[matrix.NumRows, matrix.NumColumns];
+            for (int i = 0; i < matrix.NumRows; ++i)
+            {
+                for (int j = 0; j < matrix.NumColumns; ++j) clone[i, j] = matrix[i, j];
+            }
+            return clone;
+        }
+
+        /// <summary>
         /// Iterates over the non-zero entries of the matrix, which are defined as the entries such that: 
         /// <paramref name="matrix"/>[i,j].
         /// </summary>
