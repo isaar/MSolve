@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Filters
+//TODO: When the general classes achieve the efficiency of the 2D uniform hardcoded classes (such as this), then the latter
+//      must be removed.
+namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Filtering
 {
     public class MeshIndependentSensitivityFilter2DUniform: IDensityFilter
     {
+        private const double minDensityInDenominator = 1E-3; //TODO: Should the user be able to change this? 
+
         private readonly int numElementsX, numElementsY;
         private readonly double filterAreaRadius;
 
@@ -45,7 +49,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Filters
                             }
                         }
                     }
-                    filtered[elementIdx] /= densities[elementIdx] * sum;
+                    filtered[elementIdx] /= Math.Max(minDensityInDenominator, densities[elementIdx]) * sum;
                 }
             }
             sensitivities = filtered;

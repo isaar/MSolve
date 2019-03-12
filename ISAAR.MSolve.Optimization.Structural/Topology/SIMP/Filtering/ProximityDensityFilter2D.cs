@@ -1,27 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: concolution operations can be parallelized very efficiently
-namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Filters
+namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Filtering
 {
     /// <summary>
     /// Filters the density of each finite element by taking into account the density and compliance derivative of other 
-    /// elements near it. See "A 99 line topology optimization code written in Matlab, O. Sigmund, 1991".
+    /// elements near it. See "An efficient 3D topology optimization code written in Matlab - K. Liu, A. Tovar, 2014".
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public class ProximityDensityFilter2D : IDensityFilter
     {
+        private const double minDensityInDenominator = 1E-3; //TODO: Should the user be able to change this? 
+
         private readonly double filterAreaRadius;
         private readonly ContinuumElement2D[] elements;
         private readonly ElementNeighborhood[] elementNeighborhoods;
         private readonly int numElements;
 
+        /// <summary>
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="filterAreaRadius">
+        /// Typically 10% of the smaller dimension of the design domain. If 0, the unfiltered sensitivities are retained. 
+        /// </param>
         public ProximityDensityFilter2D(Model_v2 model, double filterAreaRadius)
         {
             this.filterAreaRadius = filterAreaRadius;
@@ -54,7 +61,8 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Filters
                 {
                     convolution += weightFactors[f] * densities[neighbors[f]] * sensitivities[neighbors[f]];
                 }
-                filteredSensitivities[e] = convolution / (densities[e] * elementNeighborhoods[e].WeightFactorSum);
+                double denominator = Math.Max(minDensityInDenominator, densities[e]) * elementNeighborhoods[e].WeightFactorSum;
+                filteredSensitivities[e] = convolution / denominator;
             }
             sensitivities = filteredSensitivities;
         }

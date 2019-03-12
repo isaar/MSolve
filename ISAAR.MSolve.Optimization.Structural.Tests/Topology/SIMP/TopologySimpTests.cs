@@ -14,7 +14,8 @@ using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Optimization.Logging;
 using ISAAR.MSolve.Optimization.Structural.Topology.SIMP;
 using ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis;
-using ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Filters;
+using ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Filtering;
+using ISAAR.MSolve.Optimization.Structural.Topology.SIMP.MaterialInterpolation;
 using ISAAR.MSolve.Preprocessor.Meshes;
 using ISAAR.MSolve.Preprocessor.Meshes.Custom;
 using ISAAR.MSolve.Solvers.Direct;
@@ -30,13 +31,17 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
     public static class TopologySimpTests
     {
         private const int subdomainID = 0;
+        private const double youngModulus = 1.0;
 
         [Fact]
         private static void TestCantileverBeamGeneral()
         {
             // Define the materials
             double thickness = 1.0;
-            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress) { YoungModulus = 1.0, PoissonRatio = 0.3 };
+            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
+            {
+                YoungModulus = youngModulus, PoissonRatio = 0.3
+            };
             var dynamicProperties = new DynamicMaterial(1.0, 0.0, 0.0);
 
             // Model with 1 subdomain
@@ -114,8 +119,8 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
             double volumeFraction = 0.4, penalty = 3.0;
 
             // Define the optimization
-            var simp = new TopologySimpLinear2D(fem, filter, volumeFraction);
-            simp.PenalizationExponent = penalty;
+            var materialInterpolation = new PowerLawMaterialInterpolation(youngModulus, penalty, 1E-3);
+            var simp = new TopologySimpLinear2D(fem, filter, materialInterpolation, volumeFraction);
             var logger = new ObjectiveFunctionLogger();
             simp.Logger = logger;
 
@@ -145,12 +150,12 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
             double filterAreaRadius = 1.2, volumeFraction = 0.4, penalty = 3.0;
 
             // Define the optimization
-            var material = new ElasticMaterial2D(StressState2D.PlaneStress) { YoungModulus = 1.0, PoissonRatio = 0.3 };
+            var material = new ElasticMaterial2D(StressState2D.PlaneStress) { YoungModulus = youngModulus, PoissonRatio = 0.3 };
             var fem = new LinearFemAnalysis2DUniformHardcoded(numElementsX, numElementsY, material,
                 LinearFemAnalysis2DUniformHardcoded.BoundaryConditions.Cantilever2LoadCases);
             var filter = new MeshIndependentSensitivityFilter2DUniform(numElementsX, numElementsY, filterAreaRadius);
-            var simp = new TopologySimpLinear2D(fem, filter, volumeFraction);
-            simp.PenalizationExponent = penalty;
+            var materialInterpolation = new PowerLawMaterialInterpolation(youngModulus, penalty, 1E-3);
+            var simp = new TopologySimpLinear2D(fem, filter, materialInterpolation, volumeFraction);
             var logger = new ObjectiveFunctionLogger();
             simp.Logger = logger;
 
@@ -176,9 +181,12 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
         [Fact]
         private static void TestMbbBeamGeneral()
         {
-            // Define the fem analysis and the filter
+            // Material
             double thickness = 1.0;
-            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress) { YoungModulus = 1.0, PoissonRatio = 0.3 };
+            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
+            {
+                YoungModulus = youngModulus, PoissonRatio = 0.3
+            };
             var dynamicProperties = new DynamicMaterial(1.0, 0.0, 0.0);
 
             // Model with 1 subdomain
@@ -246,7 +254,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
             double filterAreaRadius = 1.5;
 
             // Define the optimization
-            var material = new ElasticMaterial2D(StressState2D.PlaneStress) { YoungModulus = 1.0, PoissonRatio = 0.3 };
+            var material = new ElasticMaterial2D(StressState2D.PlaneStress) { YoungModulus = youngModulus, PoissonRatio = 0.3 };
             var fem = new LinearFemAnalysis2DUniformHardcoded(numElementsX, numElementsY, material,
                 LinearFemAnalysis2DUniformHardcoded.BoundaryConditions.MbbBeam);
             var filter = new MeshIndependentSensitivityFilter2DUniform(numElementsX, numElementsY, filterAreaRadius);
@@ -260,8 +268,8 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
             double volumeFraction = 0.5, penalty = 3.0;
 
             // Define the optimization
-            var simp = new TopologySimpLinear2D(fem, filter, volumeFraction);
-            simp.PenalizationExponent = penalty;
+            var materialInterpolation = new PowerLawMaterialInterpolation(youngModulus, penalty, 1E-3);
+            var simp = new TopologySimpLinear2D(fem, filter, materialInterpolation, volumeFraction);
             var logger = new ObjectiveFunctionLogger();
             simp.Logger = logger;
 
@@ -280,7 +288,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
                 + @"\Resources\topology99lines_MBBbeam_densities.txt";
             var reader = new FullMatrixReader(false, ',');
             Vector densitiesExpected = reader.ReadFile(densitiesPath).Reshape(false);
-            Assert.True(densitiesExpected.Equals(densities, 1E-9));
+            Assert.True(densitiesExpected.Equals(densities, 1E-8));
         }
     }
 }

@@ -12,6 +12,8 @@ using System.Linq;
 //TODO: extend it to 3D.
 //TODO: What about passive elements? They should not be included in the analysis.
 //TODO: Add support for various boundary conditions and load cases
+//TODO: When the general classes achieve the efficiency of the 2D uniform hardcoded classes (such as this), then the latter
+//      must be removed.
 namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis
 {
     /// <summary>
@@ -34,8 +36,10 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis
 
         private readonly int numElementsX, numElementsY;
         private readonly ElasticMaterial2D material;
-        private IMatrixView commonStiffness; //TODO: Should this be readonly without an Initialize() method?
+
         private Vector[] globalDisplacements;
+        private IMatrixView unitStiffness; //TODO: Should this be readonly without an Initialize() method?
+        private IVectorView youngModuli;
 
         public LinearFemAnalysis2DUniformHardcoded(int numElementsX, int numElementsY, ElasticMaterial2D material,
             BoundaryConditions bc)
@@ -51,15 +55,17 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis
 
         public int NumLoadCases => (bc == BoundaryConditions.Cantilever2LoadCases) ? 2 : 1;
 
-        public void AnalyzeModelWithDensities(IVectorView densities)
+        public void UpdateModelAndAnalyze(IVectorView youngModuli)
         {
+            this.youngModuli = youngModuli;
+
             // Global stiffness matrix assembly
             int numAllDofs = 2 * (numElementsX + 1) * (numElementsY + 1);
             var K = DokSymmetric.CreateEmpty(numAllDofs);
             for (int e = 0; e < NumElements; ++e)
             {
                 int[] elementDofsGlobal = GetElementDofs(e);
-                K.AddSubmatrixSymmetric(commonStiffness.Scale(densities[e]), elementDofsLocal, elementDofsGlobal);
+                K.AddSubmatrixSymmetric(unitStiffness.Scale(youngModuli[e]), elementDofsLocal, elementDofsGlobal);
             }
 
             // Apply boundary conditions
@@ -84,8 +90,10 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis
         //TODO: doesn't this depend on the geometry? Or is it normalized somehow?
         public double CalculateTotalVolume(IVectorView densities) => densities.Sum();
 
-        public IMatrixView GetPenalizedStiffnessOfElement(int elementIdx, IVectorView densities) 
-            => commonStiffness.Scale(densities[elementIdx]);
+        public IMatrixView GetElementStiffnessForCurrentMaterial(int elementIdx) 
+            => unitStiffness.Scale(youngModuli[elementIdx]);
+
+        public IMatrixView GetElementStiffnessForUnitMaterial(int elementIdx) => unitStiffness;
 
         public Vector GetElementDisplacements(int elementIdx, int loadCaseIdx)
         {
@@ -96,7 +104,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis
 
         public void Initialize()
         {
-            commonStiffness = CalcQuad4Stiffness();
+            unitStiffness = CalcQuad4Stiffness();
         }
 
         private (int[] freeDofs, Vector[] forcesPerLoadCase) ApplyBoundaryConditions()
