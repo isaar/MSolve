@@ -12,6 +12,7 @@ using ISAAR.MSolve.Optimization.Structural.Topology.SIMP.MaterialInterpolation;
 
 //TODO: This probably works for 3D as it is. If not, extend it.
 //TODO: Should I store the prescribedVolume, instead of prescribedVolumeFraction?
+//TODO: Add a builder.
 namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
 {
     public class TopologySimpLinear2D
@@ -19,14 +20,16 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
         private readonly ILinearFemAnalysis fem;
         private readonly IDensityFilter filter;
         private readonly IMaterialInterpolation materialInterpolation;
+        private readonly OptimalityCriteriaBuilder optimAlgorithmBuilder;
         private readonly double prescribedVolumeFraction;
         private OptimalityCriteria optimAlgorithm; //TODO: extend this
         private double prescribedVolume;
 
-        public TopologySimpLinear2D(ILinearFemAnalysis fem, IDensityFilter filter, IMaterialInterpolation materialInterpolation, 
-            double prescribedVolumeFraction)
+        public TopologySimpLinear2D(ILinearFemAnalysis fem, OptimalityCriteriaBuilder optimAlgorithmBuilder,
+            IDensityFilter filter, IMaterialInterpolation materialInterpolation, double prescribedVolumeFraction)
         {
             this.fem = fem;
+            this.optimAlgorithmBuilder = optimAlgorithmBuilder;
             this.filter = filter;
             this.materialInterpolation = materialInterpolation;
             this.prescribedVolumeFraction = prescribedVolumeFraction;
@@ -38,7 +41,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
         {
             fem.Initialize();
             prescribedVolume = prescribedVolumeFraction * fem.CalculateTotalVolume(Vector.CreateWithValue(fem.NumElements, 1.0));
-            optimAlgorithm = new OptimalityCriteria(ObjectiveFunction, EqualityConstraint, 
+            optimAlgorithm = optimAlgorithmBuilder.BuildOptimizer(ObjectiveFunction, EqualityConstraint, 
                 materialInterpolation.MinDensity, materialInterpolation.MaxDensity);
         }
 

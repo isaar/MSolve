@@ -11,6 +11,7 @@ using ISAAR.MSolve.LinearAlgebra.Input;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
+using ISAAR.MSolve.Optimization.Algorithms.GradientBased.OC;
 using ISAAR.MSolve.Optimization.Logging;
 using ISAAR.MSolve.Optimization.Structural.Topology.SIMP;
 using ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis;
@@ -31,6 +32,14 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
     public static class TopologySimpTests
     {
         private const int subdomainID = 0;
+        private static readonly OptimalityCriteriaBuilder optimAlgorithmBuilder = new OptimalityCriteriaBuilder()
+        {
+            DampingCoeff = 0.5,
+            MoveLimit = 0.2,
+            InitialBisectionLimitLower = 0.0,
+            InitialBisectionLimitUpper = 1E5,
+            BisectionConvergence = new BisectionConvergenceChange(1E-4)
+        };
         private const double youngModulus = 1.0;
 
         [Fact]
@@ -120,7 +129,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
 
             // Define the optimization
             var materialInterpolation = new PowerLawMaterialInterpolation(youngModulus, penalty, 1E-3);
-            var simp = new TopologySimpLinear2D(fem, filter, materialInterpolation, volumeFraction);
+            var simp = new TopologySimpLinear2D(fem, optimAlgorithmBuilder, filter, materialInterpolation, volumeFraction);
             var logger = new ObjectiveFunctionLogger();
             simp.Logger = logger;
 
@@ -155,7 +164,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
                 LinearFemAnalysis2DUniformHardcoded.BoundaryConditions.Cantilever2LoadCases);
             var filter = new MeshIndependentSensitivityFilter2DUniform(numElementsX, numElementsY, filterAreaRadius);
             var materialInterpolation = new PowerLawMaterialInterpolation(youngModulus, penalty, 1E-3);
-            var simp = new TopologySimpLinear2D(fem, filter, materialInterpolation, volumeFraction);
+            var simp = new TopologySimpLinear2D(fem, optimAlgorithmBuilder, filter, materialInterpolation, volumeFraction);
             var logger = new ObjectiveFunctionLogger();
             simp.Logger = logger;
 
@@ -269,7 +278,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
 
             // Define the optimization
             var materialInterpolation = new PowerLawMaterialInterpolation(youngModulus, penalty, 1E-3);
-            var simp = new TopologySimpLinear2D(fem, filter, materialInterpolation, volumeFraction);
+            var simp = new TopologySimpLinear2D(fem, optimAlgorithmBuilder, filter, materialInterpolation, volumeFraction);
             var logger = new ObjectiveFunctionLogger();
             simp.Logger = logger;
 

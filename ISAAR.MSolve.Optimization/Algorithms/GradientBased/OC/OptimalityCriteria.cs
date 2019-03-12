@@ -8,10 +8,6 @@ using ISAAR.MSolve.Optimization.Problems;
 //TODO: Use and enrich the auxilliary classes for other optimization algorithms.
 namespace ISAAR.MSolve.Optimization.Algorithms.GradientBased.OC
 {
-    //TODO: use a design class for these.
-    public delegate (double f, Vector gradF) DifferentiableObjectiveFunction(Vector x);
-    public delegate double EqualityConstraint(Vector x);
-
     /// <summary>
     /// Implements the Optimality Criteria optimization algorithm for problems with a differentiable objective function and a
     /// single monotonic equality constraint function.
@@ -19,23 +15,28 @@ namespace ISAAR.MSolve.Optimization.Algorithms.GradientBased.OC
     /// </summary>
     public class OptimalityCriteria
     {
-        private readonly DifferentiableObjectiveFunction objective;
+        private readonly IBisectionConvergence bisectionConvergence;
+        private readonly double bisectionInitialLimitLower, bisectionInitialLimitUpper;
+        private readonly double boundLower, boundUpper;
         private readonly EqualityConstraint constraint;
-        private readonly double lowerBound;
-        private readonly double upperBound;
+        private readonly double dampingCoeff;
+        private readonly double moveLimit;
+        private readonly DifferentiableObjectiveFunction objective;
 
-        public OptimalityCriteria(DifferentiableObjectiveFunction objective, EqualityConstraint constraint,
-            double lowerBound, double upperBound)
+        internal OptimalityCriteria(DifferentiableObjectiveFunction objective, EqualityConstraint constraint,
+            double boundLower, double boundUpper, double bisectionInitialLimitLower, double bisectionInitialLimitUpper,
+            IBisectionConvergence bisectionConvergence, double dampingCoeff, double moveLimit)
         {
             this.objective = objective;
             this.constraint = constraint;
-            this.lowerBound = lowerBound;
-            this.upperBound = upperBound;
+            this.boundLower = boundLower;
+            this.boundUpper = boundUpper;
+            this.bisectionInitialLimitLower = bisectionInitialLimitLower;
+            this.bisectionInitialLimitUpper = bisectionInitialLimitUpper;
+            this.dampingCoeff = dampingCoeff;
+            this.moveLimit = moveLimit;
+            this.bisectionConvergence = bisectionConvergence;
         }
-
-        public double DampingCoeff { get; set; } = 0.5;
-        public double MaxDesignVariableChange { get; set; } = 0.01;
-        public double MoveLimit { get; set; } = 0.2;
 
         public (double fMin, Vector xBest) Optimize(Vector xInitial)
         {
@@ -57,8 +58,8 @@ namespace ISAAR.MSolve.Optimization.Algorithms.GradientBased.OC
         //TODO: what about passive elements? They should not be design variables at all.
         private Vector UpdateDesign(Vector x, Vector gradF) 
         {
-            double l1 = 0.0;
-            double l2 = 1E5;
+            double l1 = bisectionInitialLimitLower;
+            double l2 = bisectionInitialLimitUpper;
             Vector xNext = null;
             while (l2 - l1 > 1E-4)
             {
@@ -67,9 +68,9 @@ namespace ISAAR.MSolve.Optimization.Algorithms.GradientBased.OC
                 // Update densities
                 xNext = x.DoEntrywise(gradF, (xi, gradFi) =>
                 {
-                    double xiBi = xi * Math.Pow(-gradFi / lmid, DampingCoeff);
-                    double xiLow = Math.Max(lowerBound, xi - MoveLimit);
-                    double xiHigh = Math.Min(upperBound, xi + MoveLimit);
+                    double xiBi = xi * Math.Pow(-gradFi / lmid, dampingCoeff);
+                    double xiLow = Math.Max(boundLower, xi - moveLimit);
+                    double xiHigh = Math.Min(boundUpper, xi + moveLimit);
                     if (xiBi <= xiLow) return xiLow;
                     else if (xiBi < xiHigh) return xiBi;
                     else return xiHigh;
