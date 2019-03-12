@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ISAAR.MSolve.Optimization.Algorithms.GradientBased.OC
+namespace ISAAR.MSolve.Optimization.Algorithms.GradientBased.OC.Bisection
 {
     /// <summary>
     /// OC convergences when (upper-lower)/(upper+lower) &lt;= tol. Presented in "A 99 line topology optimization code written   

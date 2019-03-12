@@ -12,6 +12,8 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Optimization.Algorithms.GradientBased.OC;
+using ISAAR.MSolve.Optimization.Algorithms.GradientBased.OC.Bisection;
+using ISAAR.MSolve.Optimization.Algorithms.GradientBased.OC.Convergence;
 using ISAAR.MSolve.Optimization.Logging;
 using ISAAR.MSolve.Optimization.Structural.Topology.SIMP;
 using ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis;
@@ -38,7 +40,8 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
             MoveLimit = 0.2,
             InitialBisectionLimitLower = 0.0,
             InitialBisectionLimitUpper = 1E5,
-            BisectionConvergence = new BisectionConvergenceChange(1E-4)
+            BisectionConvergence = new BisectionConvergenceAbsoluteChange(1E-4),
+            OptimalityCriteriaConvergence = new DesignVariableChangeConvergence(1E-2)
         };
         private const double youngModulus = 1.0;
 

@@ -47,7 +47,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
 
         public (double minCompliance, Vector bestDensities) Optimize()
         {
-            (double minCompliance, Vector bestDensities) = 
+            (Vector bestDensities, double minCompliance) = 
                 optimAlgorithm.Optimize(Vector.CreateWithValue(fem.NumElements, prescribedVolumeFraction));
             return (minCompliance, bestDensities);
         }
