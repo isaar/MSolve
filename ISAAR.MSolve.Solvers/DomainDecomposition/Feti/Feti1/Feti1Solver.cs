@@ -7,6 +7,7 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.LinearSystems;
@@ -93,6 +94,31 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             }
             return assemblers[subdomain.ID].BuildGlobalSubmatrices(subdomain.FreeDofOrdering, subdomain.ConstrainedDofOrdering,
                 subdomain.Elements, elementMatrixProvider);
+        }
+
+        //TODO: this is for homogeneous problems only.
+        public Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, DOFType, double> globalNodalLoads)
+        {
+            var subdomainLoads = new Dictionary<int, SortedDictionary<int, double>>();
+            foreach (var subdomain in model.Subdomains) subdomainLoads[subdomain.ID] = new SortedDictionary<int, double>();
+
+            foreach ((INode node, DOFType dofType, double amount) in globalNodalLoads)
+            {
+                double amountPerSubdomain = amount / node.SubdomainsDictionary.Count;
+                foreach (var idSubdomain in node.SubdomainsDictionary)
+                {
+                    int subdomainDofIdx = idSubdomain.Value.FreeDofOrdering.FreeDofs[node, dofType];
+                    subdomainLoads[idSubdomain.Key][subdomainDofIdx] = amountPerSubdomain;
+                }
+            }
+
+            var result = new Dictionary<int, SparseVector>();
+            foreach (var idLoads in subdomainLoads)
+            {
+                int numSubdomainDofs = model.SubdomainsDictionary[idLoads.Key].FreeDofOrdering.NumFreeDofs;
+                result[idLoads.Key] = SparseVector.CreateFromDictionary(numSubdomainDofs, idLoads.Value);
+            }
+            return result;
         }
 
         //TODO: this and the fields should be handled by a class that handles dofs.

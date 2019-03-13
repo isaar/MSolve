@@ -2,6 +2,8 @@
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.Solvers.LinearSystems;
 
 //TODO: perhaps the solver should expose the assembler, instead of wrapping it. The assembler's interface would have to be 
@@ -41,6 +43,15 @@ namespace ISAAR.MSolve.Solvers
         /// </param>
         (IMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree, IMatrixView matrixConstrConstr) 
             BuildGlobalSubmatrices(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider);
+
+        /// <summary>
+        /// Distributes the nodal loads defined by the preprocessor to each subdomain.
+        /// </summary>
+        /// <param name="globalNodalLoads">
+        /// A collection of loads applied to nodes along certain freedom degrees. These are usually defined by the pre-processor 
+        /// or other entities of the analysis.
+        /// </param>
+        Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, DOFType, double> globalNodalLoads);
 
         /// <summary>
         /// Initializes the state of this <see cref="ISolver_v2"/> instance. This needs to be called only once, since it  

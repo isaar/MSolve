@@ -40,6 +40,8 @@ namespace ISAAR.MSolve.IGA.Entities
 
         public List<Constraint> Constraints => throw new NotImplementedException("When merging Dimitris and Serafeim's code, keep Dimitris.");
 
+        public Dictionary<int, ISubdomain_v2> SubdomainsDictionary => throw new NotImplementedException();
+
         public void BuildPatchesDictionary()
         {
             foreach (Element element in elementsDictionary.Values)

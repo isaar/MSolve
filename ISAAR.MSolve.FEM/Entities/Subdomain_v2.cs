@@ -53,11 +53,6 @@ namespace ISAAR.MSolve.FEM.Entities
         //}
         public bool MaterialsModified { get; set; }
         
-
-        //TODO: Ideally this is set by the Model, Cluster and should not be modified during the analysis. Actually it should be 
-        //      the same as Constraints.
-        public Table<Node_v2, DOFType, double> NodalLoads { get; set; }
-
         //TODO: This belongs in EquivalentLoadsAssembler
         //TODO: the constraintScalingFactor parameter is not used.
         public double[] CalculateElementIncrementalConstraintDisplacements(IElement_v2 element, double constraintScalingFactor)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??

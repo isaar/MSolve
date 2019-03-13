@@ -48,10 +48,10 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public IGlobalFreeDofOrdering GlobalDofOrdering { get; set; }
 
-        public void AssignLoads()
+        public void AssignLoads(NodalLoadsToSubdomainsDistributor distributeNodalLoads)
         {
             foreach (Subdomain_v2 subdomain in SubdomainsDictionary.Values) subdomain.Forces.Clear();
-            AssignNodalLoads();
+            AssignNodalLoads(distributeNodalLoads);
             AssignElementMassLoads();
             AssignMassAccelerationLoads();
         }
@@ -91,47 +91,30 @@ namespace ISAAR.MSolve.FEM.Entities
             }
         }
 
-        public void AssignNodalLoads()
+        public void AssignNodalLoads(NodalLoadsToSubdomainsDistributor distributeNodalLoads)
         {
-            foreach (Subdomain_v2 subdomain in SubdomainsDictionary.Values)
-            {
-                subdomain.NodalLoads = new Table<Node_v2, DOFType, double>();
-            }
+            var globalNodalLoads = new Table<INode, DOFType, double>();
+            foreach (Load_v2 load in Loads) globalNodalLoads.TryAdd(load.Node, load.DOF, load.Amount);
 
-            foreach (Load_v2 load in Loads)
+            Dictionary<int, SparseVector> subdomainNodalLoads = distributeNodalLoads(globalNodalLoads);
+            foreach (var idSubdomainLoads in subdomainNodalLoads)
             {
-                //WARNING: Computing the forces vector norm from the subdomains requires that the total load is distributed evenly
-                double amountPerSubdomain = load.Amount / load.Node.SubdomainsDictionary.Count;
-                foreach (Subdomain_v2 subdomain in load.Node.SubdomainsDictionary.Values)
-                {
-                    bool wasNotContained = subdomain.NodalLoads.TryAdd(load.Node, load.DOF, amountPerSubdomain);
-                    Debug.Assert(wasNotContained, $"Duplicate load at node {load.Node.ID}, dof {load.DOF}");
-                }
-            }
-
-            //TODO: this should be done by the subdomain when the analyzer decides.
-            foreach (Subdomain_v2 subdomain in SubdomainsDictionary.Values)
-            {
-                foreach ((Node_v2 node, DOFType dofType, double amount) in subdomain.NodalLoads)
-                {
-                    int subdomainDofIdx = subdomain.FreeDofOrdering.FreeDofs[node, dofType];
-                    subdomain.Forces[subdomainDofIdx] += amount;
-                }
+                SubdomainsDictionary[idSubdomainLoads.Key].Forces.AddIntoThis(idSubdomainLoads.Value);
             }
         }
 
-        public void AssignTimeDependentNodalLoads(int timeStep)
+        public void AssignTimeDependentNodalLoads(int timeStep, NodalLoadsToSubdomainsDistributor distributeNodalLoads)
         {
-            //WARNING: Computing the forces vector norm from the subdomains requires that the total load is distributed evenly
+            var globalNodalLoads = new Table<INode, DOFType, double>();
             foreach (ITimeDependentNodalLoad load in TimeDependentNodalLoads)
             {
-                double amountPerSubdomain = load.GetLoadAmount(timeStep) / load.Node.SubdomainsDictionary.Count;
+                globalNodalLoads.TryAdd(load.Node, load.DOF, load.GetLoadAmount(timeStep));
+            }
 
-                foreach (ISubdomain_v2 subdomain in load.Node.SubdomainsDictionary.Values)
-                {
-                    int subdomainDofIdx = subdomain.FreeDofOrdering.FreeDofs[load.Node, load.DOF];
-                    subdomain.Forces[subdomainDofIdx] += amountPerSubdomain;
-                }
+            Dictionary<int, SparseVector> subdomainNodalLoads = distributeNodalLoads(globalNodalLoads);
+            foreach (var idSubdomainLoads in subdomainNodalLoads)
+            {
+                SubdomainsDictionary[idSubdomainLoads.Key].Forces.AddIntoThis(idSubdomainLoads.Value);
             }
         }
 

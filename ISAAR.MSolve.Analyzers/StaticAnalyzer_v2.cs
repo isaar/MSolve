@@ -62,7 +62,7 @@ namespace ISAAR.MSolve.Analyzers
                     //TODO: Wouldn't it be better to assign the RHS vector when the stiffness matrix is assigned?
                     linearSystem.RhsVector = linearSystem.Subdomain.Forces;
                 }
-                model.AssignLoads();
+                model.AssignLoads(solver.DistributeNodalLoads);
             }
             else
             {

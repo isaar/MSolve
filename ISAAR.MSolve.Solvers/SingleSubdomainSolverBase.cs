@@ -5,6 +5,8 @@ using System.Linq;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.LinearSystems;
@@ -60,6 +62,20 @@ namespace ISAAR.MSolve.Solvers
             }
             return assembler.BuildGlobalSubmatrices(subdomain.FreeDofOrdering, subdomain.ConstrainedDofOrdering,
                 subdomain.Elements, elementMatrixProvider);
+        }
+
+        public Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, DOFType, double> globalNodalLoads)
+        {
+            var subdomainLoads = new SortedDictionary<int, double>();
+            foreach ((INode node, DOFType dofType, double amount) in globalNodalLoads)
+            {
+                int subdomainDofIdx = subdomain.FreeDofOrdering.FreeDofs[node, dofType];
+                subdomainLoads[subdomainDofIdx] = amount;
+            }
+            return new Dictionary<int, SparseVector>
+            {
+                { subdomain.ID, SparseVector.CreateFromDictionary(subdomain.FreeDofOrdering.NumFreeDofs, subdomainLoads) }
+            };
         }
 
         public Dictionary<int, Matrix> InverseSystemMatrixTimesOtherMatrix(Dictionary<int, IMatrixView> otherMatrix)

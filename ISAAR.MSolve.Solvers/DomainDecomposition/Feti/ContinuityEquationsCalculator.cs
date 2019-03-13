@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
         {
             // Find boundary nodes and continuity equations
             var boundaryNodes = 
-                new List<(Node_v2 node, DOFType[] dofs, Subdomain_v2[] subdomainsPlus, Subdomain_v2[] subdomainsMinus)>();
+                new List<(Node_v2 node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus)>();
             NumContinuityEquations = 0;
             foreach (Node_v2 node in model.Nodes) //TODO: this probably doesn't work if there are embedded nodes.
             {
@@ -44,8 +44,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
                     // If all dofs of this node are constrained, then it is not considered boundary.
                     if (dofsOfNode.Length == 0) continue;
                     
-                    IEnumerable<Subdomain_v2> nodeSubdomains = node.SubdomainsDictionary.Values;
-                    (Subdomain_v2[] subdomainsPlus, Subdomain_v2[] subdomainsMinus) =
+                    IEnumerable<ISubdomain_v2> nodeSubdomains = node.SubdomainsDictionary.Values;
+                    (ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus) =
                         crosspointStrategy.FindSubdomainCombinations(nodeMultiplicity, nodeSubdomains);
                     
                     boundaryNodes.Add((node, dofsOfNode, subdomainsPlus, subdomainsMinus));
@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 
             // Create the signed boolean matrices.
             BooleanMatrices = new Dictionary<int, SignedBooleanMatrix>();
-            foreach (Subdomain_v2 subdomain in model.Subdomains)
+            foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 BooleanMatrices.Add(subdomain.ID, 
                     new SignedBooleanMatrix(NumContinuityEquations, subdomain.FreeDofOrdering.NumFreeDofs));
@@ -65,7 +65,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 
             // Fill the boolean matrices: node major, subdomain medium, dof minor. TODO: not sure about this order.
             int equationCounter = 0;
-            foreach ((Node_v2 node, DOFType[] dofs, Subdomain_v2[] subdomainsPlus, Subdomain_v2[] subdomainsMinus) 
+            foreach ((Node_v2 node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus) 
                 in boundaryNodes)
             {
                 double oneOvernodeMultiplicity = 1.0 / node.SubdomainsDictionary.Count;

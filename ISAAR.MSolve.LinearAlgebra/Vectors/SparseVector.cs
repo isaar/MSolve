@@ -175,6 +175,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         ///     (foreach int idx in <paramref name="nonZeroEntries"/>.Keys) 0 &lt;= idx &lt; <paramref name="length"/>.</param>
         public static SparseVector CreateFromDictionary(int length, Dictionary<int, double> nonZeroEntries)
         {
+            if (nonZeroEntries.Count == 0) new SparseVector(length, new double[0], new int[0]); // All zero vector
+
             double[] values = new double[nonZeroEntries.Count];
             int[] indices = new int[nonZeroEntries.Count];
             int nnz = 0;
@@ -202,6 +204,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         ///     (foreach int idx in <paramref name="nonZeroEntries"/>.Keys) 0 &lt;= idx &lt; <paramref name="length"/>.</param>
         public static SparseVector CreateFromDictionary(int length, SortedDictionary<int, double> nonZeroEntries)
         {
+            if (nonZeroEntries.Count == 0) return new SparseVector(length, new double[0], new int[0]); // All zero vector
+
             double[] values = new double[nonZeroEntries.Count];
             int[] indices = new int[nonZeroEntries.Count];
             int nnz = 0;
@@ -249,7 +253,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                     return new SparseVector(Length, result, indices);
                 }
             }
-
+            else if (otherVector is Vector otherDense)
+            {
+                double[] result = otherDense.Scale(otherCoefficient).RawData;
+                SparseBlas.Daxpyi(this.indices.Length, 1.0, this.values, this.indices, 0, result, 0);
+                return Vector.CreateFromArray(result, false);
+            }
             // All entries must be processed. TODO: optimizations may be possible (e.g. only access the nnz in this vector)
             return DenseStrategies.LinearCombination(this, 1.0, otherVector, otherCoefficient);
         }

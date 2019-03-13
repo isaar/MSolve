@@ -151,8 +151,8 @@ namespace ISAAR.MSolve.Problems
         {
             foreach (ISubdomain_v2 subdomain in model.Subdomains) subdomain.Forces.Clear(); //TODO: this is also done by model.AssignLoads()
 
-            model.AssignNodalLoads(); // Time-independent nodal loads
-            model.AssignTimeDependentNodalLoads(timeStep); // Time-dependent nodal loads
+            model.AssignNodalLoads(solver.DistributeNodalLoads); // Time-independent nodal loads
+            model.AssignTimeDependentNodalLoads(timeStep, solver.DistributeNodalLoads); // Time-dependent nodal loads
 
             var rhsVectors = new Dictionary<int, IVector>();
             foreach (ISubdomain_v2 subdomain in model.Subdomains) rhsVectors.Add(subdomain.ID, subdomain.Forces.Copy());
