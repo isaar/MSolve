@@ -28,6 +28,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         private readonly FetiLogger logger;
         private readonly Model_v2 model;
         private readonly string name = "FETI-1 Solver"; // for error messages
+        private readonly INodalLoadDistributor nodalLoadDistributor;
         private readonly IExactResidualCalculator pcpgExactResidual;
         private readonly double pcpgConvergenceTolerance;
         private readonly double pcpgMaxIterationsOverSize;
@@ -43,7 +44,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
         private Feti1Solver(Model_v2 model, IDofOrderer dofOrderer, double factorizationPivotTolerance, 
             double pcpgMaxIterationsOverSize, double pcpgConvergenceTolerance, IExactResidualCalculator pcpgExactResidual,
-            IFetiPreconditionerFactory preconditionerFactory, FetiLogger logger)
+            IFetiPreconditionerFactory preconditionerFactory, INodalLoadDistributor nodalLoadDistributor, FetiLogger logger)
         {
             if (model.Subdomains.Count == 1) throw new InvalidSolverException(
                 $"{name} cannot be used if there is only 1 subdomain");
@@ -64,9 +65,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             LinearSystems = tempLinearSystems;
 
             this.dofOrderer = dofOrderer;
-            this.logger = logger;
             this.factorizationPivotTolerance = factorizationPivotTolerance;
             this.preconditionerFactory = preconditionerFactory;
+            this.nodalLoadDistributor = nodalLoadDistributor;
+            this.logger = logger;
 
             this.pcpgMaxIterationsOverSize = pcpgMaxIterationsOverSize;
             this.pcpgConvergenceTolerance = pcpgConvergenceTolerance;
@@ -98,28 +100,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
         //TODO: this is for homogeneous problems only.
         public Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, DOFType, double> globalNodalLoads)
-        {
-            var subdomainLoads = new Dictionary<int, SortedDictionary<int, double>>();
-            foreach (var subdomain in model.Subdomains) subdomainLoads[subdomain.ID] = new SortedDictionary<int, double>();
-
-            foreach ((INode node, DOFType dofType, double amount) in globalNodalLoads)
-            {
-                double amountPerSubdomain = amount / node.SubdomainsDictionary.Count;
-                foreach (var idSubdomain in node.SubdomainsDictionary)
-                {
-                    int subdomainDofIdx = idSubdomain.Value.FreeDofOrdering.FreeDofs[node, dofType];
-                    subdomainLoads[idSubdomain.Key][subdomainDofIdx] = amountPerSubdomain;
-                }
-            }
-
-            var result = new Dictionary<int, SparseVector>();
-            foreach (var idLoads in subdomainLoads)
-            {
-                int numSubdomainDofs = model.SubdomainsDictionary[idLoads.Key].FreeDofOrdering.NumFreeDofs;
-                result[idLoads.Key] = SparseVector.CreateFromDictionary(numSubdomainDofs, idLoads.Value);
-            }
-            return result;
-        }
+            => nodalLoadDistributor.DistributeNodalLoads(LinearSystems, globalNodalLoads);
 
         //TODO: this and the fields should be handled by a class that handles dofs.
         public Vector GatherGlobalDisplacements(Dictionary<int, IVectorView> subdomainDisplacements) 
@@ -429,6 +410,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
             public IDofOrderer DofOrderer { get; set; } = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
             public FetiLogger Logger { get; set; } = null;
+            public INodalLoadDistributor NodalLoadDistributor { get; set; } = new HomogeneousNodalLoadDistributor();
             internal IExactResidualCalculator PcpgExactResidual { get; set; } = null;
             public double PcpgConvergenceTolerance { get; set; } = 1E-7;
             public double PcpgMaxIterationsOverSize { get; set; } = 1.0;
@@ -436,7 +418,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
             public Feti1Solver BuildSolver(Model_v2 model)
                 => new Feti1Solver(model, DofOrderer, factorizationPivotTolerance, PcpgMaxIterationsOverSize, 
-                    PcpgConvergenceTolerance, PcpgExactResidual, PreconditionerFactory, Logger);
+                    PcpgConvergenceTolerance, PcpgExactResidual, PreconditionerFactory, NodalLoadDistributor, Logger);
         }
     }
 }

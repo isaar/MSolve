@@ -5,6 +5,7 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
+using ISAAR.MSolve.Solvers.DomainDecomposition;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Feti;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1;
 using Xunit;
@@ -125,6 +126,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
 
             // Solver
             var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
+            solverBuilder.NodalLoadDistributor = new HomogeneousNodalLoadDistributor();
             solverBuilder.PcpgConvergenceTolerance = pcpgConvergenceTolerance;
             solverBuilder.PreconditionerFactory = preconditioning;
             solverBuilder.Logger = new FetiLogger();
