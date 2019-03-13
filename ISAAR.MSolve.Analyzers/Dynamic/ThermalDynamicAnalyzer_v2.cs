@@ -127,11 +127,7 @@ namespace ISAAR.MSolve.Analyzers.Dynamic
                 {
                     linearSystem.Reset(); // Necessary to define the linear system's size 
                     linearSystem.Subdomain.Forces = Vector.CreateZero(linearSystem.Size);
-
-                    //TODO: Wouldn't it be better to assign the RHS vector when the stiffness matrix is assigned?
-                    linearSystem.RhsVector = linearSystem.Subdomain.Forces;
                 }
-                model.AssignLoads(solver.DistributeNodalLoads);
             }
             else
             {
@@ -140,8 +136,18 @@ namespace ISAAR.MSolve.Analyzers.Dynamic
                     //TODO: Perhaps these shouldn't be done if an analysis has already been executed. The model will not be 
                     //      modified. Why should the linear system be?
                     linearSystem.Reset();
-                    linearSystem.RhsVector = linearSystem.Subdomain.Forces;
                 }
+            }
+
+            //TODO: Perhaps this should be called by the child analyzer
+            BuildMatrices();
+
+            // Loads must be created after building the matrices.
+            //TODO: Some loads may not have to be recalculated each time the stiffness changes.
+            model.AssignLoads(solver.DistributeNodalLoads);
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            {
+                linearSystem.RhsVector = linearSystem.Subdomain.Forces;
             }
 
             //InitializeCoefficients();
@@ -155,7 +161,6 @@ namespace ISAAR.MSolve.Analyzers.Dynamic
 
         public void Solve()
         {
-            BuildMatrices(); //TODO: this should be called by the child analyzer
             int numTimeSteps = (int)(totalTime / timeStep);
             for (int t = 0; t < numTimeSteps; ++t)
             {
