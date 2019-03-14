@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 
         public Dictionary<int, SignedBooleanMatrix> BooleanMatrices { get; private set; }
         public int NumContinuityEquations { get; private set; }
-        public DiagonalMatrix WeightMatrix { get; private set; }
+        public DiagonalMatrix LagrangeMultiplierMultiplicity { get; private set; } //TODO: so far this is useless
 
         public void CreateBooleanMatrices(Model_v2 model)
         {
@@ -61,14 +61,14 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
                     new SignedBooleanMatrix(NumContinuityEquations, subdomain.FreeDofOrdering.NumFreeDofs));
             }
 
-            var weights = new double[NumContinuityEquations];
+            var lagrangeMultiplicities = new double[NumContinuityEquations];
 
             // Fill the boolean matrices: node major, subdomain medium, dof minor. TODO: not sure about this order.
             int equationCounter = 0;
             foreach ((Node_v2 node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus) 
                 in boundaryNodes)
             {
-                double oneOvernodeMultiplicity = 1.0 / node.SubdomainsDictionary.Count;
+                double nodeMultiplicity = node.SubdomainsDictionary.Count;
                 int numSubdomainCombos = subdomainsPlus.Length;
                 for (int c = 0; c < numSubdomainCombos; ++c)
                 {
@@ -86,13 +86,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
                     {
                         booleanPlus.AddEntry(equationCounter, dofsPlus[dof], true);
                         booleanMinus.AddEntry(equationCounter, dofsMinus[dof], false);
-                        weights[equationCounter] = oneOvernodeMultiplicity;
+                        lagrangeMultiplicities[equationCounter] = nodeMultiplicity;
                         ++equationCounter;
                     }
                 }
             }
 
-            WeightMatrix = DiagonalMatrix.CreateFromArray(weights);
+            LagrangeMultiplierMultiplicity = DiagonalMatrix.CreateFromArray(lagrangeMultiplicities);
         }
     }
 }

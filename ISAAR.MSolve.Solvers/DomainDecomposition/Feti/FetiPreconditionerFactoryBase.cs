@@ -8,9 +8,28 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
     public abstract class FetiPreconditionerFactoryBase : IFetiPreconditionerFactory
     {
-        public abstract IFetiPreconditioner CreatePreconditioner(Dictionary<int, int[]> boundaryDofs,
+        public abstract IFetiPreconditioner CreatePreconditioner(IStiffnessDistribution stiffnessDistribution,
+            Dictionary<int, int[]> boundaryDofs, Dictionary<int, int[]> boundaryDofsMultiplicity,
             Dictionary<int, int[]> internalDofs, ContinuityEquationsCalculator continuityEquations,
             Dictionary<int, IMatrixView> stiffnessMatrices);
+
+        protected Dictionary<int, Matrix> CalcBoundaryPreconditioningBooleanMatrices(IStiffnessDistribution stiffnessDistribution, 
+            Dictionary<int, int[]> boundaryDofs, Dictionary<int, int[]> boundaryDofsMultiplicity, 
+            ContinuityEquationsCalculator continuityEquations)
+        {
+            int numContinuityEquations = continuityEquations.NumContinuityEquations;
+            int[] rowsToKeep = Enumerable.Range(0, numContinuityEquations).ToArray(); // Same for all subdomains
+            var boundaryPreconditioningBooleanMatrices = new Dictionary<int, Matrix>();
+            foreach (int id in boundaryDofs.Keys)
+            {
+                Matrix B = continuityEquations.BooleanMatrices[id].CopyToFullMatrix(false);
+                Matrix Bb = B.GetSubmatrix(rowsToKeep, boundaryDofs[id]);
+                Matrix Bpb = stiffnessDistribution.CalcBoundaryPreconditioningSignedBooleanMatrix(Bb, 
+                    boundaryDofsMultiplicity[id]);
+                boundaryPreconditioningBooleanMatrices[id] = Bpb;
+            }
+            return boundaryPreconditioningBooleanMatrices;
+        }
 
         protected Dictionary<int, Matrix> ExtractBoundaryBooleanMatrices(Dictionary<int, int[]> boundaryDofs, 
             ContinuityEquationsCalculator continuityEquations)

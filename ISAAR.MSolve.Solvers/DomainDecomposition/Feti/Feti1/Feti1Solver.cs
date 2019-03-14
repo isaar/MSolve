@@ -28,11 +28,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         private readonly FetiLogger logger;
         private readonly Model_v2 model;
         private readonly string name = "FETI-1 Solver"; // for error messages
-        private readonly INodalLoadDistributor nodalLoadDistributor;
         private readonly IExactResidualCalculator pcpgExactResidual;
         private readonly double pcpgConvergenceTolerance;
         private readonly double pcpgMaxIterationsOverSize;
         private readonly IFetiPreconditionerFactory preconditionerFactory;
+        private readonly IStiffnessDistribution stiffnessDistribution;
 
         private Dictionary<int, int[]> boundaryDofs;
         private Dictionary<int, int[]> boundaryDofsMultiplicity;
@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
         private Feti1Solver(Model_v2 model, IDofOrderer dofOrderer, double factorizationPivotTolerance, 
             double pcpgMaxIterationsOverSize, double pcpgConvergenceTolerance, IExactResidualCalculator pcpgExactResidual,
-            IFetiPreconditionerFactory preconditionerFactory, INodalLoadDistributor nodalLoadDistributor, FetiLogger logger)
+            IFetiPreconditionerFactory preconditionerFactory, IStiffnessDistribution stiffnessDistribution, FetiLogger logger)
         {
             if (model.Subdomains.Count == 1) throw new InvalidSolverException(
                 $"{name} cannot be used if there is only 1 subdomain");
@@ -67,7 +67,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             this.dofOrderer = dofOrderer;
             this.factorizationPivotTolerance = factorizationPivotTolerance;
             this.preconditionerFactory = preconditionerFactory;
-            this.nodalLoadDistributor = nodalLoadDistributor;
+            this.stiffnessDistribution = stiffnessDistribution;
             this.logger = logger;
 
             this.pcpgMaxIterationsOverSize = pcpgMaxIterationsOverSize;
@@ -100,7 +100,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
         //TODO: this is for homogeneous problems only.
         public Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, DOFType, double> globalNodalLoads)
-            => nodalLoadDistributor.DistributeNodalLoads(LinearSystems, globalNodalLoads);
+            => stiffnessDistribution.NodalLoadDistributor.DistributeNodalLoads(LinearSystems, globalNodalLoads);
 
         //TODO: this and the fields should be handled by a class that handles dofs.
         public Vector GatherGlobalDisplacements(Dictionary<int, IVectorView> subdomainDisplacements) 
@@ -188,8 +188,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             {
                 stiffnessMatrices.Add(linearSystem.Subdomain.ID, linearSystem.Matrix);
             }
-            IFetiPreconditioner preconditioner = preconditionerFactory.CreatePreconditioner(boundaryDofs, internalDofs, 
-                continuityEquations, stiffnessMatrices);
+            IFetiPreconditioner preconditioner = preconditionerFactory.CreatePreconditioner(stiffnessDistribution, boundaryDofs, 
+                boundaryDofsMultiplicity, internalDofs, continuityEquations, stiffnessMatrices);
 
             // Calculate generalized inverses and rigid body modes of subdomains to assemble the interface flexibility matrix. 
             if (mustFactorize)
@@ -410,15 +410,15 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
             public IDofOrderer DofOrderer { get; set; } = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
             public FetiLogger Logger { get; set; } = null;
-            public INodalLoadDistributor NodalLoadDistributor { get; set; } = new HomogeneousNodalLoadDistributor();
             internal IExactResidualCalculator PcpgExactResidual { get; set; } = null;
             public double PcpgConvergenceTolerance { get; set; } = 1E-7;
             public double PcpgMaxIterationsOverSize { get; set; } = 1.0;
-            public IFetiPreconditionerFactory PreconditionerFactory { get; set; } = new Feti1LumpedPreconditioner.Factory(); 
+            public IFetiPreconditionerFactory PreconditionerFactory { get; set; } = new Feti1LumpedPreconditioner.Factory();
+            public IStiffnessDistribution StiffnessDistribution { get; set; } = new HomogeneousStiffnessDistribution();
 
             public Feti1Solver BuildSolver(Model_v2 model)
                 => new Feti1Solver(model, DofOrderer, factorizationPivotTolerance, PcpgMaxIterationsOverSize, 
-                    PcpgConvergenceTolerance, PcpgExactResidual, PreconditionerFactory, NodalLoadDistributor, Logger);
+                    PcpgConvergenceTolerance, PcpgExactResidual, PreconditionerFactory, StiffnessDistribution, Logger);
         }
     }
 }

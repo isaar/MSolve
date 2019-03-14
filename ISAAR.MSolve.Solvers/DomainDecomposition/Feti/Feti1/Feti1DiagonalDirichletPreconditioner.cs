@@ -8,21 +8,19 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 {
     public class Feti1DiagonalDirichletPreconditioner : IFetiPreconditioner
     {
-        private readonly Dictionary<int, Matrix> boundaryBooleanMatrices;
+        private readonly Dictionary<int, Matrix> preconditioningBoundarySignedBooleanMatrices;
         private readonly Dictionary<int, Matrix> stiffnessesBoundaryBoundary;
         private readonly Dictionary<int, Matrix> stiffnessesBoundaryInternal;
         private readonly Dictionary<int, DiagonalMatrix> stiffnessesInternalInternalInverseDiagonal;
         private readonly int[] subdomainIDs;
-        private readonly DiagonalMatrix weightMatrix;
 
-        private Feti1DiagonalDirichletPreconditioner(int[] subdomainIDs, DiagonalMatrix weightMatrix,
-            Dictionary<int, Matrix> boundaryBooleanMatrices, Dictionary<int, Matrix> stiffnessesBoundaryBoundary,
+        private Feti1DiagonalDirichletPreconditioner(int[] subdomainIDs, Dictionary<int, Matrix> stiffnessesBoundaryBoundary,
             Dictionary<int, Matrix> stiffnessesBoundaryInternal, 
-            Dictionary<int, DiagonalMatrix> stiffnessesInternalInternalInverseDiagonal)
+            Dictionary<int, DiagonalMatrix> stiffnessesInternalInternalInverseDiagonal,
+            Dictionary<int, Matrix> preconditioningBoundarySignedBooleanMatrices)
         {
             this.subdomainIDs = subdomainIDs;
-            this.weightMatrix = weightMatrix;
-            this.boundaryBooleanMatrices = boundaryBooleanMatrices;
+            this.preconditioningBoundarySignedBooleanMatrices = preconditioningBoundarySignedBooleanMatrices;
             this.stiffnessesBoundaryBoundary = stiffnessesBoundaryBoundary;
             this.stiffnessesBoundaryInternal = stiffnessesBoundaryInternal;
             this.stiffnessesInternalInternalInverseDiagonal = stiffnessesInternalInternalInverseDiagonal;
@@ -31,31 +29,32 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         public void SolveLinearSystem(Vector rhs, Vector lhs)
         {
             lhs.Clear(); //TODO: this should be avoided
-            Vector Wy = weightMatrix.Multiply(rhs);
             foreach (int id in subdomainIDs)
             {
-                Matrix Bb = boundaryBooleanMatrices[id];
+                Matrix Bpb = preconditioningBoundarySignedBooleanMatrices[id];
                 Matrix Kbb = stiffnessesBoundaryBoundary[id];
                 Matrix Kbi = stiffnessesBoundaryInternal[id];
                 DiagonalMatrix invDii = stiffnessesInternalInternalInverseDiagonal[id];
 
-                // inv(F) * y = W * Bb * S * Bb^T * W * y
+                // inv(F) * y = Bpb * S * Bpb^T * y
                 // S = Kbb - Kbi * inv(Kii) * Kib
-                Vector BWy = Bb.Multiply(Wy, true);
-                Vector SBWy = Kbb.Multiply(BWy) - Kbi.Multiply(invDii.Multiply(Kbi.Multiply(BWy, true)));
-                Vector contribution = weightMatrix.Multiply(Bb.Multiply(SBWy));
-                lhs.AddIntoThis(contribution);
+                Vector By = Bpb.Multiply(rhs, true);
+                Vector SBy = Kbb.Multiply(By) - Kbi.Multiply(invDii.Multiply(Kbi.Multiply(By, true)));
+                Vector subdomainContribution = Bpb.Multiply(SBy);
+                lhs.AddIntoThis(subdomainContribution);
             }
         }
 
         public class Factory : FetiPreconditionerFactoryBase
         {
-            public override IFetiPreconditioner CreatePreconditioner(Dictionary<int, int[]> boundaryDofs,
+            public override IFetiPreconditioner CreatePreconditioner(IStiffnessDistribution stiffnessDistribution,
+                Dictionary<int, int[]> boundaryDofs, Dictionary<int, int[]> boundaryDofsMultiplicity,
                 Dictionary<int, int[]> internalDofs, ContinuityEquationsCalculator continuityEquations,
                 Dictionary<int, IMatrixView> stiffnessMatrices)
             {
                 int[] subdomainIDs = boundaryDofs.Keys.ToArray();
-                Dictionary<int, Matrix> boundaryBooleans = ExtractBoundaryBooleanMatrices(boundaryDofs, continuityEquations);
+                Dictionary<int, Matrix> boundaryBooleans = CalcBoundaryPreconditioningBooleanMatrices(stiffnessDistribution,
+                    boundaryDofs, boundaryDofsMultiplicity, continuityEquations);
                 Dictionary<int, Matrix> stiffnessesBoundaryBoundary = 
                     ExtractStiffnessesBoundaryBoundary(boundaryDofs, stiffnessMatrices);
                 Dictionary<int, Matrix> stiffnessesBoundaryInternal = 
@@ -63,8 +62,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
                 Dictionary<int, DiagonalMatrix> stiffnessesInternalInternalInverseDiagonal = 
                     InvertStiffnessInternalInternalDiagonal(internalDofs, stiffnessMatrices);
 
-                return new Feti1DiagonalDirichletPreconditioner(subdomainIDs, continuityEquations.WeightMatrix, boundaryBooleans,
-                    stiffnessesBoundaryBoundary, stiffnessesBoundaryInternal, stiffnessesInternalInternalInverseDiagonal);
+                return new Feti1DiagonalDirichletPreconditioner(subdomainIDs, stiffnessesBoundaryBoundary, 
+                    stiffnessesBoundaryInternal, stiffnessesInternalInternalInverseDiagonal, boundaryBooleans);
             }
 
             private Dictionary<int, DiagonalMatrix> InvertStiffnessInternalInternalDiagonal(Dictionary<int, int[]> internalDofs, 
