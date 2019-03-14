@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 
+//TODO: This should be an enum class. There are only 2 possible cases.
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
     public interface IStiffnessDistribution

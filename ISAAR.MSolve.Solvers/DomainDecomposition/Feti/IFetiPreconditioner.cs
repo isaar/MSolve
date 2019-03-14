@@ -13,10 +13,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 
     public interface IFetiPreconditionerFactory
     {
-        //TODO: dof data should be calculated and managed by a single class
-        IFetiPreconditioner CreatePreconditioner(IStiffnessDistribution stiffnessDistribution,
-            Dictionary<int, int[]> boundaryDofs, Dictionary<int, int[]> boundaryDofsMultiplicity,
-            Dictionary<int, int[]> internalDofs, ContinuityEquationsCalculator continuityEquations, 
-            Dictionary<int, IMatrixView> stiffnessMatrices);
+        IFetiPreconditioner CreatePreconditioner(IStiffnessDistribution stiffnessDistribution, DofSeparator dofSeparator, 
+            ContinuityEquationsCalculator continuityEquations, Dictionary<int, IMatrixView> stiffnessMatrices);
     }
 }

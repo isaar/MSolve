@@ -47,19 +47,18 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         public class Factory : FetiPreconditionerFactoryBase
         {
             public override IFetiPreconditioner CreatePreconditioner(IStiffnessDistribution stiffnessDistribution,
-                Dictionary<int, int[]> boundaryDofs, Dictionary<int, int[]> boundaryDofsMultiplicity,
-                Dictionary<int, int[]> internalDofs, ContinuityEquationsCalculator continuityEquations,
+                DofSeparator dofSeparator, ContinuityEquationsCalculator continuityEquations,
                 Dictionary<int, IMatrixView> stiffnessMatrices)
             {
-                int[] subdomainIDs = boundaryDofs.Keys.ToArray();
+                int[] subdomainIDs = dofSeparator.BoundaryDofs.Keys.ToArray();
                 Dictionary<int, Matrix> boundaryBooleans = CalcBoundaryPreconditioningBooleanMatrices(stiffnessDistribution,
-                    boundaryDofs, boundaryDofsMultiplicity, continuityEquations);
+                    dofSeparator, continuityEquations);
                 Dictionary<int, Matrix> stiffnessesBoundaryBoundary = 
-                    ExtractStiffnessesBoundaryBoundary(boundaryDofs, stiffnessMatrices);
+                    ExtractStiffnessesBoundaryBoundary(dofSeparator, stiffnessMatrices);
                 Dictionary<int, Matrix> stiffnessesBoundaryInternal = 
-                    ExtractStiffnessBoundaryInternal(boundaryDofs, internalDofs, stiffnessMatrices);
+                    ExtractStiffnessBoundaryInternal(dofSeparator, stiffnessMatrices);
                 Dictionary<int, Matrix> stiffnessesInternalInternalInverse = 
-                    InvertStiffnessInternalInternal(internalDofs, stiffnessMatrices);
+                    InvertStiffnessInternalInternal(dofSeparator.InternalDofs, stiffnessMatrices);
 
                 return new Feti1DirichletPreconditioner(subdomainIDs, stiffnessesBoundaryBoundary, stiffnessesBoundaryInternal, 
                     stiffnessesInternalInternalInverse, boundaryBooleans);

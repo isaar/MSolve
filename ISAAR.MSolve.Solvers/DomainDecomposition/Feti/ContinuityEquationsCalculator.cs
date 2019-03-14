@@ -28,13 +28,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
         public int NumContinuityEquations { get; private set; }
         public DiagonalMatrix LagrangeMultiplierMultiplicity { get; private set; } //TODO: so far this is useless
 
-        public void CreateBooleanMatrices(Model_v2 model)
+        public void CreateBooleanMatrices(IStructuralModel_v2 model)
         {
             // Find boundary nodes and continuity equations
             var boundaryNodes = 
-                new List<(Node_v2 node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus)>();
+                new List<(INode node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus)>();
             NumContinuityEquations = 0;
-            foreach (Node_v2 node in model.Nodes) //TODO: this probably doesn't work if there are embedded nodes.
+            foreach (INode node in model.Nodes) //TODO: this probably doesn't work if there are embedded nodes.
             {
                 int nodeMultiplicity = node.SubdomainsDictionary.Count;
                 if (nodeMultiplicity > 1)
@@ -65,7 +65,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 
             // Fill the boolean matrices: node major, subdomain medium, dof minor. TODO: not sure about this order.
             int equationCounter = 0;
-            foreach ((Node_v2 node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus) 
+            foreach ((INode node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus) 
                 in boundaryNodes)
             {
                 double nodeMultiplicity = node.SubdomainsDictionary.Count;

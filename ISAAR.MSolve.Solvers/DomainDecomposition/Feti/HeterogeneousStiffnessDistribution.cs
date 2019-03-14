@@ -5,15 +5,23 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
-    public class HomogeneousStiffnessDistribution : IStiffnessDistribution
+    public class HeterogeneousStiffnessDistribution //: IStiffnessDistribution
     {
-        public INodalLoadDistributor NodalLoadDistributor { get; } = new HomogeneousNodalLoadDistributor();
+        public INodalLoadDistributor NodalLoadDistributor { get; } = new HeterogeneousNodalLoadDistributor();
 
-        public Matrix CalcBoundaryPreconditioningSignedBooleanMatrix(Matrix boundarySignedBooleanMatrix,
-           int[] boundaryDofsMultiplicity)
+        public Matrix CalcBoundaryPreconditioningSignedBooleanMatrix(int subdomainID, Matrix boundarySignedBooleanMatrix,
+            int[] boundaryDofsMultiplicity, int[] boundaryDofs, Dictionary<int, IMatrixView> stiffnesses)
         {
-            Matrix inverseMultiplicities = InvertDofMultiplicities(boundaryDofsMultiplicity);
-            return boundarySignedBooleanMatrix.MultiplyRight(inverseMultiplicities);
+            throw new NotImplementedException();
+        }
+
+        //TODO: this is also done when distributing the nodal loads. Do it here only and use the inv(Db) matrix there.
+        //TODO: Kbb is also calculated for most preconditioners. Just take its diagonal and invert.
+        private Matrix InvertBoundaryDofStiffnesses(int[] boundaryDofs, IMatrixView stiffness)
+        {
+            var inverse = Matrix.CreateZero(boundaryDofs.Length, boundaryDofs.Length);
+            for (int i = 0; i < boundaryDofs.Length; ++i) inverse[i, i] = 1.0 / stiffness[i, i];
+            return inverse;
         }
 
         //TODO: Perhaps I could use int[] -> double[] -> DiagonalMatrix -> .Invert()

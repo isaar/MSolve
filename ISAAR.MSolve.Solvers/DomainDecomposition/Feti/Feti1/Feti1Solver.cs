@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         private readonly double factorizationPivotTolerance;
         private readonly Dictionary<int, SingleSubdomainSystem<SkylineMatrix>> linearSystems;
         private readonly FetiLogger logger;
-        private readonly Model_v2 model;
+        private readonly IStructuralModel_v2 model;
         private readonly string name = "FETI-1 Solver"; // for error messages
         private readonly IExactResidualCalculator pcpgExactResidual;
         private readonly double pcpgConvergenceTolerance;
@@ -34,21 +34,27 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         private readonly IFetiPreconditionerFactory preconditionerFactory;
         private readonly IStiffnessDistribution stiffnessDistribution;
 
-        private Dictionary<int, int[]> boundaryDofs;
-        private Dictionary<int, int[]> boundaryDofsMultiplicity;
+        //TODO: fix the mess of Dictionary<int, ISubdomain>, List<ISubdomain>, Dictionary<int, Subdomain>, List<Subdomain>
+        //      The concrete are useful for the preprocessor mostly, while analyzers, solvers need the interface versions.
+        //      Lists are better in analyzers and solvers. Dictionaries may be better in the preprocessors.
+        private readonly Dictionary<int, ISubdomain_v2> subdomains; 
+
+        private DofSeparator dofSeparator;
         private bool factorizeInPlace = true;
-        private Dictionary<int, int[]> internalDofs;
         private bool mustFactorize = true;
         private Dictionary<int, SemidefiniteCholeskySkyline> factorizations;
         private Dictionary<int, List<Vector>> rigidBodyModes;
 
-        private Feti1Solver(Model_v2 model, IDofOrderer dofOrderer, double factorizationPivotTolerance, 
+        private Feti1Solver(IStructuralModel_v2 model, IDofOrderer dofOrderer, double factorizationPivotTolerance, 
             double pcpgMaxIterationsOverSize, double pcpgConvergenceTolerance, IExactResidualCalculator pcpgExactResidual,
             IFetiPreconditionerFactory preconditionerFactory, IStiffnessDistribution stiffnessDistribution, FetiLogger logger)
         {
             if (model.Subdomains.Count == 1) throw new InvalidSolverException(
                 $"{name} cannot be used if there is only 1 subdomain");
             this.model = model;
+
+            subdomains = new Dictionary<int, ISubdomain_v2>();
+            foreach (Subdomain_v2 subdomain in model.Subdomains) subdomains[subdomain.ID] = subdomain;
 
             linearSystems = new Dictionary<int, SingleSubdomainSystem<SkylineMatrix>>();
             var tempLinearSystems = new Dictionary<int, ILinearSystem_v2>();
@@ -113,17 +119,17 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
                 IVectorView displacements = subdomainDisplacements[id]; //TODO: benchmark the performance if this was concrete Vector
 
                 // Internal dofs are copied as is.
-                foreach (int internalDof in internalDofs[id])
+                foreach (int internalDof in dofSeparator.InternalDofs[id])
                 {
                     int globalDofIdx = subdomainToGlobalDofs[internalDof];
                     globalDisplacements[globalDofIdx] = displacements[internalDof];
                 }
 
                 // For boundary dofs we take the mean value across subdomains. 
-                for (int i = 0; i < boundaryDofs[id].Length; ++i)
+                for (int i = 0; i < dofSeparator.BoundaryDofs[id].Length; ++i)
                 {
-                    int multiplicity = boundaryDofsMultiplicity[id][i];
-                    int subdomainDofIdx = boundaryDofs[id][i];
+                    int multiplicity = dofSeparator.BoundaryDofsMultiplicity[id][i];
+                    int subdomainDofIdx = dofSeparator.BoundaryDofs[id][i];
                     int globalDofIdx = subdomainToGlobalDofs[subdomainDofIdx];
                     globalDisplacements[globalDofIdx] += displacements[subdomainDofIdx] / multiplicity;
                 }
@@ -162,7 +168,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
                 //subdomain.Forces = linearSystem.CreateZeroVector();
             }
 
-            SeparateBoundaryInternalDofs();
+            dofSeparator = new DofSeparator();
+            dofSeparator.SeparateBoundaryInternalDofs(subdomains);
 
             // Find continuity equations and boolean matrices.
             continuityEquations.CreateBooleanMatrices(model);
@@ -188,8 +195,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             {
                 stiffnessMatrices.Add(linearSystem.Subdomain.ID, linearSystem.Matrix);
             }
-            IFetiPreconditioner preconditioner = preconditionerFactory.CreatePreconditioner(stiffnessDistribution, boundaryDofs, 
-                boundaryDofsMultiplicity, internalDofs, continuityEquations, stiffnessMatrices);
+            IFetiPreconditioner preconditioner = preconditionerFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator, 
+                continuityEquations, stiffnessMatrices);
 
             // Calculate generalized inverses and rigid body modes of subdomains to assemble the interface flexibility matrix. 
             if (mustFactorize)
@@ -317,7 +324,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         //TODO: this should be used for non linear analyzers as well (instead of building the global RHS)
         //TODO: this should be implemented by a different class.
         //TODO: Is this correct? For the residual, it would be wrong to find f-K*u for each subdomain and then call this.
-        private double CalculateGlobalForcesNorm(Dictionary<int, Vector> subdomainForces) 
+        private double CalculateGlobalForcesNorm(Dictionary<int, Vector> subdomainForces) //TODO: This should take into account the heterogenity.
         {
             double globalSum = 0.0;
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
@@ -325,13 +332,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
                 int id = subdomain.ID;
                 double subdomainSum = 0.0;
                 Vector forces = subdomainForces[id];
-                foreach (int internalDof in internalDofs[id]) subdomainSum += forces[internalDof];
-                for (int i = 0; i < boundaryDofs[id].Length; ++i)
+                foreach (int internalDof in dofSeparator.InternalDofs[id]) subdomainSum += forces[internalDof];
+                for (int i = 0; i < dofSeparator.BoundaryDofs[id].Length; ++i)
                 {
                     // E.g. 2 subdomains. Originally: sum += f * f. Now: sum += (2*f/2)(2*f/2)/2 + (2*f/2)(2*f/2)/2
                     // WARNING: This works only if nodal loads are distributed evenly among subdomains.
-                    int multiplicity = boundaryDofsMultiplicity[id][i];
-                    double totalForce = forces[boundaryDofs[id][i]] * multiplicity;
+                    int multiplicity = dofSeparator.BoundaryDofsMultiplicity[id][i];
+                    double totalForce = forces[dofSeparator.BoundaryDofs[id][i]] * multiplicity;
                     subdomainSum += (totalForce * totalForce) / multiplicity;
                 }
                 globalSum += subdomainSum;
@@ -368,34 +375,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             }
 
             return work;
-        }
-
-        private void SeparateBoundaryInternalDofs() //TODO: this and the fields should be handled by a class that handles dofs.
-        {
-            boundaryDofs = new Dictionary<int, int[]>();
-            boundaryDofsMultiplicity = new Dictionary<int, int[]>();
-            internalDofs = new Dictionary<int, int[]>();
-            foreach (Subdomain_v2 subdomain in model.Subdomains)
-            {
-                var boundaryDofsOfSubdomain = new SortedDictionary<int, int>(); // key = dofIdx, value = multiplicity
-                var internalDofsOfSubdomain = new SortedSet<int>();
-                foreach (Node_v2 node in subdomain.Nodes)
-                {
-                    IEnumerable<int> nodalDofs = subdomain.FreeDofOrdering.FreeDofs.GetValuesOfRow(node);
-                    int nodeMultiplicity = node.SubdomainsDictionary.Count;
-                    if (nodeMultiplicity > 1) // boundary node
-                    {
-                        foreach (int dof in nodalDofs) boundaryDofsOfSubdomain.Add(dof, nodeMultiplicity);
-                    }
-                    else
-                    {
-                        foreach (int dof in nodalDofs) internalDofsOfSubdomain.Add(dof);
-                    }
-                }
-                boundaryDofs.Add(subdomain.ID, boundaryDofsOfSubdomain.Keys.ToArray());
-                boundaryDofsMultiplicity.Add(subdomain.ID, boundaryDofsOfSubdomain.Values.ToArray()); // sorted the same as Keys
-                internalDofs.Add(subdomain.ID, internalDofsOfSubdomain.ToArray());
-            }
         }
 
         public class Builder

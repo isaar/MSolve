@@ -9,62 +9,63 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
     public abstract class FetiPreconditionerFactoryBase : IFetiPreconditionerFactory
     {
         public abstract IFetiPreconditioner CreatePreconditioner(IStiffnessDistribution stiffnessDistribution,
-            Dictionary<int, int[]> boundaryDofs, Dictionary<int, int[]> boundaryDofsMultiplicity,
-            Dictionary<int, int[]> internalDofs, ContinuityEquationsCalculator continuityEquations,
+            DofSeparator dofSeparator, ContinuityEquationsCalculator continuityEquations,
             Dictionary<int, IMatrixView> stiffnessMatrices);
 
         protected Dictionary<int, Matrix> CalcBoundaryPreconditioningBooleanMatrices(IStiffnessDistribution stiffnessDistribution, 
-            Dictionary<int, int[]> boundaryDofs, Dictionary<int, int[]> boundaryDofsMultiplicity, 
-            ContinuityEquationsCalculator continuityEquations)
+            DofSeparator dofSeparator, ContinuityEquationsCalculator continuityEquations)
         {
             int numContinuityEquations = continuityEquations.NumContinuityEquations;
             int[] rowsToKeep = Enumerable.Range(0, numContinuityEquations).ToArray(); // Same for all subdomains
             var boundaryPreconditioningBooleanMatrices = new Dictionary<int, Matrix>();
-            foreach (int id in boundaryDofs.Keys)
+            foreach (int id in dofSeparator.BoundaryDofs.Keys)
             {
                 Matrix B = continuityEquations.BooleanMatrices[id].CopyToFullMatrix(false);
-                Matrix Bb = B.GetSubmatrix(rowsToKeep, boundaryDofs[id]);
-                Matrix Bpb = stiffnessDistribution.CalcBoundaryPreconditioningSignedBooleanMatrix(Bb, 
-                    boundaryDofsMultiplicity[id]);
+                Matrix Bb = B.GetSubmatrix(rowsToKeep, dofSeparator.BoundaryDofs[id]);
+                Matrix Bpb = stiffnessDistribution.CalcBoundaryPreconditioningSignedBooleanMatrix(Bb,
+                    dofSeparator.BoundaryDofsMultiplicity[id]);
                 boundaryPreconditioningBooleanMatrices[id] = Bpb;
             }
             return boundaryPreconditioningBooleanMatrices;
         }
 
-        protected Dictionary<int, Matrix> ExtractBoundaryBooleanMatrices(Dictionary<int, int[]> boundaryDofs, 
+        protected Dictionary<int, Matrix> ExtractBoundaryBooleanMatrices(DofSeparator dofSeparator,
             ContinuityEquationsCalculator continuityEquations)
         {
             int numContinuityEquations = continuityEquations.NumContinuityEquations;
             int[] rowsToKeep = Enumerable.Range(0, numContinuityEquations).ToArray(); // Same for all subdomains
             var boundaryBooleanMatrices = new Dictionary<int, Matrix>();
-            foreach (int id in boundaryDofs.Keys)
+            foreach (int id in dofSeparator.BoundaryDofs.Keys)
             {
                 Matrix booleanMatrix = continuityEquations.BooleanMatrices[id].CopyToFullMatrix(false);
-                Matrix boundaryBooleanMatrix = booleanMatrix.GetSubmatrix(rowsToKeep, boundaryDofs[id]);
+                Matrix boundaryBooleanMatrix = booleanMatrix.GetSubmatrix(rowsToKeep, dofSeparator.BoundaryDofs[id]);
                 boundaryBooleanMatrices.Add(id, boundaryBooleanMatrix);
             }
             return boundaryBooleanMatrices;
         }
 
-        protected Dictionary<int, Matrix> ExtractStiffnessesBoundaryBoundary(Dictionary<int, int[]> boundaryDofs, 
+        protected Dictionary<int, Matrix> ExtractStiffnessesBoundaryBoundary(DofSeparator dofSeparator,
             Dictionary<int, IMatrixView> stiffnessMatrices)
         {
             var stiffnessesBoundaryBoundary = new Dictionary<int, Matrix>();
-            foreach (int id in boundaryDofs.Keys)
+            foreach (int id in dofSeparator.BoundaryDofs.Keys)
             {
-                Matrix stiffnessBoundaryBoundary = stiffnessMatrices[id].GetSubmatrix(boundaryDofs[id], boundaryDofs[id]);
+                int[] boundaryDofs = dofSeparator.BoundaryDofs[id];
+                Matrix stiffnessBoundaryBoundary = stiffnessMatrices[id].GetSubmatrix(boundaryDofs, boundaryDofs);
                 stiffnessesBoundaryBoundary.Add(id, stiffnessBoundaryBoundary);
             }
             return stiffnessesBoundaryBoundary;
         }
 
-        protected Dictionary<int, Matrix> ExtractStiffnessBoundaryInternal(Dictionary<int, int[]> boundaryDofs,
-            Dictionary<int, int[]> internalDofs, Dictionary<int, IMatrixView> stiffnessMatrices)
+        protected Dictionary<int, Matrix> ExtractStiffnessBoundaryInternal(DofSeparator dofSeparator, 
+            Dictionary<int, IMatrixView> stiffnessMatrices)
         {
             var stiffnessesBoundaryInternal = new Dictionary<int, Matrix>();
-            foreach (int id in boundaryDofs.Keys)
+            foreach (int id in dofSeparator.BoundaryDofs.Keys)
             {
-                Matrix stiffnessBoundaryInternal = stiffnessMatrices[id].GetSubmatrix(boundaryDofs[id], internalDofs[id]);
+                int[] boundaryDofs = dofSeparator.BoundaryDofs[id];
+                int[] internalDofs = dofSeparator.InternalDofs[id];
+                Matrix stiffnessBoundaryInternal = stiffnessMatrices[id].GetSubmatrix(boundaryDofs, internalDofs);
                 stiffnessesBoundaryInternal.Add(id, stiffnessBoundaryInternal);
             }
             return stiffnessesBoundaryInternal;
