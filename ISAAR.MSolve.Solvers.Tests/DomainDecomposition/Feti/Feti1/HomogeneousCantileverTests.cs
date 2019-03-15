@@ -126,7 +126,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
 
             // Solver
             var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
-            solverBuilder.StiffnessDistribution = new HomogeneousStiffnessDistribution();
+            solverBuilder.IsProblemHomogeneous = true;
             solverBuilder.PcpgConvergenceTolerance = pcpgConvergenceTolerance;
             solverBuilder.PreconditionerFactory = preconditioning;
             solverBuilder.Logger = new FetiLogger();

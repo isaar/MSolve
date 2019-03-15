@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
             this.Node = node;
             this.DofType = dof;
             this.SubdomainPlus = subdomainPlus;
-            this.SubdomainPlus = subdomainMinus;
+            this.SubdomainMinus = subdomainMinus;
         }
 
         internal DOFType DofType { get; }

@@ -242,9 +242,11 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti
             }
 
             // Create boolean matrices
+            var dofSeparator = new DofSeparator();
+            dofSeparator.SeparateBoundaryInternalDofs(model);
             var lagrangeEnumerator = new LagrangeMultipliersEnumerator(new FullyRedundantConstraints());
-            if (createLagranges) lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model);
-            else lagrangeEnumerator.DefineBooleanMatrices(model);
+            if (createLagranges) lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model, dofSeparator);
+            else lagrangeEnumerator.DefineBooleanMatrices(model, dofSeparator);
             return lagrangeEnumerator;
         }
 

@@ -40,10 +40,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
         /// For use in homogeneous problems, where we do not need that much info about lagrange multipliers and boundary dofs.
         /// </summary>
         /// <param name="model"></param>
-        public void DefineBooleanMatrices(IStructuralModel_v2 model)
+        public void DefineBooleanMatrices(IStructuralModel_v2 model, DofSeparator dofSeparator)
         {
             List<(INode node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus)> boundaryNodeData 
-                = DefineBoundaryDofConstraints(model);
+                = DefineBoundaryDofConstraints(dofSeparator);
 
             InitializeBooleanMatrices(model);
 
@@ -79,10 +79,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
         /// Creates both <see cref="BooleanMatrices"/> and <see cref="LagrangeMultipliers"/>. For use in heterogeneous problems.
         /// </summary>
         /// <param name="model"></param>
-        public void DefineLagrangesAndBooleanMatrices(IStructuralModel_v2 model)
+        public void DefineLagrangesAndBooleanMatrices(IStructuralModel_v2 model, DofSeparator dofSeparator)
         {
             List<(INode node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus)> boundaryNodeData
-                = DefineBoundaryDofConstraints(model);
+                = DefineBoundaryDofConstraints(dofSeparator);
 
             InitializeBooleanMatrices(model);
             LagrangeMultipliers = new LagrangeMultiplier[NumLagrangeMultipliers];
@@ -120,30 +120,48 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
         
         //TODO: Perhaps this should return the number of lagranges, instead of setting it. It is unexpected.
         private List<(INode node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus)> 
-            DefineBoundaryDofConstraints(IStructuralModel_v2 model)
+            DefineBoundaryDofConstraints(DofSeparator dofSeparator)
         {
-            // Find boundary nodes and continuity equations.
-            var boundaryNodeData =
-                new List<(INode node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus)>();
+            // Find boundary nodes and dofs
+            var boundaryNodeData = new List<(INode node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, 
+                ISubdomain_v2[] subdomainsMinus)>(dofSeparator.GlobalBoundaryDofs.Count);
+
+            // Find continuity equations.
             NumLagrangeMultipliers = 0;
-            foreach (INode node in model.Nodes) //TODO: this probably doesn't work if there are embedded nodes. It is time to isolate the embedded nodes.
+            foreach (var nodeDofsPair in dofSeparator.GlobalBoundaryDofs)
             {
-                int nodeMultiplicity = node.SubdomainsDictionary.Count;
-                if (nodeMultiplicity > 1)
-                {
-                    DOFType[] dofsOfNode = model.GlobalDofOrdering.GlobalFreeDofs.GetColumnsOfRow(node).ToArray(); //TODO: interacting with the table can be optimized.
+                INode node = nodeDofsPair.Key;
+                DOFType[] dofsOfNode = nodeDofsPair.Value;
+                IEnumerable <ISubdomain_v2> nodeSubdomains = node.SubdomainsDictionary.Values;
+                (ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus) =
+                    crosspointStrategy.FindSubdomainCombinations(nodeSubdomains.Count(), nodeSubdomains);
 
-                    // If all dofs of this node are constrained, then it is not considered boundary.
-                    if (dofsOfNode.Length == 0) continue;
-
-                    IEnumerable<ISubdomain_v2> nodeSubdomains = node.SubdomainsDictionary.Values;
-                    (ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus) =
-                        crosspointStrategy.FindSubdomainCombinations(nodeMultiplicity, nodeSubdomains);
-
-                    boundaryNodeData.Add((node, dofsOfNode, subdomainsPlus, subdomainsMinus));
-                    NumLagrangeMultipliers += dofsOfNode.Length * subdomainsPlus.Length;
-                }
+                boundaryNodeData.Add((node, dofsOfNode, subdomainsPlus, subdomainsMinus));
+                NumLagrangeMultipliers += dofsOfNode.Length * subdomainsPlus.Length;
             }
+
+            //// Find boundary nodes and continuity equations.
+            //var boundaryNodeData =
+            //    new List<(INode node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus)>();
+            //NumLagrangeMultipliers = 0;
+            //foreach (INode node in model.Nodes) //TODO: this probably doesn't work if there are embedded nodes. It is time to isolate the embedded nodes.
+            //{
+            //    int nodeMultiplicity = node.SubdomainsDictionary.Count;
+            //    if (nodeMultiplicity > 1)
+            //    {
+            //        DOFType[] dofsOfNode = model.GlobalDofOrdering.GlobalFreeDofs.GetColumnsOfRow(node).ToArray(); //TODO: interacting with the table can be optimized.
+
+            //        // If all dofs of this node are constrained, then it is not considered boundary.
+            //        if (dofsOfNode.Length == 0) continue;
+
+            //        IEnumerable<ISubdomain_v2> nodeSubdomains = node.SubdomainsDictionary.Values;
+            //        (ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus) =
+            //            crosspointStrategy.FindSubdomainCombinations(nodeMultiplicity, nodeSubdomains);
+
+            //        boundaryNodeData.Add((node, dofsOfNode, subdomainsPlus, subdomainsMinus));
+            //        NumLagrangeMultipliers += dofsOfNode.Length * subdomainsPlus.Length;
+            //    }
+            //}
 
             return boundaryNodeData;
         }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Numerical.Commons;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
@@ -20,6 +22,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
             }
             return matricesBpb;
         }
+
+        public void StoreStiffnesses(Dictionary<int, IMatrixView> stiffnessMatrices, 
+            Table<INode, DOFType, BoundaryDofLumpedStiffness> boundaryDofStiffnesses)
+            => throw new NotImplementedException("This makes sense only for heterogeneous problems");
 
         //TODO: Perhaps I could use int[] -> double[] -> DiagonalMatrix -> .Invert()
         //TODO: This can be parallelized OpenMP style.
