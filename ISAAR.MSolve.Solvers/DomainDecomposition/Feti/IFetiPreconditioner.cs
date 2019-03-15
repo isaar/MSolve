@@ -14,6 +14,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
     public interface IFetiPreconditionerFactory
     {
         IFetiPreconditioner CreatePreconditioner(IStiffnessDistribution stiffnessDistribution, DofSeparator dofSeparator, 
-            ContinuityEquationsCalculator continuityEquations, Dictionary<int, IMatrixView> stiffnessMatrices);
+            LagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, IMatrixView> stiffnessMatrices);
     }
 }

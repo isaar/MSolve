@@ -6,6 +6,7 @@ using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.Solvers.LinearSystems;
 
 //TODO: This should be an enum class. There are only 2 possible cases.
+//TODO: Perhaps it should be incorporated into IStiffnessDistribution.
 namespace ISAAR.MSolve.Solvers.DomainDecomposition
 {
     public interface INodalLoadDistributor

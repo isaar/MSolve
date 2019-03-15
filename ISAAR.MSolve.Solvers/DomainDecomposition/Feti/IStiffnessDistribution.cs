@@ -10,8 +10,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
     {
         INodalLoadDistributor NodalLoadDistributor {get;}
 
-        //TODO: Pass in an object that stores dof data, including the multiplicities
-        Matrix CalcBoundaryPreconditioningSignedBooleanMatrix(Matrix boundarySignedBooleanMatrix,
-            int[] boundaryDofsMultiplicity);
+        Dictionary<int, Matrix> CalcBoundaryPreconditioningSignedBooleanMatrices(DofSeparator dofSeparator, 
+            LagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, Matrix> boundarySignedBooleanMatrices);
     }
 }

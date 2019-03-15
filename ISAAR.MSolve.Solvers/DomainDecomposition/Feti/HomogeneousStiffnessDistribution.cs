@@ -9,11 +9,16 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
     {
         public INodalLoadDistributor NodalLoadDistributor { get; } = new HomogeneousNodalLoadDistributor();
 
-        public Matrix CalcBoundaryPreconditioningSignedBooleanMatrix(Matrix boundarySignedBooleanMatrix,
-           int[] boundaryDofsMultiplicity)
+        public Dictionary<int, Matrix> CalcBoundaryPreconditioningSignedBooleanMatrices(DofSeparator dofSeparator,
+            LagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, Matrix> boundarySignedBooleanMatrices)
         {
-            Matrix inverseMultiplicities = InvertDofMultiplicities(boundaryDofsMultiplicity);
-            return boundarySignedBooleanMatrix.MultiplyRight(inverseMultiplicities);
+            var matricesBpb = new Dictionary<int, Matrix>();
+            foreach (int id in boundarySignedBooleanMatrices.Keys)
+            {
+                Matrix inverseMultiplicities = InvertDofMultiplicities(dofSeparator.BoundaryDofsMultiplicity[id]);
+                matricesBpb[id] = boundarySignedBooleanMatrices[id].MultiplyRight(inverseMultiplicities);
+            }
+            return matricesBpb;
         }
 
         //TODO: Perhaps I could use int[] -> double[] -> DiagonalMatrix -> .Invert()

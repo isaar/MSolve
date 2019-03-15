@@ -47,12 +47,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         public class Factory : FetiPreconditionerFactoryBase
         {
             public override IFetiPreconditioner CreatePreconditioner(IStiffnessDistribution stiffnessDistribution,
-                DofSeparator dofSeparator, ContinuityEquationsCalculator continuityEquations,
+                DofSeparator dofSeparator, LagrangeMultipliersEnumerator lagrangeEnumerator,
                 Dictionary<int, IMatrixView> stiffnessMatrices)
             {
                 int[] subdomainIDs = dofSeparator.BoundaryDofs.Keys.ToArray();
                 Dictionary<int, Matrix> boundaryBooleans = CalcBoundaryPreconditioningBooleanMatrices(stiffnessDistribution,
-                    dofSeparator, continuityEquations);
+                    dofSeparator, lagrangeEnumerator);
                 Dictionary<int, Matrix> stiffnessesBoundaryBoundary = 
                     ExtractStiffnessesBoundaryBoundary(dofSeparator, stiffnessMatrices);
                 Dictionary<int, Matrix> stiffnessesBoundaryInternal = 

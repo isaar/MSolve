@@ -2,15 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Preprocessor.Meshes;
-using ISAAR.MSolve.Preprocessor.Meshes.Custom;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Feti;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
@@ -18,12 +13,75 @@ using Xunit;
 
 namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti
 {
-    public static class BooleanMatricesTests
+    public static class FullyRedundantLagrangeMultipliersTests
     {
+        private const int numLagranges = 20;
+
         [Fact]
-        public static void TestFullyRedundantConstraints2D()
-        {   // Node - Continuity equations - Sum
-            // 1      2                      20
+        public static void TestLagrangeMultipliersCreation()
+        {
+            Model_v2 model = CreateModel();
+            Dictionary<int, Node_v2> nodes = model.NodesDictionary;
+            Dictionary<int, Subdomain_v2> subdomains = model.SubdomainsDictionary;
+            LagrangeMultiplier[] lagrangesComputed = CreateBooleanMultipliers(model, true).LagrangeMultipliers;
+            var lagrangesExpected = new LagrangeMultiplier[numLagranges];
+
+            // (4, 5)  (6, 7)    (4,5)   (6,7)
+            // 6 ----- 7         7 ----- 8 
+            // |  s2   |         |   s3  | 
+            // |       |         |       | 
+            // 3 ----- 4         4 ----- 5
+            // (0, 1)  (2, 3)    (0,1)   (2,3)
+            //
+            //
+            // (2,3)   (4,5)     (3,4)   (5,6)
+            // 3 ----- 4         4 ----- 5 
+            // |       |         |       | 
+            // |  s0   |         |   s1  | 
+            // 0 ----- 1         1 ----- 2
+            //         (0,1)     (0,1)   (2)
+
+            lagrangesExpected[0] = new LagrangeMultiplier(nodes[1], DOFType.X, subdomains[0], subdomains[1]);
+            lagrangesExpected[1] = new LagrangeMultiplier(nodes[1], DOFType.Y, subdomains[0], subdomains[1]);
+
+            lagrangesExpected[2] = new LagrangeMultiplier(nodes[3], DOFType.X, subdomains[0], subdomains[2]);
+            lagrangesExpected[3] = new LagrangeMultiplier(nodes[3], DOFType.Y, subdomains[0], subdomains[2]);
+
+            lagrangesExpected[4] = new LagrangeMultiplier(nodes[4], DOFType.X, subdomains[0], subdomains[1]);
+            lagrangesExpected[5] = new LagrangeMultiplier(nodes[4], DOFType.Y, subdomains[0], subdomains[1]);
+            lagrangesExpected[6] = new LagrangeMultiplier(nodes[4], DOFType.X, subdomains[0], subdomains[2]);
+            lagrangesExpected[7] = new LagrangeMultiplier(nodes[4], DOFType.Y, subdomains[0], subdomains[2]);
+            lagrangesExpected[8] = new LagrangeMultiplier(nodes[4], DOFType.X, subdomains[0], subdomains[3]);
+            lagrangesExpected[9] = new LagrangeMultiplier(nodes[4], DOFType.Y, subdomains[0], subdomains[3]);
+
+            lagrangesExpected[10] = new LagrangeMultiplier(nodes[4], DOFType.X, subdomains[1], subdomains[2]);
+            lagrangesExpected[11] = new LagrangeMultiplier(nodes[4], DOFType.Y, subdomains[1], subdomains[2]);
+            lagrangesExpected[12] = new LagrangeMultiplier(nodes[4], DOFType.X, subdomains[1], subdomains[3]);
+            lagrangesExpected[13] = new LagrangeMultiplier(nodes[4], DOFType.Y, subdomains[1], subdomains[3]);
+
+            lagrangesExpected[14] = new LagrangeMultiplier(nodes[4], DOFType.X, subdomains[2], subdomains[3]);
+            lagrangesExpected[15] = new LagrangeMultiplier(nodes[4], DOFType.Y, subdomains[2], subdomains[3]);
+
+            lagrangesExpected[16] = new LagrangeMultiplier(nodes[5], DOFType.X, subdomains[1], subdomains[3]);
+            lagrangesExpected[17] = new LagrangeMultiplier(nodes[5], DOFType.Y, subdomains[1], subdomains[3]);
+
+            lagrangesExpected[18] = new LagrangeMultiplier(nodes[7], DOFType.X, subdomains[2], subdomains[3]);
+            lagrangesExpected[19] = new LagrangeMultiplier(nodes[7], DOFType.Y, subdomains[2], subdomains[3]);
+
+            for (int lag = 0; lag < numLagranges; ++lag)
+            {
+                Assert.True(lagrangesComputed[lag].Node == lagrangesExpected[lag].Node);
+                Assert.True(lagrangesComputed[lag].DofType == lagrangesExpected[lag].DofType);
+                Assert.True(lagrangesComputed[lag].SubdomainPlus == lagrangesExpected[lag].SubdomainPlus);
+                Assert.True(lagrangesComputed[lag].SubdomainMinus == lagrangesExpected[lag].SubdomainMinus);
+            }
+        }
+
+        [Fact]
+        public static void TestSignedBooleanMatrices()
+        {   
+            // Node | Lagrange | Sum
+            // 1      2          20
             // 3      2           
             // 4      12          
             // 5      2           
@@ -33,13 +91,13 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti
             var booleansExpected = new Dictionary<int, Matrix>();
 
             // Subdomain 0: 6 free dofs
-            // (2,3)    (4,5)
+            // (2,3)   (4,5)
             // 3 ----- 4 
             // |       | 
             // |       | 
             // 0 ----- 1
             //         (0,1)
-            booleansExpected[0] = Matrix.CreateFromArray(new double[20, 6]
+            booleansExpected[0] = Matrix.CreateFromArray(new double[numLagranges, 6]
             {
                 // b   b   b   b   c   c
                 {  1,  0,  0,  0,  0,  0 }, // Node 1
@@ -71,7 +129,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti
             // |       | 
             // 1 ----- 2
             // (0,1)   (2)
-            booleansExpected[1] = Matrix.CreateFromArray(new double[20, 7]
+            booleansExpected[1] = Matrix.CreateFromArray(new double[numLagranges, 7]
             {
                 // b   b   i   c   c   b   b
                 { -1,  0,  0,  0,  0,  0,  0 }, // Node 1
@@ -103,7 +161,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti
             // |       | 
             // 3 ----- 4
             // (0,1)   (2,3)
-            booleansExpected[2] = Matrix.CreateFromArray(new double[20, 8]
+            booleansExpected[2] = Matrix.CreateFromArray(new double[numLagranges, 8]
             {
                 // b   b   c   c   i   i   b   b
                 {  0,  0,  0,  0,  0,  0,  0,  0 }, // Node 1
@@ -135,7 +193,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti
             // |       | 
             // 4 ----- 5
             // (0,1)   (2,3)
-            booleansExpected[3] = Matrix.CreateFromArray(new double[20, 8]
+            booleansExpected[3] = Matrix.CreateFromArray(new double[numLagranges, 8]
             {
                 // c   c   b   b   b   b   i   i
                 {  0,  0,  0,  0,  0,  0,  0,  0 }, // Node 1
@@ -161,15 +219,15 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti
             });
 
             Model_v2 model = CreateModel();
-            Dictionary<int, SignedBooleanMatrix> booleanMatrices = CreateBooleanMatrices(model);
-            foreach (var id in booleanMatrices.Keys)
+            LagrangeMultipliersEnumerator lagrangeMultipliers = CreateBooleanMultipliers(model, false);
+            foreach (var id in lagrangeMultipliers.BooleanMatrices.Keys)
             {
-                Matrix booleanComputed = booleanMatrices[id].CopyToFullMatrix(false);
+                Matrix booleanComputed = lagrangeMultipliers.BooleanMatrices[id].CopyToFullMatrix(false);
                 Assert.True(booleansExpected[id].Equals(booleanComputed));
             }
         }
 
-        private static Dictionary<int, SignedBooleanMatrix> CreateBooleanMatrices(Model_v2 model)
+        private static LagrangeMultipliersEnumerator CreateBooleanMultipliers(Model_v2 model, bool createLagranges)
         {
             // Initialize model
             model.ConnectDataStructures();
@@ -184,9 +242,10 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti
             }
 
             // Create boolean matrices
-            var continuityEquations = new ContinuityEquationsCalculator(new FullyRedundantConstraints());
-            continuityEquations.CreateBooleanMatrices(model);
-            return continuityEquations.BooleanMatrices;
+            var lagrangeEnumerator = new LagrangeMultipliersEnumerator(new FullyRedundantConstraints());
+            if (createLagranges) lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model);
+            else lagrangeEnumerator.DefineBooleanMatrices(model);
+            return lagrangeEnumerator;
         }
 
         private static Model_v2 CreateModel()

@@ -11,7 +11,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
     public class DofSeparator
     {
-        //TODO: each subdomain should have an object that manages these arrays.
+        //TODO: Should thre be an object that manages these arrays for each subdomain? Then Dictionary<int, DofSeparator> 
+        //      would be passed around.
         private Dictionary<int, int[]> boundaryDofs;
         private Dictionary<int, int[]> boundaryDofsMultiplicity;
         private Dictionary<int, int[]> internalDofs;

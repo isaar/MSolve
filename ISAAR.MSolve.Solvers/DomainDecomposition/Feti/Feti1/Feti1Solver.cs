@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
     public class Feti1Solver : ISolver_v2
     {
         private readonly Dictionary<int, SkylineAssembler> assemblers;
-        private readonly ContinuityEquationsCalculator continuityEquations;
+        private readonly LagrangeMultipliersEnumerator lagrangeEnumerator;
         private readonly ICrosspointStrategy crosspointStrategy = new FullyRedundantConstraints();
         private readonly IDofOrderer dofOrderer;
         private readonly double factorizationPivotTolerance;
@@ -80,7 +80,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             this.pcpgConvergenceTolerance = pcpgConvergenceTolerance;
             this.pcpgExactResidual = pcpgExactResidual;
 
-            this.continuityEquations = new ContinuityEquationsCalculator(crosspointStrategy);
+            this.lagrangeEnumerator = new LagrangeMultipliersEnumerator(crosspointStrategy);
         }
 
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
@@ -172,7 +172,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             dofSeparator.SeparateBoundaryInternalDofs(subdomains);
 
             // Find continuity equations and boolean matrices.
-            continuityEquations.CreateBooleanMatrices(model);
+            lagrangeEnumerator.DefineBooleanMatrices(model);
 
 
             //EnumerateSubdomainLagranges();
@@ -196,7 +196,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
                 stiffnessMatrices.Add(linearSystem.Subdomain.ID, linearSystem.Matrix);
             }
             IFetiPreconditioner preconditioner = preconditionerFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator, 
-                continuityEquations, stiffnessMatrices);
+                lagrangeEnumerator, stiffnessMatrices);
 
             // Calculate generalized inverses and rigid body modes of subdomains to assemble the interface flexibility matrix. 
             if (mustFactorize)
@@ -216,15 +216,15 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
                 }
                 mustFactorize = false;
             }
-            var flexibility = new Feti1FlexibilityMatrix(factorizations, continuityEquations);
+            var flexibility = new Feti1FlexibilityMatrix(factorizations, lagrangeEnumerator);
 
             // Calculate the rhs vectors of the interface system
             Vector disconnectedDisplacements = CalculateDisconnectedDisplacements();
             Vector rbmWork = CalculateRigidBodyModesWork();
 
             // Define and initilize the projection
-            var Q = Matrix.CreateIdentity(continuityEquations.NumContinuityEquations);
-            var projection = new Feti1Projection(continuityEquations.BooleanMatrices, rigidBodyModes, Q);
+            var Q = Matrix.CreateIdentity(lagrangeEnumerator.NumLagrangeMultipliers);
+            var projection = new Feti1Projection(lagrangeEnumerator.BooleanMatrices, rigidBodyModes, Q);
             projection.InvertCoarseProblemMatrix();
 
             // Calculate the norm of the forces vector Ku=f
@@ -245,7 +245,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
             // Run the PCPG algorithm
             var pcpg = new PcpgAlgorithm(pcpgMaxIterationsOverSize, pcpgConvergenceTolerance, calcExactResidualNorm);
-            var lagrangeMultipliers = Vector.CreateZero(continuityEquations.NumContinuityEquations);
+            var lagrangeMultipliers = Vector.CreateZero(lagrangeEnumerator.NumLagrangeMultipliers);
             PcpgStatistics stats = pcpg.Solve(flexibility, preconditioner, projection, disconnectedDisplacements, rbmWork,
                 globalForcesNorm, lagrangeMultipliers);
             if (logger != null)
@@ -277,7 +277,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
                 // u = inv(K) * (f - B^T * λ), for non floating subdomains
                 // u = generalizedInverse(K) * (f - B^T * λ) + R * a, for floating subdomains
                 int id = linearSystem.Subdomain.ID;
-                Vector forces = linearSystem.RhsVector - continuityEquations.BooleanMatrices[id].Multiply(lagranges, true);
+                Vector forces = linearSystem.RhsVector - lagrangeEnumerator.BooleanMatrices[id].Multiply(lagranges, true);
                 Vector displacements = factorizations[id].MultiplyGeneralizedInverseMatrixTimesVector(forces);
 
                 foreach (Vector rbm in rigidBodyModes[id]) displacements.AxpyIntoThis(rbm, rigidBodyModeCoeffs[rbmOffset++]);
@@ -292,12 +292,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         /// </summary>
         private Vector CalculateDisconnectedDisplacements()
         {
-            var displacements = Vector.CreateZero(continuityEquations.NumContinuityEquations);
+            var displacements = Vector.CreateZero(lagrangeEnumerator.NumLagrangeMultipliers);
             foreach (var linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
                 Vector f = linearSystem.RhsVector;
-                SignedBooleanMatrix boolean = continuityEquations.BooleanMatrices[id];
+                SignedBooleanMatrix boolean = lagrangeEnumerator.BooleanMatrices[id];
                 Vector Kf = factorizations[id].MultiplyGeneralizedInverseMatrixTimesVector(f);
                 Vector BKf = boolean.Multiply(Kf, false);
                 displacements.AddIntoThis(BKf);
@@ -349,7 +349,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         private Vector CalculateRigidBodyModesCoefficients(Feti1FlexibilityMatrix flexibility, Feti1Projection projection,
             Vector disconnectedDisplacements, Vector lagrangeMultipliers)
         {
-            var flexibilityTimesLagranges = Vector.CreateZero(continuityEquations.NumContinuityEquations);
+            var flexibilityTimesLagranges = Vector.CreateZero(lagrangeEnumerator.NumLagrangeMultipliers);
             flexibility.Multiply(lagrangeMultipliers, flexibilityTimesLagranges);
             return projection.CalculateRigidBodyModesCoefficients(flexibilityTimesLagranges, disconnectedDisplacements);
         }

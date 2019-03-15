@@ -9,15 +9,15 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 {
     internal class Feti1FlexibilityMatrix : IInterfaceFlexibilityMatrix
     {
-        private readonly ContinuityEquationsCalculator continuityEquations;
+        private readonly LagrangeMultipliersEnumerator lagrangeEnumerator;
         private readonly Dictionary<int, SemidefiniteCholeskySkyline> factorizations;
 
         internal Feti1FlexibilityMatrix(Dictionary<int, SemidefiniteCholeskySkyline> factorizations,
-            ContinuityEquationsCalculator continuityEquations)
+            LagrangeMultipliersEnumerator lagrangeEnumerator)
         {
-            this.continuityEquations = continuityEquations;
+            this.lagrangeEnumerator = lagrangeEnumerator;
             this.factorizations = factorizations;
-            this.Order = continuityEquations.NumContinuityEquations;
+            this.Order = lagrangeEnumerator.NumLagrangeMultipliers;
         }
 
         public int Order { get; }
@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             {
                 int id = keyFactor.Key;
                 SemidefiniteCholeskySkyline factor = keyFactor.Value;
-                SignedBooleanMatrix boolean = continuityEquations.BooleanMatrices[id];
+                SignedBooleanMatrix boolean = lagrangeEnumerator.BooleanMatrices[id];
                 Vector FBx = factor.MultiplyGeneralizedInverseMatrixTimesVector(boolean.Multiply(lhs, true)); 
                 Vector BFBx = boolean.Multiply(FBx, false);
                 rhs.AddIntoThis(BFBx);
