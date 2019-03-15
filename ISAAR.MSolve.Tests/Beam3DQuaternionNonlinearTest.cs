@@ -19,6 +19,7 @@ using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Analyzers.NonLinear;
+using ISAAR.MSolve.Solvers;
 
 namespace ISAAR.MSolve.Tests
 {
@@ -95,14 +96,14 @@ namespace ISAAR.MSolve.Tests
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(m);
+            ISolver_v2 solver = solverBuilder.BuildSolver(m);
 
             // Problem type
             var provider = new ProblemStructural_v2(m, solver);
 
             // Analyzers
             int increments = 10;
-            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(m, solver, provider, increments);
+            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(m, solver, provider, increments, 1E-3);
             //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) }; // This is the default
             LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
             var parentAnalyzer = new StaticAnalyzer_v2(m, solver, provider, childAnalyzer);
@@ -324,14 +325,14 @@ namespace ISAAR.MSolve.Tests
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
             // Problem type
             var provider = new ProblemStructural_v2(model, solver);
 
             // Analyzers
             int increments = 10;
-            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
+            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments, 1E-3);
             //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) }; // This is the default
             LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
@@ -572,14 +573,14 @@ namespace ISAAR.MSolve.Tests
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
             // Problem type
             var provider = new ProblemStructural_v2(model, solver);
 
             // Analyzers
             int increments = 10;
-            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
+            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments, 1e-3);
             //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) }; // This is the default
             LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);

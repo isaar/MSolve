@@ -59,16 +59,26 @@ namespace ISAAR.MSolve.Solvers
             {
                 subdomain.DofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
 
-                // If we decide subdomain.Forces will always be a Vector or double[] then this process could be done elsewhere.
-                subdomain.Forces = linearSystem.CreateZeroVector();
+                // If we decide subdomain.Forces will always be a Vector or double[] then this process could be done elsewhere. -->Implemented ok
+                //subdomain.Forces = linearSystem.CreateZeroVector(); //TODO MS
             }
             //EnumerateSubdomainLagranges();
             //EnumerateDOFMultiplicity();
+        }
+
+        public void ResetSubdomainForcesVector()
+        {
+            foreach (ISubdomain_v2 subdomain in model.Subdomains)
+            {
+                subdomain.Forces = linearSystem.CreateZeroVector(); //TODO MS
+            }
         }
 
         public abstract void Initialize();
         public abstract void HandleMatrixWillBeSet();
         public abstract void PreventFromOverwrittingSystemMatrices();
         public abstract void Solve();
+
+        
     }
 }

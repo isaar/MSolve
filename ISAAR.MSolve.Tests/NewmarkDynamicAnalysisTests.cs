@@ -9,6 +9,7 @@ using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
@@ -125,7 +126,7 @@ namespace ISAAR.MSolve.Tests
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
             //TODO: These overwrite the corresponding data extracted by the Model. Either set up these or the Model.
             //solver.LinearSystems[subdomainID].SetMatrix(

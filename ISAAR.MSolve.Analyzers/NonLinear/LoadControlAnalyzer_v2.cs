@@ -78,12 +78,12 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
 
         public class Builder: NonLinearAnalyzerBuilderBase
         {
-            public Builder(IStructuralModel_v2 model, ISolver_v2 solver, INonLinearProvider_v2 provider, int numIncrements):
+            public Builder(IStructuralModel_v2 model, ISolver_v2 solver, INonLinearProvider_v2 provider, int numIncrements, double tol) :
                 base(model, solver, provider, numIncrements)
             {
                 MaxIterationsPerIncrement = 1000;
                 NumIterationsForMatrixRebuild = 1;
-                ResidualTolerance = 1E-8;
+                ResidualTolerance = tol;// 1E-3;
             }
 
             public LoadControlAnalyzer_v2 Build()

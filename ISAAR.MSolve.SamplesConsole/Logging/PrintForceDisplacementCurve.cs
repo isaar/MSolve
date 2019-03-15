@@ -9,6 +9,7 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
 
 namespace ISAAR.MSolve.SamplesConsole.Logging
@@ -102,7 +103,7 @@ namespace ISAAR.MSolve.SamplesConsole.Logging
 
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
             //solver.LinearSystems[subdomainID].RhsVector = model.SubdomainsDictionary[subdomainID].Forces;
 
             // Choose the provider of the problem -> here a structural problem
@@ -110,7 +111,7 @@ namespace ISAAR.MSolve.SamplesConsole.Logging
 
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
             int increments = 10;
-            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
+            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments, 1E-3);
             LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
 
             // Choose parent analyzer -> Parent: Static

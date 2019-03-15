@@ -38,6 +38,11 @@ namespace ISAAR.MSolve.Solvers
         void OrderDofsAndClearLinearSystems();
 
         /// <summary>
+        /// Clears <see cref="ISubdomain_v2.Forces"/> so that the appropriate right hand side(external forces) can be copied to them.
+        /// </summary>
+        void ResetSubdomainForcesVector();
+
+        /// <summary>
         /// Notifies this <see cref="ISolver_v2"/> that it cannot overwrite the data of <see cref="ILinearSystem_v2.Matrix"/>.
         /// Some solvers would otherwise overwrite the matrices (e.g. with the factorization) to avoid using extra memory.
         /// </summary>
