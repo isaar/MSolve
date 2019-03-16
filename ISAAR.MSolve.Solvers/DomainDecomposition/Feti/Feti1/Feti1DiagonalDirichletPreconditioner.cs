@@ -37,10 +37,29 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
                 DiagonalMatrix invDii = stiffnessesInternalInternalInverseDiagonal[id];
 
                 // inv(F) * y = Bpb * S * Bpb^T * y
-                // S = Kbb - Kbi * inv(Kii) * Kib
+                // S = Kbb - Kbi * inv(Dii) * Kib
                 Vector By = Bpb.Multiply(rhs, true);
                 Vector SBy = Kbb.Multiply(By) - Kbi.Multiply(invDii.Multiply(Kbi.Multiply(By, true)));
                 Vector subdomainContribution = Bpb.Multiply(SBy);
+                lhs.AddIntoThis(subdomainContribution);
+            }
+        }
+
+        public void SolveLinearSystems(Matrix rhs, Matrix lhs)
+        {
+            lhs.Clear(); //TODO: this should be avoided
+            foreach (int id in subdomainIDs)
+            {
+                Matrix Bpb = preconditioningBoundarySignedBooleanMatrices[id];
+                Matrix Kbb = stiffnessesBoundaryBoundary[id];
+                Matrix Kbi = stiffnessesBoundaryInternal[id];
+                DiagonalMatrix invDii = stiffnessesInternalInternalInverseDiagonal[id];
+
+                // inv(F) * Y = Bpb * S * Bpb^T * Y
+                // S = Kbb - Kbi * inv(Dii) * Kib
+                Matrix BY = Bpb.MultiplyRight(rhs, true);
+                Matrix SBY = Kbb.MultiplyRight(BY) - Kbi.MultiplyRight(invDii.MultiplyRight(Kbi.MultiplyRight(BY, true)));
+                Matrix subdomainContribution = Bpb.MultiplyRight(SBY);
                 lhs.AddIntoThis(subdomainContribution);
             }
         }

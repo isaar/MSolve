@@ -130,6 +130,30 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return diagonalVector.MultiplyEntrywise(vector);
         }
 
+        public Matrix MultiplyLeft(Matrix matrix)
+        {
+            //TODO: This should be delegated to each matrix type which should scale its columns itself efficiently.
+            Preconditions.CheckMultiplicationDimensions(matrix, this);
+            var result = Matrix.CreateZero(matrix.NumRows, matrix.NumColumns);
+            for (int j = 0; j < matrix.NumColumns; ++j)
+            {
+                for (int i = 0; i < matrix.NumRows; ++i) result[i, j] = diagonal[j] * matrix[i, j];
+            }
+            return result;
+        }
+
+        public Matrix MultiplyRight(Matrix matrix)
+        {
+            //TODO: This should be delegated to each matrix type which should scale its rows itself efficiently.
+            Preconditions.CheckMultiplicationDimensions(this, matrix);
+            var result = Matrix.CreateZero(matrix.NumRows, matrix.NumColumns);
+            for (int i = 0; i < matrix.NumRows; ++i)
+            {
+                for (int j = 0; j < matrix.NumColumns; ++j) result[i, j] = diagonal[i] * matrix[i, j];
+            }
+            return result;
+        }
+
         /// <summary>
         /// See <see cref="IIndexable2D.Equals(IIndexable2D, double)"/>.
         /// </summary>

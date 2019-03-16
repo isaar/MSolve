@@ -44,6 +44,25 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             }
         }
 
+        public void SolveLinearSystems(Matrix rhs, Matrix lhs)
+        {
+            lhs.Clear(); //TODO: this should be avoided
+            foreach (int id in subdomainIDs)
+            {
+                Matrix Bpb = preconditioningBoundarySignedBooleanMatrices[id];
+                Matrix Kbb = stiffnessesBoundaryBoundary[id];
+                Matrix Kbi = stiffnessesBoundaryInternal[id];
+                Matrix invKii = stiffnessesInternalInternalInverse[id];
+
+                // inv(F) * Y = Bpb * S * Bpb^T * Y
+                // S = Kbb - Kbi * inv(Kii) * Kib
+                Matrix BY = Bpb.MultiplyRight(rhs, true);
+                Matrix SBY = Kbb.MultiplyRight(BY) - Kbi.MultiplyRight(invKii.MultiplyRight(Kbi.MultiplyRight(BY, true)));
+                Matrix subdomainContribution = Bpb.MultiplyRight(SBY);
+                lhs.AddIntoThis(subdomainContribution);
+            }
+        }
+
         public class Factory : FetiPreconditionerFactoryBase
         {
             public override IFetiPreconditioner CreatePreconditioner(IStiffnessDistribution stiffnessDistribution,
