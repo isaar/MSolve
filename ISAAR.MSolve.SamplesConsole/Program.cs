@@ -149,7 +149,10 @@ namespace ISAAR.MSolve.SamplesConsole
             //FEM.WallWithOpenings.Run();
             //SeparateCodeCheckingClass.Check06();
             //CNTExamples.CNT_4_4_DisplacementControl();
-            //CNTExamples.CNT_4_4_NewtonRaphson();   
+            //CNTExamples.CNT_4_4_NewtonRaphson();
+
+            Tests.FEM.EmbeddingNLRVE.RunTest_v2();            
+            
             //Tests.FEM.Shell8andCohesiveNonLinear.RunTest_v2();
 
             //Logging.PrintForceDisplacementCurve.CantileverBeam2DCorotationalDisplacementControl();
@@ -158,7 +161,7 @@ namespace ISAAR.MSolve.SamplesConsole
             //EmbeddedEBEmodelInMatrix.EmbeddedEBEinMatrix_NewtonRaphson();
             //EmbeddedEBEmodelInMatrix.EmbeddedEBEinMatrix_DisplacementControl();
             //EmbeddedEBEmodelInMatrix.EmbeddedEBEinMatrix_DisplacementControl();
-            CNT_20_20_EmbeddedInMatrixExample.EmbeddedCNT_20_20_inMatrix_NewtonRaphson();
+            //CNT_20_20_EmbeddedInMatrixExample.EmbeddedCNT_20_20_inMatrix_NewtonRaphson();
             //CNT_20_20_EmbeddedInMatrixExample.EmbeddedCNT_20_20_inMatrix_DisplacementControl();
         }
     }

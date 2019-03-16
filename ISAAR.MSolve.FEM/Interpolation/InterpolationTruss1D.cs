@@ -18,18 +18,16 @@ namespace ISAAR.MSolve.FEM.Interpolation
     /// Implements Singleton pattern.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class InterpolationQuad4: IsoparametricInterpolation2DBase
+    public class InterpolationTruss1D : IsoparametricInterpolation2DBase
     {
-        private static readonly InterpolationQuad4 uniqueInstance = new InterpolationQuad4();
+        private static readonly InterpolationTruss1D uniqueInstance = new InterpolationTruss1D();
 
-        private InterpolationQuad4(): base(CellType2D.Quad4, 4)
+        private InterpolationTruss1D(): base(CellType2D.Quad4, 4)
         {
             NodalNaturalCoordinates = new NaturalPoint2D[]
             {
-                new NaturalPoint2D(-1.0, -1.0),
-                new NaturalPoint2D(+1.0, -1.0),
-                new NaturalPoint2D(+1.0, +1.0),
-                new NaturalPoint2D(-1.0, +1.0)
+                new NaturalPoint2D(-1.0, 0.0),
+                new NaturalPoint2D(+1.0, 0.0)
             };
         }
 
@@ -40,9 +38,9 @@ namespace ISAAR.MSolve.FEM.Interpolation
         public override IReadOnlyList<NaturalPoint2D> NodalNaturalCoordinates { get; }
 
         /// <summary>
-        /// Get the unique <see cref="InterpolationQuad4"/> object for the whole program. Thread safe.
+        /// Get the unique <see cref="InterpolationTruss1D"/> object for the whole program. Thread safe.
         /// </summary>
-        public static InterpolationQuad4 UniqueInstance => uniqueInstance;
+        public static InterpolationTruss1D UniqueInstance => uniqueInstance;
 
         /// <summary>
         /// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.
@@ -55,24 +53,16 @@ namespace ISAAR.MSolve.FEM.Interpolation
         protected override sealed double[] EvaluateAt(double xi, double eta)
         {
             var values = new double[4];
-            values[0] = 0.25 * (1 - xi) * (1 - eta);
-            values[1] = 0.25 * (1 + xi) * (1 - eta);
-            values[2] = 0.25 * (1 + xi) * (1 + eta);
-            values[3] = 0.25 * (1 - xi) * (1 + eta);
+            values[0] = 0.50 * (1 - xi);
+            values[1] = 0.50 * (1 + xi);
             return values;
         }
 
         protected override sealed double[,] EvaluateGradientsAt(double xi, double eta)
         {
-            var derivatives = new double[4, 2];
-            derivatives[0, 0] = -0.25 * (1 - eta);
-            derivatives[0, 1] = -0.25 * (1 - xi);
-            derivatives[1, 0] = 0.25 * (1 - eta);
-            derivatives[1, 1] = -0.25 * (1 + xi);
-            derivatives[2, 0] = 0.25 * (1 + eta);
-            derivatives[2, 1] = 0.25 * (1 + xi);
-            derivatives[3, 0] = -0.25 * (1 + eta);
-            derivatives[3, 1] = 0.25 * (1 - xi);
+            var derivatives = new double[1, 2];
+            derivatives[0, 0] = -0.50; // N1,ksi
+            derivatives[0, 1] = +0.50; // N2,ksi
             return derivatives;
         }
     }

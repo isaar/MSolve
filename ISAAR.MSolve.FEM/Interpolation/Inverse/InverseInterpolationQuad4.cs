@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
     /// https://www.sciencedirect.com/science/article/pii/0168874X90900072 
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class InverseInterpolationQuad4: IInverseInterpolation2D
+    public class InverseInterpolationTruss1D: IInverseInterpolation2D
     {
         // Constants
         private const double tolerance = 1.0e-6;
@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
         // The delegate avoids redundant checking for which case we are at 
         private readonly Func<double, double, NaturalPoint2D> formula;
 
-        public InverseInterpolationQuad4(IReadOnlyList<Node2D> nodes)
+        public InverseInterpolationTruss1D(IReadOnlyList<Node2D> nodes)
         {
             int numOrderings = 4;
             for (int i = 0; i < numOrderings - 1; ++i)
@@ -145,7 +145,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
         #region static utility members
         //TODO: Find or create a better exception type
         [Conditional("DEBUG")]
-        private static void CheckQuadrilateralShape(InverseInterpolationQuad4 mapping)
+        private static void CheckQuadrilateralShape(InverseInterpolationTruss1D mapping)
         {
             string msg = "Incorrect quadrilateral (check node order). Coefficient violation: ";
 
