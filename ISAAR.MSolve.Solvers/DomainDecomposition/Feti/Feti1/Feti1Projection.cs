@@ -5,18 +5,20 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
+//TODO: If Q is identity, optimizations will be possible: E.g. multiplications with Q do not have to copy the vector/matrix
+//      (for lagranges they do), G^T*G might be optimizable, etc. Should there be a dedicated class for such cases.
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 {
     internal class Feti1Projection : IInterfaceProjection
     {
         private readonly Dictionary<int, SignedBooleanMatrix> booleanMatrices;
+        private readonly IMatrixQ matrixQ;
         private readonly Dictionary<int, List<Vector>> rigidBodyModes;
-        private readonly Matrix matrixQ;
         private Matrix matrixG;
         private CholeskyFull factorGQG; // Because Karmath suggests using POTRF, POTRS.
 
         internal Feti1Projection(Dictionary<int, SignedBooleanMatrix> booleanMatrices, 
-            Dictionary<int, List<Vector>> rigidBodyModes, Matrix matrixQ)
+            Dictionary<int, List<Vector>> rigidBodyModes, IMatrixQ matrixQ)
         {
             this.booleanMatrices = booleanMatrices;
             this.rigidBodyModes = rigidBodyModes;
@@ -32,7 +34,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             Vector boundaryDisplacements)
         {
             Vector x = flexibilityTimeslagrangeMultipliers - boundaryDisplacements;
-            return factorGQG.SolveLinearSystem(matrixG.Multiply(matrixQ * x, true));
+            return factorGQG.SolveLinearSystem(matrixG.Multiply(matrixQ.Multiply(x), true));
         }
 
         /// <summary>
@@ -40,7 +42,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         /// </summary>
         public void InitializeLagrangeMultipliers(Vector rigidBodyModesWork, Vector lagrange)
         {
-            matrixQ.MultiplyIntoResult(matrixG * (factorGQG.SolveLinearSystem(rigidBodyModesWork)), lagrange);
+            // matrixQ.MultiplyIntoResult(matrixG * (factorGQG.SolveLinearSystem(rigidBodyModesWork)), lagrange);
+            Vector lambda0 = matrixQ.Multiply(matrixG * (factorGQG.SolveLinearSystem(rigidBodyModesWork)));
+            lagrange.CopyFrom(lambda0);
         }
 
         /// <summary>
@@ -49,7 +53,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         public void InvertCoarseProblemMatrix()
         {
             CalculateMatrixG();
-            Matrix GQG = matrixG.ThisTransposeTimesOtherTimesThis(matrixQ);
+            //Matrix GQG = matrixG.ThisTransposeTimesOtherTimesThis(matrixQ);
+            Matrix GQG = matrixG.MultiplyRight(matrixQ.Multiply(matrixG), true);
             factorGQG = GQG.FactorCholesky(true);
         }
 
@@ -60,7 +65,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         {
             // P * x = x - Q * (G * (inv(G^T*Q*G) * (G^T * x))
             projected.CopyFrom(original);
-            projected.SubtractIntoThis(matrixQ * (matrixG * (factorGQG.SolveLinearSystem(matrixG.Multiply(original, true)))));
+            projected.SubtractIntoThis(matrixQ.Multiply(matrixG * (factorGQG.SolveLinearSystem(matrixG.Multiply(original, true)))));
         }
 
         /// <summary>

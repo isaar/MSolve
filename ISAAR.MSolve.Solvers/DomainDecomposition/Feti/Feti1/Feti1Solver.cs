@@ -32,6 +32,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         private readonly IExactResidualCalculator pcpgExactResidual;
         private readonly double pcpgConvergenceTolerance;
         private readonly double pcpgMaxIterationsOverSize;
+        private readonly PdeOrder pde;
         private readonly IFetiPreconditionerFactory preconditionerFactory;
         private readonly IStiffnessDistribution stiffnessDistribution;
 
@@ -48,7 +49,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
         private Feti1Solver(IStructuralModel_v2 model, IDofOrderer dofOrderer, double factorizationPivotTolerance, 
             double pcpgMaxIterationsOverSize, double pcpgConvergenceTolerance, IExactResidualCalculator pcpgExactResidual,
-            IFetiPreconditionerFactory preconditionerFactory, bool isProblemHomogeneous, FetiLogger logger)
+            IFetiPreconditionerFactory preconditionerFactory, bool isProblemHomogeneous, PdeOrder pde, FetiLogger logger)
         {
             // Model
             if (model.Subdomains.Count == 1) throw new InvalidSolverException(
@@ -240,8 +241,18 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             Vector rbmWork = CalculateRigidBodyModesWork();
 
             // Define and initilize the projection
-            var Q = Matrix.CreateIdentity(lagrangeEnumerator.NumLagrangeMultipliers);
-            var projection = new Feti1Projection(lagrangeEnumerator.BooleanMatrices, rigidBodyModes, Q);
+            Feti1Projection projection;
+            if ((pde == PdeOrder.Fourth) || (!isProblemHomogeneous))
+            {
+                // Q = preconditioner
+                projection = new Feti1Projection(lagrangeEnumerator.BooleanMatrices, rigidBodyModes, 
+                    new PreconditionerAsMatrixQ(preconditioner));
+            }
+            else
+            {
+                // Q = indentity
+                projection = new Feti1Projection(lagrangeEnumerator.BooleanMatrices, rigidBodyModes, new IdentityMatrixQ());
+            }
             projection.InvertCoarseProblemMatrix();
 
             // Calculate the norm of the forces vector Ku=f
@@ -415,12 +426,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             internal IExactResidualCalculator PcpgExactResidual { get; set; } = null;
             public double PcpgConvergenceTolerance { get; set; } = 1E-7;
             public double PcpgMaxIterationsOverSize { get; set; } = 1.0;
+            public PdeOrder PdeOrder { get; set; } = PdeOrder.Second;
             public IFetiPreconditionerFactory PreconditionerFactory { get; set; } = new Feti1LumpedPreconditioner.Factory();
-            //public IStiffnessDistribution StiffnessDistribution { get; set; } = new HomogeneousStiffnessDistribution();
 
             public Feti1Solver BuildSolver(Model_v2 model)
                 => new Feti1Solver(model, DofOrderer, factorizationPivotTolerance, PcpgMaxIterationsOverSize, 
-                    PcpgConvergenceTolerance, PcpgExactResidual, PreconditionerFactory, IsProblemHomogeneous, Logger);
+                    PcpgConvergenceTolerance, PcpgExactResidual, PreconditionerFactory, IsProblemHomogeneous, PdeOrder, Logger);
         }
     }
 }
