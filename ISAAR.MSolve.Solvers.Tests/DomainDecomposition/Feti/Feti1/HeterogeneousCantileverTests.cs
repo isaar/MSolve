@@ -10,88 +10,106 @@ using ISAAR.MSolve.Solvers.DomainDecomposition.Feti;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1;
 using Xunit;
 
-//TODO: the preconditioner could be provided as a parameter in [Theory] methods. At least the common code should be extracted.
+//TODO: the preconditioner could also be provided as a parameter in the theory. At least the common code should be extracted.
 //TODO: there is also data about the case without preconditioner and the case where Q=I, even in heterogeneous problems.
 namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
 {
     /// <summary>
-    /// Tests from Papagiannakis bachelor thesis (NTUA 2011), p. 97 - 100
+    /// Tests from Papagiannakis bachelor thesis (NTUA 2011), p. 101 - 108
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public static class HomogeneousCantileverTests
+    public static class HeterogeneousCantileverTests
     {
         private const int singleSubdomainID = 0;
 
-        [Fact]
-        public static void TestDiagonalDirichletPreconditioner()
+        [Theory]
+        [InlineData(1E-2, 13)]
+        [InlineData(1E-3, 14)]
+        [InlineData(1E-4, 15)]
+        [InlineData(1E-5, 17)]
+        public static void TestDiagonalDirichletPreconditioner(double stiffnessRatio, int pcpgIterationsExpected)
         {
             double factorizationTol = 1E-3, pcpgConvergenceTol = 1E-5;
-            IVectorView directDisplacements = SolveModelWithoutSubdomains();
+            IVectorView directDisplacements = SolveModelWithoutSubdomains(stiffnessRatio);
             (IVectorView ddDisplacements, FetiLogger logger, int numUniqueGlobalDofs, int numExtenedDomainDofs) =
                 SolveModelWithSubdomains(new Feti1DiagonalDirichletPreconditioner.Factory(), factorizationTol, 
-                pcpgConvergenceTol, true);
+                pcpgConvergenceTol, true, stiffnessRatio);
             double normalizedError = directDisplacements.Subtract(ddDisplacements).Norm2() / directDisplacements.Norm2();
 
             Assert.Equal(882, numUniqueGlobalDofs);    // 882 includes constrained and free dofs
             Assert.Equal(1056, numExtenedDomainDofs); // 1056 includes constrained and free dofs
             Assert.Equal(190, logger.NumLagrangeMultipliers);
-            Assert.Equal(11, logger.PcpgIterations);
+            Assert.Equal(pcpgIterationsExpected, logger.PcpgIterations);
 
-            // In the reference solution the error is 1.23E-9, but it is almost impossible for two different codes run on 
+            // The error is provided in the reference solution the, but it is almost impossible for two different codes run on 
             // different machines to achieve the exact same accuracy.
             Assert.Equal(0.0, normalizedError, 8);
         }
 
-        [Fact]
-        public static void TestDirichletPreconditioner()
+        [Theory]
+        [InlineData(1E-2, 8)]
+        [InlineData(1E-3, 9)]
+        [InlineData(1E-4, 9)]
+        [InlineData(1E-5, 9)]
+        [InlineData(1E-6, 9)]
+        public static void TestDirichletPreconditioner(double stiffnessRatio, int pcpgIterationsExpected)
         {
             double factorizationTol = 1E-3, pcpgConvergenceTol = 1E-5;
-            IVectorView directDisplacements = SolveModelWithoutSubdomains();
+            IVectorView directDisplacements = SolveModelWithoutSubdomains(stiffnessRatio);
             (IVectorView ddDisplacements, FetiLogger logger, int numUniqueGlobalDofs, int numExtenedDomainDofs) =
-                SolveModelWithSubdomains(new Feti1DirichletPreconditioner.Factory(), factorizationTol, pcpgConvergenceTol, true);
+                SolveModelWithSubdomains(new Feti1DirichletPreconditioner.Factory(), factorizationTol, pcpgConvergenceTol, true,
+                stiffnessRatio);
             double normalizedError = directDisplacements.Subtract(ddDisplacements).Norm2() / directDisplacements.Norm2();
 
             Assert.Equal(882, numUniqueGlobalDofs);    // 882 includes constrained and free dofs
             Assert.Equal(1056, numExtenedDomainDofs); // 1056 includes constrained and free dofs
             Assert.Equal(190, logger.NumLagrangeMultipliers);
-            Assert.Equal(10, logger.PcpgIterations);
+            Assert.Equal(pcpgIterationsExpected, logger.PcpgIterations);
 
-            // In the reference solution the error is 2.59E-10, but it is almost impossible for two different codes run on 
+            // The error is provided in the reference solution the, but it is almost impossible for two different codes run on 
             // different machines to achieve the exact same accuracy.
             Assert.Equal(0.0, normalizedError, 8);
         }
 
-        [Fact]
-        public static void TestLumpedPreconditioner()
+        [Theory]
+        [InlineData(1E-2, 15)]
+        [InlineData(1E-3, 17)]
+        [InlineData(1E-4, 17)]
+        [InlineData(1E-5, 20)]
+        public static void TestLumpedPreconditioner(double stiffnessRatio, int pcpgIterationsExpected)
         {
             double factorizationTol = 1E-3, pcpgConvergenceTol = 1E-5;
-            IVectorView directDisplacements = SolveModelWithoutSubdomains();
+            IVectorView directDisplacements = SolveModelWithoutSubdomains(stiffnessRatio);
             (IVectorView ddDisplacements, FetiLogger logger, int numUniqueGlobalDofs, int numExtenedDomainDofs) = 
-                SolveModelWithSubdomains(new Feti1LumpedPreconditioner.Factory(), factorizationTol, pcpgConvergenceTol, true);
+                SolveModelWithSubdomains(new Feti1LumpedPreconditioner.Factory(), factorizationTol, pcpgConvergenceTol, true,
+                stiffnessRatio);
             double normalizedError = directDisplacements.Subtract(ddDisplacements).Norm2() / directDisplacements.Norm2();
 
             Assert.Equal(882, numUniqueGlobalDofs);    // 882 includes constrained and free dofs
             Assert.Equal(1056, numExtenedDomainDofs); // 1056 includes constrained and free dofs
             Assert.Equal(190, logger.NumLagrangeMultipliers);
-            Assert.Equal(13, logger.PcpgIterations);
+            Assert.Equal(pcpgIterationsExpected, logger.PcpgIterations);
 
-            // In the reference solution the error is 5.5E-10, but it is almost impossible for two different codes run on 
+            // The error is provided in the reference solution the, but it is almost impossible for two different codes run on 
             // different machines to achieve the exact same accuracy.
             Assert.Equal(0.0, normalizedError, 8);
         }
 
-        private static Model_v2 CreateModel()
+        private static Model_v2 CreateModel(double fixedOverFloatingSubdomainElasticity)
         {
             // Subdomains:
             // /|
             // /||-------|-------|-------|-------|  
             // /||  (4)  |  (5)  |  (6)  |  (7)  |
-            // /||       |       |       |       |
+            // /||   E1  |   E0  |   E0  |   E0  |
             // /||-------|-------|-------|-------|  
             // /||  (0)  |  (1)  |  (2)  |  (3)  |
-            // /||       |       |       |       |
+            // /||   E1  |   E0  |   E0  |   E0  |
             // /||-------|-------|-------|-------|
             // /|
+
+            double E0 = 2.1E7;
+            double E1 = fixedOverFloatingSubdomainElasticity * E0;
 
             var builder = new Uniform2DModelBuilder();
             builder.DomainLengthX = 3.0;
@@ -100,7 +118,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             builder.NumSubdomainsY = 2;
             builder.NumTotalElementsX = 20;
             builder.NumTotalElementsY = 20;
-            builder.YoungModulus = 2.1E7;
+            builder.YoungModuliOfSubdomains = new double[,] { { E1, E0, E0, E0 }, { E1, E0, E0, E0 } };
             builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LeftSide, DOFType.X, 0.0);
             builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LeftSide, DOFType.Y, 0.0);
             builder.PrescribeDistributedLoad(Uniform2DModelBuilder.BoundaryRegion.RightSide, DOFType.Y, 100.0);
@@ -108,10 +126,10 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             return builder.BuildModel();
         }
 
-        private static Model_v2 CreateSingleSubdomainModel()
+        private static Model_v2 CreateSingleSubdomainModel(double fixedOverFloatingSubdomainElasticity)
         {
             // Replace the existing subdomains with a single one 
-            Model_v2 model = CreateModel();
+            Model_v2 model = CreateModel(fixedOverFloatingSubdomainElasticity);
             model.SubdomainsDictionary.Clear();
             var subdomain = new Subdomain_v2(singleSubdomainID);
             model.SubdomainsDictionary.Add(singleSubdomainID, subdomain);
@@ -121,14 +139,14 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
 
         private static (IVectorView globalDisplacements, FetiLogger logger, int numUniqueGlobalDofs, int numExtenedDomainDofs) 
             SolveModelWithSubdomains(IFetiPreconditionerFactory preconditioning, double factorizationTolerance, 
-                double pcpgConvergenceTolerance, bool exactResidual)
+                double pcpgConvergenceTolerance, bool exactResidual, double fixedOverFloatingSubdomainElasticity)
         {
             // Model
-            Model_v2 multiSubdomainModel = CreateModel();
+            Model_v2 multiSubdomainModel = CreateModel(fixedOverFloatingSubdomainElasticity);
 
             // Solver
             var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
-            solverBuilder.IsProblemHomogeneous = true;
+            solverBuilder.IsProblemHomogeneous = false;
             solverBuilder.PcpgConvergenceTolerance = pcpgConvergenceTolerance;
             solverBuilder.PreconditionerFactory = preconditioning;
             solverBuilder.Logger = new FetiLogger();
@@ -136,8 +154,9 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             // PCPG needs to use the exact residual for the comparison with the expected values
             if (exactResidual)
             {
-                var exactResidualCalculator = new ExactPcpgResidualCalculator(CreateSingleSubdomainModel(),
-                   solverBuilder.DofOrderer, (model, solver) => new ProblemStructural_v2(model, solver));
+                var exactResidualCalculator = new ExactPcpgResidualCalculator(
+                    CreateSingleSubdomainModel(fixedOverFloatingSubdomainElasticity),
+                    solverBuilder.DofOrderer, (model, solver) => new ProblemStructural_v2(model, solver));
                 exactResidualCalculator.BuildLinearSystem();
                 solverBuilder.PcpgExactResidual = exactResidualCalculator;
             }
@@ -167,9 +186,9 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             return (globalDisplacements, solverBuilder.Logger, numUniqueGlobalDofs, numExtenedDomainDofs);
         }
 
-        private static IVectorView SolveModelWithoutSubdomains()
+        private static IVectorView SolveModelWithoutSubdomains(double fixedOverFloatingSubdomainElasticity)
         {
-            Model_v2 model = CreateSingleSubdomainModel();
+            Model_v2 model = CreateSingleSubdomainModel(fixedOverFloatingSubdomainElasticity);
 
             // Solver
             SkylineSolver solver = (new SkylineSolver.Builder()).BuildSolver(model);

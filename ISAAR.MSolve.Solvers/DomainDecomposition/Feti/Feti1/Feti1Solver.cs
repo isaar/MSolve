@@ -151,6 +151,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         {
             mustFactorize = true;
             factorizations = null;
+            //TODO: clear the rest
         }
 
         public void Initialize()
@@ -219,6 +220,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             // Calculate generalized inverses and rigid body modes of subdomains to assemble the interface flexibility matrix. 
             if (mustFactorize)
             {
+                //TODO: clear the rest
                 factorizations = new Dictionary<int, SemidefiniteCholeskySkyline>();
                 rigidBodyModes = new Dictionary<int, List<Vector>>();
                 foreach (var linearSystem in linearSystems.Values)
