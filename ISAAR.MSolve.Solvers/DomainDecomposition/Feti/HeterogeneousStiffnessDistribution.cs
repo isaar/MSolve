@@ -1,22 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.Commons;
 
 //TODO: Also implement the Superlumped smoothening from Rixen, Farhat (1999). It should be equivalent to Fragakis' PhD approach.
+//TODO: Use this to map displacements, forces, etc between subdomain - global level.
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
-    internal class HeterogeneousStiffnessDistribution : IStiffnessDistribution
+    public class HeterogeneousStiffnessDistribution : IStiffnessDistribution
     {
-        //TODO: Use these to map displacements, forces, etc between subdomain - global level.
-        private Table<INode, DOFType, BoundaryDofLumpedStiffness> boundaryDofStiffnesses;
-        private Dictionary<int, IMatrixView> stiffnessMatrices;
+        //TODO: If a solver operation needs this, it is probably better to delegate that operation to this class.
+        private readonly Table<INode, DOFType, BoundaryDofLumpedStiffness> boundaryDofStiffnesses;
+        private readonly DofSeparator dofSeparator;
+        private readonly Dictionary<int, IMatrixView> stiffnessMatrices;
 
-        public INodalLoadDistributor NodalLoadDistributor { get; } = new HeterogeneousNodalLoadDistributor();
+        public HeterogeneousStiffnessDistribution(DofSeparator dofSeparator, Dictionary<int, IMatrixView> stiffnessMatrices)
+        {
+            this.dofSeparator = dofSeparator;
+            this.stiffnessMatrices = stiffnessMatrices;
+            this.boundaryDofStiffnesses = BoundaryDofLumpedStiffness.ExtractBoundaryDofLumpedStiffnesses(
+                dofSeparator, stiffnessMatrices); 
+        }
 
-        public Dictionary<int, Matrix> CalcBoundaryPreconditioningSignedBooleanMatrices(DofSeparator dofSeparator,
+        public ISubdomainGlobalConversion SubdomainGlobalConversion { get; } = new HeterogeneousSubdomainGlobalConversion();
+
+        public Dictionary<int, Matrix> CalcBoundaryPreconditioningSignedBooleanMatrices(
             LagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, Matrix> boundarySignedBooleanMatrices)
         {
             // According to Fragakis PhD (e.q. 3.28): 
@@ -34,17 +43,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
                 matricesBpb[subdomainId] = Bb.MultiplyRight(invDb).MultiplyLeft(Dlambda);
             }
             return matricesBpb;
-        }
-
-        //TODO: These should be done in the constructor and the fields should be readonly. However the analyzer-solver
-        //      interaction needs modification, because distributing nodal loads is needed before this class can be instantiated.
-        //      Since I want to use these stiffnesses for distributing nodal loads, it makes sense to make sure that this class
-        //      is instantiated beforehand.
-        public void StoreStiffnesses(Dictionary<int, IMatrixView> stiffnessMatrices,
-            Table<INode, DOFType, BoundaryDofLumpedStiffness> boundaryDofStiffnesses)
-        {
-            this.stiffnessMatrices = stiffnessMatrices;
-            this.boundaryDofStiffnesses = boundaryDofStiffnesses;
         }
 
         private Matrix BuildDlambda(LagrangeMultipliersEnumerator lagrangeEnumerator)

@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
                 matricesBb[id] = Bb;
             }
             Dictionary<int, Matrix> matricesBpb = stiffnessDistribution.CalcBoundaryPreconditioningSignedBooleanMatrices(
-                dofSeparator, lagrangeEnumerator, matricesBb);
+                lagrangeEnumerator, matricesBb);
             
             return matricesBpb;
         }

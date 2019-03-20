@@ -34,18 +34,18 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         private readonly double pcpgMaxIterationsOverSize;
         private readonly PdeOrder pde;
         private readonly IFetiPreconditionerFactory preconditionerFactory;
-        private readonly IStiffnessDistribution stiffnessDistribution;
 
         //TODO: fix the mess of Dictionary<int, ISubdomain>, List<ISubdomain>, Dictionary<int, Subdomain>, List<Subdomain>
         //      The concrete are useful for the preprocessor mostly, while analyzers, solvers need the interface versions.
         //      Lists are better in analyzers and solvers. Dictionaries may be better in the preprocessors.
-        private readonly Dictionary<int, ISubdomain_v2> subdomains; 
+        private readonly Dictionary<int, ISubdomain_v2> subdomains;
 
         private DofSeparator dofSeparator;
         private bool factorizeInPlace = true;
         private bool mustFactorize = true;
         private Dictionary<int, SemidefiniteCholeskySkyline> factorizations;
         private Dictionary<int, List<Vector>> rigidBodyModes;
+        private IStiffnessDistribution stiffnessDistribution;
 
         private Feti1Solver(IStructuralModel_v2 model, IDofOrderer dofOrderer, double factorizationPivotTolerance, 
             double pcpgMaxIterationsOverSize, double pcpgConvergenceTolerance, IExactResidualCalculator pcpgExactResidual,
@@ -87,29 +87,37 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
             this.lagrangeEnumerator = new LagrangeMultipliersEnumerator(crosspointStrategy);
 
-            // Homegeneous/heterogeneous problems
+            // Homogeneous/heterogeneous problems
+            this.pde = pde;
             this.isProblemHomogeneous = isProblemHomogeneous;
-            if (isProblemHomogeneous) this.stiffnessDistribution = new HomogeneousStiffnessDistribution();
-            else this.stiffnessDistribution = new HeterogeneousStiffnessDistribution();
         }
 
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
         public Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider_v2 elementMatrixProvider)
         {
-            var matrices = new Dictionary<int, IMatrix>();
+            var matricesInternal = new Dictionary<int, IMatrixView>();
+            var matricesResult = new Dictionary<int, IMatrix>();
             foreach (ISubdomain_v2 subdomain in model.Subdomains) //TODO: this must be done in parallel
             {
-                matrices[subdomain.ID] = assemblers[subdomain.ID].BuildGlobalMatrix(subdomain.FreeDofOrdering, 
+                SkylineMatrix matrix = assemblers[subdomain.ID].BuildGlobalMatrix(subdomain.FreeDofOrdering, 
                     subdomain.Elements, elementMatrixProvider);
+                matricesInternal[subdomain.ID] = matrix;
+                matricesResult[subdomain.ID] = matrix;
             }
-            return matrices;
+
+            // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
+            //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
+            DetermineStiffnessDistribution(matricesInternal);
+
+            return matricesResult;
         }
 
         public Dictionary<int, (IMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
             IMatrixView matrixConstrConstr)> BuildGlobalSubmatrices(IElementMatrixProvider_v2 elementMatrixProvider)
         {
-            var matrices = new Dictionary<int, (IMatrix Aff, IMatrixView Afc, IMatrixView Acf, IMatrixView Acc)>();
+            var matricesResult = new Dictionary<int, (IMatrix Aff, IMatrixView Afc, IMatrixView Acf, IMatrixView Acc)>();
+            var matricesInternal = new Dictionary<int, IMatrixView>();
             foreach (ISubdomain_v2 subdomain in model.Subdomains) //TODO: this must be done in parallel
             {
                 if (subdomain.ConstrainedDofOrdering == null)
@@ -117,44 +125,27 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
                     throw new InvalidOperationException("In order to build the matrices corresponding to constrained dofs of,"
                         + $" subdomain {subdomain.ID}, they must have been ordered first.");
                 }
-                matrices[subdomain.ID] = assemblers[subdomain.ID].BuildGlobalSubmatrices(subdomain.FreeDofOrdering,
+                (SkylineMatrix Kff, IMatrixView Kfc, IMatrixView Kcf, IMatrixView Kcc) = 
+                    assemblers[subdomain.ID].BuildGlobalSubmatrices(subdomain.FreeDofOrdering,
                     subdomain.ConstrainedDofOrdering, subdomain.Elements, elementMatrixProvider);
+                matricesResult[subdomain.ID] = (Kff, Kfc, Kcf, Kcc);
+                matricesInternal[subdomain.ID] = Kff;
             }
-            return matrices;
+
+            // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
+            //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
+            DetermineStiffnessDistribution(matricesInternal);
+
+            return matricesResult;
         }
 
-        //TODO: this is for homogeneous problems only.
+        //TODO: this and the fields should be handled by a class that handles dof mappings.
         public Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, DOFType, double> globalNodalLoads)
-            => stiffnessDistribution.NodalLoadDistributor.DistributeNodalLoads(LinearSystems, globalNodalLoads);
+            => stiffnessDistribution.SubdomainGlobalConversion.DistributeNodalLoads(LinearSystems, globalNodalLoads);
 
-        //TODO: this and the fields should be handled by a class that handles dofs.
+        //TODO: this and the fields should be handled by a class that handles dof mappings.
         public Vector GatherGlobalDisplacements(Dictionary<int, IVectorView> subdomainDisplacements) 
-        {
-            var globalDisplacements = Vector.CreateZero(model.GlobalDofOrdering.NumGlobalFreeDofs);
-            foreach (var subdomain in model.Subdomains)
-            {
-                int id = subdomain.ID;
-                int[] subdomainToGlobalDofs = model.GlobalDofOrdering.MapFreeDofsSubdomainToGlobal(subdomain);
-                IVectorView displacements = subdomainDisplacements[id]; //TODO: benchmark the performance if this was concrete Vector
-
-                // Internal dofs are copied as is.
-                foreach (int internalDof in dofSeparator.InternalDofs[id])
-                {
-                    int globalDofIdx = subdomainToGlobalDofs[internalDof];
-                    globalDisplacements[globalDofIdx] = displacements[internalDof];
-                }
-
-                // For boundary dofs we take the mean value across subdomains. 
-                for (int i = 0; i < dofSeparator.BoundaryDofs[id].Length; ++i)
-                {
-                    int multiplicity = dofSeparator.BoundaryDofsMultiplicity[id][i];
-                    int subdomainDofIdx = dofSeparator.BoundaryDofs[id][i];
-                    int globalDofIdx = subdomainToGlobalDofs[subdomainDofIdx];
-                    globalDisplacements[globalDofIdx] += displacements[subdomainDofIdx] / multiplicity;
-                }
-            }
-            return globalDisplacements;
-        }
+            => stiffnessDistribution.SubdomainGlobalConversion.GatherGlobalDisplacements(subdomainDisplacements);
 
         public void HandleMatrixWillBeSet()
         {
@@ -164,9 +155,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         }
 
         public void Initialize()
-        {
-            
-        }
+        { }
 
         public Dictionary<int, Matrix> InverseSystemMatrixTimesOtherMatrix(Dictionary<int, IMatrixView> otherMatrix)
         {
@@ -193,7 +182,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             dofSeparator.SeparateBoundaryInternalDofs(model);
 
             // Define lagrange multipliers and boolean matrices
-            if (isProblemHomogeneous) lagrangeEnumerator.DefineBooleanMatrices(model, dofSeparator);
+            if (isProblemHomogeneous) lagrangeEnumerator.DefineBooleanMatrices(model, dofSeparator); // optimization in this case
             else lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model, dofSeparator);
 
             //Leftover code from Model.ConnectDataStructures().
@@ -216,12 +205,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
                 stiffnessMatrices.Add(linearSystem.Subdomain.ID, linearSystem.Matrix);
-            }
-            if (!isProblemHomogeneous)
-            {
-                Table<INode, DOFType, BoundaryDofLumpedStiffness> boundaryDofStiffnesses
-                    = BoundaryDofLumpedStiffness.ExtractBoundaryDofLumpedStiffnesses(dofSeparator, stiffnessMatrices);
-                stiffnessDistribution.StoreStiffnesses(stiffnessMatrices, boundaryDofStiffnesses);
             }
             IFetiPreconditioner preconditioner = preconditionerFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator, 
                 lagrangeEnumerator, stiffnessMatrices);
@@ -272,12 +255,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             //      the nodal loads from the model, since the effect of other loads is only taken into account int 
             //      linearSystem.Rhs. Even if we could easily create the global forces vector, it might be wrong since 
             //      the analyzer may modify some of these loads, depending on time step, loading step, etc.
-            var subdomainForces = new Dictionary<int, Vector>();
+            var subdomainForces = new Dictionary<int, IVectorView>();
             foreach (var linearSystem in linearSystems.Values)
             {
                 subdomainForces[linearSystem.Subdomain.ID] = linearSystem.RhsVector;
             }
-            double globalForcesNorm = CalculateGlobalForcesNorm(subdomainForces);
+            double globalForcesNorm = stiffnessDistribution.SubdomainGlobalConversion.CalculateGlobalForcesNorm(subdomainForces);
 
             // Handle exact residual calculations if they are enabled during testing
             CalculateExactResidualNorm calcExactResidualNorm = null;
@@ -365,31 +348,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             return pcpgExactResidual.CalculateExactResidualNorm(globalDisplacements);
         }
 
-        //TODO: this should be used for non linear analyzers as well (instead of building the global RHS)
-        //TODO: this should be implemented by a different class.
-        //TODO: Is this correct? For the residual, it would be wrong to find f-K*u for each subdomain and then call this.
-        private double CalculateGlobalForcesNorm(Dictionary<int, Vector> subdomainForces) //TODO: This should take into account the heterogenity.
-        {
-            double globalSum = 0.0;
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
-            {
-                int id = subdomain.ID;
-                double subdomainSum = 0.0;
-                Vector forces = subdomainForces[id];
-                foreach (int internalDof in dofSeparator.InternalDofs[id]) subdomainSum += forces[internalDof];
-                for (int i = 0; i < dofSeparator.BoundaryDofs[id].Length; ++i)
-                {
-                    // E.g. 2 subdomains. Originally: sum += f * f. Now: sum += (2*f/2)(2*f/2)/2 + (2*f/2)(2*f/2)/2
-                    // WARNING: This works only if nodal loads are distributed evenly among subdomains.
-                    int multiplicity = dofSeparator.BoundaryDofsMultiplicity[id][i];
-                    double totalForce = forces[dofSeparator.BoundaryDofs[id][i]] * multiplicity;
-                    subdomainSum += (totalForce * totalForce) / multiplicity;
-                }
-                globalSum += subdomainSum;
-            }
-            return Math.Sqrt(globalSum);
-        }
-
         private Vector CalculateRigidBodyModesCoefficients(Feti1FlexibilityMatrix flexibility, Feti1Projection projection,
             Vector disconnectedDisplacements, Vector lagrangeMultipliers)
         {
@@ -419,6 +377,14 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             }
 
             return work;
+        }
+
+        private void DetermineStiffnessDistribution(Dictionary<int, IMatrixView> stiffnessMatrices)
+        {
+            // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
+            //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
+            if (isProblemHomogeneous) stiffnessDistribution = new HomogeneousStiffnessDistribution(model, dofSeparator);
+            else stiffnessDistribution = new HeterogeneousStiffnessDistribution(dofSeparator, stiffnessMatrices);
         }
 
         public class Builder

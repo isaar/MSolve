@@ -1,17 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.Numerical.Commons;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
     public class HomogeneousStiffnessDistribution : IStiffnessDistribution
     {
-        public INodalLoadDistributor NodalLoadDistributor { get; } = new HomogeneousNodalLoadDistributor();
+        //TODO: perhaps the should be removed from the interface methods
+        //private readonly IStructuralModel_v2 model;
+        private readonly DofSeparator dofSeparator;
 
-        public Dictionary<int, Matrix> CalcBoundaryPreconditioningSignedBooleanMatrices(DofSeparator dofSeparator,
+        public HomogeneousStiffnessDistribution(IStructuralModel_v2 model, DofSeparator dofSeparator)
+        {
+            //this.model = model;
+            this.dofSeparator = dofSeparator;
+            this.SubdomainGlobalConversion = new HomogeneousSubdomainGlobalConversion(model, dofSeparator);
+        }
+
+        public ISubdomainGlobalConversion SubdomainGlobalConversion { get; }
+
+        public Dictionary<int, Matrix> CalcBoundaryPreconditioningSignedBooleanMatrices(
             LagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, Matrix> boundarySignedBooleanMatrices)
         {
             var matricesBpb = new Dictionary<int, Matrix>();
@@ -22,10 +31,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
             }
             return matricesBpb;
         }
-
-        public void StoreStiffnesses(Dictionary<int, IMatrixView> stiffnessMatrices, 
-            Table<INode, DOFType, BoundaryDofLumpedStiffness> boundaryDofStiffnesses)
-            => throw new NotImplementedException("This makes sense only for heterogeneous problems");
 
         //TODO: Perhaps I could use int[] -> double[] -> DiagonalMatrix -> .Invert()
         //TODO: This can be parallelized OpenMP style.

@@ -2,20 +2,27 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.Solvers.LinearSystems;
 
-//TODO: Should I implement this as fb(s) = Lpb(s) * fb, Lpb(s) = Db(s)*Lb(s) * inv(Lb^T*Db*Lb)?
-//TODO: Internal loaded dofs should be handled differently as an optimization.
-namespace ISAAR.MSolve.Solvers.DomainDecomposition
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
-    public class HeterogeneousNodalLoadDistributor : INodalLoadDistributor
+    internal class HeterogeneousSubdomainGlobalConversion : ISubdomainGlobalConversion
     {
-        public Dictionary<int, SparseVector> DistributeNodalLoads(IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems,
+        public double CalculateGlobalForcesNorm(Dictionary<int, IVectorView> subdomainForces)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Dictionary<int, SparseVector> DistributeNodalLoads(IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems, 
             Table<INode, DOFType, double> globalNodalLoads)
         {
+            //TODO: Should I implement this as fb(s) = Lpb(s) * fb, Lpb(s) = Db(s)*Lb(s) * inv(Lb^T*Db*Lb)?
+            //TODO: Internal loaded dofs should be handled differently as an optimization.
+
             var subdomainLoads = new Dictionary<int, SortedDictionary<int, double>>();
             foreach (var subdomainID in linearSystems.Keys) subdomainLoads[subdomainID] = new SortedDictionary<int, double>();
 
@@ -49,6 +56,16 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition
             }
 
             return BuildForceVectors(linearSystems, subdomainLoads);
+        }
+
+        public Vector GatherGlobalDisplacements(Dictionary<int, IVectorView> subdomainDisplacements)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Vector GatherGlobalForces(Dictionary<int, IVectorView> subdomainForces)
+        {
+            throw new NotImplementedException();
         }
 
         private Dictionary<int, SparseVector> BuildForceVectors(IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems,
