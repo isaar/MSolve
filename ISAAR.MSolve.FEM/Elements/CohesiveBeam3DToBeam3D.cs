@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.FEM.Elements
         {
         }
 
-        public CohesiveBeam3DToBeam3D(ICohesiveZoneMaterial3D material, IQuadrature2D quadratureForStiffness)
+        public CohesiveBeam3DToBeam3D(ICohesiveZoneMaterial3D material, IQuadrature1D quadratureForStiffness)
         {
             this.QuadratureForStiffness = quadratureForStiffness;
             this.nGaussPoints = quadratureForStiffness.IntegrationPoints.Count;
@@ -50,7 +50,7 @@ namespace ISAAR.MSolve.FEM.Elements
             for (int i = 0; i < nGaussPoints; i++) materialsAtGaussPoints[i] = material.Clone();
         }
 
-        public IQuadrature2D QuadratureForStiffness { get; }
+        public IQuadrature1D QuadratureForStiffness { get; }
 
         private void GetInitialGeometricDataAndInitializeMatrices(IElement element)
         {
@@ -64,8 +64,13 @@ namespace ISAAR.MSolve.FEM.Elements
 
         private double[][] UpdateCoordinateDataAndCalculateDisplacementVector(double[] localdisplacements)
         {
-            IReadOnlyList<Matrix2D> shapeFunctionDerivatives = interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
+            //IReadOnlyList<Matrix2D> shapeFunctionDerivatives = interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
+            double[,] shapeFunctionDerivatives = interpolation.EvaluateGradientsAt();
+
+
             IReadOnlyList<Vector> N1 = interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
+
+
             IReadOnlyList<Matrix2D> N3 = interpolation.EvaluateN3ShapeFunctionsReorganized(QuadratureForStiffness);
 
             double[,] u_prok = new double[3, 2];
