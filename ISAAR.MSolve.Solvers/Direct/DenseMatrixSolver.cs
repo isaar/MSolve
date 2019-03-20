@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.Solvers.Direct
             this.isMatrixPositiveDefinite = isMatrixPositiveDefinite;
         }
 
-        public override IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
+        public override Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider_v2 elementMatrixProvider)
         {
             #region Code to facilitate debugging
             //var writer = new FullMatrixWriter();
@@ -79,8 +79,11 @@ namespace ISAAR.MSolve.Solvers.Direct
             //writer.WriteToConsole(matrix);
             #endregion
 
-            return assembler.BuildGlobalMatrix(subdomain.FreeDofOrdering, subdomain.Elements, 
-                elementMatrixProvider);
+            return new Dictionary<int, IMatrix>
+            {
+                { subdomain.ID,
+                    assembler.BuildGlobalMatrix(subdomain.FreeDofOrdering, subdomain.Elements, elementMatrixProvider) }
+            };
         }
 
         public override void HandleMatrixWillBeSet()

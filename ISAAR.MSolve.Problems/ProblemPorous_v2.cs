@@ -81,44 +81,29 @@ namespace ISAAR.MSolve.Problems
             BuildQs();
         }
 
-        private void BuildKs()
-        {
-            ks = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
-            {
-                ks.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, stiffnessProvider));
-            }
-        }
+        private void BuildKs() => ks = solver.BuildGlobalMatrices(stiffnessProvider);
 
         private void RebuildKs()
         {
+            //TODO: This will rebuild all the stiffnesses of all subdomains, if even one subdomain has MaterialsModified = true.
+            //      Optimize this, by passing a flag foreach subdomain to solver.BuildGlobalSubmatrices().
+
+            bool mustRebuild = false;
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 if (subdomain.MaterialsModified)
                 {
-                    ks[subdomain.ID] = solver.BuildGlobalMatrix(subdomain, stiffnessProvider);
-                    subdomain.ResetMaterialsModifiedProperty();
+                    mustRebuild = true;
+                    break;
                 }
             }
+            if (mustRebuild) ks = solver.BuildGlobalMatrices(stiffnessProvider);
+            foreach (ISubdomain_v2 subdomain in model.Subdomains) subdomain.ResetMaterialsModifiedProperty();
         }
 
-        private void BuildMs()
-        {
-            ms = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
-            {
-                ms.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, massProvider));
-            }
-        }
+        private void BuildMs() => ms = solver.BuildGlobalMatrices(massProvider);
 
-        private void BuildCs()
-        {
-            cs = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
-            {
-                cs.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, dampingProvider));
-            }
-        }
+        private void BuildCs() => cs = solver.BuildGlobalMatrices(dampingProvider);
 
         private void BuildQs()
         {

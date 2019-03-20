@@ -75,63 +75,60 @@ namespace ISAAR.MSolve.Problems
             }
         }
 
-        private void BuildStiffnessFreeFree()
-        {
-            stiffnessFreeFree = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
-            {
-                stiffnessFreeFree.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, stiffnessProvider));
-            }
-        }
+        private void BuildStiffnessFreeFree() => stiffnessFreeFree = solver.BuildGlobalMatrices(stiffnessProvider);
 
         private void BuildStiffnessSubmatrices()
         {
+            Dictionary<int, (IMatrix Kff, IMatrixView Kfc, IMatrixView Kcf, IMatrixView Kcc)> matrices =
+                solver.BuildGlobalSubmatrices(stiffnessProvider);
+
             stiffnessFreeFree = new Dictionary<int, IMatrix>(model.Subdomains.Count);
             stiffnessFreeConstr = new Dictionary<int, IMatrixView>(model.Subdomains.Count);
             stiffnessConstrFree = new Dictionary<int, IMatrixView>(model.Subdomains.Count);
             stiffnessConstrConstr = new Dictionary<int, IMatrixView>(model.Subdomains.Count);
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
-                (IMatrix Kff, IMatrixView Kfc, IMatrixView Kcf, IMatrixView Kcc) = 
-                    solver.BuildGlobalSubmatrices(subdomain, stiffnessProvider);
-                stiffnessFreeFree.Add(subdomain.ID, Kff);
-                stiffnessFreeConstr.Add(subdomain.ID, Kfc);
-                stiffnessConstrFree.Add(subdomain.ID, Kcf);
-                stiffnessConstrConstr.Add(subdomain.ID, Kcc);
+                int id = subdomain.ID;
+                stiffnessFreeFree.Add(id, matrices[id].Kff);
+                stiffnessFreeConstr.Add(id, matrices[id].Kfc);
+                stiffnessConstrFree.Add(id, matrices[id].Kcf);
+                stiffnessConstrConstr.Add(id, matrices[id].Kcc);
             }
         }
 
         private void RebuildBuildStiffnessFreeFree()
         {
+            //TODO: This will rebuild all the stiffnesses of all subdomains, if even one subdomain has MaterialsModified = true.
+            //      Optimize this, by passing a flag foreach subdomain to solver.BuildGlobalSubmatrices().
+
+            bool mustRebuild = false;
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 if (subdomain.MaterialsModified)
                 {
-                    stiffnessFreeFree[subdomain.ID] = solver.BuildGlobalMatrix(subdomain, stiffnessProvider);
-                    subdomain.ResetMaterialsModifiedProperty();
+                    mustRebuild = true;
+                    break;
                 }
             }
+            if (mustRebuild) stiffnessFreeFree = solver.BuildGlobalMatrices(stiffnessProvider);
+            foreach (ISubdomain_v2 subdomain in model.Subdomains) subdomain.ResetMaterialsModifiedProperty();
+
+            // Original code kept, in case we need to reproduce its behavior.
+            //foreach (ISubdomain_v2 subdomain in model.Subdomains)
+            //{
+            //    if (subdomain.MaterialsModified)
+            //    {
+            //        stiffnessFreeFree[subdomain.ID] = solver.BuildGlobalMatrices(subdomain, stiffnessProvider);
+            //        subdomain.ResetMaterialsModifiedProperty();
+            //    }
+            //}
         }
 
-        private void BuildMass()
-        {
-            mass = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
-            {
-                mass.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, massProvider));
-            }
-        }
+        private void BuildMass() => mass = solver.BuildGlobalMatrices(massProvider);
 
         //TODO: With Rayleigh damping, C is more efficiently built using linear combinations of global K, M, 
         //      instead of building and assembling element k, m matrices.
-        private void BuildDamping()
-        {
-            damping = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
-            {
-                damping.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, dampingProvider));
-            }
-        }
+        private void BuildDamping() => damping = solver.BuildGlobalMatrices(dampingProvider);
 
         #region IAnalyzerProvider Members
         public void Reset()

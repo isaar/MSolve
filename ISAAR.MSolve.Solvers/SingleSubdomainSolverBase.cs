@@ -48,20 +48,29 @@ namespace ISAAR.MSolve.Solvers
 
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
-        public virtual IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
-            => assembler.BuildGlobalMatrix(subdomain.FreeDofOrdering, subdomain.Elements, elementMatrixProvider);
+        public virtual Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider_v2 elementMatrixProvider)
+        {
+            return new Dictionary<int, IMatrix>
+            {
+                { subdomain.ID,
+                    assembler.BuildGlobalMatrix(subdomain.FreeDofOrdering, subdomain.Elements, elementMatrixProvider) }
+            };
+        }
 
-        public virtual (IMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree, 
-            IMatrixView matrixConstrConstr) BuildGlobalSubmatrices(
-            ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
+        public virtual Dictionary<int, (IMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
+            IMatrixView matrixConstrConstr)> BuildGlobalSubmatrices(IElementMatrixProvider_v2 elementMatrixProvider)
         {
             if (subdomain.ConstrainedDofOrdering == null)
             {
                 throw new InvalidOperationException("In order to build the matrices corresponding to constrained dofs,"
                     + " they must have been ordered first.");
             }
-            return assembler.BuildGlobalSubmatrices(subdomain.FreeDofOrdering, subdomain.ConstrainedDofOrdering,
-                subdomain.Elements, elementMatrixProvider);
+            return new Dictionary<int, (IMatrix Aff, IMatrixView Afc, IMatrixView Acf, IMatrixView Acc)>
+            {
+                { subdomain.ID, assembler.BuildGlobalSubmatrices(subdomain.FreeDofOrdering, subdomain.ConstrainedDofOrdering,
+                        subdomain.Elements, elementMatrixProvider) }
+            };
+            
         }
 
         public Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, DOFType, double> globalNodalLoads)

@@ -95,23 +95,32 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
 
-        public IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
+        public Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider_v2 elementMatrixProvider)
         {
-            return assemblers[subdomain.ID].BuildGlobalMatrix(
-                subdomain.FreeDofOrdering, subdomain.Elements, elementMatrixProvider);
+            var matrices = new Dictionary<int, IMatrix>();
+            foreach (ISubdomain_v2 subdomain in model.Subdomains) //TODO: this must be done in parallel
+            {
+                matrices[subdomain.ID] = assemblers[subdomain.ID].BuildGlobalMatrix(subdomain.FreeDofOrdering, 
+                    subdomain.Elements, elementMatrixProvider);
+            }
+            return matrices;
         }
 
-        public (IMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree, 
-            IMatrixView matrixConstrConstr) BuildGlobalSubmatrices(
-            ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
+        public Dictionary<int, (IMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
+            IMatrixView matrixConstrConstr)> BuildGlobalSubmatrices(IElementMatrixProvider_v2 elementMatrixProvider)
         {
-            if (subdomain.ConstrainedDofOrdering == null)
+            var matrices = new Dictionary<int, (IMatrix Aff, IMatrixView Afc, IMatrixView Acf, IMatrixView Acc)>();
+            foreach (ISubdomain_v2 subdomain in model.Subdomains) //TODO: this must be done in parallel
             {
-                throw new InvalidOperationException("In order to build the matrices corresponding to constrained dofs,"
-                    + " they must have been ordered first.");
+                if (subdomain.ConstrainedDofOrdering == null)
+                {
+                    throw new InvalidOperationException("In order to build the matrices corresponding to constrained dofs of,"
+                        + $" subdomain {subdomain.ID}, they must have been ordered first.");
+                }
+                matrices[subdomain.ID] = assemblers[subdomain.ID].BuildGlobalSubmatrices(subdomain.FreeDofOrdering,
+                    subdomain.ConstrainedDofOrdering, subdomain.Elements, elementMatrixProvider);
             }
-            return assemblers[subdomain.ID].BuildGlobalSubmatrices(subdomain.FreeDofOrdering, subdomain.ConstrainedDofOrdering,
-                subdomain.Elements, elementMatrixProvider);
+            return matrices;
         }
 
         //TODO: this is for homogeneous problems only.
@@ -341,7 +350,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         }
 
         /// <summary>
-        /// This is only used by the corresponeing PCPG convergence criteria, which itself is fro testing purposes only.
+        /// This is only used by the corresponding PCPG convergence criteria, which itself is for testing purposes only.
         /// </summary>
         private double CalculateExactResidualNorm(Vector lagranges, Feti1FlexibilityMatrix flexibility, //TODO: move to another class
             Feti1Projection projection, Vector disconnectedDisplacements)
