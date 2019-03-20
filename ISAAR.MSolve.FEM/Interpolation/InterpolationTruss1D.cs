@@ -6,9 +6,7 @@ using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
 
-// Quad4 nodes:
-// 3 -- 2
-// |    |
+// Truss nodes:
 // 0 -- 1
 
 namespace ISAAR.MSolve.FEM.Interpolation
@@ -18,16 +16,16 @@ namespace ISAAR.MSolve.FEM.Interpolation
     /// Implements Singleton pattern.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class InterpolationTruss1D : IsoparametricInterpolation2DBase
+    public class InterpolationTruss1D
     {
         private static readonly InterpolationTruss1D uniqueInstance = new InterpolationTruss1D();
 
-        private InterpolationTruss1D(): base(CellType2D.Quad4, 4)
+        private InterpolationTruss1D()
         {
-            NodalNaturalCoordinates = new NaturalPoint2D[]
+            NodalNaturalCoordinates = new NaturalPoint1D[]
             {
-                new NaturalPoint2D(-1.0, 0.0),
-                new NaturalPoint2D(+1.0, 0.0)
+                new NaturalPoint1D(-1.0),
+                new NaturalPoint1D(+1.0)
             };
         }
 
@@ -35,7 +33,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// The coordinates of the finite element's nodes in the natural (element local) coordinate system. The order of these
         /// nodes matches the order of the shape functions and is always the same for each element.
         /// </summary>
-        public override IReadOnlyList<NaturalPoint2D> NodalNaturalCoordinates { get; }
+        public IReadOnlyList<NaturalPoint1D> NodalNaturalCoordinates { get; }
 
         /// <summary>
         /// Get the unique <see cref="InterpolationTruss1D"/> object for the whole program. Thread safe.
@@ -47,18 +45,18 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <returns></returns>
-        public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node2D> nodes)
-            => new InverseInterpolationTruss1D(nodes);
+        //public override IInverseInterpolation1D CreateInverseMappingFor(IReadOnlyList<Node> nodes)
+        //    => new InverseInterpolationTruss1D(nodes);
 
-        protected override sealed double[] EvaluateAt(double xi, double eta)
+        protected double[] EvaluateAt(double xi)
         {
-            var values = new double[4];
+            var values = new double[2];
             values[0] = 0.50 * (1 - xi);
             values[1] = 0.50 * (1 + xi);
             return values;
         }
 
-        protected override sealed double[,] EvaluateGradientsAt(double xi, double eta)
+        protected double[,] EvaluateGradientsAt(double xi)
         {
             var derivatives = new double[1, 2];
             derivatives[0, 0] = -0.50; // N1,ksi
