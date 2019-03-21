@@ -82,9 +82,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			var nurbs = new NURBS2D(elementCollocation.Patch.DegreeKsi, elementCollocation.Patch.DegreeHeta,
 				elementCollocation.Patch.KnotValueVectorKsi, elementCollocation.Patch.KnotValueVectorHeta,
 				elementCollocation.CollocationPoint, elementCollocation.ControlPoints);
-
-			var cartesianCollocationPoint = CalculateCartesianCollocationPoint(elementCollocation, nurbs);
-
+			
 			var jacobianMatrix = CalculateJacobianMatrix(elementCollocation, nurbs);
 
 			var hessianMatrix = CalculateHessian(elementCollocation, nurbs, 0);
@@ -106,14 +104,14 @@ namespace ISAAR.MSolve.IGA.Elements
 				},false);
 
 			var inverseJacobian = jacobianMatrix.Invert();
-			var dR = CalculateNaturalCoordinates(nurbs, inverseJacobian);
+			var dR = CalculateNaturalDerivatives(nurbs, inverseJacobian);
 
 			var ddR = CalculateNaturalSecondDerivatives(nurbs, hessianMatrix, dR, squareDerivatives);
-
+			
 			return CalculateCollocationPointStiffness(elementCollocation, ddR);
 		}
-
-		private Matrix CalculateCollocationPointStiffness(NURBSElement2DCollocation elementCollocation, double[,] ddR)
+		
+		public Matrix CalculateCollocationPointStiffness(NURBSElement2DCollocation elementCollocation, double[,] ddR)
 		{
 			var collocationPointStiffness = Matrix.CreateZero(2, elementCollocation.ControlPoints.Count * 2);
 
@@ -133,7 +131,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			return collocationPointStiffness;
 		}
 
-		private static double[,] CalculateNaturalSecondDerivatives(NURBS2D nurbs, Matrix2D hessianMatrix, double[,] dR,
+		public double[,] CalculateNaturalSecondDerivatives(NURBS2D nurbs, Matrix2D hessianMatrix, double[,] dR,
 			Matrix3by3 squareDerivatives)
 		{
 			var ddR2 = new double[3, nurbs.NurbsSecondDerivativeValueKsi.Rows];
@@ -160,7 +158,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			return ddR;
 		}
 
-		private double[,] CalculateNaturalCoordinates(NURBS2D nurbs, Matrix2by2 inverseJacobian)
+		public double[,] CalculateNaturalDerivatives(NURBS2D nurbs, Matrix2by2 inverseJacobian)
 		{
 			var dR = new double[2, nurbs.NurbsSecondDerivativeValueKsi.Rows];
 			for (int i = 0; i < dR.GetLength(1); i++)
@@ -168,14 +166,14 @@ namespace ISAAR.MSolve.IGA.Elements
 				var dKsi = nurbs.NurbsDerivativeValuesKsi[i, 0];
 				var dHeta = nurbs.NurbsDerivativeValuesHeta[i, 0];
 
-				dR[0, i] = inverseJacobian[0, 0] * dKsi * inverseJacobian[0, 1] * dHeta;
-				dR[1, i] = inverseJacobian[1, 0] * dKsi * inverseJacobian[1, 1] * dHeta;
+				dR[0, i] = inverseJacobian[0, 0] * dKsi + inverseJacobian[0, 1] * dHeta;
+				dR[1, i] = inverseJacobian[1, 0] * dKsi + inverseJacobian[1, 1] * dHeta;
 			}
 
 			return dR;
 		}
 
-		private static Matrix2by2 CalculateJacobianMatrix(NURBSElement2DCollocation elementCollocation, NURBS2D nurbs)
+		public Matrix2by2 CalculateJacobianMatrix(NURBSElement2DCollocation elementCollocation, NURBS2D nurbs)
 		{
 			var jacobianMatrix = Matrix2by2.CreateZero();
 			for (int k = 0; k < elementCollocation.ControlPoints.Count; k++)
@@ -189,7 +187,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			return jacobianMatrix;
 		}
 
-		private Vector2 CalculateCartesianCollocationPoint(NURBSElement2DCollocation elementCollocation, NURBS2D nurbs)
+		public Vector2 CalculateCartesianCollocationPoint(NURBSElement2DCollocation elementCollocation, NURBS2D nurbs)
 		{
 			var cartesianCollocationPoint = Vector2.CreateZero();
 			for (int k = 0; k < elementCollocation.ControlPoints.Count; k++)
@@ -201,7 +199,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			return cartesianCollocationPoint;
 		}
 
-		private static Matrix2D CalculateHessian(NURBSElement2DCollocation shellElement, NURBS2D nurbs, int j)
+		public Matrix2D CalculateHessian(NURBSElement2DCollocation shellElement, NURBS2D nurbs, int j)
 		{
 			Matrix2D hessianMatrix = new Matrix2D(3, 2);
 			for (int k = 0; k < shellElement.ControlPoints.Count; k++)
