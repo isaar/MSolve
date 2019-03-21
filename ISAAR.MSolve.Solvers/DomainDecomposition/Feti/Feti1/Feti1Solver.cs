@@ -206,7 +206,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             {
                 stiffnessMatrices.Add(linearSystem.Subdomain.ID, linearSystem.Matrix);
             }
-            IFetiPreconditioner preconditioner = preconditionerFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator, 
+            IFetiPreconditioner preconditioner = preconditionerFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator,
                 lagrangeEnumerator, stiffnessMatrices);
 
             // Calculate generalized inverses and rigid body modes of subdomains to assemble the interface flexibility matrix. 
@@ -236,17 +236,20 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
             // Define and initilize the projection
             Feti1Projection projection;
-            if ((pde == PdeOrder.Fourth) || (!isProblemHomogeneous))
-            {
-                // Q = preconditioner
-                projection = new Feti1Projection(lagrangeEnumerator.BooleanMatrices, rigidBodyModes, 
-                    new PreconditionerAsMatrixQ(preconditioner));
-            }
-            else
-            {
-                // Q = indentity
-                projection = new Feti1Projection(lagrangeEnumerator.BooleanMatrices, rigidBodyModes, new IdentityMatrixQ());
-            }
+            //if ((pde == PdeOrder.Fourth) || (!isProblemHomogeneous))
+            //{
+            //    // Q = preconditioner
+            //    projection = new Feti1Projection(lagrangeEnumerator.BooleanMatrices, rigidBodyModes,
+            //        new PreconditionerAsMatrixQ(preconditioner));
+            //}
+            //else
+            //{
+            //    // Q = indentity
+            //    projection = new Feti1Projection(lagrangeEnumerator.BooleanMatrices, rigidBodyModes, new IdentityMatrixQ());
+            //}
+            projection = new Feti1Projection(lagrangeEnumerator.BooleanMatrices, rigidBodyModes, new IdentityMatrixQ());
+
+
             projection.InvertCoarseProblemMatrix();
 
             // Calculate the norm of the forces vector Ku=f
@@ -384,7 +387,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
             //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
             if (isProblemHomogeneous) stiffnessDistribution = new HomogeneousStiffnessDistribution(model, dofSeparator);
-            else stiffnessDistribution = new HeterogeneousStiffnessDistribution(dofSeparator, stiffnessMatrices);
+            else stiffnessDistribution = new HeterogeneousStiffnessDistribution(model, dofSeparator, stiffnessMatrices);
         }
 
         public class Builder

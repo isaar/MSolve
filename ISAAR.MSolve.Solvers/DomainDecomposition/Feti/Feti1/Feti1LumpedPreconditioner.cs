@@ -54,7 +54,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
                 DofSeparator dofSeparator, LagrangeMultipliersEnumerator lagrangeEnumerator,
                 Dictionary<int, IMatrixView> stiffnessMatrices)
             {
-                int[] subdomainIDs = dofSeparator.BoundaryDofs.Keys.ToArray();
+                int[] subdomainIDs = dofSeparator.BoundaryDofIndices.Keys.ToArray();
                 Dictionary<int, Matrix> boundaryBooleans = CalcBoundaryPreconditioningBooleanMatrices(stiffnessDistribution, 
                     dofSeparator, lagrangeEnumerator);
                 Dictionary<int, Matrix> stiffnessesBoundaryBoundary = 

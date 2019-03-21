@@ -84,13 +84,13 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
             }
             else
             {
-                Debug.Assert(YoungModuliOfSubdomains.GetLength(0) == NumSubdomainsX
-                    && YoungModuliOfSubdomains.GetLength(1) == NumSubdomainsY, "Materials do not match the subdomain layout");
+                Debug.Assert(YoungModuliOfSubdomains.GetLength(0) == NumSubdomainsY
+                    && YoungModuliOfSubdomains.GetLength(1) == NumSubdomainsX, "Materials do not match the subdomain layout");
                 for (int j = 0; j < NumSubdomainsY; ++j)
                 {
                     for (int i = 0; i < NumSubdomainsX; ++i)
                     {
-                        youngModuli[j * NumSubdomainsX + i] = YoungModuliOfSubdomains[i, j];
+                        youngModuli[j * NumSubdomainsX + i] = YoungModuliOfSubdomains[j, i];
                     }
                 }
             }

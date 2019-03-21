@@ -8,12 +8,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
     public class HomogeneousStiffnessDistribution : IStiffnessDistribution
     {
         //TODO: perhaps the should be removed from the interface methods
-        //private readonly IStructuralModel_v2 model;
         private readonly DofSeparator dofSeparator;
 
         public HomogeneousStiffnessDistribution(IStructuralModel_v2 model, DofSeparator dofSeparator)
         {
-            //this.model = model;
             this.dofSeparator = dofSeparator;
             this.SubdomainGlobalConversion = new HomogeneousSubdomainGlobalConversion(model, dofSeparator);
         }
@@ -26,7 +24,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
             var matricesBpb = new Dictionary<int, Matrix>();
             foreach (int id in boundarySignedBooleanMatrices.Keys)
             {
-                Matrix inverseMultiplicities = InvertDofMultiplicities(dofSeparator.BoundaryDofsMultiplicity[id]);
+                Matrix inverseMultiplicities = InvertDofMultiplicities(dofSeparator.BoundaryDofMultiplicities[id]);
                 matricesBpb[id] = boundarySignedBooleanMatrices[id].MultiplyRight(inverseMultiplicities);
             }
             return matricesBpb;

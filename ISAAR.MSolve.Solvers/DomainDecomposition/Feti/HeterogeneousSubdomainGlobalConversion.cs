@@ -10,16 +10,20 @@ using ISAAR.MSolve.Solvers.LinearSystems;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
-    internal class HeterogeneousSubdomainGlobalConversion : ISubdomainGlobalConversion
+    internal class HeterogeneousSubdomainGlobalConversion : SubdomainGlobalConversionBase
     {
-        public double CalculateGlobalForcesNorm(Dictionary<int, IVectorView> subdomainForces)
+        private readonly Dictionary<int, double[]> relativeBoundaryStiffnesses;
+
+        internal HeterogeneousSubdomainGlobalConversion(IStructuralModel_v2 model, DofSeparator dofSeparator,
+            Dictionary<int, double[]> relativeBoundaryStiffnesses) : base(model, dofSeparator)
         {
-            throw new NotImplementedException();
+            this.relativeBoundaryStiffnesses = relativeBoundaryStiffnesses;
         }
 
-        public Dictionary<int, SparseVector> DistributeNodalLoads(IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems, 
-            Table<INode, DOFType, double> globalNodalLoads)
+        public override Dictionary<int, SparseVector> DistributeNodalLoads(
+            IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems, Table<INode, DOFType, double> globalNodalLoads)
         {
+            //TODO: This should be done using Dictionary<int, double[]> relativeBoundaryStiffnesses, instead of recreating that data.
             //TODO: Should I implement this as fb(s) = Lpb(s) * fb, Lpb(s) = Db(s)*Lb(s) * inv(Lb^T*Db*Lb)?
             //TODO: Internal loaded dofs should be handled differently as an optimization.
 
@@ -58,26 +62,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
             return BuildForceVectors(linearSystems, subdomainLoads);
         }
 
-        public Vector GatherGlobalDisplacements(Dictionary<int, IVectorView> subdomainDisplacements)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Vector GatherGlobalForces(Dictionary<int, IVectorView> subdomainForces)
-        {
-            throw new NotImplementedException();
-        }
-
-        private Dictionary<int, SparseVector> BuildForceVectors(IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems,
-            Dictionary<int, SortedDictionary<int, double>> subdomainLoads)
-        {
-            var result = new Dictionary<int, SparseVector>();
-            foreach (var idLoads in subdomainLoads)
-            {
-                int numSubdomainDofs = linearSystems[idLoads.Key].Subdomain.FreeDofOrdering.NumFreeDofs;
-                result[idLoads.Key] = SparseVector.CreateFromDictionary(numSubdomainDofs, idLoads.Value);
-            }
-            return result;
-        }
+        protected override double[] CalcBoundaryDofMultipliers(ISubdomain_v2 subdomain)
+            => relativeBoundaryStiffnesses[subdomain.ID];
     }
 }

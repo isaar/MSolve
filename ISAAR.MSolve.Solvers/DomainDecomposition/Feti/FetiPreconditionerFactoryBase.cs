@@ -18,10 +18,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
             int numContinuityEquations = lagrangeEnumerator.NumLagrangeMultipliers;
             int[] rowsToKeep = Enumerable.Range(0, numContinuityEquations).ToArray(); // Same for all subdomains
             var matricesBb = new Dictionary<int, Matrix>();
-            foreach (int id in dofSeparator.BoundaryDofs.Keys)
+            foreach (int id in dofSeparator.BoundaryDofIndices.Keys)
             {
                 Matrix B = lagrangeEnumerator.BooleanMatrices[id].CopyToFullMatrix(false);
-                Matrix Bb = B.GetSubmatrix(rowsToKeep, dofSeparator.BoundaryDofs[id]);
+                Matrix Bb = B.GetSubmatrix(rowsToKeep, dofSeparator.BoundaryDofIndices[id]);
                 matricesBb[id] = Bb;
             }
             Dictionary<int, Matrix> matricesBpb = stiffnessDistribution.CalcBoundaryPreconditioningSignedBooleanMatrices(
@@ -36,10 +36,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
             int numContinuityEquations = lagrangeEnumerator.NumLagrangeMultipliers;
             int[] rowsToKeep = Enumerable.Range(0, numContinuityEquations).ToArray(); // Same for all subdomains
             var boundaryBooleanMatrices = new Dictionary<int, Matrix>();
-            foreach (int id in dofSeparator.BoundaryDofs.Keys)
+            foreach (int id in dofSeparator.BoundaryDofIndices.Keys)
             {
                 Matrix booleanMatrix = lagrangeEnumerator.BooleanMatrices[id].CopyToFullMatrix(false);
-                Matrix boundaryBooleanMatrix = booleanMatrix.GetSubmatrix(rowsToKeep, dofSeparator.BoundaryDofs[id]);
+                Matrix boundaryBooleanMatrix = booleanMatrix.GetSubmatrix(rowsToKeep, dofSeparator.BoundaryDofIndices[id]);
                 boundaryBooleanMatrices.Add(id, boundaryBooleanMatrix);
             }
             return boundaryBooleanMatrices;
@@ -49,9 +49,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
             Dictionary<int, IMatrixView> stiffnessMatrices)
         {
             var stiffnessesBoundaryBoundary = new Dictionary<int, Matrix>();
-            foreach (int id in dofSeparator.BoundaryDofs.Keys)
+            foreach (int id in dofSeparator.BoundaryDofIndices.Keys)
             {
-                int[] boundaryDofs = dofSeparator.BoundaryDofs[id];
+                int[] boundaryDofs = dofSeparator.BoundaryDofIndices[id];
                 Matrix stiffnessBoundaryBoundary = stiffnessMatrices[id].GetSubmatrix(boundaryDofs, boundaryDofs);
                 stiffnessesBoundaryBoundary.Add(id, stiffnessBoundaryBoundary);
             }
@@ -62,10 +62,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
             Dictionary<int, IMatrixView> stiffnessMatrices)
         {
             var stiffnessesBoundaryInternal = new Dictionary<int, Matrix>();
-            foreach (int id in dofSeparator.BoundaryDofs.Keys)
+            foreach (int id in dofSeparator.BoundaryDofIndices.Keys)
             {
-                int[] boundaryDofs = dofSeparator.BoundaryDofs[id];
-                int[] internalDofs = dofSeparator.InternalDofs[id];
+                int[] boundaryDofs = dofSeparator.BoundaryDofIndices[id];
+                int[] internalDofs = dofSeparator.InternalDofIndices[id];
                 Matrix stiffnessBoundaryInternal = stiffnessMatrices[id].GetSubmatrix(boundaryDofs, internalDofs);
                 stiffnessesBoundaryInternal.Add(id, stiffnessBoundaryInternal);
             }

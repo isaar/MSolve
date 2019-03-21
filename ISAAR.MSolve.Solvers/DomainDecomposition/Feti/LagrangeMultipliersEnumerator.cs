@@ -58,12 +58,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
                     //TODO: each subdomain appears in many combinations. It would be faster to cache its indices for the specific dofs.
                     SignedBooleanMatrix booleanPlus = BooleanMatrices[subdomainsPlus[c].ID];
                     SignedBooleanMatrix booleanMinus = BooleanMatrices[subdomainsMinus[c].ID];
-                    bool nodeIsOrdered = subdomainsPlus[c].FreeDofOrdering.FreeDofs.TryGetDataOfRow(node,
-                        out IReadOnlyDictionary<DOFType, int> dofsPlus);
-                    Debug.Assert(nodeIsOrdered);
-                    nodeIsOrdered = subdomainsMinus[c].FreeDofOrdering.FreeDofs.TryGetDataOfRow(node,
-                        out IReadOnlyDictionary<DOFType, int> dofsMinus);
-                    Debug.Assert(nodeIsOrdered);
+                    IReadOnlyDictionary<DOFType, int> dofsPlus = subdomainsPlus[c].FreeDofOrdering.FreeDofs.GetDataOfRow(node);
+                    IReadOnlyDictionary<DOFType, int> dofsMinus = subdomainsMinus[c].FreeDofOrdering.FreeDofs.GetDataOfRow(node);
 
                     foreach (DOFType dof in dofs)
                     {
@@ -100,12 +96,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
                     SignedBooleanMatrix booleanMinus = BooleanMatrices[subdomainsMinus[c].ID];
 
                     //TODO: The dof indices have already been accessed. Reuse it if possible.
-                    bool nodeIsOrdered = subdomainsPlus[c].FreeDofOrdering.FreeDofs.TryGetDataOfRow(node,
-                        out IReadOnlyDictionary<DOFType, int> dofsPlus);
-                    Debug.Assert(nodeIsOrdered);
-                    nodeIsOrdered = subdomainsMinus[c].FreeDofOrdering.FreeDofs.TryGetDataOfRow(node,
-                        out IReadOnlyDictionary<DOFType, int> dofsMinus);
-                    Debug.Assert(nodeIsOrdered);
+                    IReadOnlyDictionary<DOFType, int> dofsPlus = subdomainsPlus[c].FreeDofOrdering.FreeDofs.GetDataOfRow(node);
+                    IReadOnlyDictionary<DOFType, int> dofsMinus = subdomainsMinus[c].FreeDofOrdering.FreeDofs.GetDataOfRow(node);
 
                     foreach (DOFType dof in dofs)
                     {

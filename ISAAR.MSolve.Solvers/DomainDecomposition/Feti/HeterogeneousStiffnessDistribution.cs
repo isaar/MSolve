@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Numerical.Commons;
 
 //TODO: Also implement the Superlumped smoothening from Rixen, Farhat (1999). It should be equivalent to Fragakis' PhD approach.
 //TODO: Use this to map displacements, forces, etc between subdomain - global level.
+//TODO: perhaps I should store the stiffness of each boundary dof per subdomain, instead of storing the same data
+//      Table<INode, DOFType, BoundaryDofLumpedStiffness>.
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
     public class HeterogeneousStiffnessDistribution : IStiffnessDistribution
@@ -13,17 +16,22 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
         //TODO: If a solver operation needs this, it is probably better to delegate that operation to this class.
         private readonly Table<INode, DOFType, BoundaryDofLumpedStiffness> boundaryDofStiffnesses;
         private readonly DofSeparator dofSeparator;
+        private readonly IStructuralModel_v2 model;
         private readonly Dictionary<int, IMatrixView> stiffnessMatrices;
 
-        public HeterogeneousStiffnessDistribution(DofSeparator dofSeparator, Dictionary<int, IMatrixView> stiffnessMatrices)
+        public HeterogeneousStiffnessDistribution(IStructuralModel_v2 model, DofSeparator dofSeparator, 
+            Dictionary<int, IMatrixView> stiffnessMatrices)
         {
+            this.model = model;
             this.dofSeparator = dofSeparator;
             this.stiffnessMatrices = stiffnessMatrices;
             this.boundaryDofStiffnesses = BoundaryDofLumpedStiffness.ExtractBoundaryDofLumpedStiffnesses(
-                dofSeparator, stiffnessMatrices); 
+                dofSeparator, stiffnessMatrices);
+            this.SubdomainGlobalConversion = new HeterogeneousSubdomainGlobalConversion(model, dofSeparator, 
+                FindRelativeBoundaryStiffnesses(model, dofSeparator, boundaryDofStiffnesses));
         }
 
-        public ISubdomainGlobalConversion SubdomainGlobalConversion { get; } = new HeterogeneousSubdomainGlobalConversion();
+        public ISubdomainGlobalConversion SubdomainGlobalConversion { get; }
 
         public Dictionary<int, Matrix> CalcBoundaryPreconditioningSignedBooleanMatrices(
             LagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, Matrix> boundarySignedBooleanMatrices)
@@ -38,11 +46,35 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
             foreach (int subdomainId in boundarySignedBooleanMatrices.Keys)
             {
                 Matrix invDb = InvertBoundaryDofStiffnesses(stiffnessMatrices[subdomainId],
-                    dofSeparator.BoundaryDofs[subdomainId]);
+                    dofSeparator.BoundaryDofIndices[subdomainId]);
                 Matrix Bb = boundarySignedBooleanMatrices[subdomainId];
                 matricesBpb[subdomainId] = Bb.MultiplyRight(invDb).MultiplyLeft(Dlambda);
             }
             return matricesBpb;
+        }
+
+        private static Dictionary<int, double[]> FindRelativeBoundaryStiffnesses(IStructuralModel_v2 model,
+            DofSeparator dofSeparator, Table<INode, DOFType, BoundaryDofLumpedStiffness> boundaryDofStiffnesses)
+        {
+            //TODO: this should probably be handled when extracting the lumped boundary stiffnesses, in order to avoid searching
+            //      the subdomain in BoundaryDofLumpedStiffness.SubdomainStiffnesses for each dof.
+            var relativeBoundaryStiffnesses = new Dictionary<int, double[]>();
+            foreach (ISubdomain_v2 subdomain in model.Subdomains)
+            {
+                int[] boundaryDofIndices = dofSeparator.BoundaryDofIndices[subdomain.ID];
+                (INode, DOFType)[] boundaryDofConnectivities = dofSeparator.BoundaryDofConnectivities[subdomain.ID];
+                int numBoundaryDofs = boundaryDofIndices.Length;
+                var subdomainStiffnesses = new double[numBoundaryDofs];
+                for (int i = 0; i < boundaryDofIndices.Length; ++i)
+                {
+                    (INode node, DOFType dofType) = boundaryDofConnectivities[i];
+                    BoundaryDofLumpedStiffness dofStiffness = boundaryDofStiffnesses[node, dofType];
+                    double relativeStiffness = dofStiffness.SubdomainStiffnesses[subdomain] / dofStiffness.TotalStiffness;
+                    subdomainStiffnesses[i] = relativeStiffness;
+                }
+                relativeBoundaryStiffnesses.Add(subdomain.ID, subdomainStiffnesses);
+            }
+            return relativeBoundaryStiffnesses;
         }
 
         private Matrix BuildDlambda(LagrangeMultipliersEnumerator lagrangeEnumerator)
@@ -68,7 +100,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
         private Matrix InvertBoundaryDofStiffnesses(IMatrixView stiffness, int[] boundaryDofs)
         {
             var inverse = Matrix.CreateZero(boundaryDofs.Length, boundaryDofs.Length);
-            for (int i = 0; i < boundaryDofs.Length; ++i) inverse[i, i] = 1.0 / stiffness[i, i];
+            for (int i = 0; i < boundaryDofs.Length; ++i) inverse[i, i] = 1.0 / stiffness[boundaryDofs[i], boundaryDofs[i]];
             return inverse;
         }
     }

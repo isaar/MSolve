@@ -10,10 +10,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
     public class DofSeparator
     {
-        internal Dictionary<int, int[]> BoundaryDofs { get; private set; }
-        internal Dictionary<int, int[]> BoundaryDofsMultiplicity { get; private set; }
+        //TODO: BoundaryDofConnectivities is useful only for heterogeneous problems and its creation might be costly.
+        //      Needs benchmarking and possibly a way to avoid it in homogeneous problems
+        internal Dictionary<int, (INode node, DOFType dofType)[]> BoundaryDofConnectivities { get; private set; }
+        internal Dictionary<int, int[]> BoundaryDofIndices { get; private set; }
+        internal Dictionary<int, int[]> BoundaryDofMultiplicities { get; private set; }
         internal Dictionary<INode, DOFType[]> GlobalBoundaryDofs { get; private set; }
-        internal Dictionary<int, int[]> InternalDofs { get; private set; }
+        internal Dictionary<int, int[]> InternalDofIndices { get; private set; }
 
         internal void SeparateBoundaryInternalDofs(IStructuralModel_v2 model)
         {
@@ -23,12 +26,14 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 
         private void SeparateBoundaryInternalDofsOfSubdomains(IStructuralModel_v2 model)
         {
-            BoundaryDofs = new Dictionary<int, int[]>();
-            BoundaryDofsMultiplicity = new Dictionary<int, int[]>();
-            InternalDofs = new Dictionary<int, int[]>();
+            BoundaryDofIndices = new Dictionary<int, int[]>();
+            BoundaryDofMultiplicities = new Dictionary<int, int[]>();
+            BoundaryDofConnectivities = new Dictionary<int, (INode node, DOFType dofType)[]>();
+            InternalDofIndices = new Dictionary<int, int[]>();
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
-                var boundaryDofsOfSubdomain = new SortedDictionary<int, int>(); // key = dofIdx, value = multiplicity
+                var boundaryMultiplicitiesOfSubdomain = new SortedDictionary<int, int>(); // key = dofIdx, value = multiplicity
+                var boundaryConnectivitiesOfSubdomain = new SortedDictionary<int, (INode node, DOFType dofType)>(); 
                 var internalDofsOfSubdomain = new SortedSet<int>();
                 foreach (INode node in subdomain.Nodes)
                 {
@@ -36,21 +41,35 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
                     int nodeMultiplicity = node.SubdomainsDictionary.Count;
                     if (nodeMultiplicity > 1) // boundary node
                     {
-                        foreach (int dof in nodalDofs) boundaryDofsOfSubdomain.Add(dof, nodeMultiplicity);
+                        bool isNodeFree = subdomain.FreeDofOrdering.FreeDofs.TryGetDataOfRow(node, 
+                            out IReadOnlyDictionary<DOFType, int> dofTypesIndices); // This avoids embedded and constrained dofs
+                        if (isNodeFree)
+                        {
+                            foreach (var dofTypeIdxPair in dofTypesIndices)
+                            {
+                                boundaryMultiplicitiesOfSubdomain.Add(dofTypeIdxPair.Value, nodeMultiplicity);
+                                boundaryConnectivitiesOfSubdomain.Add(dofTypeIdxPair.Value, (node, dofTypeIdxPair.Key));
+                            }
+                        }
                     }
-                    else
+                    else // internal nodes
                     {
-                        foreach (int dof in nodalDofs) internalDofsOfSubdomain.Add(dof);
+                        foreach (int dof in subdomain.FreeDofOrdering.FreeDofs.GetValuesOfRow(node))
+                        {
+                            internalDofsOfSubdomain.Add(dof);
+                        }
                     }
                 }
-                BoundaryDofs.Add(subdomain.ID, boundaryDofsOfSubdomain.Keys.ToArray());
-                BoundaryDofsMultiplicity.Add(subdomain.ID, boundaryDofsOfSubdomain.Values.ToArray()); // sorted the same as Keys
-                InternalDofs.Add(subdomain.ID, internalDofsOfSubdomain.ToArray());
+
+                // The following are sorted in increasing order of boundary dof indices
+                BoundaryDofIndices.Add(subdomain.ID, boundaryMultiplicitiesOfSubdomain.Keys.ToArray());
+                BoundaryDofMultiplicities.Add(subdomain.ID, boundaryMultiplicitiesOfSubdomain.Values.ToArray());
+                BoundaryDofConnectivities.Add(subdomain.ID, boundaryConnectivitiesOfSubdomain.Values.ToArray());
+
+                InternalDofIndices.Add(subdomain.ID, internalDofsOfSubdomain.ToArray());
             }
         }
 
-        //TODO: This has common code with the LagrangeMultipliersEnumerator.DefineBoundaryDofConstraints(). Create the object 
-        //      from here, store it somewhere (could be here) and pass the global boundary dofs to that method.
         private void GatherGlobalBoundaryDofs(IStructuralModel_v2 model)
         {
             GlobalBoundaryDofs = new Dictionary<INode, DOFType[]>();
@@ -70,7 +89,5 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
                 }
             }
         }
-
-
     }
 }

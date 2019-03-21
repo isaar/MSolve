@@ -121,9 +121,16 @@ namespace ISAAR.MSolve.Numerical.Commons
             else return Enumerable.Empty<TColumn>();
         }
 
+        public IReadOnlyDictionary<TColumn, TValue> GetDataOfRow(TRow row)
+        {
+            bool exists = data.TryGetValue(row, out Dictionary<TColumn, TValue> rowData);
+            if (!exists) throw new KeyNotFoundException("The provided row is not contained in this table");
+            return rowData;
+        }
+
         public IEnumerable<TRow> GetRows() => data.Keys;
 
-        public IEnumerable<TValue> GetValuesOfRow(TRow row)
+        public IEnumerable<TValue> GetValuesOfRow(TRow row) //TODO: perhaps I should throw an exception if the row is not found
         {
             bool containsRow = data.TryGetValue(row, out Dictionary<TColumn, TValue> wholeRow);
             if (containsRow) return wholeRow.Values;
