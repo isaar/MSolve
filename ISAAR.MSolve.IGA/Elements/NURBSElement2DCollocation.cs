@@ -100,7 +100,7 @@ namespace ISAAR.MSolve.IGA.Elements
 						jacobianMatrix[0, 1] * jacobianMatrix[1, 1]
 					},
 
-					{jacobianMatrix[0, 0] * jacobianMatrix[0, 0], 2, jacobianMatrix[0, 1] * jacobianMatrix[0, 1]},
+					{jacobianMatrix[1, 0] * jacobianMatrix[1, 0], 2*jacobianMatrix[1, 0]*jacobianMatrix[1, 1], jacobianMatrix[1, 1] * jacobianMatrix[1, 1]},
 				},false);
 
 			var inverseJacobian = jacobianMatrix.Invert();
