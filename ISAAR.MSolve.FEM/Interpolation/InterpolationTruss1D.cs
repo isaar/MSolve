@@ -62,7 +62,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
             return values;
         }
 
-        public double[,] EvaluateGradientsAt(double xi)
+        public double[,] EvaluateGradientsAt()
         {
             var derivatives = new double[1, 2];
             derivatives[0, 0] = -0.50; // N1,ksi
@@ -100,7 +100,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
                 {
                     GaussPoint1D gaussPoint = quadrature.IntegrationPoints[gp];
                     naturalGradientsAtGPsArray[gp] = new Matrix2D(
-                        EvaluateGradientsAt(gaussPoint.Xi));
+                        EvaluateGradientsAt());
                 }
                 cachedNaturalGradientsAtGPs.Add(quadrature, naturalGradientsAtGPsArray);
                 return naturalGradientsAtGPsArray;
