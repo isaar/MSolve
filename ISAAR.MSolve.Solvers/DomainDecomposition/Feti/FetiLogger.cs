@@ -9,7 +9,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
         public int NumExpandedDomainFreeDofs { get; set; }
         public int NumLagrangeMultipliers { get; set; }
         public int NumUniqueGlobalFreeDofs { get; set; }
-        public int PcpgIterations { get; set; }
-        public double PcpgResidualNormEstimateRatio { get; set; }
+        public int PcgIterations { get; set; }
+        public double PcgResidualNormRatio { get; set; }
     }
 }

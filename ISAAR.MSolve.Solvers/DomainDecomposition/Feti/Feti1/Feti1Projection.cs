@@ -9,7 +9,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //      (for lagranges they do), G^T*G might be optimizable, etc. Should there be a dedicated class for such cases.
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 {
-    internal class Feti1Projection : IInterfaceProjection
+    public class Feti1Projection : IInterfaceProjection
     {
         private readonly Dictionary<int, SignedBooleanMatrix> booleanMatrices;
         private readonly IMatrixQ matrixQ;
@@ -26,25 +26,21 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         }
 
         /// <summary>
+        /// λ0 = Q * G * inv(G^T * Q * G) * e
+        /// </summary>
+        public Vector CalcParticularLagrangeMultipliers(Vector rigidBodyModesWork)
+            => matrixQ.Multiply(matrixG * (factorGQG.SolveLinearSystem(rigidBodyModesWork)));
+
+        /// <summary>
         /// a = inv(G^T*Q*G) * G^T * Q * (Fe * λ - d)
         /// </summary>
         /// <param name="flexibilityTimeslagrangeMultipliers"></param>
         /// <param name="boundaryDisplacements"></param>
-        public Vector CalculateRigidBodyModesCoefficients(Vector flexibilityTimeslagrangeMultipliers, 
+        public Vector CalcRigidBodyModesCoefficients(Vector flexibilityTimeslagrangeMultipliers, 
             Vector boundaryDisplacements)
         {
             Vector x = flexibilityTimeslagrangeMultipliers - boundaryDisplacements;
             return factorGQG.SolveLinearSystem(matrixG.Multiply(matrixQ.Multiply(x), true));
-        }
-
-        /// <summary>
-        /// λ0 = Q * G * inv(G^T * Q * G) * e
-        /// </summary>
-        public void InitializeLagrangeMultipliers(Vector rigidBodyModesWork, Vector lagrange)
-        {
-            // matrixQ.MultiplyIntoResult(matrixG * (factorGQG.SolveLinearSystem(rigidBodyModesWork)), lagrange);
-            Vector lambda0 = matrixQ.Multiply(matrixG * (factorGQG.SolveLinearSystem(rigidBodyModesWork)));
-            lagrange.CopyFrom(lambda0);
         }
 
         /// <summary>
@@ -61,15 +57,28 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         /// <summary>
         ///  P = I - Q * G * inv(G^T*Q*G) * G^T,  projected = P * original
         /// </summary>
-        public void ProjectVector(Vector original, Vector projected)
+        public void ProjectVector(Vector original, Vector projected, bool transposeProjector)
         {
-            // P * x = x - Q * (G * (inv(G^T*Q*G) * (G^T * x))
-            projected.CopyFrom(original);
-            projected.SubtractIntoThis(matrixQ.Multiply(matrixG * (factorGQG.SolveLinearSystem(matrixG.Multiply(original, true)))));
+            if (transposeProjector)
+            {
+                // I, Q and inv(G^T*Q*G) are symmetric thus
+                // P^T * x = I^T * x - G * inv(G^T*Q*G)^T * G^T * Q^T * x <=>
+                // P^T * x = x - G * (inv(G^T*Q*G) * (G^T * (Q * x)))
+                projected.CopyFrom(original);
+                projected.SubtractIntoThis(matrixG * factorGQG.SolveLinearSystem(
+                    matrixG.Multiply(matrixQ.Multiply(original), true)));
+            }
+            else
+            {
+                // P * x = x - Q * (G * (inv(G^T*Q*G) * (G^T * x)))
+                projected.CopyFrom(original);
+                projected.SubtractIntoThis(matrixQ.Multiply(matrixG * (
+                    factorGQG.SolveLinearSystem(matrixG.Multiply(original, true)))));
+            }
         }
 
         /// <summary>
-        /// G = [B(1)*R(1) B(2)*R(2) ... B(ns)*R(ns)
+        /// G = [B(1)*R(1) B(2)*R(2) ... B(ns)*R(ns)]
         /// </summary>
         private void CalculateMatrixG()
         {

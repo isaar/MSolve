@@ -7,7 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 {
-    internal class Feti1FlexibilityMatrix : IInterfaceFlexibilityMatrix
+    public class Feti1FlexibilityMatrix : IInterfaceFlexibilityMatrix
     {
         private readonly LagrangeMultipliersEnumerator lagrangeEnumerator;
         private readonly Dictionary<int, SemidefiniteCholeskySkyline> factorizations;
@@ -34,6 +34,21 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
                 Vector BFBx = boolean.Multiply(FBx, false);
                 rhs.AddIntoThis(BFBx);
             }
+        }
+
+        public Vector Multiply(Vector lhs)
+        {
+            var rhs = Vector.CreateZero(Order);
+            foreach (var keyFactor in factorizations)
+            {
+                int id = keyFactor.Key;
+                SemidefiniteCholeskySkyline factor = keyFactor.Value;
+                SignedBooleanMatrix boolean = lagrangeEnumerator.BooleanMatrices[id];
+                Vector FBx = factor.MultiplyGeneralizedInverseMatrixTimesVector(boolean.Multiply(lhs, true));
+                Vector BFBx = boolean.Multiply(FBx, false);
+                rhs.AddIntoThis(BFBx);
+            }
+            return rhs;
         }
     }
 }

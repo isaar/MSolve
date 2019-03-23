@@ -25,19 +25,14 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
         }
 
         internal PcpgStatistics Solve(IInterfaceFlexibilityMatrix matrix, IFetiPreconditioner preconditioner,
-            IInterfaceProjection projector, Vector boundaryDisplacements, Vector rigidBodyModesWork, double initialForcesNorm, 
-            Vector lagrangeMultipliers)
+            IInterfaceProjection projector, Vector rhs, double initialForcesNorm, Vector lagrangeMultipliers)
         {
             int n = matrix.Order;
             int maxIterations = (int)Math.Ceiling(n * maxIterationsOverSystemSize);
 
-            // λ0 = Q * G * inv(G^T * Q * G) * e
-            projector.InitializeLagrangeMultipliers(rigidBodyModesWork, lagrangeMultipliers);
-
             // r0 = d - F * λ0
-            var residual = Vector.CreateZero(n);
-            matrix.Multiply(lagrangeMultipliers, residual);
-            residual.LinearCombinationIntoThis(-1.0, boundaryDisplacements, 1.0);
+            var residual = matrix.Multiply(lagrangeMultipliers);
+            residual.LinearCombinationIntoThis(-1.0, rhs, 1.0);
 
             // Other allocations
             var projectedResidual = Vector.CreateZero(n);
@@ -52,7 +47,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
             for (int iter = 1; iter <= maxIterations; ++iter)
             {
                 // w(m-1) = P * r(m-1)
-                projector.ProjectVector(residual, projectedResidual);
+                projector.ProjectVector(residual, projectedResidual, false);
 
                 // z(m-1) = preconditioner * w(m-1)
                 preconditioner.SolveLinearSystem(projectedResidual, preconditionedProjectedResidual);
@@ -75,7 +70,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
                 }
 
                 // y(m-1) = P * z(m-1)
-                projector.ProjectVector(preconditionedProjectedResidual, preconditionedResidual);
+                projector.ProjectVector(preconditionedProjectedResidual, preconditionedResidual, false);
 
                 double residualDotProductCurrent = preconditionedResidual.DotProduct(projectedResidual);
 

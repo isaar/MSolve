@@ -27,11 +27,10 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             int numElementsX = 20, numElementsY = 10;
             double factorizationTolerance = 1E-4; // Defining the rigid body modes is very sensitive to this. TODO: The user shouldn't have to specify such a volatile parameter.
             double equalityTolerance = 1E-7;
-            var logger = new FetiLogger();
             IVectorView expectedDisplacements = SolveModelWithoutSubdomains(numElementsX, numElementsY);
-            IVectorView computedDisplacements = SolveModelWithSubdomains(numElementsX, numElementsY, factorizationTolerance,
-                logger);
-            Debug.WriteLine($"Iterations: {logger.PcpgIterations}");
+            (IVectorView computedDisplacements, FetiLogger logger) = 
+                SolveModelWithSubdomains(numElementsX, numElementsY, factorizationTolerance);
+            Debug.WriteLine($"Iterations: {logger.PcgIterations}");
             Assert.True(expectedDisplacements.Equals(computedDisplacements, equalityTolerance));
         }
 
@@ -75,8 +74,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             return model;
         }
 
-        private static IVectorView SolveModelWithSubdomains(int numElementsX, int numElementsY, double factorizationTolerance,
-            FetiLogger logger)
+        private static (IVectorView U, FetiLogger logger) SolveModelWithSubdomains(int numElementsX, int numElementsY,
+            double factorizationTolerance)
         {
             Model_v2 multiSubdomainModel = CreateModel(numElementsX, numElementsY);
 
@@ -84,7 +83,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
             solverBuilder.PreconditionerFactory = new Feti1LumpedPreconditioner.Factory();
             solverBuilder.IsProblemHomogeneous = true;
-            solverBuilder.Logger = logger;
+            solverBuilder.InterfaceProblemSolver = new Feti1UnprojectedInterfaceProblemSolver(1E-7, 1.0);
             Feti1Solver fetiSolver = solverBuilder.BuildSolver(multiSubdomainModel);
 
             // Linear static analysis
@@ -99,7 +98,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             // Gather the global displacements
             var sudomainDisplacements = new Dictionary<int, IVectorView>();
             foreach (var ls in fetiSolver.LinearSystems) sudomainDisplacements[ls.Key] = ls.Value.Solution;
-            return fetiSolver.GatherGlobalDisplacements(sudomainDisplacements);
+            return (fetiSolver.GatherGlobalDisplacements(sudomainDisplacements), fetiSolver.Logger);
         }
 
         private static IVectorView SolveModelWithoutSubdomains(int numElementsX, int numElementsY)

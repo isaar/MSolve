@@ -93,8 +93,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
         /// Thrown if <paramref name="rhs"/> or <paramref name="solution"/> violate the described constraints.
         /// </exception>
         public CGStatistics Solve(ILinearTransformation matrix, IPreconditioner preconditioner, IVectorView rhs,
-            IVector solution, bool initialGuessIsZero, Func<IVector> zeroVectorInitializer) //TODO: find a better way to handle the case x0=0
+            IVector solution, bool initialGuessIsZero, Func<IVector> zeroVectorInitializer) 
         {
+            //TODO: find a better way to handle optimizations for the case x0=0, than using an initialGuessIsZero flag
+
             Preconditions.CheckMultiplicationDimensions(matrix.NumColumns, solution.Length);
             Preconditions.CheckSystemSolutionDimensions(matrix.NumRows, rhs.Length);
 

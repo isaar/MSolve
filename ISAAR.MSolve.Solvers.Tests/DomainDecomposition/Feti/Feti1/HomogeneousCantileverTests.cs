@@ -35,11 +35,13 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             Assert.Equal(882, numUniqueGlobalDofs);    // 882 includes constrained and free dofs
             Assert.Equal(1056, numExtenedDomainDofs); // 1056 includes constrained and free dofs
             Assert.Equal(190, logger.NumLagrangeMultipliers);
-            Assert.Equal(11, logger.PcpgIterations);
+
+            Assert.Equal(11, logger.PcgIterations);
+            //Assert.True(logger.PcpgIterations <= 11);
 
             // In the reference solution the error is 1.23E-9, but it is almost impossible for two different codes run on 
             // different machines to achieve the exact same accuracy.
-            Assert.Equal(0.0, normalizedError, 8);
+            Assert.Equal(0.0, normalizedError, 6);
         }
 
         [Fact]
@@ -54,11 +56,13 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             Assert.Equal(882, numUniqueGlobalDofs);    // 882 includes constrained and free dofs
             Assert.Equal(1056, numExtenedDomainDofs); // 1056 includes constrained and free dofs
             Assert.Equal(190, logger.NumLagrangeMultipliers);
-            Assert.Equal(10, logger.PcpgIterations);
+
+            Assert.Equal(10, logger.PcgIterations);
+            //Assert.True(logger.PcpgIterations <= 10);
 
             // In the reference solution the error is 2.59E-10, but it is almost impossible for two different codes run on 
             // different machines to achieve the exact same accuracy.
-            Assert.Equal(0.0, normalizedError, 8);
+            Assert.Equal(0.0, normalizedError, 7);
         }
 
         [Fact]
@@ -75,11 +79,12 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             Assert.Equal(190, logger.NumLagrangeMultipliers);
 
             // The reference solution needed 13 iterations but that depends on how ||f-A*0|| is calculated
-            Assert.Equal(12, logger.PcpgIterations); 
+            Assert.Equal(13, logger.PcgIterations);
+            //Assert.True(logger.PcpgIterations <= 13);
 
             // In the reference solution the error is 5.5E-10, but it is almost impossible for two different codes run on 
             // different machines to achieve the exact same accuracy.
-            Assert.Equal(0.0, normalizedError, 7);
+            Assert.Equal(0.0, normalizedError, 6);
         }
 
         private static Model_v2 CreateModel()
@@ -129,11 +134,15 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             Model_v2 multiSubdomainModel = CreateModel();
 
             // Solver
+            //var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
             var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
             solverBuilder.IsProblemHomogeneous = true;
-            solverBuilder.PcpgConvergenceTolerance = pcpgConvergenceTolerance;
+            //solverBuilder.PcgConvergenceTolerance = pcpgConvergenceTolerance;
+            //solverBuilder.InterfaceProblemSolver = new Feti1ProjectedInterfaceProblemSolver(pcpgConvergenceTolerance, 1.0,
+            //    Feti1ProjectedInterfaceProblemSolver.ProjectionSide.Both,
+            //    Feti1ProjectedInterfaceProblemSolver.ProjectionSide.Both);
+            solverBuilder.InterfaceProblemSolver = new Feti1UnprojectedInterfaceProblemSolver(pcpgConvergenceTolerance, 1.0);
             solverBuilder.PreconditionerFactory = preconditioning;
-            solverBuilder.Logger = new FetiLogger();
 
             // PCPG needs to use the exact residual for the comparison with the expected values
             if (exactResidual)
@@ -141,7 +150,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
                 var exactResidualCalculator = new ExactPcpgResidualCalculator(CreateSingleSubdomainModel(),
                    solverBuilder.DofOrderer, (model, solver) => new ProblemStructural_v2(model, solver));
                 exactResidualCalculator.BuildLinearSystem();
-                solverBuilder.PcpgExactResidual = exactResidualCalculator;
+                solverBuilder.PcgExactResidual = exactResidualCalculator;
             }
             Feti1Solver fetiSolver = solverBuilder.BuildSolver(multiSubdomainModel);
 
@@ -166,7 +175,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             int numExtenedDomainDofs = 0;
             foreach (var subdomain in multiSubdomainModel.Subdomains) numExtenedDomainDofs += subdomain.Nodes.Count * 2;
 
-            return (globalDisplacements, solverBuilder.Logger, numUniqueGlobalDofs, numExtenedDomainDofs);
+            return (globalDisplacements, fetiSolver.Logger, numUniqueGlobalDofs, numExtenedDomainDofs);
         }
 
         private static IVectorView SolveModelWithoutSubdomains()

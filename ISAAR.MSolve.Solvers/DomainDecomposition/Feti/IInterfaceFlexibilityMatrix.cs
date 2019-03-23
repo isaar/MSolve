@@ -9,5 +9,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
     {
         int Order { get; }
         void Multiply(Vector lhs, Vector rhs);
+        Vector Multiply(Vector lhs); //TODO: This should be an extension
     }
 }

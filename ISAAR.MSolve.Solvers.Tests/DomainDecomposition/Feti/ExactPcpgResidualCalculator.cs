@@ -7,6 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Feti;
 using ISAAR.MSolve.Solvers.Iterative;
 using ISAAR.MSolve.Solvers.LinearSystems;
@@ -51,7 +52,12 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti
             var linearAnalyzer = new LinearAnalyzer_v2(singleSubdomainModel, solver, problemProvider);
             var staticAnalyzer = new StaticAnalyzer_v2(singleSubdomainModel, solver, problemProvider, linearAnalyzer);
             staticAnalyzer.Initialize();
-            staticAnalyzer.Solve();
+            try
+            {
+                staticAnalyzer.Solve();
+            }
+            catch (IterativeSolverNotConvergedException)
+            { }
 
             // Extract the global matrix and rhs
             ILinearSystem_v2 linearSystem = solver.LinearSystems.First().Value;

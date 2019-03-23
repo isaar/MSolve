@@ -61,6 +61,11 @@ namespace ISAAR.MSolve.Solvers.Iterative
 
             CGStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, linearSystem.RhsVector,
                 linearSystem.Solution, true, () => linearSystem.CreateZeroVector()); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0
+            if (!stats.HasConverged)
+            {
+                throw new IterativeSolverNotConvergedException(name + " did not converge to a solution. PCG algorithm run for"
+                    + $" {stats.NumIterationsRequired} iterations and the residual norm ratio was {stats.NormRatio}");
+            }
         }
 
         protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)
@@ -91,7 +96,7 @@ namespace ISAAR.MSolve.Solvers.Iterative
                 Vector rhsVector = otherMatrix.GetColumn(j);
 
                 CGStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, rhsVector,
-                    solutionVector, true, () => linearSystem.CreateZeroVector()); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0
+                    solutionVector, true, () => linearSystem.CreateZeroVector());
 
                 solutionVectors.SetSubcolumn(j, solutionVector);
             }

@@ -7,13 +7,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
 {
     internal interface IInterfaceProjection
     {
-        Vector CalculateRigidBodyModesCoefficients(Vector flexibilityTimeslagrangeMultipliers,
-            Vector boundaryDisplacements);
+        Vector CalcParticularLagrangeMultipliers(Vector rigidBodyModesWork);
 
-        void InitializeLagrangeMultipliers(Vector rigidBodyModesWork, Vector lagrange);
+        Vector CalcRigidBodyModesCoefficients(Vector flexibilityTimeslagrangeMultipliers,
+            Vector boundaryDisplacements);
 
         void InvertCoarseProblemMatrix();
 
-        void ProjectVector(Vector original, Vector projected);
+        void ProjectVector(Vector original, Vector projected, bool transposeProjector);
     }
 }

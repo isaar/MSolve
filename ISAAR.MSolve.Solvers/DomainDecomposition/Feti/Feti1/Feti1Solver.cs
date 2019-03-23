@@ -4,6 +4,8 @@ using System.Linq;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -19,19 +21,17 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 {
     public class Feti1Solver : ISolver_v2
     {
+        internal const string name = "FETI-1 Solver"; // for error messages
         private readonly Dictionary<int, SkylineAssembler> assemblers;
         private readonly LagrangeMultipliersEnumerator lagrangeEnumerator;
         private readonly ICrosspointStrategy crosspointStrategy = new FullyRedundantConstraints();
         private readonly IDofOrderer dofOrderer;
         private readonly double factorizationPivotTolerance;
+        private readonly IFeti1InterfaceProblemSolver interfaceProblemSolver;
         private readonly bool isProblemHomogeneous;
         private readonly Dictionary<int, SingleSubdomainSystem<SkylineMatrix>> linearSystems;
-        private readonly FetiLogger logger;
         private readonly IStructuralModel_v2 model;
-        private readonly string name = "FETI-1 Solver"; // for error messages
-        private readonly IExactResidualCalculator pcpgExactResidual;
-        private readonly double pcpgConvergenceTolerance;
-        private readonly double pcpgMaxIterationsOverSize;
+        private readonly IExactResidualCalculator pcpgExactResidual; //TODO: this and related logic should be move to the class that handles PCG/PCPG
         private readonly PdeOrder pde;
         private readonly IFetiPreconditionerFactory preconditionerFactory;
 
@@ -42,14 +42,16 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
         private DofSeparator dofSeparator;
         private bool factorizeInPlace = true;
-        private bool mustFactorize = true;
         private Dictionary<int, SemidefiniteCholeskySkyline> factorizations;
+        private bool isStiffnessModified = true;
         private Dictionary<int, List<Vector>> rigidBodyModes;
+        private IFetiPreconditioner preconditioner;
+        private Feti1Projection projection;
         private IStiffnessDistribution stiffnessDistribution;
 
-        private Feti1Solver(IStructuralModel_v2 model, IDofOrderer dofOrderer, double factorizationPivotTolerance, 
-            double pcpgMaxIterationsOverSize, double pcpgConvergenceTolerance, IExactResidualCalculator pcpgExactResidual,
-            IFetiPreconditionerFactory preconditionerFactory, bool isProblemHomogeneous, PdeOrder pde, FetiLogger logger)
+        private Feti1Solver(IStructuralModel_v2 model, IDofOrderer dofOrderer, double factorizationPivotTolerance,
+            IFetiPreconditionerFactory preconditionerFactory, IFeti1InterfaceProblemSolver interfaceProblemSolver,
+            IExactResidualCalculator pcgExactResidual, bool isProblemHomogeneous, PdeOrder pde)
         {
             // Model
             if (model.Subdomains.Count == 1) throw new InvalidSolverException(
@@ -78,12 +80,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             this.dofOrderer = dofOrderer;
             this.factorizationPivotTolerance = factorizationPivotTolerance;
             this.preconditionerFactory = preconditionerFactory;
-            this.logger = logger;
 
             // PCPG
-            this.pcpgMaxIterationsOverSize = pcpgMaxIterationsOverSize;
-            this.pcpgConvergenceTolerance = pcpgConvergenceTolerance;
-            this.pcpgExactResidual = pcpgExactResidual;
+            this.interfaceProblemSolver = interfaceProblemSolver;
+            this.pcpgExactResidual = pcgExactResidual;
 
             this.lagrangeEnumerator = new LagrangeMultipliersEnumerator(crosspointStrategy);
 
@@ -93,6 +93,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         }
 
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
+        public FetiLogger Logger { get; } = new FetiLogger();
 
         public Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider_v2 elementMatrixProvider)
         {
@@ -100,7 +101,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             var matricesResult = new Dictionary<int, IMatrix>();
             foreach (ISubdomain_v2 subdomain in model.Subdomains) //TODO: this must be done in parallel
             {
-                SkylineMatrix matrix = assemblers[subdomain.ID].BuildGlobalMatrix(subdomain.FreeDofOrdering, 
+                SkylineMatrix matrix = assemblers[subdomain.ID].BuildGlobalMatrix(subdomain.FreeDofOrdering,
                     subdomain.Elements, elementMatrixProvider);
                 matricesInternal[subdomain.ID] = matrix;
                 matricesResult[subdomain.ID] = matrix;
@@ -125,7 +126,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
                     throw new InvalidOperationException("In order to build the matrices corresponding to constrained dofs of,"
                         + $" subdomain {subdomain.ID}, they must have been ordered first.");
                 }
-                (SkylineMatrix Kff, IMatrixView Kfc, IMatrixView Kcf, IMatrixView Kcc) = 
+                (SkylineMatrix Kff, IMatrixView Kfc, IMatrixView Kcf, IMatrixView Kcc) =
                     assemblers[subdomain.ID].BuildGlobalSubmatrices(subdomain.FreeDofOrdering,
                     subdomain.ConstrainedDofOrdering, subdomain.Elements, elementMatrixProvider);
                 matricesResult[subdomain.ID] = (Kff, Kfc, Kcf, Kcc);
@@ -144,14 +145,17 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             => stiffnessDistribution.SubdomainGlobalConversion.DistributeNodalLoads(LinearSystems, globalNodalLoads);
 
         //TODO: this and the fields should be handled by a class that handles dof mappings.
-        public Vector GatherGlobalDisplacements(Dictionary<int, IVectorView> subdomainDisplacements) 
+        public Vector GatherGlobalDisplacements(Dictionary<int, IVectorView> subdomainDisplacements)
             => stiffnessDistribution.SubdomainGlobalConversion.GatherGlobalDisplacements(subdomainDisplacements);
 
         public void HandleMatrixWillBeSet()
         {
-            mustFactorize = true;
+            isStiffnessModified = true;
             factorizations = null;
-            //TODO: clear the rest
+            rigidBodyModes = null;
+            preconditioner = null;
+            projection = null;
+            //stiffnessDistribution = null; //WARNING: do not dispose of this. It is updated when BuildGlobalMatrix() is called.
         }
 
         public void Initialize()
@@ -185,6 +189,18 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             if (isProblemHomogeneous) lagrangeEnumerator.DefineBooleanMatrices(model, dofSeparator); // optimization in this case
             else lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model, dofSeparator);
 
+            // Log dof statistics
+            if (Logger != null)
+            {
+                Logger.NumUniqueGlobalFreeDofs = model.GlobalDofOrdering.NumGlobalFreeDofs;
+                Logger.NumExpandedDomainFreeDofs = 0;
+                foreach (var subdomain in model.Subdomains)
+                {
+                    Logger.NumExpandedDomainFreeDofs += subdomain.FreeDofOrdering.NumFreeDofs;
+                }
+                Logger.NumLagrangeMultipliers = lagrangeEnumerator.NumLagrangeMultipliers;
+            }
+
             //Leftover code from Model.ConnectDataStructures().
             //EnumerateSubdomainLagranges();
             //EnumerateDOFMultiplicity();
@@ -199,106 +215,42 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
                 if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
             }
 
-            // Create the preconditioner. 
-            //TODO: this should be done simultaneously with the factorizations to avoid duplicate factorizations.
-            var stiffnessMatrices = new Dictionary<int, IMatrixView>();
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
-            {
-                stiffnessMatrices.Add(linearSystem.Subdomain.ID, linearSystem.Matrix);
-            }
-            IFetiPreconditioner preconditioner = preconditionerFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator,
-                lagrangeEnumerator, stiffnessMatrices);
-
             // Calculate generalized inverses and rigid body modes of subdomains to assemble the interface flexibility matrix. 
-            if (mustFactorize)
+            if (isStiffnessModified)
             {
-                //TODO: clear the rest
-                factorizations = new Dictionary<int, SemidefiniteCholeskySkyline>();
-                rigidBodyModes = new Dictionary<int, List<Vector>>();
-                foreach (var linearSystem in linearSystems.Values)
-                {
-                    int id = linearSystem.Subdomain.ID;
-                    factorizations[id] = 
-                        linearSystem.Matrix.FactorSemidefiniteCholesky(factorizeInPlace, factorizationPivotTolerance);
-                    rigidBodyModes[id] = new List<Vector>();
-                    foreach (double[] rbm in factorizations[id].NullSpaceBasis)
-                    {
-                        rigidBodyModes[id].Add(Vector.CreateFromArray(rbm, false));
-                    }
-                }
-                mustFactorize = false;
+                preconditioner = CalcPreconditioner();
+                FactorizeMatrices();
+                projection = CalcProjection(preconditioner);
+                isStiffnessModified = false;
             }
             var flexibility = new Feti1FlexibilityMatrix(factorizations, lagrangeEnumerator);
 
             // Calculate the rhs vectors of the interface system
-            Vector disconnectedDisplacements = CalculateDisconnectedDisplacements();
-            Vector rbmWork = CalculateRigidBodyModesWork();
+            Vector disconnectedDisplacements = CalcDisconnectedDisplacements();
+            Vector rbmWork = CalcRigidBodyModesWork();
+            double globalForcesNorm = CalcGlobalForcesNorm();
 
-            // Define and initilize the projection
-            Feti1Projection projection;
-            //if ((pde == PdeOrder.Fourth) || (!isProblemHomogeneous))
+            //TODO: This should be done in the method that handles PCG/PCPG
+            //// Handle exact residual calculations if they are enabled during testing
+            //CalculateExactResidualNorm calcExactResidualNorm = null;
+            //if (pcpgExactResidual != null)
             //{
-            //    // Q = preconditioner
-            //    projection = new Feti1Projection(lagrangeEnumerator.BooleanMatrices, rigidBodyModes,
-            //        new PreconditionerAsMatrixQ(preconditioner));
+            //    calcExactResidualNorm = lagr => CalculateExactResidualNorm(lagr, flexibility, projection,
+            //        disconnectedDisplacements);
             //}
-            //else
-            //{
-            //    // Q = indentity
-            //    projection = new Feti1Projection(lagrangeEnumerator.BooleanMatrices, rigidBodyModes, new IdentityMatrixQ());
-            //}
-            projection = new Feti1Projection(lagrangeEnumerator.BooleanMatrices, rigidBodyModes, new IdentityMatrixQ());
 
-
-            projection.InvertCoarseProblemMatrix();
-
-            // Calculate the norm of the forces vector Ku=f
-            //TODO: It would be better to do that using the global vector to avoid the homogeneous/heterogeneous averaging
-            //      That would require the analyzer to build the global vector too though. Caution: we cannot take just 
-            //      the nodal loads from the model, since the effect of other loads is only taken into account int 
-            //      linearSystem.Rhs. Even if we could easily create the global forces vector, it might be wrong since 
-            //      the analyzer may modify some of these loads, depending on time step, loading step, etc.
-            var subdomainForces = new Dictionary<int, IVectorView>();
-            foreach (var linearSystem in linearSystems.Values)
-            {
-                subdomainForces[linearSystem.Subdomain.ID] = linearSystem.RhsVector;
-            }
-            double globalForcesNorm = stiffnessDistribution.SubdomainGlobalConversion.CalculateGlobalForcesNorm(subdomainForces);
-
-            // Handle exact residual calculations if they are enabled during testing
-            CalculateExactResidualNorm calcExactResidualNorm = null;
-            if (pcpgExactResidual != null)
-            {
-                calcExactResidualNorm = lagranges => CalculateExactResidualNorm(lagranges, flexibility, projection, 
-                    disconnectedDisplacements);
-            }
-
-            // Run the PCPG algorithm
-            var pcpg = new PcpgAlgorithm(pcpgMaxIterationsOverSize, pcpgConvergenceTolerance, calcExactResidualNorm);
-            var lagrangeMultipliers = Vector.CreateZero(lagrangeEnumerator.NumLagrangeMultipliers);
-            PcpgStatistics stats = pcpg.Solve(flexibility, preconditioner, projection, disconnectedDisplacements, rbmWork,
-                globalForcesNorm, lagrangeMultipliers);
-            if (logger != null)
-            {
-                logger.NumUniqueGlobalFreeDofs = model.GlobalDofOrdering.NumGlobalFreeDofs;
-                logger.NumExpandedDomainFreeDofs = 0;
-                foreach (var subdomain in model.Subdomains)
-                {
-                    logger.NumExpandedDomainFreeDofs += subdomain.FreeDofOrdering.NumFreeDofs;
-                }
-                logger.NumLagrangeMultipliers = lagrangeMultipliers.Length;
-                logger.PcpgIterations = stats.NumIterations;
-                logger.PcpgResidualNormEstimateRatio = stats.ResidualNormEstimateRatio;
-            }
+            // Solve the interface problem
+            Vector lagranges = interfaceProblemSolver.CalcLagrangeMultipliers(flexibility, preconditioner, projection,
+                disconnectedDisplacements, rbmWork, globalForcesNorm, Logger);
 
             // Calculate the displacements of each subdomain
-            Vector rbmCoeffs = CalculateRigidBodyModesCoefficients(flexibility, projection, disconnectedDisplacements, 
-                lagrangeMultipliers);
-            Dictionary<int, Vector> actualDisplacements = CalculateActualDisplacements(lagrangeMultipliers, rbmCoeffs);
+            Vector rbmCoeffs = CalcRigidBodyModesCoefficients(flexibility, projection, disconnectedDisplacements,
+                lagranges);
+            Dictionary<int, Vector> actualDisplacements = CalcActualDisplacements(lagranges, rbmCoeffs);
             foreach (var idSystem in linearSystems) idSystem.Value.Solution = actualDisplacements[idSystem.Key];
         }
 
-        private Dictionary<int, Vector> CalculateActualDisplacements(Vector lagranges, Vector rigidBodyModeCoeffs)
+        private Dictionary<int, Vector> CalcActualDisplacements(Vector lagranges, Vector rigidBodyModeCoeffs)
         {
             var actualdisplacements = new Dictionary<int, Vector>();
             int rbmOffset = 0; //TODO: For this to work in parallel, each subdomain must store its offset.
@@ -320,7 +272,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         /// <summary>
         /// d = sum(Bs * generalInverse(Ks) * fs), where fs are the nodal forces applied to the dofs of subdomain s.
         /// </summary>
-        private Vector CalculateDisconnectedDisplacements()
+        private Vector CalcDisconnectedDisplacements()
         {
             var displacements = Vector.CreateZero(lagrangeEnumerator.NumLagrangeMultipliers);
             foreach (var linearSystem in linearSystems.Values)
@@ -335,15 +287,15 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             return displacements;
         }
 
-        /// <summary>
-        /// This is only used by the corresponding PCPG convergence criteria, which itself is for testing purposes only.
-        /// </summary>
-        private double CalculateExactResidualNorm(Vector lagranges, Feti1FlexibilityMatrix flexibility, //TODO: move to another class
+        //TODO: This is only used by the corresponding PCPG convergence criteria, which itself is for testing purposes only. 
+        //      It should be moved to another class. If private members of this class are needed, then reflection should be used
+        //      to access them.
+        private double CalcExactResidualNorm(Vector lagranges, Feti1FlexibilityMatrix flexibility, 
             Feti1Projection projection, Vector disconnectedDisplacements)
         {
-            Vector rbmCoeffs = CalculateRigidBodyModesCoefficients(flexibility, projection, disconnectedDisplacements, lagranges);
+            Vector rbmCoeffs = CalcRigidBodyModesCoefficients(flexibility, projection, disconnectedDisplacements, lagranges);
             var subdomainDisplacements = new Dictionary<int, IVectorView>();
-            foreach (var idDisplacements in CalculateActualDisplacements(lagranges, rbmCoeffs))
+            foreach (var idDisplacements in CalcActualDisplacements(lagranges, rbmCoeffs))
             {
                 subdomainDisplacements[idDisplacements.Key] = idDisplacements.Value;
             }
@@ -351,18 +303,67 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             return pcpgExactResidual.CalculateExactResidualNorm(globalDisplacements);
         }
 
-        private Vector CalculateRigidBodyModesCoefficients(Feti1FlexibilityMatrix flexibility, Feti1Projection projection,
+        /// <summary>
+        /// Calculate the norm of the forces vector |f| = |K*u|. It is needed to check the convergence of PCG/PCPG.
+        /// </summary>
+        private double CalcGlobalForcesNorm()
+        {
+            //TODO: It would be better to do that using the global vector to avoid the homogeneous/heterogeneous averaging
+            //      That would require the analyzer to build the global vector too though. Caution: we cannot take just 
+            //      the nodal loads from the model, since the effect of other loads is only taken into account int 
+            //      linearSystem.Rhs. Even if we could easily create the global forces vector, it might be wrong since 
+            //      the analyzer may modify some of these loads, depending on time step, loading step, etc.
+            var subdomainForces = new Dictionary<int, IVectorView>();
+            foreach (var linearSystem in linearSystems.Values)
+            {
+                subdomainForces[linearSystem.Subdomain.ID] = linearSystem.RhsVector;
+            }
+            return stiffnessDistribution.SubdomainGlobalConversion.CalculateGlobalForcesNorm(subdomainForces);
+        }
+
+        private IFetiPreconditioner CalcPreconditioner()
+        {
+            // Create the preconditioner. 
+            //TODO: this should be done simultaneously with the factorizations to avoid duplicate factorizations.
+            var stiffnessMatrices = new Dictionary<int, IMatrixView>();
+            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            {
+                stiffnessMatrices.Add(linearSystem.Subdomain.ID, linearSystem.Matrix);
+            }
+            return preconditionerFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator, lagrangeEnumerator,
+                stiffnessMatrices);
+        }
+
+        private Feti1Projection CalcProjection(IFetiPreconditioner preconditioner)
+        {
+            Feti1Projection projection;
+            if ((pde == PdeOrder.Fourth) || (!isProblemHomogeneous))
+            {
+                // Q = preconditioner
+                projection = new Feti1Projection(lagrangeEnumerator.BooleanMatrices, rigidBodyModes,
+                    new PreconditionerAsMatrixQ(preconditioner));
+            }
+            else
+            {
+                // Q = indentity
+                projection = new Feti1Projection(lagrangeEnumerator.BooleanMatrices, rigidBodyModes, new IdentityMatrixQ());
+            }
+            projection.InvertCoarseProblemMatrix();
+            return projection;
+        }
+
+        private Vector CalcRigidBodyModesCoefficients(Feti1FlexibilityMatrix flexibility, Feti1Projection projection,
             Vector disconnectedDisplacements, Vector lagrangeMultipliers)
         {
             var flexibilityTimesLagranges = Vector.CreateZero(lagrangeEnumerator.NumLagrangeMultipliers);
             flexibility.Multiply(lagrangeMultipliers, flexibilityTimesLagranges);
-            return projection.CalculateRigidBodyModesCoefficients(flexibilityTimesLagranges, disconnectedDisplacements);
+            return projection.CalcRigidBodyModesCoefficients(flexibilityTimesLagranges, disconnectedDisplacements);
         }
 
         /// <summary>
         /// e = [ R1^T * f1; R2^T * f2; ... Rns^T * fns] 
         /// </summary>
-        private Vector CalculateRigidBodyModesWork() //TODO: this should probably be decomposed to subdomains
+        private Vector CalcRigidBodyModesWork() //TODO: this should probably be decomposed to subdomains
         {
             int workLength = 0;
             foreach (var linearSystem in linearSystems.Values)
@@ -390,6 +391,23 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             else stiffnessDistribution = new HeterogeneousStiffnessDistribution(model, dofSeparator, stiffnessMatrices);
         }
 
+        private void FactorizeMatrices()
+        {
+            factorizations = new Dictionary<int, SemidefiniteCholeskySkyline>();
+            rigidBodyModes = new Dictionary<int, List<Vector>>();
+            foreach (var linearSystem in linearSystems.Values)
+            {
+                int id = linearSystem.Subdomain.ID;
+                factorizations[id] =
+                    linearSystem.Matrix.FactorSemidefiniteCholesky(factorizeInPlace, factorizationPivotTolerance);
+                rigidBodyModes[id] = new List<Vector>();
+                foreach (double[] rbm in factorizations[id].NullSpaceBasis)
+                {
+                    rigidBodyModes[id].Add(Vector.CreateFromArray(rbm, false));
+                }
+            }
+        }
+
         public class Builder
         {
             private readonly double factorizationPivotTolerance;
@@ -400,18 +418,23 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
                 this.factorizationPivotTolerance = factorizationPivotTolerance;
             }
 
-            public IDofOrderer DofOrderer { get; set; } = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
+            public IDofOrderer DofOrderer { get; set; } = 
+                new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
+
+            public IFeti1InterfaceProblemSolver InterfaceProblemSolver { get; set; } =
+                new Feti1ProjectedInterfaceProblemSolver(1E-7, 1.0, Feti1ProjectedInterfaceProblemSolver.ProjectionSide.Both,
+                    Feti1ProjectedInterfaceProblemSolver.ProjectionSide.Both);
+
             public bool IsProblemHomogeneous { get; set; } = true;
-            public FetiLogger Logger { get; set; } = null;
-            internal IExactResidualCalculator PcpgExactResidual { get; set; } = null;
-            public double PcpgConvergenceTolerance { get; set; } = 1E-7;
-            public double PcpgMaxIterationsOverSize { get; set; } = 1.0;
+            internal IExactResidualCalculator PcgExactResidual { get; set; } = null;
+            public double PcgConvergenceTolerance { get; set; } = 1E-7;
+            public double PcgMaxIterationsOverSize { get; set; } = 1.0;
             public PdeOrder PdeOrder { get; set; } = PdeOrder.Second;
             public IFetiPreconditionerFactory PreconditionerFactory { get; set; } = new Feti1LumpedPreconditioner.Factory();
-
+            
             public Feti1Solver BuildSolver(Model_v2 model)
-                => new Feti1Solver(model, DofOrderer, factorizationPivotTolerance, PcpgMaxIterationsOverSize, 
-                    PcpgConvergenceTolerance, PcpgExactResidual, PreconditionerFactory, IsProblemHomogeneous, PdeOrder, Logger);
+                => new Feti1Solver(model, DofOrderer, factorizationPivotTolerance, PreconditionerFactory,
+                     InterfaceProblemSolver, PcgExactResidual, IsProblemHomogeneous, PdeOrder);
         }
     }
 }
