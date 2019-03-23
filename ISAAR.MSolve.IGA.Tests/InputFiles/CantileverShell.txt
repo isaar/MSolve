@@ -1,0 +1,40 @@
+patchId=0
+
+numberOfDimensions = 2
+
+numberofpatches = 1
+
+numberofcpksi = 4
+
+numberofcpheta = 3
+
+thickness = 1
+
+degreeksi = 3
+
+degreeheta = 2
+
+knotvaluevectorksi = 0	0	0	0	1	1	1	1 
+
+knotvaluevectorheta = 0	0	0	1	1	1 
+
+patchcpid = 0 1 2 3 4 5 6 7 8 9 10 11
+
+cpcoord = 12
+0	0	0	0	1
+1	0	0.5	0	1
+2	0	1	0	1
+3	16.66666667	0	0	1
+4	16.66666667	0.5	0	1
+5	16.66666667	1	0	1
+6	33.33333333	0	0	1
+7	33.33333333	0.5	0	1
+8	33.33333333	1	0	1
+9	50	0	0	1
+10	50	0.5	0	1
+11	50	1	0	1
+
+
+material = steel 100 0.0
+
+end

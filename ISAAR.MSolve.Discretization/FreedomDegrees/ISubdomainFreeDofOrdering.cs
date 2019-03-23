@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -19,15 +17,18 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         int NumFreeDofs { get; }
 
         //TODO: What should it contain for constrained dofs?
-        void AddVectorElementToSubdomain(IElement element, IVectorView elementVector, IVector subdomainVector);
+        void AddVectorElementToSubdomain(IElement_v2 element, double[] elementVector, IVector subdomainVector);
 
-        int CountElementDofs(IElement element);
+        int CountElementDofs(IElement_v2 element);
 
         //TODO: What should it contain for constrained dofs?
         //TODOMaria: here is where the element displacements are assigned to zero if they are constrained
-        void ExtractVectorElementFromSubdomain(IElement element, IVectorView subdomainVector, IVector elementVector); 
+        //TODO: Should the element vector be passed in and modified instead. So far in all usecases the vector was created by 
+        //      the client using CountElementDofs() immediately before passing it to this method.
+        //TODO: should the returned type be IVector?
+        double[] ExtractVectorElementFromSubdomain(IElement_v2 element, IVectorView subdomainVector); 
 
-        (int[] elementDofIndices, int[] subdomainDofIndices) MapFreeDofsElementToSubdomain(IElement element);
+        (int[] elementDofIndices, int[] subdomainDofIndices) MapFreeDofsElementToSubdomain(IElement_v2 element);
 
         //TODO: perhaps the subdomain should be passed in the constructor.
         void Reorder(IReorderingAlgorithm reorderingAlgorithm, ISubdomain_v2 subdomain);

@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
+﻿using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,15 +8,15 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-    public class ControlPoint:INode
+    public class ControlPoint : INode
 	{
-        private readonly List<DOFType> constrains = new List<DOFType>();
-        private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
-        private readonly Dictionary<int, Patch> patchesDictionary =new Dictionary<int, Patch>();
-        
-        public List<DOFType> Constrains
+        protected readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
+        protected readonly Dictionary<int, Patch> patchesDictionary =new Dictionary<int, Patch>();
+        private readonly List<Constraint> constraints = new List<Constraint>();
+
+		public List<Constraint> Constrains
         {
-            get { return constrains; }
+            get { return constraints; }
         }
 
         public Dictionary<int, Element> ElementsDictionary
@@ -37,6 +38,8 @@ namespace ISAAR.MSolve.IGA.Entities
         public double Heta { get; set; }
         public double Zeta { get; set; }
 
+        public List<Constraint> Constraints => constraints;
+
         public void BuildPatchesDictionary()
         {
             foreach (Element element in elementsDictionary.Values)
@@ -45,14 +48,14 @@ namespace ISAAR.MSolve.IGA.Entities
         }
 
 
-        public override string ToString()
+		public override string ToString()
         {
             var header = String.Format("{0}: ({1}, {2}, {3})", ID, X, Y, Z);
             string constrainsDescription = string.Empty;
-            foreach (var c in constrains)
+            foreach (var c in constraints)
             {
                 string con = string.Empty;
-                switch (c)
+                switch (c.DOF)
                 {
                     case DOFType.Unknown:
                         con = "?";

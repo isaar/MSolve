@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Analyzers.NonLinear;
+using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
@@ -9,6 +11,8 @@ using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers;
+using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
 using Xunit;
@@ -27,9 +31,34 @@ namespace ISAAR.MSolve.Tests.FEM
             Assert.True(AreDisplacementsSame(expectedDisplacements, computedDisplacements));
         }
 
+        [Fact]
+        private static void RunTest_v2()
+        {
+            IReadOnlyList<Dictionary<int, double>> expectedDisplacements = GetExpectedDisplacements();
+            TotalDisplacementsPerIterationLog_v2 computedDisplacements = SolveModel_v2();
+            Assert.True(AreDisplacementsSame_v2(expectedDisplacements, computedDisplacements));
+        }
+
         private static bool AreDisplacementsSame(IReadOnlyList<Dictionary<int, double>> expectedDisplacements, TotalDisplacementsPerIterationLog computedDisplacements)
         {
             var comparer = new ValueComparer(1E-13);
+            for (int iter = 0; iter < expectedDisplacements.Count; ++iter)
+            {
+                foreach (int dof in expectedDisplacements[iter].Keys)
+                {
+                    if (!comparer.AreEqual(expectedDisplacements[iter][dof], computedDisplacements.GetTotalDisplacement(iter, subdomainID, dof)))
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        private static bool AreDisplacementsSame_v2(IReadOnlyList<Dictionary<int, double>> expectedDisplacements, 
+            TotalDisplacementsPerIterationLog_v2 computedDisplacements)
+        {
+            var comparer = new ValueComparer(1E-11);
             for (int iter = 0; iter < expectedDisplacements.Count; ++iter)
             {
                 foreach (int dof in expectedDisplacements[iter].Keys)
@@ -112,10 +141,47 @@ namespace ISAAR.MSolve.Tests.FEM
             return log1;
         }
 
+        private static TotalDisplacementsPerIterationLog_v2 SolveModel_v2()
+        {
+            var model = new Model_v2();
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
+
+            ShellPlateBuilder_v2(model, 1);
+
+            // Solver
+            var solverBuilder = new SkylineSolver.Builder();
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
+
+            // Problem type
+            var provider = new ProblemStructural_v2(model, solver);
+
+            // Analyzers
+            int increments = 2;
+            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
+            childAnalyzerBuilder.ResidualTolerance = 1E-8;
+            childAnalyzerBuilder.MaxIterationsPerIncrement = 100;
+            childAnalyzerBuilder.NumIterationsForMatrixRebuild = 1;
+            //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) }; // This is the default
+            LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
+            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+
+            // Output
+            var watchDofs = new Dictionary<int, int[]>();
+            watchDofs.Add(subdomainID, new int[5] { 0, 11, 23, 35, 47 });
+            var log1 = new TotalDisplacementsPerIterationLog_v2(watchDofs);
+            childAnalyzer.TotalDisplacementsPerIterationLog = log1;
+
+            // Run the anlaysis 
+            parentAnalyzer.Initialize();
+            parentAnalyzer.Solve();
+
+            return log1;
+        }
+
         private static void ShellPlateBuilder(Model model, double load_value)
         {
-            // proelefsi: branch master idio onoma ParadeigmataElegxwnBuilder2.ShellPlateBuilder(Model model, double load_value)
-            ShellElasticMaterial material1 = new ShellElasticMaterial()
+            // Origin: branch master idio onoma ParadeigmataElegxwnBuilder2.ShellPlateBuilder(Model model, double load_value)
+            ShellElasticMaterial3D material1 = new ShellElasticMaterial3D()
             {
                 YoungModulus = 135300,
                 PoissonRatio = 0.3,
@@ -259,6 +325,162 @@ namespace ISAAR.MSolve.Tests.FEM
             Load load1;
 
             load1 = new Load()
+            {
+                Node = model.NodesDictionary[13],
+                DOF = DOFType.Z,
+                Amount = 1 * load_value
+            };
+            model.Loads.Add(load1);
+
+        }
+
+        private static void ShellPlateBuilder_v2(Model_v2 model, double load_value)
+        {
+            // Origin: branch master idio onoma ParadeigmataElegxwnBuilder2.ShellPlateBuilder(Model model, double load_value)
+            var material1 = new ShellElasticMaterial_v2()
+            {
+                YoungModulus = 135300,
+                PoissonRatio = 0.3,
+                ShearCorrectionCoefficientK = 5 / 6,
+            };
+
+            double[,] nodeData = new double[,] {{10.000000,10.000000,0.000000},
+            {7.500000,10.000000,0.000000},
+            {5.000000,10.000000,0.000000},
+            {2.500000,10.000000,0.000000},
+            {0.000000,10.000000,0.000000},
+            {10.000000,7.500000,0.000000},
+            {7.500000,7.500000,0.000000},
+            {5.000000,7.500000,0.000000},
+            {2.500000,7.500000,0.000000},
+            {0.000000,7.500000,0.000000},
+            {10.000000,5.000000,0.000000},
+            {7.500000,5.000000,0.000000},
+            {5.000000,5.000000,0.000000},
+            {2.500000,5.000000,0.000000},
+            {0.000000,5.000000,0.000000},
+            {10.000000,2.500000,0.000000},
+            {7.500000,2.500000,0.000000},
+            {5.000000,2.500000,0.000000},
+            {2.500000,2.500000,0.000000},
+            {0.000000,2.500000,0.000000},
+            {10.000000,0.000000,0.000000},
+            {7.500000,0.000000,0.000000},
+            {5.000000,0.000000,0.000000},
+            {2.500000,0.000000,0.000000},
+            {0.000000,0.000000,0.000000},
+            {8.750000,10.000000,0.000000},
+            {6.250000,10.000000,0.000000},
+            {3.750000,10.000000,0.000000},
+            {1.250000,10.000000,0.000000},
+            {8.750000,7.500000,0.000000},
+            {6.250000,7.500000,0.000000},
+            {3.750000,7.500000,0.000000},
+            {1.250000,7.500000,0.000000},
+            {8.750000,5.000000,0.000000},
+            {6.250000,5.000000,0.000000},
+            {3.750000,5.000000,0.000000},
+            {1.250000,5.000000,0.000000},
+            {8.750000,2.500000,0.000000},
+            {6.250000,2.500000,0.000000},
+            {3.750000,2.500000,0.000000},
+            {1.250000,2.500000,0.000000},
+            {8.750000,0.000000,0.000000},
+            {6.250000,0.000000,0.000000},
+            {3.750000,0.000000,0.000000},
+            {1.250000,0.000000,0.000000},
+            {10.000000,8.750000,0.000000},
+            {10.000000,6.250000,0.000000},
+            {10.000000,3.750000,0.000000},
+            {10.000000,1.250000,0.000000},
+            {7.500000,8.750000,0.000000},
+            {7.500000,6.250000,0.000000},
+            {7.500000,3.750000,0.000000},
+            {7.500000,1.250000,0.000000},
+            {5.000000,8.750000,0.000000},
+            {5.000000,6.250000,0.000000},
+            {5.000000,3.750000,0.000000},
+            {5.000000,1.250000,0.000000},
+            {2.500000,8.750000,0.000000},
+            {2.500000,6.250000,0.000000},
+            {2.500000,3.750000,0.000000},
+            {2.500000,1.250000,0.000000},
+            {0.000000,8.750000,0.000000},
+            {0.000000,6.250000,0.000000},
+            {0.000000,3.750000,0.000000},
+            {0.000000,1.250000,0.000000}, };
+
+            int[,] elementData = new int[,] { {1,1,2,7,6,26,50,30,46},
+            {2,2,3,8,7,27,54,31,50},
+            {3,3,4,9,8,28,58,32,54},
+            {4,4,5,10,9,29,62,33,58},
+            {5,6,7,12,11,30,51,34,47},
+            {6,7,8,13,12,31,55,35,51},
+            {7,8,9,14,13,32,59,36,55},
+            {8,9,10,15,14,33,63,37,59},
+            {9,11,12,17,16,34,52,38,48},
+            {10,12,13,18,17,35,56,39,52},
+            {11,13,14,19,18,36,60,40,56},
+            {12,14,15,20,19,37,64,41,60},
+            {13,16,17,22,21,38,53,42,49},
+            {14,17,18,23,22,39,57,43,53},
+            {15,18,19,24,23,40,61,44,57},
+            {16,19,20,25,24,41,65,45,61},};
+
+            // orismos shmeiwn
+            for (int nNode = 0; nNode < nodeData.GetLength(0); nNode++)
+            {
+                model.NodesDictionary.Add(nNode + 1, new Node_v2() { ID = nNode + 1, X = nodeData[nNode, 0], Y = nodeData[nNode, 1], Z = nodeData[nNode, 2] });
+            }
+
+            // orismos elements 
+            Element_v2 e1;
+            int subdomainID = 1;
+            double tk_shell_plate = 0.5;
+            for (int nElement = 0; nElement < elementData.GetLength(0); nElement++)
+            {
+                e1 = new Element_v2()
+                {
+                    ID = nElement + 1,
+                    ElementType = new Shell8NonLinear_v2(material1, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 2))//ElementType = new Shell8dispCopyGet(material2, 3, 3, 3)
+                    {
+                        //oVn_i= new double[][] { new double [] {ElementID, ElementID }, new double [] { ElementID, ElementID } },
+                        oVn_i = new double[][] { new double[] { 0,0,1 },
+                                                 new double[] { 0,0,1 },
+                                                 new double[] { 0,0,1 },
+                                                 new double[] { 0,0,1 },
+                                                 new double[] { 0,0,1 },
+                                                 new double[] { 0,0,1 },
+                                                 new double[] { 0,0,1 },
+                                                 new double[] { 0,0,1 },},
+                        tk = new double[] { tk_shell_plate, tk_shell_plate, tk_shell_plate, tk_shell_plate, tk_shell_plate, tk_shell_plate, tk_shell_plate, tk_shell_plate },
+                    }
+                };
+                for (int j = 0; j < 8; j++)
+                {
+                    e1.NodesDictionary.Add(elementData[nElement, j + 1], model.NodesDictionary[elementData[nElement, j + 1]]);
+                }
+                model.ElementsDictionary.Add(e1.ID, e1);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(e1);
+            }
+
+            // constraint paaktwsh gurw gurw plevres
+            int pointID;
+            int[] cnstrnd = new int[] { 21, 22, 23, 24, 25, 26, 27, 28, 29, 1, 2, 3, 4, 5, 42, 43, 44, 45, 46, 47, 48, 49, 6, 11, 16, 10, 15, 20, 62, 63, 64, 65 };
+            for (int k = 0; k < cnstrnd.GetLength(0); k++)
+            {
+                pointID = cnstrnd[k];
+                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = DOFType.X });
+                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = DOFType.Z });
+                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = DOFType.RotX });
+                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = DOFType.RotY });
+            }
+
+            // fortish korufhs
+            Load_v2 load1;
+
+            load1 = new Load_v2()
             {
                 Node = model.NodesDictionary[13],
                 DOF = DOFType.Z,

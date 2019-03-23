@@ -5,9 +5,8 @@ using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using Xunit;
 
 namespace ISAAR.MSolve.FEM.Tests.Elements
@@ -18,7 +17,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
 	/// </summary>
 	public class Tet4
 	{
-		private static readonly ElasticMaterial3D Material0 = new ElasticMaterial3D()
+		private static readonly ElasticMaterial3D_v2 Material0 = new ElasticMaterial3D_v2()
 		{
 			YoungModulus = 480,
 			PoissonRatio = 1.0 / 3.0
@@ -26,12 +25,12 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
 
 		private static readonly DynamicMaterial DynamicMaterial0 = new DynamicMaterial(1,0,0);
 
-		private static readonly IReadOnlyList<Node3D> NodeSet0 = new Node3D[]
+		private static readonly IReadOnlyList<Node_v2> NodeSet0 = new Node_v2[]
 		{
-			new Node3D(0, 2, 3, 4),
-			new Node3D(1, 6, 3, 2),
-			new Node3D(2, 2, 5, 1),
-			new Node3D(3, 4, 3, 6),
+			new Node_v2 { ID = 0, X = 2, Y = 3, Z = 4 },
+			new Node_v2 { ID = 1, X = 6, Y = 3, Z = 2 },
+			new Node_v2 { ID = 2, X = 2, Y = 5, Z = 1 },
+			new Node_v2 { ID = 3, X = 4, Y = 3, Z = 6 },
 		};
 
 		/// <summary>
@@ -43,7 +42,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
 		{
 			var factory = new ContinuumElement3DFactory(Material0, DynamicMaterial0);
 			var tet4 = factory.CreateElement(CellType3D.Tet4, NodeSet0);
-			IMatrix2D K = tet4.BuildStiffnessMatrix();
+			IMatrix K = tet4.BuildStiffnessMatrix();
 
 			double[,] expectedK =
 			{
@@ -60,9 +59,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
 				{-330, -1160, -300, 90, -380, -180, 60, 720, 120, 180, 820, 360},
 				{-180, -420, -470, 60, -180, -230, 0, 240, 180, 120, 360, 520},
 			};
-			Assert.True(Utilities.AreMatricesEqual(K, new Matrix2D(expectedK), 1e-10));
+			Assert.True(K.Equals(Matrix.CreateFromArray(expectedK), 1e-10));
 		}
-
-		
 	}
 }

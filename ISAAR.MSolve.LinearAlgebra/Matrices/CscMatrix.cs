@@ -229,6 +229,34 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void Clear() => Array.Clear(values, 0, values.Length);
 
         /// <summary>
+        /// See <see cref="IMatrixView.Copy(bool)"/>.
+        /// </summary>
+        IMatrix IMatrixView.Copy(bool copyIndexingData) => Copy(copyIndexingData);
+
+        /// <summary>
+        /// Copies the entries of this matrix.
+        /// </summary>
+        /// <param name="copyIndexingData">
+        /// If true, all data of this object will be copied. If false, only the array containing the values of the stored 
+        /// matrix entries will be copied. The new matrix will reference the same indexing arrays as this one.
+        /// </param>
+        public CscMatrix Copy(bool copyIndexingData)
+        {
+            var valuesCopy = new double[this.values.Length];
+            Array.Copy(this.values, valuesCopy, this.values.Length);
+
+            if (!copyIndexingData) return new CscMatrix(NumRows, NumColumns, valuesCopy, this.rowIndices, this.colOffsets);
+            else
+            {
+                var rowIndicesCopy = new int[this.rowIndices.Length];
+                Array.Copy(this.rowIndices, rowIndicesCopy, this.rowIndices.Length);
+                var colOffsetsCopy = new int[this.colOffsets.Length];
+                Array.Copy(this.colOffsets, colOffsetsCopy, this.colOffsets.Length);
+                return new CscMatrix(NumRows, NumColumns, valuesCopy, rowIndicesCopy, colOffsetsCopy);
+            }
+        }
+
+        /// <summary>
         /// Initializes a new <see cref="Matrix"/> instance by copying the entries of this <see cref="CscMatrix"/>. 
         /// Warning: there may not be enough memory.
         /// </summary>
@@ -409,9 +437,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 {
                     // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
                     double[] resultValues = new double[values.Length];
-                    Array.Copy(this.values, resultValues, values.Length);
-                    BlasExtensions.Daxpby(values.Length, otherCoefficient, otherCSC.values, 0, 1, 
-                        thisCoefficient, this.values, 0, 1);
+                    if (thisCoefficient == 1.0)
+                    {
+                        Array.Copy(this.values, resultValues, values.Length);
+                        Blas.Daxpy(values.Length, otherCoefficient, otherCSC.values, 0, 1, this.values, 0, 1);
+                    }
+                    else if (otherCoefficient == 1.0)
+                    {
+                        Array.Copy(otherCSC.values, resultValues, values.Length);
+                        Blas.Daxpy(values.Length, thisCoefficient, this.values, 0, 1, resultValues, 0, 1);
+                    }
+                    else
+                    {
+                        Array.Copy(this.values, resultValues, values.Length);
+                        BlasExtensions.Daxpby(values.Length, otherCoefficient, otherCSC.values, 0, 1,
+                            thisCoefficient, this.values, 0, 1);
+                    }
                     return new CscMatrix(NumRows, NumColumns, resultValues, this.rowIndices, this.colOffsets);
                 }
             }
@@ -448,7 +489,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             {
                 throw new SparsityPatternModifiedException("Only allowed if the indexing arrays are the same");
             }
-            BlasExtensions.Daxpby(values.Length, otherCoefficient, otherMatrix.values, 0, 1, thisCoefficient, this.values, 0, 1);
+            if (thisCoefficient == 1.0)
+            {
+                Blas.Daxpy(values.Length, otherCoefficient, otherMatrix.values, 0, 1, this.values, 0, 1);
+            }
+            else
+            {
+                BlasExtensions.Daxpby(values.Length, otherCoefficient, otherMatrix.values, 0, 1, thisCoefficient, this.values, 0, 1);
+            }
         }
 
         /// <summary>

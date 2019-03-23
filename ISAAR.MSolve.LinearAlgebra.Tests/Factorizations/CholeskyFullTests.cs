@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
             {
                 // positive definite
                 var A = Matrix.CreateFromArray(SymmPosDef10by10.Matrix);
-                CholeskyFull factorization = A.FactorCholesky();
+                CholeskyFull factorization = A.FactorCholesky(true);
                 double detComputed = factorization.CalcDeterminant();
                 comparer.AssertEqual(SymmPosDef10by10.Determinant, detComputed);
             });
@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
                 // positive definite
                 var A = Matrix.CreateFromArray(SymmPosDef10by10.Matrix);
                 var inverseAExpected = Matrix.CreateFromArray(SymmPosDef10by10.Inverse);
-                CholeskyFull factorization = A.FactorCholesky();
+                CholeskyFull factorization = A.FactorCholesky(true);
                 Matrix inverseAComputed = factorization.Invert(true);
                 comparer.AssertEqual(inverseAExpected, inverseAComputed);
             });
@@ -54,13 +54,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
                 // positive definite
                 var A1 = Matrix.CreateFromArray(SymmPosDef10by10.Matrix);
                 var expectedU1 = Matrix.CreateFromArray(SymmPosDef10by10.FactorU);
-                CholeskyFull factorization1 = A1.FactorCholesky();
+                CholeskyFull factorization1 = A1.FactorCholesky(true);
                 Matrix computedU1 = factorization1.GetFactorU();
                 comparer.AssertEqual(expectedU1, computedU1);
 
                 // singular
                 var A2 = Matrix.CreateFromArray(SquareSingular10by10.Matrix);
-                Assert.Throws<IndefiniteMatrixException>(() => A2.FactorCholesky());
+                Assert.Throws<IndefiniteMatrixException>(() => A2.FactorCholesky(true));
             });
         }
 
@@ -74,7 +74,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Factorizations
                 var A = Matrix.CreateFromArray(SymmPosDef10by10.Matrix);
                 var b = Vector.CreateFromArray(SymmPosDef10by10.Rhs);
                 var xExpected = Vector.CreateFromArray(SymmPosDef10by10.Lhs);
-                CholeskyFull factorization = A.FactorCholesky();
+                CholeskyFull factorization = A.FactorCholesky(true);
                 Vector xComputed = factorization.SolveLinearSystem(b);
                 comparer.AssertEqual(xExpected, xComputed);
             });

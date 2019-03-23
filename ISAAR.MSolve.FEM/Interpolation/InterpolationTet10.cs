@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
-	/// <summary>
-	/// Isoparametric interpolation of a tetrahedral finite element with 10 nodes. Quadratic shape function.
-	/// Implements singleton pattern.
-	/// Authors: Dimitris Tsapetis.
-	/// </summary>
-    public class InterpolationTet10:IsoparametricInterpolation3DBase
+    /// <summary>
+    /// Isoparametric interpolation of a tetrahedral finite element with 10 nodes. Quadratic shape function.
+    /// Implements singleton pattern.
+    /// Authors: Dimitris Tsapetis.
+    /// </summary>
+    public class InterpolationTet10 : IsoparametricInterpolation3DBase
     {
 	    private static readonly InterpolationTet10 uniqueInstance = new InterpolationTet10();
 
@@ -52,7 +51,8 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// </summary>
 		/// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
 		/// <returns></returns>
-		public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> node)=> throw new NotImplementedException("Requires iterative procedure.");
+		public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node_v2> node)
+            => throw new NotImplementedException("Requires iterative procedure.");
 
 
 		/// <summary>
@@ -86,13 +86,13 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		}
 
 
-	    protected sealed override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
+	    protected sealed override Matrix EvaluateGradientsAt(double xi, double eta, double zeta)
 	    {
 		    var x = xi;
 		    var y = eta;
 		    var z = zeta;
 
-		    var derivatives = new double[10, 3];
+		    var derivatives = Matrix.CreateZero(10, 3);
 
 		    derivatives[0, 0] = 4 * x + 4 * y + 4 * z - 3;
 			derivatives[1, 0] = 4 * x - 1;

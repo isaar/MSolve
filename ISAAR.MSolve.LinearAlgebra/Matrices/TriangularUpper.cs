@@ -200,6 +200,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void Clear() => Array.Clear(data, 0, data.Length);
 
         /// <summary>
+        /// See <see cref="IMatrixView.Copy(bool)"/>.
+        /// </summary>
+        IMatrix IMatrixView.Copy(bool copyIndexingData) => Copy();
+
+        /// <summary>
+        /// Copies the entries of this matrix.
+        /// </summary>
+        public TriangularUpper Copy()
+        {
+            var clone = new double[this.data.Length];
+            Array.Copy(this.data, clone, this.data.Length);
+            return new TriangularUpper(clone, Order);
+        }
+
+        /// <summary>
         /// Copies the entries of the matrix into a 2-dimensional array. The returned array has length(0) = length(1) = 
         /// <see cref="Order"/>. 
         /// </summary>
@@ -320,8 +335,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
-            Array.Copy(this.data, result, data.Length);
-            BlasExtensions.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, result, 0, 1);
+            if (thisCoefficient == 1.0)
+            {
+                Array.Copy(this.data, result, data.Length);
+                Blas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, result, 0, 1);
+            }
+            else if (otherCoefficient == 1.0)
+            {
+                Array.Copy(otherMatrix.data, result, data.Length);
+                Blas.Daxpy(data.Length, thisCoefficient, this.data, 0, 1, result, 0, 1);
+            }
+            else
+            {
+                Array.Copy(this.data, result, data.Length);
+                BlasExtensions.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, result, 0, 1);
+            }
             return new TriangularUpper(result, NumColumns);
         }
 
@@ -350,7 +378,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void LinearCombinationIntoThis(double thisCoefficient, TriangularUpper otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
-            BlasExtensions.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, this.data, 0, 1);
+            if (thisCoefficient == 1.0)
+            {
+                Blas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, this.data, 0, 1);
+            }
+            else
+            {
+                BlasExtensions.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, this.data, 0, 1);
+            }
         }
 
         /// <summary>

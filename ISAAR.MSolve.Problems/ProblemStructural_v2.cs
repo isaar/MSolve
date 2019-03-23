@@ -1,18 +1,16 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Analyzers.Interfaces;
-using System.Threading.Tasks;
 using ISAAR.MSolve.Analyzers;
-using System;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.Analyzers.Dynamic;
+using ISAAR.MSolve.Analyzers.Interfaces;
+using ISAAR.MSolve.Analyzers.NonLinear;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Discretization.Providers;
-using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Solvers;
+using ISAAR.MSolve.Solvers.LinearSystems;
 
 //TODO: Usually the LinearSystem is passed in, but for GetRHSFromHistoryLoad() it is stored as a field. Decide on one method.
 //TODO: I am not too fond of the provider storing global sized matrices.
@@ -24,18 +22,22 @@ namespace ISAAR.MSolve.Problems
         private readonly IStructuralModel_v2 model;
         private readonly ISolver_v2 solver;
         private IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
-        private ElementStructuralStiffnessProvider stiffnessProvider = new ElementStructuralStiffnessProvider();
-        private ElementStructuralMassProvider massProvider = new ElementStructuralMassProvider();
+        private ElementStructuralStiffnessProvider_v2 stiffnessProvider = new ElementStructuralStiffnessProvider_v2();
+        private ElementStructuralMassProvider_v2 massProvider = new ElementStructuralMassProvider_v2();
+        private ElementStructuralDampingProvider_v2 dampingProvider = new ElementStructuralDampingProvider_v2();
 
         public ProblemStructural_v2(IStructuralModel_v2 model, ISolver_v2 solver)
         {
             this.model = model;
             this.linearSystems = solver.LinearSystems;
             this.solver = solver;
+            this.DirichletLoadsAssembler = new DirichletEquivalentLoadsStructural(stiffnessProvider);
         }
 
-        public double AboserberE { get; set; }
-        public double Aboseberv { get; set; }
+        //public double AboserberE { get; set; }
+        //public double Aboseberv { get; set; }
+
+        public IDirichletEquivalentLoadsAssembler DirichletLoadsAssembler { get; } 
 
         private IDictionary<int, IMatrix> Ms
         {
@@ -73,7 +75,6 @@ namespace ISAAR.MSolve.Problems
         private void BuildKs()
         {
             ks = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            var stiffnessProvider = new ElementStructuralStiffnessProvider();
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 ks.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, stiffnessProvider));
@@ -95,7 +96,6 @@ namespace ISAAR.MSolve.Problems
         private void BuildMs()
         {
             ms = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            var massProvider = new ElementStructuralMassProvider();
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 ms.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, massProvider));
@@ -107,7 +107,6 @@ namespace ISAAR.MSolve.Problems
         private void BuildCs()
         {
             cs = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            var dampingProvider = new ElementStructuralDampingProvider();
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 cs.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, dampingProvider));
@@ -119,9 +118,9 @@ namespace ISAAR.MSolve.Problems
         {
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
-                foreach (IElement element in subdomain.Elements)
+                foreach (IElement_v2 element in subdomain.Elements)
                 {
-                    ((IFiniteElement)element.IElementType).ClearMaterialState();
+                    ((IFiniteElement_v2)element.ElementType).ClearMaterialState();
                 }
             }
 
@@ -133,10 +132,9 @@ namespace ISAAR.MSolve.Problems
 
         #region IImplicitIntegrationProvider Members
 
-        public void CalculateEffectiveMatrix(ILinearSystem_v2 linearSystem, ImplicitIntegrationCoefficients coefficients)
+        public IMatrixView LinearCombinationOfMatricesIntoStiffness(ImplicitIntegrationCoefficients coefficients, 
+            ISubdomain_v2 subdomain)
         {
-            int id = linearSystem.Subdomain.ID;
-
             //TODO: 1) Why do we want Ks to be built only if it has not been factorized? 
             //      2) When calling Ks[id], the matrix will be built anyway, due to the annoying side effects of the property.
             //         Therefore, if the matrix was indeed factorized it would be built twice!
@@ -144,16 +142,20 @@ namespace ISAAR.MSolve.Problems
             //         that the matrix has been altered by the solver could be implemented by observers, if necessary.
             //      4) The analyzer should decide when global matrices need to be rebuilt, not the provider.
             //      5) The need to rebuild the system matrix if the solver has modified it might be avoidable if the analyzer 
-            //         uses and appropriate order of operations. However, that may not always be possible. Such a feature 
+            //         uses the appropriate order of operations. However, that may not always be possible. Such a feature 
             //         (rebuild or store) is nice to have. Whow would be responsible, the solver, provider or assembler?
-            if (linearSystem.IsMatrixOverwrittenBySolver) BuildKs();
+            //      6) If the analyzer needs the system matrix, then it can call solver.PreventFromOverwritingMatrix(). E.g.
+            //          explicit dynamic analyzers would need to do that.
+            //if (linearSystem.IsMatrixOverwrittenBySolver) BuildKs();
+
+            int id = subdomain.ID;
             IMatrix matrix = this.Ks[id];
             matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[id], coefficients.Mass);
             matrix.AxpyIntoThis(Cs[id], coefficients.Damping);
-            linearSystem.SetMatrix(this.Ks[id]);
+            return this.Ks[id];
         }
 
-        public void ProcessRhs(ILinearSystem_v2 subdomain, ImplicitIntegrationCoefficients coefficients)
+        public void ProcessRhs(ImplicitIntegrationCoefficients coefficients, ISubdomain_v2 subdomain, IVector rhs)
         {
             // Method intentionally left empty.
         }
@@ -223,44 +225,32 @@ namespace ISAAR.MSolve.Problems
             return d;
         }
 
-        public void GetRhsFromHistoryLoad(int timeStep)
+        public IDictionary<int, IVector> GetRhsFromHistoryLoad(int timeStep)
         {
-            foreach (ISubdomain_v2 subdomain in model.Subdomains) subdomain.Forces.Clear();
+            foreach (ISubdomain_v2 subdomain in model.Subdomains) subdomain.Forces.Clear(); //TODO: this is also done by model.AssignLoads()
 
             model.AssignLoads();
             model.AssignMassAccelerationHistoryLoads(timeStep);
 
-            foreach (var l in linearSystems.Values)
-            {
-                // This causes a redundant(?) copy and forces the provider to go through each subdomain.
-                //l.Value.RhsVector.CopyFrom(Vector.CreateFromArray(model.ISubdomainsDictionary[l.Key].Forces, false));
-
-                // This also violates the assumption that providers do not know the concrete type of the linear system vectors.
-                //l.Value.RhsVector = Vector.CreateFromArray(model.ISubdomainsDictionary[l.Key].Forces);
-
-                //This works fine in this case, but what if we want a vector other than Subdomain.Forces?
-                l.GetRhsFromSubdomain();
-            }
+            var rhsVectors = new Dictionary<int, IVector>();
+            foreach (Subdomain_v2 subdomain in model.Subdomains) rhsVectors.Add(subdomain.ID, subdomain.Forces);
+            return rhsVectors;
         }
 
-        public IVector MassMatrixVectorProduct(ILinearSystem_v2 linearSystem, IVectorView lhsVector)
-            => this.Ms[linearSystem.Subdomain.ID].Multiply(lhsVector);
+        public IVector MassMatrixVectorProduct(ISubdomain_v2 subdomain, IVectorView vector)
+            => this.Ms[subdomain.ID].Multiply(vector);
 
-        public IVector DampingMatrixVectorProduct(ILinearSystem_v2 linearSystem, IVectorView lhsVector)
-            => this.Cs[linearSystem.Subdomain.ID].Multiply(lhsVector);
+        public IVector DampingMatrixVectorProduct(ISubdomain_v2 subdomain, IVectorView vector)
+            => this.Cs[subdomain.ID].Multiply(vector);
 
         #endregion
 
         #region IStaticProvider Members
 
-        public void CalculateMatrix(ILinearSystem_v2 linearSystem)
+        public IMatrixView CalculateMatrix(ISubdomain_v2 subdomain)
         {
             if (ks == null) BuildKs();
-            linearSystem.SetMatrix(this.ks[linearSystem.Subdomain.ID]);
-
-            //if (ks == null) BuildKs();
-            //linearSystem.Matrix = this.ks[linearSystem.Subdomain.ID];
-            //linearSystem.IsMatrixModified = true;
+            return ks[subdomain.ID];
         }
 
         #endregion
@@ -269,7 +259,7 @@ namespace ISAAR.MSolve.Problems
 
         public double CalculateRhsNorm(IVectorView rhs) => rhs.Norm2();
 
-        public void ProcessInternalRhs(ILinearSystem_v2 subdomain, IVectorView rhs, IVectorView solution) {}
+        public void ProcessInternalRhs(ISubdomain_v2 subdomain, IVectorView solution, IVector rhs) {}
 
         #endregion
     }

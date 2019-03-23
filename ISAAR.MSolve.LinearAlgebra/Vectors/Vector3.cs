@@ -473,6 +473,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public IVector LinearCombination(double thisCoefficient, IVectorView otherVector, double otherCoefficient)
         {
             if (otherVector is Vector3 casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
+            else if (thisCoefficient == 1.0) return Axpy(otherVector, otherCoefficient);
             else
             {
                 Preconditions.CheckVectorDimensions(this, otherVector);
@@ -495,6 +496,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherVector"/>.</param>
         public Vector3 LinearCombination(double thisCoefficient, Vector3 otherVector, double otherCoefficient)
         {
+            if (thisCoefficient == 1.0) return Axpy(otherVector, otherCoefficient);
             return new Vector3(new double[] { thisCoefficient * this.data[0] + otherCoefficient * otherVector.data[0],
                 thisCoefficient * this.data[1] + otherCoefficient * otherVector.data[1],
                 thisCoefficient * this.data[2] + otherCoefficient * otherVector.data[2] });
@@ -506,6 +508,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public void LinearCombinationIntoThis(double thisCoefficient, IVectorView otherVector, double otherCoefficient)
         {
             if (otherVector is Vector3 casted) LinearCombinationIntoThis(thisCoefficient, casted, otherCoefficient);
+            else if (thisCoefficient == 1.0) AxpyIntoThis(otherVector, otherCoefficient);
             else
             {
                 Preconditions.CheckVectorDimensions(this, otherVector);
@@ -525,14 +528,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherVector"/>.</param>
         public void LinearCombinationIntoThis(double thisCoefficient, Vector3 otherVector, double otherCoefficient)
         {
-            this.data[0] = thisCoefficient * this.data[0] * otherCoefficient * otherVector.data[0];
-            this.data[1] = thisCoefficient * this.data[1] * otherCoefficient * otherVector.data[1];
-            this.data[2] = thisCoefficient * this.data[2] * otherCoefficient * otherVector.data[2];
+            if (thisCoefficient == 1.0) AxpyIntoThis(otherVector, otherCoefficient);
+            else
+            {
+                this.data[0] = thisCoefficient * this.data[0] * otherCoefficient * otherVector.data[0];
+                this.data[1] = thisCoefficient * this.data[1] * otherCoefficient * otherVector.data[1];
+                this.data[2] = thisCoefficient * this.data[2] * otherCoefficient * otherVector.data[2];
+            }
         }
 
         /// <summary>
-        /// Calculates the Euclidian norm or 2-norm of this vector. For more see 
-        /// https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm.
+        /// See <see cref="IVectorView.Norm2"/>
         /// </summary>
         public double Norm2() => Math.Sqrt(data[0] * data[0] + data[1] * data[1] + data[2] * data[2]);
 

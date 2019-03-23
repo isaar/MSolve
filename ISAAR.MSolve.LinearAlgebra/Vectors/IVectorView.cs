@@ -4,7 +4,7 @@ using ISAAR.MSolve.LinearAlgebra.Reduction;
 //TODO: perhaps I should return IVectorView instead of IVector. By returning IVectorView I can have classes that only implement
 //      IVectorView. On the other hand, I cannot mutate the returned type, so its usefulness is limited.
 //TODO: Should IVector Copy() be defined in IVectorView? It doesn't mutate the original vector. However, the return type should
-//      still be IVector, since there wouldn't be a point in getting an immutable copy of an immutable class.
+//      still be IVector, since there wouldn't be a point in getting an immutable copy of an immutable class. Same for IMatrixView
 namespace ISAAR.MSolve.LinearAlgebra.Vectors
 {
     /// <summary>
@@ -28,11 +28,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         IVector Axpy(IVectorView otherVector, double otherCoefficient);
 
         /// <summary>
-        /// Copies this <see cref="IVector"/> object. A new vector of the same type as this object is initialized and returned.
+        /// Copies this <see cref="IVectorView"/> object. A new vector of the same type as this object is initialized and 
+        /// returned.
         /// </summary>
-        /// <param name="copyIndexingData">If true, all data of this object will be copied. If false, only the array(s) 
-        ///     containing the values of the stored vector entries will be copied. The new vector will reference the same 
-        ///     indexing arrays as this one.</param>
+        /// <param name="copyIndexingData">
+        /// If true, all data of this object will be copied. If false, only the array(s) containing the values of the stored 
+        /// vector entries will be copied. The new vector will reference the same indexing arrays as this one.
+        /// </param>
         IVector Copy(bool copyIndexingData = false);
 
         /// <summary>
@@ -84,6 +86,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="otherVector"/> has different 
         ///     <see cref="IIndexable1D.Length"/> than this.</exception>
         IVector LinearCombination(double thisCoefficient, IVectorView otherVector, double otherCoefficient);
+
+        /// <summary>
+        /// Calculates the Euclidian norm or 2-norm of this vector. For more see 
+        /// https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm.
+        /// </summary>
+        double Norm2();
 
         /// <summary>
         /// Performs the following operation for all i: result[i] = <paramref name="scalar"/> * this[i].

@@ -28,6 +28,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         ///     <see cref="IIndexable2D.NumRows"/> or <see cref="IIndexable2D.NumColumns"/> than this.</exception>
         IMatrix Axpy(IMatrixView otherMatrix, double otherCoefficient);
 
+        /// <summary>
+        /// Copies this <see cref="IMatrixView"/> object. A new matrix of the same type as this object is initialized and 
+        /// returned.
+        /// </summary>
+        /// <param name="copyIndexingData">
+        /// If true, all data of this object will be copied. If false, only the array(s) containing the values of the stored 
+        /// matrix entries will be copied. The new matrix will reference the same indexing arrays as this one.
+        /// </param>
+        IMatrix Copy(bool copyIndexingData = false);
 
         /// <summary>
         /// Performs a binary operation on each pair of entries: 
@@ -96,15 +105,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// To multiply rowVector * this, set <paramref name="transposeThis"/> to true.
         /// The resulting vector will be written in a new vector and returned.
         /// </summary>
-        /// <param name="vector">A vector with <see cref="IIndexable1D.Length"/> being equal to the 
-        ///     <see cref="IIndexable2D.NumColumns"/> of oper(this).</param>
+        /// <param name="vector">
+        /// A vector with <see cref="IIndexable1D.Length"/> being equal to the <see cref="IIndexable2D.NumColumns"/> of 
+        /// oper(this).
+        /// </param>
         /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
-        /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
-        ///     <paramref name="vector"/> is different than the <see cref="IIndexable2D.NumColumns"/> of oper(this).</exception>
+        /// <exception cref="Exceptions.NonMatchingDimensionsException">
+        /// Thrown if the <see cref="IIndexable1D.Length"/> of <paramref name="vector"/> is different than the 
+        /// <see cref="IIndexable2D.NumColumns"/> of oper(this).
+        /// </exception>
         IVector Multiply(IVectorView vector, bool transposeThis = false);
 
         /// <summary>
-        /// Performs the matrix-vector multiplication: <paramref name="rhsVector"/> = oper(this) * <paramref name="vector"/>.
+        /// Performs the matrix-vector multiplication: <paramref name="rhsVector"/> = oper(this) * <paramref name="lhsVector"/>.
         /// To multiply this * columnVector, set <paramref name="transposeThis"/> to false.
         /// To multiply rowVector * this, set <paramref name="transposeThis"/> to true.
         /// The resulting vector will overwrite the entries of <paramref name="rhsVector"/>.
@@ -116,19 +129,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </param>
         /// <param name="rhsVector">
         /// The vector that will be overwritten by the result of the multiplication. It sits on the right hand side of the 
-        /// equation y = oper(A) * x. Constraints: <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// equation y = oper(A) * x. Constraints: <paramref name="rhsVector"/>.<see cref="IIndexable1D.Length"/> 
         /// == oper(this).<see cref="IIndexable2D.NumRows"/>.
         /// </param>
         /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
         /// <exception cref="Exceptions.NonMatchingDimensionsException">
         /// Thrown if the <see cref="IIndexable1D.Length"/> of <paramref name="lhsVector"/> or <paramref name="rhsVector"/> 
-        /// violate the described contraints.
+        /// violate the described constraints.
         /// </exception>
         /// <exception cref="Exceptions.PatternModifiedException">
         /// Thrown if the storage format of <paramref name="rhsVector"/> does not support overwritting the entries that this 
         /// method will try to.
         /// </exception>
-        void MultiplyIntoResult(IVectorView lhsVector, IVector rhsVector, bool transposeThis);
+        void MultiplyIntoResult(IVectorView lhsVector, IVector rhsVector, bool transposeThis = false);
+        //TODO: this is NOT a specialization of a version with offsets. It is defined only if the vectors have exactly the matching lengths.
 
         /// <summary>
         /// Performs the following operation for all (i, j): result[i, j] = <paramref name="scalar"/> * this[i, j].

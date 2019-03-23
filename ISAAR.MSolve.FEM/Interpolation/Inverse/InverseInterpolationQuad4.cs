@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
     /// https://www.sciencedirect.com/science/article/pii/0168874X90900072 
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class InverseInterpolationTruss1D: IInverseInterpolation2D
+    public class InverseInterpolationQuad4: IInverseInterpolation2D
     {
         // Constants
         private const double tolerance = 1.0e-6;
@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
         // The delegate avoids redundant checking for which case we are at 
         private readonly Func<double, double, NaturalPoint2D> formula;
 
-        public InverseInterpolationTruss1D(IReadOnlyList<Node2D> nodes)
+        public InverseInterpolationQuad4(IReadOnlyList<Node_v2> nodes)
         {
             int numOrderings = 4;
             for (int i = 0; i < numOrderings - 1; ++i)
@@ -145,7 +145,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
         #region static utility members
         //TODO: Find or create a better exception type
         [Conditional("DEBUG")]
-        private static void CheckQuadrilateralShape(InverseInterpolationTruss1D mapping)
+        private static void CheckQuadrilateralShape(InverseInterpolationQuad4 mapping)
         {
             string msg = "Incorrect quadrilateral (check node order). Coefficient violation: ";
 
@@ -190,9 +190,9 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
         /// Reorders the nodes such that the 1st one becomes the 2nd, the 2nd one becomes the 3rd, etc.
         /// </summary>
         /// <param name="nodes"></param>
-        private static IReadOnlyList<Node2D> CycleCounterClockwise(IReadOnlyList<Node2D> nodes)
+        private static IReadOnlyList<Node_v2> CycleCounterClockwise(IReadOnlyList<Node_v2> nodes)
         {
-            var cycled = new Node2D[nodes.Count];
+            var cycled = new Node_v2[nodes.Count];
             cycled[0] = nodes[nodes.Count - 1];
             for (int i = 0; i < nodes.Count - 1; ++i) cycled[i + 1] = nodes[i];
             return cycled;

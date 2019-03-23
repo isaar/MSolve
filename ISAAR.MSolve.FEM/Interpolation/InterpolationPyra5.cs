@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
-	/// <summary>
-	/// Isoparametric interpolation of pyramid finite element with 5 nodes. Linear shape functions.
-	/// Implements singleton pattern.
-	/// Authors: Dimitris Tsapetis
-	/// </summary>
-    public class InterpolationPyra5:IsoparametricInterpolation3DBase
+    /// <summary>
+    /// Isoparametric interpolation of pyramid finite element with 5 nodes. Linear shape functions.
+    /// Implements singleton pattern.
+    /// Authors: Dimitris Tsapetis
+    /// </summary>
+    public class InterpolationPyra5 : IsoparametricInterpolation3DBase
     {
 		private static  readonly InterpolationPyra5 uniqueInstance= new InterpolationPyra5();
 
@@ -44,7 +44,8 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// </summary>
 		/// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
 		/// <returns></returns>
-		public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> node)=>throw new NotImplementedException();
+		public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node_v2> node)
+            => throw new NotImplementedException();
 
 	    protected sealed override double[] EvaluateAt(double xi, double eta, double zeta)
 	    {
@@ -62,13 +63,13 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		    return values;
 	    }
 
-	    protected override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
+	    protected override Matrix EvaluateGradientsAt(double xi, double eta, double zeta)
 	    {
 		    var x = xi;
 		    var y = eta;
 		    var z = zeta;
 
-		    var derivatives = new double[5, 3];
+		    var derivatives = Matrix.CreateZero(5, 3);
 		    derivatives[0, 0] = -(x + y - z + 1) / (4 * z - 4) - (x - y - z + 1) / (4 * z - 4);
 		    derivatives[1, 0] = (x + y - z + 1) / (4 * z - 4) + (x - y + z - 1) / (4 * z - 4);
 		    derivatives[2, 0] = -(x - y + z - 1) / (4 * z - 4) - (x + y + z - 1) / (4 * z - 4);

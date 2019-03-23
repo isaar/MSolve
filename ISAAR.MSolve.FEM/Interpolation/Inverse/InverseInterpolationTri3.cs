@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
         private readonly double x1, x2, x3, y1, y2, y3;
         private readonly double det;
 
-        public InverseInterpolationTri3(IReadOnlyList<Node2D> nodes)
+        public InverseInterpolationTri3(IReadOnlyList<Node_v2> nodes)
         {
             x1 = nodes[0].X;
             x2 = nodes[1].X;

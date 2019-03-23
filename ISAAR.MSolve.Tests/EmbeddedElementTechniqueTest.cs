@@ -20,6 +20,9 @@ using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.FEM.Embedding;
 using System.Linq;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
+using ISAAR.MSolve.Solvers.Direct;
+using ISAAR.MSolve.Analyzers.NonLinear;
+using ISAAR.MSolve.Discretization;
 
 namespace ISAAR.MSolve.Tests
 {
@@ -29,61 +32,56 @@ namespace ISAAR.MSolve.Tests
         public void EmbeddedElementTechniqueExample()
         {
             VectorExtensions.AssignTotalAffinityCount();
-            Model model = new Model();
-            model.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
+            var model = new Model_v2();
+            model.SubdomainsDictionary.Add(1, new Subdomain_v2(1));
 
             // Choose model
             EmbeddedExamplesBuilder.ExampleWithEmbedded(model);
-            model.ConnectDataStructures();
 
             // Choose linear equation system solver
-            var linearSystems = new Dictionary<int, ILinearSystem>();
-            linearSystems[1] = new SkylineLinearSystem(1, model.Subdomains[0].Forces);
-
-            // Skyline Solver
-            SolverSkyline solver = new SolverSkyline(linearSystems[1]);
+            SkylineSolver solver = (new SkylineSolver.Builder()).BuildSolver(model);
 
             // Choose the provider of the problem -> here a structural problem
-            ProblemStructural provider = new ProblemStructural(model, linearSystems);
+            var provider = new ProblemStructural_v2(model, solver);
 
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
-            var linearSystemsArray = new[] { linearSystems[1] };
-            var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.Subdomains[0]) };
-            var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
-            int totalDOFs = model.TotalDOFs;
             int increments = 10;
-            NewtonRaphsonNonLinearAnalyzer childAnalyzer = new NewtonRaphsonNonLinearAnalyzer(solver, linearSystemsArray, subdomainUpdaters, subdomainMappers,
-            provider, increments, totalDOFs);
+            var loadControlBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
+            LoadControlAnalyzer_v2 childAnalyzer = loadControlBuilder.Build();
 
             // Choose parent analyzer -> Parent: Static
-            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
+            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
-            childAnalyzer.LogFactories[0] = new LinearAnalyzerLogFactory(new int[] {
-            model.NodalDOFsDictionary[5][DOFType.X],
-            model.NodalDOFsDictionary[5][DOFType.Y],
-            model.NodalDOFsDictionary[5][DOFType.Z]});
+            // Request output
+            childAnalyzer.LogFactories[1] = new LinearAnalyzerLogFactory_v2(new int[] { 11 });
+            //childAnalyzer.LogFactories[1] = new LinearAnalyzerLogFactory_v2(new int[] {
+            //    model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[5], DOFType.X],
+            //    model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[5], DOFType.Y],
+            //    model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[5], DOFType.Z]});
 
-            parentAnalyzer.BuildMatrices();
+            // Run
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            var expectedValue = linearSystems[1].Solution[11];
-            Assert.Equal(11.584726466617692, expectedValue, 3);
+            // Check output
+            DOFSLog_v2 log = (DOFSLog_v2)childAnalyzer.Logs[1][0]; //There is a list of logs for each subdomain and we want the first one (index = 0) from subdomain id = 1
+            var computedValue = log.DOFValues[11];
+            Assert.Equal(11.584726466617692, computedValue, 3);
         }
 
         public static class EmbeddedExamplesBuilder
         {
-            public static void HostElementsBuilder(Model model)
+            public static void HostElementsBuilder(Model_v2 model)
             {
                 // Nodes Geometry
-                model.NodesDictionary.Add(1, new Node() { ID = 1, X = 10.00, Y = 2.50, Z = 2.50 });
-                model.NodesDictionary.Add(2, new Node() { ID = 2, X = 0.00, Y = 2.50, Z = 2.50 });
-                model.NodesDictionary.Add(3, new Node() { ID = 3, X = 0.00, Y = -2.50, Z = 2.50 });
-                model.NodesDictionary.Add(4, new Node() { ID = 4, X = 10.00, Y = -2.50, Z = 2.50 });
-                model.NodesDictionary.Add(5, new Node() { ID = 5, X = 10.00, Y = 2.50, Z = -2.50 });
-                model.NodesDictionary.Add(6, new Node() { ID = 6, X = 0.00, Y = 2.50, Z = -2.50 });
-                model.NodesDictionary.Add(7, new Node() { ID = 7, X = 0.00, Y = -2.50, Z = -2.50 });
-                model.NodesDictionary.Add(8, new Node() { ID = 8, X = 10.00, Y = -2.50, Z = -2.50 });
+                model.NodesDictionary.Add(1, new Node_v2() { ID = 1, X = 10.00, Y = 2.50, Z = 2.50 });
+                model.NodesDictionary.Add(2, new Node_v2() { ID = 2, X = 0.00, Y = 2.50, Z = 2.50 });
+                model.NodesDictionary.Add(3, new Node_v2() { ID = 3, X = 0.00, Y = -2.50, Z = 2.50 });
+                model.NodesDictionary.Add(4, new Node_v2() { ID = 4, X = 10.00, Y = -2.50, Z = 2.50 });
+                model.NodesDictionary.Add(5, new Node_v2() { ID = 5, X = 10.00, Y = 2.50, Z = -2.50 });
+                model.NodesDictionary.Add(6, new Node_v2() { ID = 6, X = 0.00, Y = 2.50, Z = -2.50 });
+                model.NodesDictionary.Add(7, new Node_v2() { ID = 7, X = 0.00, Y = -2.50, Z = -2.50 });
+                model.NodesDictionary.Add(8, new Node_v2() { ID = 8, X = 10.00, Y = -2.50, Z = -2.50 });
 
                 // Boundary Conditions
                 model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = DOFType.X });
@@ -100,17 +98,17 @@ namespace ISAAR.MSolve.Tests
                 model.NodesDictionary[7].Constraints.Add(new Constraint { DOF = DOFType.Z });
 
                 // Create Material
-                ElasticMaterial3D solidMaterial = new ElasticMaterial3D()
+                var solidMaterial = new ElasticMaterial3D_v2()
                 {
                     YoungModulus = 3.76,
                     PoissonRatio = 0.3779,
                 };
 
                 // Hexa8NL element definition
-                Element hexa8NLelement = new Element()
+                var hexa8NLelement = new Element_v2()
                 {
                     ID = 1,
-                    ElementType = new Hexa8NonLinear(solidMaterial, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3))
+                    ElementType = new Hexa8NonLinear_v2(solidMaterial, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3))
                 };
 
                 // Add nodes to the created element
@@ -125,16 +123,16 @@ namespace ISAAR.MSolve.Tests
 
                 // Add Hexa element to the element and subdomains dictionary of the model
                 model.ElementsDictionary.Add(hexa8NLelement.ID, hexa8NLelement);
-                model.SubdomainsDictionary[1].ElementsDictionary.Add(hexa8NLelement.ID, hexa8NLelement);
+                model.SubdomainsDictionary[1].Elements.Add(hexa8NLelement);
 
                 // Add nodal load values at the top nodes of the model
-                model.Loads.Add(new Load() { Amount = 25, Node = model.NodesDictionary[1], DOF = DOFType.Z });
-                model.Loads.Add(new Load() { Amount = 25, Node = model.NodesDictionary[4], DOF = DOFType.Z });
-                model.Loads.Add(new Load() { Amount = 25, Node = model.NodesDictionary[5], DOF = DOFType.Z });
-                model.Loads.Add(new Load() { Amount = 25, Node = model.NodesDictionary[8], DOF = DOFType.Z });
+                model.Loads.Add(new Load_v2() { Amount = 25, Node = model.NodesDictionary[1], DOF = DOFType.Z });
+                model.Loads.Add(new Load_v2() { Amount = 25, Node = model.NodesDictionary[4], DOF = DOFType.Z });
+                model.Loads.Add(new Load_v2() { Amount = 25, Node = model.NodesDictionary[5], DOF = DOFType.Z });
+                model.Loads.Add(new Load_v2() { Amount = 25, Node = model.NodesDictionary[8], DOF = DOFType.Z });
             }
 
-            public static void EmbeddedElementsBuilder(Model model)
+            public static void EmbeddedElementsBuilder(Model_v2 model)
             {
                 // define mechanical properties
                 double youngModulus = 1.0;
@@ -148,11 +146,11 @@ namespace ISAAR.MSolve.Tests
                 double effectiveAreaZ = area;
 
                 // Geometry
-                model.NodesDictionary.Add(9, new Node() { ID = 9, X = 0.00, Y = 0.00, Z = 0.00 });
-                model.NodesDictionary.Add(10, new Node() { ID = 10, X = 10.00, Y = 0.00, Z = 0.00 });
+                model.NodesDictionary.Add(9, new Node_v2() { ID = 9, X = 0.00, Y = 0.00, Z = 0.00 });
+                model.NodesDictionary.Add(10, new Node_v2() { ID = 10, X = 10.00, Y = 0.00, Z = 0.00 });
 
                 // Create new 3D material
-                ElasticMaterial3D beamMaterial = new ElasticMaterial3D
+                var beamMaterial = new ElasticMaterial3D_v2
                 {
                     YoungModulus = youngModulus,
                     PoissonRatio = poissonRatio,
@@ -161,24 +159,24 @@ namespace ISAAR.MSolve.Tests
                 // Create new Beam3D section and element
                 var beamSection = new BeamSection3D(area, inertiaY, inertiaZ, torsionalInertia, effectiveAreaY, effectiveAreaZ);
                 // element nodes
-                IList<Node> elementNodes = new List<Node>();
+                var elementNodes = new List<Node_v2>();
                 elementNodes.Add(model.NodesDictionary[9]);
                 elementNodes.Add(model.NodesDictionary[10]);
-                var beam = new Beam3DCorotationalQuaternion(elementNodes, beamMaterial, 7.85, beamSection);
-                var beamElement = new Element { ID = 2, ElementType = beam };
+                var beam = new Beam3DCorotationalQuaternion_v2(elementNodes, beamMaterial, 7.85, beamSection);
+                var beamElement = new Element_v2 { ID = 2, ElementType = beam };
 
                 beamElement.NodesDictionary.Add(9, model.NodesDictionary[9]);
                 beamElement.NodesDictionary.Add(10, model.NodesDictionary[10]);
 
                 model.ElementsDictionary.Add(beamElement.ID, beamElement);
-                model.SubdomainsDictionary[1].ElementsDictionary.Add(beamElement.ID, beamElement);
+                model.SubdomainsDictionary[1].Elements.Add(beamElement);
             }
 
-            public static void ExampleWithEmbedded(Model model)
+            public static void ExampleWithEmbedded(Model_v2 model)
             {
                 HostElementsBuilder(model);
                 EmbeddedElementsBuilder(model);
-                var embeddedGrouping = new EmbeddedGrouping(model, model.ElementsDictionary.Where(x => x.Key == 1).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key == 2).Select(kv => kv.Value), true);
+                var embeddedGrouping = new EmbeddedGrouping_v2(model, model.ElementsDictionary.Where(x => x.Key == 1).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key == 2).Select(kv => kv.Value), true);
             }
         }
     }

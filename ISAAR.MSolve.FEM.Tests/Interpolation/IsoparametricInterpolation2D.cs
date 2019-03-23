@@ -1,9 +1,7 @@
-﻿using ISAAR.MSolve.FEM.Interpolation;
-using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using ISAAR.MSolve.FEM.Interpolation;
+using ISAAR.MSolve.Geometry.Coordinates;
 using Xunit;
 
 namespace ISAAR.MSolve.FEM.Tests.Interpolation
@@ -44,7 +42,7 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
             NaturalPoint2D[] points = pointGenerators[interpolation]();
             for (int p = 0; p < points.Length; ++p)
             {
-                Vector shapeFuncs = interpolation.EvaluateFunctionsAt(points[p]);
+                double[] shapeFuncs = interpolation.EvaluateFunctionsAt(points[p]);
                 double sum = 0.0;
                 for (int f = 0; f < interpolation.NumFunctions; ++f) sum += shapeFuncs[f];
                 Assert.True(Utilities.AreValuesEqual(1.0, sum, tolerance));
@@ -58,7 +56,7 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
             double tolerance = 1e-10;
             for (int n = 0; n < interpolation.NodalNaturalCoordinates.Count; ++n)
             {
-                Vector shapeFuncs = interpolation.EvaluateFunctionsAt(interpolation.NodalNaturalCoordinates[n]);
+                double[] shapeFuncs = interpolation.EvaluateFunctionsAt(interpolation.NodalNaturalCoordinates[n]);
                 for (int f = 0; f < interpolation.NumFunctions; ++f)
                 {
                     if (f == n) Assert.True(Utilities.AreValuesEqual(1.0, shapeFuncs[f], tolerance));

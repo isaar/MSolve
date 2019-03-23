@@ -57,6 +57,24 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
             });
         }
 
+        [Theory]
+        [MemberData(nameof(TestSettings.ProvidersToTest), MemberType = typeof(TestSettings))]
+        private static void TestMatrixVectorMultiplicationIntoResult(LinearAlgebraProviderChoice providers)
+        {
+            // The result vectors will first be set to some non zero values to make sure that the result overwrites 
+            // them instead of being added to them.
+
+            TestSettings.RunMultiproviderTest(providers, delegate ()
+            {
+                var A = SymmetricMatrix.CreateFromArray(SymmPosDef10by10.Matrix);
+                var x = Vector.CreateFromArray(SymmPosDef10by10.Lhs);
+                var bExpected = Vector.CreateFromArray(SymmPosDef10by10.Rhs);
+                Vector bComputed = Vector.CreateWithValue(A.NumRows, 1.0);
+                A.MultiplyIntoResult(x, bComputed, false);
+                comparer.AssertEqual(bExpected, bComputed);
+            });
+        }
+
         [Fact]
         private static void TestTransposition()
         {

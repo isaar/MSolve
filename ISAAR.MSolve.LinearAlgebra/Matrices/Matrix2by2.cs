@@ -255,6 +255,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void Clear() => Array.Clear(data, 0, 4); //TODO: would it be faster to do it myself?
 
         /// <summary>
+        /// See <see cref="IMatrixView.Copy(bool)"/>.
+        /// </summary>
+        IMatrix IMatrixView.Copy(bool copyIndexingData) => Copy();
+
+        /// <summary>
         /// Initializes a new instance of <see cref="Matrix2by2"/> by copying the entries of this instance.
         /// </summary>
         public Matrix2by2 Copy() => new Matrix2by2(new double[,] { { data[0, 0], data[0, 1] }, { data[1, 0], data[1, 1] } });
@@ -416,6 +421,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public IMatrix LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is Matrix2by2 casted) return LinearCombination(thisCoefficient, casted, otherCoefficient);
+            else if (thisCoefficient == 1.0) return Axpy(otherMatrix, otherCoefficient);
             else
             {
                 Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
@@ -444,7 +450,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherMatrix"/>.</param>
         public Matrix2by2 LinearCombination(double thisCoefficient, Matrix2by2 otherMatrix, double otherCoefficient)
         {
-            return new Matrix2by2(new double[,]
+            if (thisCoefficient == 1.0) return Axpy(otherMatrix, otherCoefficient);
+            else return new Matrix2by2(new double[,]
             {
                 {
                     thisCoefficient * this.data[0, 0] + otherCoefficient * otherMatrix.data[0, 0],
@@ -463,6 +470,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void LinearCombinationIntoThis(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {
             if (otherMatrix is Matrix2by2 casted) LinearCombinationIntoThis(thisCoefficient, casted, otherCoefficient);
+            else if (thisCoefficient == 1.0) AxpyIntoThis(otherMatrix, otherCoefficient);
             else
             {
                 Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
@@ -484,10 +492,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherMatrix"/>.</param>
         public void LinearCombinationIntoThis(double thisCoefficient, Matrix2by2 otherMatrix, double otherCoefficient)
         {
-            this.data[0, 0] = thisCoefficient * this.data[0, 0] + otherCoefficient * otherMatrix.data[0, 0];
-            this.data[0, 1] = thisCoefficient * this.data[0, 1] + otherCoefficient * otherMatrix.data[0, 1];
-            this.data[1, 0] = thisCoefficient * this.data[1, 0] + otherCoefficient * otherMatrix.data[1, 0];
-            this.data[1, 1] = thisCoefficient * this.data[1, 1] + otherCoefficient * otherMatrix.data[1, 1];
+            if (thisCoefficient == 1.0) AxpyIntoThis(otherMatrix, otherCoefficient);
+            else
+            {
+                this.data[0, 0] = thisCoefficient * this.data[0, 0] + otherCoefficient * otherMatrix.data[0, 0];
+                this.data[0, 1] = thisCoefficient * this.data[0, 1] + otherCoefficient * otherMatrix.data[0, 1];
+                this.data[1, 0] = thisCoefficient * this.data[1, 0] + otherCoefficient * otherMatrix.data[1, 0];
+                this.data[1, 1] = thisCoefficient * this.data[1, 1] + otherCoefficient * otherMatrix.data[1, 1];
+            }
         }
 
         /// <summary>
@@ -495,7 +507,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public Matrix MultiplyLeft(IMatrixView matrix, bool transposeThis = false, bool transposeOther = false)
         {
-            return matrix.MultiplyRight(this, transposeOther, transposeThis); //TODO: optimize this
+            // For now piggy back on Matrix. TODO: Optimize this
+            double[] colMajor = new double[] { data[0, 0], data[1, 0], data[0, 1], data[1, 1] };
+            return Matrix.CreateFromArray(colMajor, 2, 2, false).MultiplyLeft(matrix, transposeThis, transposeOther);
         }
 
         /// <summary>
@@ -717,13 +731,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// See <see cref="IMatrix.SetEntryRespectingPattern(int, int, double)"/>.
         /// </summary>
         public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value) => data[rowIdx, colIdx] = value;
-
-        /// <summary>
-        /// Creates a new instance of the legacy matrix class <see cref="Numerical.LinearAlgebra.Matrix"/>, by copying the 
-        /// entries of this <see cref="Matrix2by2"/> instance. 
-        /// </summary>
-        public Numerical.LinearAlgebra.Interfaces.IMatrix2D ToLegacyMatrix() 
-            => new Numerical.LinearAlgebra.Matrix2D(CopyToArray2D());
 
         /// <summary>
         /// See <see cref="IMatrixView.Transpose"/>.

@@ -746,9 +746,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public double[] CalculateForces(Element element, double[] localTotalDisplacements, double[] localdDisplacements)
         {
-            double[] Fxk;
-            Fxk =this.UpdateForces(element);
-            return Fxk;
+            return UpdateForces(element);
         }
 
         private int endeixiStiffness = 1;

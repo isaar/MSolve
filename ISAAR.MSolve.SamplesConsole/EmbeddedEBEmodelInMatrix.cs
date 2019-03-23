@@ -23,6 +23,8 @@ using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using System.IO;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.FEM.Postprocessing;
+using ISAAR.MSolve.Analyzers.NonLinear;
+using ISAAR.MSolve.Discretization;
 
 namespace ISAAR.MSolve.SamplesConsole
 {
@@ -117,14 +119,7 @@ namespace ISAAR.MSolve.SamplesConsole
             // Choose child analyzer -> Child: DisplacementControl_v2
             var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) };
             int increments = 100;
-            var equivalentLoadsAssemblers = new Dictionary<int, IEquivalentLoadsAssembler_v2>
-            {
-                { subdomainID, new EquivalentLoadsAssembler_v2(model.SubdomainsDictionary[subdomainID],
-                                                               new ElementStructuralStiffnessProvider())
-                }
-            };
-            var childAnalyzerBuilder = new DisplacementControlAnalyzer_v2.Builder(model, solver, provider,
-                equivalentLoadsAssemblers, increments);
+            var childAnalyzerBuilder = new DisplacementControlAnalyzer_v2.Builder(model, solver, provider, increments);
             DisplacementControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
 
             // Choose parent analyzer -> Parent: Static
@@ -176,12 +171,12 @@ namespace ISAAR.MSolve.SamplesConsole
                         double nodeX = double.Parse(bits[1]);
                         double nodeY = double.Parse(bits[2]);
                         double nodeZ = double.Parse(bits[3]);
-                        model.NodesDictionary.Add(nodeID, new Node { ID = nodeID, X = nodeX, Y = nodeY, Z = nodeZ });
+                        model.NodesDictionary.Add(nodeID, new Node_v2 { ID = nodeID, X = nodeX, Y = nodeY, Z = nodeZ });
                     }
                 }
 
                 // Create Material
-                ElasticMaterial3D solidMaterial = new ElasticMaterial3D()
+                var solidMaterial = new ElasticMaterial3D_v2()
                 {
                     YoungModulus = 1.00,
                     PoissonRatio = 0.30,
@@ -204,10 +199,10 @@ namespace ISAAR.MSolve.SamplesConsole
                         int node7 = int.Parse(bits[7]);
                         int node8 = int.Parse(bits[8]);
                         // Hexa8NL element definition
-                        Element hexa8NLelement = new Element()
+                        var hexa8NLelement = new Element_v2()
                         {
                             ID = elementID,
-                            ElementType = new Hexa8NonLinear(solidMaterial, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3))
+                            ElementType = new Hexa8NonLinear_v2(solidMaterial, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3))
                         };
                         // Add nodes to the created element
                         hexa8NLelement.AddNode(model.NodesDictionary[node1]);
@@ -270,7 +265,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 double nodalLoad = -25.0; //0.40;
                 for (int iNode = 41; iNode <= 44; iNode++) //[End-4]
                 {
-                    model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[iNode], DOF = DOFType.Z });
+                    model.Loads.Add(new Load_v2() { Amount = nodalLoad, Node = model.NodesDictionary[iNode], DOF = DOFType.Z });
                 }
 
                 //// Applied Displacements
@@ -325,12 +320,12 @@ namespace ISAAR.MSolve.SamplesConsole
                         double nodeX = double.Parse(bits[1]);
                         double nodeY = double.Parse(bits[2]);
                         double nodeZ = double.Parse(bits[3]);
-                        model.NodesDictionary.Add(nodeID, new Node { ID = nodeID, X = nodeX, Y = nodeY, Z = nodeZ });
+                        model.NodesDictionary.Add(nodeID, new Node_v2 { ID = nodeID, X = nodeX, Y = nodeY, Z = nodeZ });
                     }
                 }
 
                 // Create new 3D material
-                ElasticMaterial3D beamMaterial = new ElasticMaterial3D
+                var beamMaterial = new ElasticMaterial3D_v2
                 {
                     YoungModulus = youngModulus,
                     PoissonRatio = poissonRatio,
@@ -351,12 +346,12 @@ namespace ISAAR.MSolve.SamplesConsole
                         int node2 = int.Parse(bits[2]) + 44; // matrixNodes
                                                     
                         // element nodes
-                        IList<Node> elementNodes = new List<Node>();
+                        var elementNodes = new List<Node_v2>();
                         elementNodes.Add(model.NodesDictionary[node1]);
                         elementNodes.Add(model.NodesDictionary[node2]);
                         // create element
-                        var beam_1 = new Beam3DCorotationalQuaternion(elementNodes, beamMaterial, 7.85, beamSection);
-                        var beamElement = new Element { ID = elementID, ElementType = beam_1 };
+                        var beam_1 = new Beam3DCorotationalQuaternion_v2(elementNodes, beamMaterial, 7.85, beamSection);
+                        var beamElement = new Element_v2 { ID = elementID, ElementType = beam_1 };
                         // Add nodes to the created element
                         beamElement.AddNode(model.NodesDictionary[node1]);
                         beamElement.AddNode(model.NodesDictionary[node2]);

@@ -9,17 +9,6 @@ using ISAAR.MSolve.FEM.Entities;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
-    public enum SpringDirections
-    {
-        X = 0,
-        Y,
-        Z,
-        XY,
-        YZ,
-        XZ,
-        XYZ
-    }
-
     public class SpringDamper3D : IStructuralFiniteElement
     {
         private static readonly DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };

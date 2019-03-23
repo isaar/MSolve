@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class Matrix : IMatrix, ISliceable2D
     {
-        private readonly double[] data;
+        private double[] data;
 
         private Matrix(double[] data, int numRows, int numColumns)
         {
@@ -107,19 +107,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             {
                 return new Matrix(array1D, numRows, numColumns);
             }
-        }
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="Matrix"/> by copying the entries of <paramref name="matrix"/>.
-        /// </summary>
-        /// <param name="matrix">The entries of the legacy matrix instance <see cref="Numerical.LinearAlgebra.Matrix2D"/>.</param>
-        public static Matrix CreateFromLegacyMatrix(Numerical.LinearAlgebra.Matrix2D matrix)
-        {
-            // The other matrix might be transposed internally.
-            bool isTransposed = (matrix.Data[0, 1] != matrix[0, 1]);
-            double[] data = isTransposed ? 
-                Conversions.Array2DToFullRowMajor(matrix.Data) : Conversions.Array2DToFullColMajor(matrix.Data);
-            return new Matrix(data, matrix.Rows, matrix.Columns);
         }
 
         /// <summary>
@@ -360,6 +347,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void Clear() => Array.Clear(data, 0, data.Length);
 
         /// <summary>
+        /// See <see cref="IMatrixView.Copy(bool)"/>.
+        /// </summary>
+        IMatrix IMatrixView.Copy(bool copyIndexingData) => Copy();
+
+        /// <summary>
         /// Initializes a new instance of <see cref="Matrix"/> by copying the entries of this instance.
         /// </summary>
         public Matrix Copy()
@@ -493,15 +485,25 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <see cref="NumColumns"/>, such that A = L^T * L. L is a lower triangular n-by-n matrix. This only works if the matrix
         /// is symmetric positive definite. Requires extra available memory n^2 entries. 
         /// </summary>
+        /// <param name="inPlace">
+        /// False, to copy the internal array before factorization. True, to overwrite it with the factorized data, thus saving 
+        /// memory and time. However, that will make this object unusable, so you MUST NOT call any other members afterwards.
+        /// </param>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
         /// <exception cref="IndefiniteMatrixException">Thrown if the matrix is not symmetric positive definite.</exception>
         /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
-        public CholeskyFull FactorCholesky()
+        public CholeskyFull FactorCholesky(bool inPlace = false)
         {
             Preconditions.CheckSquare(this);
-            // Copy matrix. This may exceed available memory and needs an extra O(n^2) space. 
-            // To avoid these, set "inPlace=true".
-            return CholeskyFull.Factorize(NumColumns, CopyInternalData());
+            if (inPlace)
+            {
+                var factor = CholeskyFull.Factorize(NumColumns, data);
+                // Set the internal array to null to force NullReferenceException if it is accessed again.
+                // TODO: perhaps there is a better way to handle this.
+                data = null;
+                return factor;
+            }
+            else return CholeskyFull.Factorize(NumColumns, CopyInternalData());
         }
 
         /// <summary>
@@ -701,8 +703,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
-            Array.Copy(this.data, result, data.Length);
-            BlasExtensions.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, result, 0, 1);
+            if (thisCoefficient == 1.0)
+            {
+                Array.Copy(this.data, result, data.Length);
+                Blas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, result, 0, 1);
+            }
+            else if (otherCoefficient == 1.0)
+            {
+                Array.Copy(otherMatrix.data, result, data.Length);
+                Blas.Daxpy(data.Length, thisCoefficient, this.data, 0, 1, result, 0, 1);
+            }
+            else
+            {
+                Array.Copy(this.data, result, data.Length);
+                BlasExtensions.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, result, 0, 1);
+            }
             return new Matrix(result, NumRows, NumColumns);
         }
 
@@ -741,7 +756,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void LinearCombinationIntoThis(double thisCoefficient, Matrix otherMatrix, double otherCoefficient)
         {
             Preconditions.CheckSameMatrixDimensions(this, otherMatrix);
-            BlasExtensions.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, this.data, 0, 1);
+            if (thisCoefficient == 1.0)
+            {
+                Blas.Daxpy(data.Length, otherCoefficient, otherMatrix.data, 0, 1, this.data, 0, 1);
+            }
+            else
+            {
+                BlasExtensions.Daxpby(data.Length, otherCoefficient, otherMatrix.data, 0, 1, thisCoefficient, this.data, 0, 1);
+            }
         }
 
         /// <summary>
@@ -869,7 +891,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// violate the described contraints.
         /// </exception>
         public void MultiplyIntoResult(Vector lhsVector, Vector rhsVector, bool transposeThis = false)
-        {
+        {   //TODO: this is NOT a specialization of the version with offsets. It is defined only if the vectors have exactly the matching lengths.
             int leftRows, leftCols;
             TransposeMatrix transpose;
             if (transposeThis)
@@ -890,6 +912,53 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             Blas.Dgemv(transpose, NumRows, NumColumns,
                 1.0, this.data, 0, NumRows, lhsVector.RawData, 0, 1,
                 0.0, rhsVector.RawData, 0, 1);
+        }
+
+        /// <summary>
+        /// Performs the matrix-vector multiplication y = alpha * oper(A) * x + beta * y, where:
+        /// alpha = <paramref name="lhsScale"/>, x = <paramref name="lhsVector"/>, beta = <paramref name="rhsScale"/>,
+        /// y = <paramref name="rhsScale"/>, oper(A) = this (if <paramref name="transposeThis"/> == false) or transpose(this)
+        /// (if <paramref name="transposeThis"/> == true).
+        /// The input vectors can be longer (taking into account the offsets) than the corresponding dimensions of this matrix. 
+        /// The resulting vector will overwrite <paramref name="lhsVector"/> starting from <paramref name="rhsOffset"/>.
+        /// </summary>
+        /// <param name="lhsVector">
+        /// The vector x that will be multiplied by this matrix. Constraints: 
+        /// <paramref name="lhsOffset"/> + <paramref name="lhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// &lt;= oper(this).<see cref="IIndexable2D.NumColumns"/>.
+        /// </param>
+        /// <param name="lhsOffset">The index into <paramref name="lhsVector"/> from which to start the operations.</param>
+        /// <param name="lhsScale">The scalar alpha that will multiply <paramref name="lhsVector"/>.</param>
+        /// <param name="rhsVector">
+        /// The vector y that will be overwritten by the result of the operation. Constraints: 
+        /// <paramref name="rhsOffset"/> + <paramref name="rhsVector"/>.<see cref="IIndexable1D.Length"/> 
+        /// &lt;= oper(this).<see cref="IIndexable2D.NumRows"/>.
+        /// </param>
+        /// <param name="rhsOffset">The index into <paramref name="rhsVector"/> from which to start the operations.</param>
+        /// <param name="rhsScale">The scalar beta that will multiply <paramref name="rhsVector"/>.</param>
+        /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if the <see cref="IIndexable1D.Length"/> of <paramref name="lhsVector"/> or <paramref name="rhsVector"/> 
+        /// violate the described contraints.
+        /// </exception>
+        /// <exception cref="PatternModifiedException">
+        /// Thrown if the storage format of <paramref name="rhsVector"/> does not support overwritting the entries that this 
+        /// method will try to.
+        /// </exception>
+        public void MultiplySubvectorIntoResult(Vector lhsVector, int lhsOffset, double lhsScale, Vector rhsVector, int rhsOffset,
+            double rhsScale, bool transposeThis = false)
+        {
+            Preconditions.CheckMultiplicationDimensions(this, lhsVector, lhsOffset, rhsVector, rhsOffset, transposeThis);
+            if (transposeThis)
+            {
+                Blas.Dgemv(TransposeMatrix.Transpose, NumColumns, NumRows, lhsScale, this.data, 0, NumRows,
+                    lhsVector.RawData, lhsOffset, 1, rhsScale, rhsVector.RawData, rhsOffset, 1);
+            }
+            else
+            {
+                Blas.Dgemv(TransposeMatrix.NoTranspose, NumRows, NumColumns, lhsScale, this.data, 0, NumRows,
+                    lhsVector.RawData, lhsOffset, 1, rhsScale, rhsVector.RawData, rhsOffset, 1);
+            }
         }
 
         /// <summary>
@@ -1053,15 +1122,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public void SVD(double[] w, double[,] v)
         {
             DenseStrategies.SVD(this, w, v);
-        }
-
-        /// <summary>
-        /// Creates a new instance of the legacy matrix class <see cref="Numerical.LinearAlgebra.Matrix"/>, by copying the 
-        /// entries of this <see cref="Matrix"/> instance. 
-        /// </summary>
-        public Numerical.LinearAlgebra.Interfaces.IMatrix2D ToLegacyMatrix()
-        {
-            return new Numerical.LinearAlgebra.Matrix2D(CopyToArray2D());
         }
 
         /// <summary>

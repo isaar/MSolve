@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 
@@ -63,9 +64,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             }
             else return new Vector(data);
         }
-
-        public static Vector CreateFromLegacyVector(ISAAR.MSolve.Numerical.LinearAlgebra.Vector vector)
-            => CreateFromArray(vector.Data, false);
 
         /// <summary>
         /// Initializes a new instance of <see cref="Vector"/> by copying the entries of an existing vector: 
@@ -624,8 +622,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             Preconditions.CheckVectorDimensions(this, otherVector);
             //TODO: Perhaps this should be done using mkl_malloc and BLAS copy. 
             double[] result = new double[data.Length];
-            Array.Copy(data, result, data.Length);
-            BlasExtensions.Daxpby(Length, otherCoefficient, otherVector.data, 0, 1, thisCoefficient, result, 0, 1);
+            if (thisCoefficient == 1.0)
+            {
+                Array.Copy(data, result, data.Length);
+                Blas.Daxpy(Length, otherCoefficient, otherVector.data, 0, 1, result, 0, 1);
+            }
+            else if (otherCoefficient == 1.0)
+            {
+                Array.Copy(otherVector.data, result, data.Length);
+                Blas.Daxpy(data.Length, thisCoefficient, this.data, 0, 1, result, 0, 1);
+            }
+            else
+            {
+                Array.Copy(data, result, data.Length);
+                BlasExtensions.Daxpby(Length, otherCoefficient, otherVector.data, 0, 1, thisCoefficient, result, 0, 1);
+            }
             return new Vector(result);
         }
 
@@ -658,7 +669,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public void LinearCombinationIntoThis(double thisCoefficient, Vector otherVector, double otherCoefficient)
         {
             Preconditions.CheckVectorDimensions(this, otherVector);
-            BlasExtensions.Daxpby(Length, otherCoefficient, otherVector.data, 0, 1, thisCoefficient, this.data, 0, 1);
+            if (thisCoefficient == 1.0)
+            {
+                Blas.Daxpy(Length, otherCoefficient, otherVector.data, 0, 1, this.data, 0, 1);
+            }
+            else
+            {
+                BlasExtensions.Daxpby(Length, otherCoefficient, otherVector.data, 0, 1, thisCoefficient, this.data, 0, 1);
+            }
         }
 
         /// <summary>
@@ -689,8 +707,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// Calculates the Euclidian norm or 2-norm of this vector. For more see 
-        /// https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm.
+        /// See <see cref="IVectorView.Norm2"/>
         /// </summary>
         public double Norm2() => Blas.Dnrm2(Length, data, 0, 1);
 
@@ -834,9 +851,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public void Set(int index, double value) => data[index] = value;
 
         /// <summary>
-        /// Creates a new instance of the legacy vector class <see cref="Numerical.LinearAlgebra.Vector"/> with the same internal
-        /// array as this <see cref="Vector"/> instance. Doesn't copy anything.
+        /// Calculates the tensor product of this vector with <paramref name="vector"/>:
+        /// result[i, j] = this[i] * vector[j], for all valid i, j.
         /// </summary>
-        public Numerical.LinearAlgebra.Vector ToLegacyVector() => new Numerical.LinearAlgebra.Vector(data);
+        /// <param name="vector">The other vector.</param>
+        public Matrix TensorProduct(Vector vector)
+        {
+            //TODO: perhaps I should store them directly in a 1D col major array. That is more efficient but then I should move 
+            //      this method elsewhere, so that it doesn't break the encapsulation of Matrix.
+            var result = Matrix.CreateZero(this.Length, vector.Length);
+            for (int i = 0; i < this.Length; ++i)
+            {
+                for (int j = 0; j < vector.Length; ++j) result[i, j] = this.data[i] * vector.data[j];
+            }
+            return result;
+        }
     }
 }

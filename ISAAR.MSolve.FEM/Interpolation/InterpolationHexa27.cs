@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
-	/// <summary>
-	/// Isoparametric interpolation of a hexahedral finite element with 27 nodes. Quadratic shape functions.
-	/// Implements singleton pattern.
-	/// Authors: Dimitris Tsapetis
-	/// </summary>
-    public class InterpolationHexa27:IsoparametricInterpolation3DBase
+    /// <summary>
+    /// Isoparametric interpolation of a hexahedral finite element with 27 nodes. Quadratic shape functions.
+    /// Implements singleton pattern.
+    /// Authors: Dimitris Tsapetis
+    /// </summary>
+    public class InterpolationHexa27 : IsoparametricInterpolation3DBase
 	{
 		private static readonly InterpolationHexa27 uniqueInstance = new InterpolationHexa27();
 
@@ -72,7 +72,8 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// </summary>
 		/// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
 		/// <returns></returns>
-		public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> node)=>throw new NotImplementedException("Iterative procedure needed");
+		public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node_v2> node)
+            => throw new NotImplementedException("Iterative procedure needed");
 
 		/// <summary>
 		/// Evaluates Hexa27 shape functions according to <see cref="https://www.code-aster.org/V2/doc/v13/en/man_r/r3/r3.01.01.pdf">this</see>
@@ -123,13 +124,13 @@ namespace ISAAR.MSolve.FEM.Interpolation
 			return values;
 		}
 
-		protected override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
+		protected override Matrix EvaluateGradientsAt(double xi, double eta, double zeta)
 		{
 			var x = xi;
 			var y = eta;
 			var z = zeta;
 
-			var derivatives = new double[27, 3];
+			var derivatives = Matrix.CreateZero(27, 3);
 
 			derivatives[0, 0] = (x * y * z * (y - 1) * (z - 1)) / 8 + (y * z * (x - 1) * (y - 1) * (z - 1)) / 8;
 			derivatives[1, 0] = (x * y * z * (y - 1) * (z - 1)) / 8 + (y * z * (x + 1) * (y - 1) * (z - 1)) / 8;

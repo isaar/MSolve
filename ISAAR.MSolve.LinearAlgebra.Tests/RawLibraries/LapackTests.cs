@@ -16,9 +16,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
     {
         private static readonly MatrixComparer comparer = new MatrixComparer(1E-13);
 
-        [Fact]
+        [SkippableFact]
         internal static void TestDgetrf_Dgetrs()
         {
+            Skip.IfNot(TestSettings.TestMkl, TestSettings.MessageWhenSkippingMKL);
+
             int layout = LapackePInvokes.LAPACK_COL_MAJOR;
             char transA = LapackePInvokes.LAPACK_NO_TRANSPOSE;
             int m = SquareInvertible10by10.Order;

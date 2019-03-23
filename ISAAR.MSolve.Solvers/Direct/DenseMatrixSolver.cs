@@ -1,54 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Discretization.FreedomDegrees;
-using ISAAR.MSolve.Discretization.Interfaces;
+﻿using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.LinearAlgebra.Output;
-using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
-using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
 namespace ISAAR.MSolve.Solvers.Direct
 {
-    public class DenseMatrixSolver: ISolver_v2
+    /// <summary>
+    /// Direct solver for models with only 1 subdomain. Uses Cholesky factorization on symmetric positive definite matrices
+    /// stored in full format. Its purpose is mainly for testing, since it is inefficient for large linear systems resulting 
+    /// from FEM .
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
+    public class DenseMatrixSolver: SingleSubdomainSolverBase<Matrix>
     {
-        private const string name = "SkylineSolver"; // for error messages
-        private readonly DenseMatrixAssembler assembler = new DenseMatrixAssembler();
-        private readonly IStructuralModel_v2 model;
-        private readonly ISubdomain_v2 subdomain;
-        private readonly DenseSystem linearSystem;
-
+        private bool factorizeInPlace = true;
         private bool mustFactorize = true;
         private CholeskyFull factorizedMatrix;
 
-        public DenseMatrixSolver(IStructuralModel_v2 model, IDofOrderer dofOrderer)
+        private DenseMatrixSolver(IStructuralModel_v2 model, IDofOrderer dofOrderer):
+            base(model, dofOrderer, new DenseMatrixAssembler(), "DenseMatrixSolver")
+        { }
+
+        public override IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
         {
-            if (model.Subdomains.Count != 1) throw new InvalidSolverException(
-                $"{name} can be used if there is only 1 subdomain");
-            this.model = model;
-            subdomain = model.Subdomains[0];
-
-            linearSystem = new DenseSystem(subdomain);
-            LinearSystems = new Dictionary<int, ILinearSystem_v2>() { { subdomain.ID, linearSystem } };
-            linearSystem.MatrixObservers.Add(this);
-
-            this.DofOrderer = dofOrderer;
-        }
-
-        public IDofOrderer DofOrderer { get; }
-
-        public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
-
-        public IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider elementMatrixProvider)
-        {
-            // DEBUG
+            #region Code to facilitate debugging
             //var writer = new FullMatrixWriter();
             //writer.NumericFormat = new ExponentialFormat() { NumDecimalDigits = 2 };
 
@@ -93,46 +71,39 @@ namespace ISAAR.MSolve.Solvers.Direct
             //var writer = new FullMatrixWriter();
             //writer.NumericFormat = new ExponentialFormat() { NumDecimalDigits = 2 };
             //writer.WriteToConsole(matrix);
-
-            // END DEBUG
+            #endregion
 
             return assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.Elements, 
                 elementMatrixProvider);
         }
 
-        public void Initialize() {}
+        public override void Initialize() {}
 
-        public void OnMatrixSetting()
+        public override void HandleMatrixWillBeSet()
         {
             mustFactorize = true;
             factorizedMatrix = null;
         }
 
+        public override void PreventFromOverwrittingSystemMatrices() => factorizeInPlace = false;
+
         /// <summary>
         /// Solves the linear system with back-forward substitution. If the matrix has been modified, it will be refactorized.
         /// </summary>
-        public void Solve()
+        public override void Solve()
         {
 
             if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
-            else if (HaveSubdomainDofsChanged()) linearSystem.Solution = linearSystem.CreateZeroVector();
-            //else linearSystem.Solution.Clear(); // no need to waste computational time on this
+            //else linearSystem.Solution.Clear(); // no need to waste computational time on this in a direct solver
 
             if (mustFactorize)
             {
-                factorizedMatrix = linearSystem.Matrix.FactorCholesky();
+                factorizedMatrix = linearSystem.Matrix.FactorCholesky(factorizeInPlace);
                 mustFactorize = false;
-                linearSystem.IsMatrixOverwrittenBySolver = true;
             }
 
             factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
         }
-
-        //TODO: Create a method in Subdomain (or its DofOrderer) that exposes whether the dofs have changed.
-        /// <summary>
-        /// The number of dofs might have been changed since the previous Solution vector had been created.
-        /// </summary>
-        private bool HaveSubdomainDofsChanged() => subdomain.DofOrdering.NumFreeDofs == linearSystem.Solution.Length;
 
         public class Builder
         {
@@ -143,13 +114,6 @@ namespace ISAAR.MSolve.Solvers.Direct
 
             public DenseMatrixSolver BuildSolver(IStructuralModel_v2 model)
                 => new DenseMatrixSolver(model, DofOrderer);
-        }
-
-        private class DenseSystem : LinearSystem_v2<Matrix, Vector>
-        {
-            internal DenseSystem(ISubdomain_v2 subdomain) : base(subdomain) { }
-            public override Vector CreateZeroVector() => Vector.CreateZero(Subdomain.DofOrdering.NumFreeDofs);
-            public override void GetRhsFromSubdomain() => RhsVector = Subdomain.Forces;
         }
     }
 }

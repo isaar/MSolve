@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Numerical.Commons;
@@ -18,9 +16,9 @@ namespace ISAAR.MSolve.Discretization.Interfaces
         /// </summary>
         ISubdomainFreeDofOrdering DofOrdering { get; set; }
 
-        IReadOnlyList<IElement> Elements { get; } //TODO: perhaps this should be a set
+        IReadOnlyList<IElement_v2> Elements { get; } //TODO: perhaps this should be a set
 
-        Vector Forces { get; } //TODO: this should be a Vector or IVector and stored elsewhere.
+        Vector Forces { get; set; } //TODO: this should be a Vector or IVector and stored elsewhere.
 
         int ID { get; }
 
@@ -28,7 +26,7 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 
         IReadOnlyList<INode> Nodes { get; } //TODO: perhaps this should be a set
 
-        Vector CalculateElementIncrementalConstraintDisplacements(IElement element, double constraintScalingFactor); //TODO: this should be done by a dedicated class instead of the subdomain
+        double[] CalculateElementIncrementalConstraintDisplacements(IElement_v2 element, double constraintScalingFactor); //TODO: this should be done by a dedicated class instead of the subdomain
 
         void ClearMaterialStresses();
 

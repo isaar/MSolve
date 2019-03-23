@@ -548,9 +548,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                 {
                     // Do not copy the index arrays, since they are already spread around. TODO: is this a good idea?
                     double[] result = new double[this.values.Length];
-                    Array.Copy(this.values, result, this.values.Length);
-                    BlasExtensions.Daxpby(values.Length, otherCoefficient, otherSparse.values, 0, 1, 
-                        thisCoefficient, result, 0, 1);
+                    if (thisCoefficient == 1.0)
+                    {
+                        Array.Copy(this.values, result, this.values.Length);
+                        Blas.Daxpy(values.Length, otherCoefficient, otherSparse.values, 0, 1, result, 0, 1);
+                    }
+                    else if (otherCoefficient == 1.0)
+                    {
+                        Array.Copy(otherSparse.values, result, values.Length);
+                        Blas.Daxpy(values.Length, thisCoefficient, this.values, 0, 1, result, 0, 1);
+                    }
+                    else
+                    {
+                        Array.Copy(this.values, result, this.values.Length);
+                        BlasExtensions.Daxpby(values.Length, otherCoefficient, otherSparse.values, 0, 1,
+                            thisCoefficient, result, 0, 1);
+                    }
                     return new SparseVector(Length, result, indices);
                 }
             }
@@ -567,12 +580,24 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
             Preconditions.CheckVectorDimensions(this, otherVector);
             if ((otherVector is SparseVector otherSparse) && HasSameIndexer(otherSparse))
             {
-                BlasExtensions.Daxpby(values.Length, otherCoefficient, otherSparse.values, 0, 1, 
-                    thisCoefficient, this.values, 0, 1);
+                if (thisCoefficient == 1.0)
+                {
+                    Blas.Daxpy(values.Length, otherCoefficient, otherSparse.values, 0, 1, this.values, 0, 1);
+                }
+                else
+                {
+                    BlasExtensions.Daxpby(values.Length, otherCoefficient, otherSparse.values, 0, 1,
+                        thisCoefficient, this.values, 0, 1);
+                }
             }
             throw new SparsityPatternModifiedException(
                  "This operation is legal only if the other vector has the same sparsity pattern");
         }
+
+        /// <summary>
+        /// See <see cref="IVectorView.Norm2"/>
+        /// </summary>
+        public double Norm2() => Blas.Dnrm2(values.Length, values, 0, 1);
 
         /// <summary>
         /// See <see cref="IReducible.Reduce(double, ProcessEntry, ProcessZeros, Reduction.Finalize)"/>.

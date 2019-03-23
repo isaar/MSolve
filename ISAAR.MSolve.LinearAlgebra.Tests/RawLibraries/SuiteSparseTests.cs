@@ -14,9 +14,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
     {
         private static readonly MatrixComparer comparer = new MatrixComparer(1E-13);
 
-        [Fact]
+        [SkippableFact]
         private static void TestCholeskySolver()
         {
+            Skip.IfNot(TestSettings.TestSuiteSparse, TestSettings.MessageWhenSkippingSuiteSparse);
+
             // Define linear system
             const int n = 4;
             const int nnz = 7;
@@ -42,9 +44,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.RawLibraries
             SuiteSparsePInvokes.DestroyCommon(ref handle);
         }
 
-        [Fact]
+        [SkippableFact]
         private static void TestReordering()
         {
+            Skip.IfNot(TestSettings.TestSuiteSparse, TestSettings.MessageWhenSkippingSuiteSparse);
+
             int order = SparseSymm5by5.Order;
             int[] rowIndices = SparseSymm5by5.CscRowIndices;
             int[] colOffsets = SparseSymm5by5.CscColOffsets;

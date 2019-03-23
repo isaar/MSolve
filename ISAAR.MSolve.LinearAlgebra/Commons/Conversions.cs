@@ -525,6 +525,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             return array2D;
         }
 
+        internal static double[] PackedUpperRowMajorPackedUpperColMajor(int order, double[] rowMajor)
+        {
+            int n = order;
+            int numStored = rowMajor.Length;
+            var colMajor = new double[numStored];
+            for (int j = 0; j < n; ++j)
+            {
+                for (int i = 0; i <= j; ++i)
+                {
+                    colMajor[i + ((j + 1) * j) / 2] = rowMajor[numStored - ((n - i + 1) * (n - i) / 2) + j - i];
+                }
+            }
+            return colMajor;
+        }
+
         internal static double[] PackedLowerRowMajorToFullColMajor(double[] packed, int order = 0)
         {
             int n = (order == 0) ? PackedLengthToOrder(packed.Length) : order;
