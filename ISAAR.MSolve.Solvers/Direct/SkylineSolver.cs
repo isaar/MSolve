@@ -64,10 +64,10 @@ namespace ISAAR.MSolve.Solvers.Direct
 
             public double FactorizationPivotTolerance { get; set; } = 1E-15;
 
-            public ISolver_v2 BuildSolver(IStructuralModel_v2 model)
-            {
-                return new SkylineSolver(model, FactorizationPivotTolerance, DofOrderer);
-            }
+            ISolver_v2 ISolverBuilder_v2.BuildSolver(IStructuralModel_v2 model) => this.BuildSolver(model);
+
+            public SkylineSolver BuildSolver(IStructuralModel_v2 model)
+                => new SkylineSolver(model, FactorizationPivotTolerance, DofOrderer);
 
             public ISolverBuilder_v2 Clone()
             {

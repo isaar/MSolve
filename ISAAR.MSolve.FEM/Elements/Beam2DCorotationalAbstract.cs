@@ -37,6 +37,9 @@ namespace ISAAR.MSolve.FEM.Elements
         protected Vector beamAxisY;
         protected Vector beamAxisZ;
 
+        public double Density { get; set; }
+        public double SectionArea { get; set; }
+        public double MomentOfInertia { get; set; }
         public double RayleighAlpha { get; set; }
         public double RayleighBeta { get; set; }
 
@@ -245,16 +248,36 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public IMatrix2D MassMatrix(IElement element)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            double x2 = Math.Pow(element.INodes[1].X - element.INodes[0].X, 2);
+            double y2 = Math.Pow(element.INodes[1].Y - element.INodes[0].Y, 2);
+            double L = Math.Sqrt(x2 + y2);
+            double L2 = L * L;
+            double c = (element.INodes[1].X - element.INodes[0].X) / L;
+            double c2 = c * c;
+            double s = (element.INodes[1].Y - element.INodes[0].Y) / L;
+            double s2 = s * s;
+            double dAL420 = density * beamSection.Area * L / 420;
+
+            double totalMass = density * beamSection.Area * L;
+            double totalMassOfDiagonalTerms = 2 * dAL420 * (140 * c2 + 156 * s2) + 2 * dAL420 * (140 * s2 + 156 * c2);
+            double scale = totalMass / totalMassOfDiagonalTerms;
+
+            return new SymmetricMatrix2D(new double[] { dAL420*(140*c2+156*s2)*scale, 0, 0, 0, 0, 0,
+                dAL420*(140*s2+156*c2)*scale, 0, 0, 0, 0,
+                0, 0, 0, 0,
+                dAL420*(140*c2+156*s2)*scale, 0, 0,
+                dAL420*(140*s2+156*c2)*scale, 0,
+                0 });
         }
 
         public IMatrix2D DampingMatrix(IElement element)
         {
-            throw new NotImplementedException();
-            //var m = MassMatrix(element);
-            //var lc = m as ILinearlyCombinable;
-            //lc.LinearCombination(new double[] { RayleighAlpha, RayleighBeta }, new IMatrix2D[] { MassMatrix(element), StiffnessMatrix(element) });
-            //return m;
+            //throw new NotImplementedException();
+            var m = MassMatrix(element);
+            var lc = m as ILinearlyCombinable;
+            lc.LinearCombination(new double[] { RayleighAlpha, RayleighBeta }, new IMatrix2D[] { MassMatrix(element), StiffnessMatrix(element) });
+            return m;
         }
 
         public void ResetMaterialModified()
@@ -276,7 +299,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
         {
-            throw new NotImplementedException();
+            return CalculateForces(element, localDisplacements, null);
         }
 
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)

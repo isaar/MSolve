@@ -33,6 +33,8 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
                 int iteration = 0;
                 for (iteration = 0; iteration < maxIterationsPerIncrement; iteration++)
                 {
+                    if (iteration == maxIterationsPerIncrement - 1) return;
+                    if (Double.IsNaN(errorNorm)) return;
                     solver.Solve();
                     //double rhsNormIt = solver.LinearSystems.First().Value.RhsVector.Norm2();
                     //double xNormIt = solver.LinearSystems.First().Value.Solution.Norm2();
@@ -78,12 +80,12 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
 
         public class Builder: NonLinearAnalyzerBuilderBase
         {
-            public Builder(IStructuralModel_v2 model, ISolver_v2 solver, INonLinearProvider_v2 provider, int numIncrements, double tol) :
+            public Builder(IStructuralModel_v2 model, ISolver_v2 solver, INonLinearProvider_v2 provider, int numIncrements) :
                 base(model, solver, provider, numIncrements)
             {
                 MaxIterationsPerIncrement = 1000;
                 NumIterationsForMatrixRebuild = 1;
-                ResidualTolerance = tol;// 1E-3;
+                ResidualTolerance = 1E-3;
             }
 
             public LoadControlAnalyzer_v2 Build()

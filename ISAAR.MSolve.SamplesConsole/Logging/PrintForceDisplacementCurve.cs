@@ -16,19 +16,39 @@ namespace ISAAR.MSolve.SamplesConsole.Logging
 {
     public static class PrintForceDisplacementCurve
     {
-        private const string outputDirectory = @"C:\Users\Serafeim\Desktop\Non_Linear_Logging";
+        private const string outputDirectory = @"E:\GEORGE_DATA\DESKTOP\MSolveResults";
         private const int subdomainID = 0;
+        private const int monitorNode = 3;
+        private const DOFType monitorDof = DOFType.Y;
+
+        public static void CantileverBeam2DCorotationalDisplacementControl()
+        {
+            Model_v2 model = CreateModelWithoutLoads();
+
+            double nodalDisplacement = 146.558710945558;
+            model.NodesDictionary[monitorNode].Constraints.Add(new Constraint { DOF = DOFType.Y, Amount = nodalDisplacement });
+
+            Analyze(model, false);
+        }
 
         public static void CantileverBeam2DCorotationalLoadControl()
         {
+            Model_v2 model = CreateModelWithoutLoads();
+
+            // Add nodal load values at the top nodes of the model
+            double nodalLoad = 20000.0;
+            model.Loads.Add(new Load_v2() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode], DOF = DOFType.Y });
+
+            Analyze(model, true);
+        }
+
+        private static Model_v2 CreateModelWithoutLoads()
+        {
             double youngModulus = 21000.0;
             double poissonRatio = 0.3;
-            double nodalLoad = 20000.0;
             double area = 91.04;
             double inertia = 8091.0;
             int nElems = 2;
-            int monitorNode = 3;
-            DOFType monitorDof = DOFType.Y;
 
             // Create new 2D material
             ElasticMaterial material = new ElasticMaterial
@@ -95,31 +115,43 @@ namespace ISAAR.MSolve.SamplesConsole.Logging
                 iNode++;
             }
 
-            // Add nodal load values at the top nodes of the model
-            model.Loads.Add(new Load_v2() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode], DOF = DOFType.Y });
+            return model;
+        }
 
-            // Needed in order to make all the required data structures
-            //model.ConnectDataStructures();
 
+        private static void Analyze(Model_v2 model, bool loadControl)
+        {
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();
-            ISolver_v2 solver = solverBuilder.BuildSolver(model);
-            //solver.LinearSystems[subdomainID].RhsVector = model.SubdomainsDictionary[subdomainID].Forces;
+            SkylineSolver solver = solverBuilder.BuildSolver(model);
+
 
             // Choose the provider of the problem -> here a structural problem
             var provider = new ProblemStructural_v2(model, solver);
 
-            // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
+            // Choose child analyzer
+            NonLinearAnalyzerBase childAnalyzer;
             int increments = 10;
-            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments, 1E-3);
-            LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
+            if (loadControl)
+            {
+                var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
+                childAnalyzerBuilder.ResidualTolerance = 1E-3;
+                childAnalyzer = childAnalyzerBuilder.Build();
+            }
+            else
+            {
+
+                var childAnalyzerBuilder = new DisplacementControlAnalyzer_v2.Builder(model, solver, provider, increments);
+                childAnalyzer = childAnalyzerBuilder.Build();
+            }
+
 
             // Choose parent analyzer -> Parent: Static
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
             // Request output
             string outputFile = outputDirectory + "\\load_control_beam2D_corrotational.txt";
-            var logger = new TotalLoadsDisplacementsPerIncrementLog(model.SubdomainsDictionary[subdomainID], increments, 
+            var logger = new TotalLoadsDisplacementsPerIncrementLog(model.SubdomainsDictionary[subdomainID], increments,
                 model.NodesDictionary[monitorNode], monitorDof, outputFile);
             childAnalyzer.IncrementalLogs.Add(subdomainID, logger);
 

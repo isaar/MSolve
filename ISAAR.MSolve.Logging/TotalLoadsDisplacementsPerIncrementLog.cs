@@ -1,6 +1,14 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Logging.Utilities;
 
 //TODO: This class should only extract data. How to output them (print in .txt, .xlsx, etc) should be done by different or
 //      child classes
@@ -11,33 +19,45 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //      disposed properly.
 namespace ISAAR.MSolve.Logging
 {
+    /// <summary>
+    /// This does not work if the requested node belongs to an element that contains embedded elements.
+    /// </summary>
     public class TotalLoadsDisplacementsPerIncrementLog
     {
-        private readonly ISubdomain_v2 subdomain;
+        private readonly Subdomain_v2 subdomain;
         //private readonly Dictionary<INode, HashSet<DOFType>> monitorDofs = new Dictionary<INode, HashSet<DOFType>>();
-        private readonly INode monitorNode;
+        private readonly bool isMonitorDofFree;
+        private readonly ConstrainedDofForcesCalculator forceCalculator;
+        private readonly Node_v2 monitorNode;
         private readonly DOFType monitorDof;
         private readonly string outputFile;
 
-        //TODO: These will be useful if I want to store them instead of immediately print them.
-        //private readonly List<int> storedIncrementNumbers; //TODO: not sure if needed.
-        //private readonly List<int> storedLastIterationNumbers;
-        //private readonly List<double> storedErrorNorms;
-        //private readonly List<double> storedTotalDisplacements;
-        //private readonly List<double> storedTotalInternalForces;
-
-        public TotalLoadsDisplacementsPerIncrementLog(ISubdomain_v2 subdomain, int maxIncrementsExpected, 
-            INode monitorNode, DOFType monitorDof, string outputFile)
+        /// <summary>
+        /// In case of displacement control, where there is a prescribed displacement at the monitored dof, we can only
+        /// access the applied displacement which is scaled to 1/loadSteps at the beginning and remains constant during the iterations.
+        /// Therefore we need to keep track of the previous displacements. This only happens for constrained dofs. 
+        /// For free dofs this field is not used.
+        /// </summary>
+        private double currentTotalDisplacement = 0.0;
+        //TODO: It should not be stored at all. Instead we should be able to access the total prescribed displacement from the analyzer
+        
+        public TotalLoadsDisplacementsPerIncrementLog(Subdomain_v2 subdomain, int maxIncrementsExpected,
+            Node_v2 monitorNode, DOFType monitorDof, string outputFile)
         {
             this.subdomain = subdomain;
-            //this.storedIncrementNumbers = new List<int>(maxIncrementsExpected);
-            //this.storedLastIterationNumbers = new List<int>(maxIncrementsExpected);
-            //this.storedErrorNorms = new List<double>(maxIncrementsExpected);
-            //this.storedTotalDisplacements = new List<double>(maxIncrementsExpected);
-            //this.storedTotalInternalForces = new List<double>(maxIncrementsExpected);
-
             this.monitorNode = monitorNode;
             this.monitorDof = monitorDof;
+
+            isMonitorDofFree = true;
+            foreach (Constraint constraint in monitorNode.Constraints) //TODO: use LINQ instead of this
+            {
+                if (constraint.DOF == monitorDof)
+                {
+                    isMonitorDofFree = false;
+                    forceCalculator = new ConstrainedDofForcesCalculator(subdomain);
+                    break;
+                }
+            }
 
             this.outputFile = outputFile;
         }
@@ -56,6 +76,9 @@ namespace ISAAR.MSolve.Logging
                 writer.Write($", Total displacement (Node {monitorNode.ID} - dof {monitorDof})");
                 writer.WriteLine($", Total internal force (Node {monitorNode.ID} - dof {monitorDof})");
             }
+
+            if (!subdomain.Nodes.Contains(monitorNode)) throw new ArgumentException(
+                "The requested monitor node does not belong to this subdomain");
         }
 
         /// <summary>
@@ -70,34 +93,27 @@ namespace ISAAR.MSolve.Logging
         public void LogTotalDataForIncrement(int incrementNumber, int currentIterationNumber, double errorNorm,
             IVectorView totalDisplacements, IVectorView totalInternalForces)
         {
-            int subdomainDofIdx = subdomain.DofOrdering.FreeDofs[monitorNode, monitorDof]; //TODO: SHould this be cached?
+            double displacement, force;
+            bool isFreeDof = subdomain.DofOrdering.FreeDofs.TryGetValue(monitorNode, monitorDof, out int subdomainDofIdx); //TODO: Should this be cached?
+            if (isFreeDof)
+            {
+                displacement = totalDisplacements[subdomainDofIdx];
+                force = totalInternalForces[subdomainDofIdx];
+            }
+            else
+            {
+                currentTotalDisplacement += subdomain.Constraints[monitorNode, monitorDof];
+                displacement = currentTotalDisplacement;
+                force = forceCalculator.CalculateForceAt(monitorNode, monitorDof, totalDisplacements); //TODO: find out exactly what happens with the sign
+            }
 
             // If all subdomains use the same file, then we need to open it in append mode. 
             //TODO: Also that will not work in parallel for many subdomains.
             using (var writer = new StreamWriter(outputFile, true)) // append mode to continue from previous increment
             {
                 writer.Write($"{incrementNumber}, {currentIterationNumber}, {errorNorm}");
-                writer.WriteLine($", {totalDisplacements[subdomainDofIdx]}, {totalInternalForces[subdomainDofIdx]}");
+                writer.WriteLine($", {displacement}, {force}");
             }
-        }
-
-        //public void LogTotalDataForIncrement(int incrementNumber, int currentIterationNumber, double errorNorm,
-        //    IVectorView totalDisplacements, IVectorView totalInternalForces)
-        //{
-        //    storedIncrementNumbers.Add(incrementNumber);
-        //    storedLastIterationNumbers.Add(currentIterationNumber);
-        //    storedErrorNorms.Add(errorNorm);
-
-        //    int globalDofIdx = model.GlobalDofOrdering.GlobalFreeDofs[monitorNode, monitorDof];
-        //    storedTotalDisplacements.Add(totalDisplacements[globalDofIdx]);
-        //    storedTotalInternalForces.Add(totalInternalForces[globalDofIdx]);
-        //}
-
-        //public void Monitor(INode node, DOFType dof)
-        //{
-        //    bool nodeExists = monitorDofs.TryGetValue(node, out HashSet<DOFType> dofsOfNode);
-        //    if (!nodeExists) dofsOfNode = new HashSet<DOFType>();
-        //    dofsOfNode.Add(dof);
-        //}
+        }        
     }
 }

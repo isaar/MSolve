@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests
     public class TestSettings
     {
         // Set the appropriate enums and flags here, in order to choose which native library tests will be run.
-        private static readonly TestSuiteSparseAndMklLibs librariesToTest = TestSuiteSparseAndMklLibs.Both;
+        private static readonly TestSuiteSparseAndMklLibs librariesToTest = TestSuiteSparseAndMklLibs.Neither;
 
         public const string MessageWhenSkippingMKL = "MKL is not set to be tested. See TestSettings.cs for more.";
 

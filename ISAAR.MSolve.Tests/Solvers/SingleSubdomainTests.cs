@@ -85,7 +85,6 @@ namespace ISAAR.MSolve.Tests.Solvers
             solverBuilder.DofOrderer = new DofOrderer(
                 new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithCSparseAmd());
             ISolver_v2 solver = solverBuilder.BuildSolver(benchmark.Model);
-
             RunAnalysisAndCheck(benchmark, solver);
 
         }

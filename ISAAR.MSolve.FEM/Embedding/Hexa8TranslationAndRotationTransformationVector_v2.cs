@@ -41,7 +41,12 @@ namespace ISAAR.MSolve.FEM.Embedding
 
         private double[][] GetTransformationVectorForTranslationsOnly(EmbeddedNode_v2 node)
         {
-            if (node.EmbeddedInElement.ElementType is Hexa8_v2 == false)
+            if (node.EmbeddedInElement.ElementType is Hexa8_v2 == false
+                && node.EmbeddedInElement.ElementType is Hexa8Fixed_v2 == false
+                && node.EmbeddedInElement.ElementType is Hexa8NonLinear_v2 == false
+                && node.EmbeddedInElement.ElementType is Hexa8u8p_v2 == false
+                && node.EmbeddedInElement.ElementType is Hexa8u8pWithStochasticMaterial_v2 == false
+                && node.EmbeddedInElement.ElementType is Hexa8WithStochasticMaterial_v2 == false)
                 throw new ArgumentException("Host element is not Hexa8.");
 
             double[] hostShapeFunctions = ((IEmbeddedHostElement_v2)node.EmbeddedInElement.ElementType).GetShapeFunctionsForNode(node.EmbeddedInElement, node);

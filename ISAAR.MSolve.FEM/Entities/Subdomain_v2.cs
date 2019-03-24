@@ -56,6 +56,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
         //TODO: Ideally this is set by the Model, Cluster and should not be modified during the analysis. Actually it should be 
         //      the same as Constraints.
+
         public Table<Node_v2, DOFType, double> NodalLoads { get; set; }
 
         //TODO: This belongs in EquivalentLoadsAssembler

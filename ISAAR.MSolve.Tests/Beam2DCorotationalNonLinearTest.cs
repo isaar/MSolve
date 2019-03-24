@@ -79,7 +79,7 @@ namespace ISAAR.MSolve.Tests
                 elementNodes.Add(model.NodesDictionary[iNode]);
                 elementNodes.Add(model.NodesDictionary[iNode + 1]);
 
-                // Create new Beam3D section and element
+                // Create new Beam2D section and element
                 var beamSection = new BeamSection2D(area, inertia);
                 var beam = new Beam2DCorotational(elementNodes, material, 7.85, beamSection);
 
@@ -226,7 +226,7 @@ namespace ISAAR.MSolve.Tests
 
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
             int increments = 10;
-            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments, 1E-3);
+            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
             LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
 
             // Choose parent analyzer -> Parent: Static
