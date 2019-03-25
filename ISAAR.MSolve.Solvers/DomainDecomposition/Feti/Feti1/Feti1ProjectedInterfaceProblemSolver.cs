@@ -56,11 +56,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             projection.ProjectVector(r0, pcgRhs, true);
 
             // Solve the interface problem using PCG algorithm
-            var pcgBuilder = new PcgAlgorithm.Builder();
+            var pcgBuilder = new PcgAlgorithm_v2.Builder();
             pcgBuilder.MaxIterationsProvider = new PercentageMaxIterationsProvider(pcgMaxIterationsOverSize);
             pcgBuilder.ResidualTolerance = pcgConvergenceTolerance;
+            pcgBuilder.Convergence = new ApproximatePcgConvergence(globalForcesNorm);
             //pcgBuilder.ResidualNormCalculator = calcExactResidualNorm(); //TODO: implement this for regular PCG too. WARNING. λ = λ0 + P^T * λbar is needed.
-            PcgAlgorithm pcg = pcgBuilder.Build();
+            PcgAlgorithm_v2 pcg = pcgBuilder.Build();
             var lagrangesBar = Vector.CreateZero(systemOrder);
             CGStatistics stats = pcg.Solve(pcgMatrix, pcgPreconditioner, pcgRhs, lagrangesBar, true,
                 () => Vector.CreateZero(systemOrder));
@@ -70,10 +71,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             {
                 throw new IterativeSolverNotConvergedException(Feti1Solver.name + " did not converge to a solution. PCG"
                     + $" algorithm run for {stats.NumIterationsRequired} iterations and the residual norm ratio was"
-                    + $" {stats.NormRatio}");
+                    + $" {stats.ResidualNormRatioEstimation}");
             }
             logger.PcgIterations = stats.NumIterationsRequired;
-            logger.PcgResidualNormRatio = stats.NormRatio;
+            logger.PcgResidualNormRatio = stats.ResidualNormRatioEstimation;
 
             // Calculate the lagrange multipliers from the separation formula: λ = λ0 + P * λbar
             var lagranges = Vector.CreateZero(systemOrder);

@@ -148,7 +148,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
                         AlgorithmName = "Conjugate Gradient",
                         HasConverged = true,
                         NumIterationsRequired = iteration + 1,
-                        NormRatio = Math.Sqrt(dotResidualNew) / normResidualInitial
+                        ResidualNormRatioEstimation = Math.Sqrt(dotResidualNew) / normResidualInitial
                     };
                 }
 
@@ -167,7 +167,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
                 AlgorithmName = "Conjugate Gradient",
                 HasConverged = false,
                 NumIterationsRequired = maxIterations,
-                NormRatio = Math.Sqrt(dotResidualNew) / normResidualInitial
+                ResidualNormRatioEstimation = Math.Sqrt(dotResidualNew) / normResidualInitial
             };
         }
         

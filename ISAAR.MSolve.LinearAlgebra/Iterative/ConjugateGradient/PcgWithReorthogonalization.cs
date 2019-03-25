@@ -6,6 +6,7 @@ using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
+//TODO: I would rather implement reorthogonalization as an alternative strategy, rather than a different class.
 //TODO: needs builder
 namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
 {
@@ -78,7 +79,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             preconditioner.SolveLinearSystem(residual, direction);
 
             // q = A * d
-            IVector matrixTimesDirection = rhs.CreateZeroVectorWithSameFormat();
+            IVector matrixTimesDirection = zeroVectorInitializer();
             matrix.Multiply(direction, matrixTimesDirection);
             double directionTimesMatrixTimesDirection = direction.DotProduct(matrixTimesDirection);
 
@@ -130,7 +131,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
                         AlgorithmName = "Conjugate Gradient",
                         HasConverged = true,
                         NumIterationsRequired = iteration + 1,
-                        NormRatio = Math.Sqrt(dotPreconditionedResidualNew) / normResidualInitial
+                        ResidualNormRatioEstimation = Math.Sqrt(dotPreconditionedResidualNew) / normResidualInitial
                     };
                 }
 
@@ -155,7 +156,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
                 AlgorithmName = "Conjugate Gradient",
                 HasConverged = false,
                 NumIterationsRequired = maxIterations,
-                NormRatio = Math.Sqrt(dotPreconditionedResidualNew) / normResidualInitial
+                ResidualNormRatioEstimation = Math.Sqrt(dotPreconditionedResidualNew) / normResidualInitial
             };
         }
 

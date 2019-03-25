@@ -7,7 +7,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
     /// Checks if the residual vector has reached the required tolerance, without performing corrections.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class SimpleConvergence : IResidualConvergence
+    public class SimpleConvergence_v2 : IPcgConvergenceStrategy
     {
         private double residualDotProductLimit;
 
@@ -15,8 +15,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
         /// See 
         /// <see cref="IResidualConvergence.HasConverged(IVectorView, IVector, ref double, bool, Func{IVectorView, double})"/>.
         /// </summary>
-        public bool HasConverged(IVectorView solutionVector, IVector residualVector, ref double residualDotProduct,
-            bool isResidualCorrected, Func<IVectorView, double> residualDotCalculation)
+        public bool HasConverged(IVectorView solutionVector, IVectorView preconditionedResidualVector, double residualDotProduct)
             => residualDotProduct <= residualDotProductLimit;
 
         /// <summary>

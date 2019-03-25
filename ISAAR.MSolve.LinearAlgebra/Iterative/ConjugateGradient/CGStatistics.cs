@@ -32,9 +32,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
 
         /// <summary>
         /// The value of norm2(b-A*x) / norm2(b-A*x0), where x is the solution vector after the final iteration of the algorithm
-        /// and x0 the intial guess for the same solution vector (usually x0 = 0).
+        /// and x0 the intial guess for the same solution vector (usually x0 = 0). Depending on the algorithm estimations of this
+        /// may be used to check convergence, e.g. PCG uses norm2(r^T*inv(M)*r)/norm(r0^T*inv(M)*r0). Those methods report the
+        /// ratio that will be checked.
         /// </summary>
-        public double NormRatio { get; set; }
+        public double ResidualNormRatioEstimation { get; set; }
 
         /// <summary>
         /// Reports the accumulated data of this <see cref="CGStatistics"/> instance. 
@@ -46,7 +48,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             string converged = HasConverged ? " converged successfully." : " failed to converge.";
             sb.Append(converged);
             sb.Append($" A total of {NumIterationsRequired} iterations were run and");
-            sb.Append($" norm2(rhs - matrix * xSolution) / norm2(rhs - matrix * xInit) = {NormRatio}.");
+            sb.Append($" norm2(rhs - matrix * xSolution) / norm2(rhs - matrix * xInit) = {ResidualNormRatioEstimation}.");
             return sb.ToString();
         }
     }

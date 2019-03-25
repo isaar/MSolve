@@ -7,6 +7,8 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: Needs Builder pattern
 //TODO: perhaps all quantities should be stored as mutable fields, exposed as readonly properties and the various strategies 
 //      should read them from a reference of CG/PCG/PCPG, instead of having them injected.
+//TODO: In regular CG, there is a check to perevent premature convergence, by correcting the residual. Can this be done for PCG 
+//      as well? Would the preconditioned residual be updated as well?
 namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
 {
     /// <summary>
@@ -15,14 +17,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
     /// "An Introduction to the Conjugate Gradient Method Without the Agonizing Pain", Jonathan Richard Shewchuk, 1994
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class PcgAlgorithm : PcgAlgorithmBase
+    public class PcgAlgorithm_v2 : PcgAlgorithmBase_v2
     {
         private readonly IPcgBetaParameterCalculation betaCalculation;
 
-        private PcgAlgorithm(double residualTolerance, IMaxIterationsProvider maxIterationsProvider,
-            IResidualConvergence residualConvergence, IResidualCorrection residualCorrection, 
+        private PcgAlgorithm_v2(double residualTolerance, IMaxIterationsProvider maxIterationsProvider,
+            IPcgConvergenceStrategy pcgConvergence, IResidualCorrection residualCorrection, 
             IPcgBetaParameterCalculation betaCalculation) : 
-            base(residualTolerance, maxIterationsProvider, residualConvergence, residualCorrection)
+            base(residualTolerance, maxIterationsProvider, pcgConvergence, residualCorrection)
         {
             this.betaCalculation = betaCalculation;
         }
@@ -49,7 +51,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             // Initialize the strategy objects
             betaCalculation.Initialize(residual);
             residualCorrection.Initialize(matrix, rhs);
-            residualConvergence.Initialize(matrix, rhs, residualTolerance, dotPreconditionedResidualNew);
+            convergence.Initialize(matrix, rhs, residualTolerance, dotPreconditionedResidualNew);
 
             // Allocate memory for other vectors, which will be reused during each iteration
             IVector matrixTimesDirection = zeroVectorInitializer();
@@ -66,7 +68,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
                 solution.AxpyIntoThis(direction, stepSize);
 
                 // Normally the residual vector is updated as: r = r - α * q. However corrections might need to be applied.
-                bool isResidualCorrected = residualCorrection.UpdateResidual(iteration, solution, residual,
+                residualCorrection.UpdateResidual(iteration, solution, residual,
                     (r) => r.AxpyIntoThis(matrixTimesDirection, -stepSize));
 
                 // s = inv(M) * r
@@ -79,10 +81,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
                 dotPreconditionedResidualNew = residual.DotProduct(preconditionedResidual);
 
                 // At this point we can check if CG has converged and exit, thus avoiding the uneccesary operations that follow.
-                // During the convergence check, it may be necessary to correct the residual vector (if it hasn't already been
-                // corrected) and its dot product.
-                bool hasConverged = residualConvergence.HasConverged(solution, residual, ref dotPreconditionedResidualNew,
-                    isResidualCorrected, r => r.DotProduct(preconditionedResidual));
+                bool hasConverged = convergence.HasConverged(solution, preconditionedResidual, dotPreconditionedResidualNew);
                 if (hasConverged)
                 {
                     return new CGStatistics
@@ -90,7 +89,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
                         AlgorithmName = "Conjugate Gradient",
                         HasConverged = true,
                         NumIterationsRequired = iteration + 1,
-                        ResidualNormRatioEstimation = Math.Sqrt(dotPreconditionedResidualNew) / normResidualInitial
+                        ResidualNormRatioEstimation = Math.Sqrt(dotPreconditionedResidualNew) / normResidualInitial //TODO: this is not correct, use the data from convergence strategy
                     };
                 }
 
@@ -111,7 +110,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
                 AlgorithmName = "Conjugate Gradient",
                 HasConverged = false,
                 NumIterationsRequired = maxIterations,
-                ResidualNormRatioEstimation = Math.Sqrt(dotPreconditionedResidualNew) / normResidualInitial
+                ResidualNormRatioEstimation = Math.Sqrt(dotPreconditionedResidualNew) / normResidualInitial //TODO: this is not correct, use the data from convergence strategy
             };
         }
 
@@ -120,7 +119,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
         /// and provides defaults for the rest.
         /// Author: Serafeim Bakalakos
         /// </summary>
-        public class Builder : PcgBuilderBase
+        public class Builder : PcgBuilderBase_v2
         {
             /// <summary>
             /// Specifies how to calculate the beta parameter of PCG, which is used to update the direction vector. 
@@ -130,9 +129,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             /// <summary>
             /// Creates a new instance of <see cref="PcgAlgorithm"/>.
             /// </summary>
-            public PcgAlgorithm Build()
+            public PcgAlgorithm_v2 Build()
             {
-                return new PcgAlgorithm(ResidualTolerance, MaxIterationsProvider, ResidualConvergence, ResidualCorrection, 
+                return new PcgAlgorithm_v2(ResidualTolerance, MaxIterationsProvider, Convergence, ResidualCorrection, 
                     BetaCalculation);
             }
         }

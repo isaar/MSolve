@@ -64,7 +64,8 @@ namespace ISAAR.MSolve.Solvers.Iterative
             if (!stats.HasConverged)
             {
                 throw new IterativeSolverNotConvergedException(name + " did not converge to a solution. PCG algorithm run for"
-                    + $" {stats.NumIterationsRequired} iterations and the residual norm ratio was {stats.NormRatio}");
+                    + $" {stats.NumIterationsRequired} iterations and the residual norm ratio was"
+                    + $" {stats.ResidualNormRatioEstimation}");
             }
         }
 
