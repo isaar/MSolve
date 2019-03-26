@@ -1,6 +1,6 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate
+namespace ISAAR.MSolve.LinearAlgebra.Iterative
 {
     internal static class ExactResidual
     {

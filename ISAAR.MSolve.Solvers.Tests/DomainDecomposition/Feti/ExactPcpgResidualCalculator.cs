@@ -3,7 +3,7 @@ using System.Linq;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
+using ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;

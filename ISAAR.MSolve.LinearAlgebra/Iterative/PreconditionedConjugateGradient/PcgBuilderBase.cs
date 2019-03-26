@@ -1,7 +1,6 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate;
-using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
+﻿using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 
-namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
+namespace ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient
 {
     public abstract class PcgBuilderBase
     {
@@ -13,12 +12,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
         /// <summary>
         /// Specifies how the PCG algorithm will check that convergence has been reached.
         /// </summary>
-        public IResidualConvergence ResidualConvergence { get; set; } = new SimpleConvergence();
+        public IPcgResidualConvergence Convergence { get; set; } = new RegularPcgConvergence();
 
         /// <summary>
         /// Specifies how often the residual vector will be corrected by an exact (but costly) calculation.
         /// </summary>
-        public IResidualCorrection ResidualCorrection { get; set; } = new NoResidualCorrection();
+        public IPcgResidualUpdater ResidualUpdater { get; set; } = new RegularPcgResidualUpdater();
 
         /// <summary>
         /// The PCG algorithm will converge when sqrt(r*inv(M)*r) / sqrt(r0*inv(M)*r0) &lt;= <paramref name="ResidualTolerance"/>,

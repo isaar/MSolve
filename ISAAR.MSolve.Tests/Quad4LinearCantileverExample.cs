@@ -5,7 +5,7 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Geometry.Shapes;
-using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
+using ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials;

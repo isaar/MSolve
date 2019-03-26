@@ -1,5 +1,6 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Iterative;
 using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
+using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
@@ -32,7 +33,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Iterative
                 builder.MaxIterationsProvider = new PercentageMaxIterationsProvider(1.0);
                 var cg = builder.Build();
                 var xComputed = Vector.CreateZero(A.NumRows);
-                CGStatistics stats = cg.Solve(A, b, xComputed, true);
+                IterativeStatistics stats = cg.Solve(A, b, xComputed, true);
                 comparer.AssertEqual(xExpected, xComputed);
             });
         }
@@ -52,7 +53,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Iterative
                 builder.MaxIterationsProvider = new PercentageMaxIterationsProvider(1.0);
                 var cg = builder.Build();
                 var xComputed = Vector.CreateZero(A.NumRows);
-                CGStatistics stats = cg.Solve(A, b, xComputed, true);
+                IterativeStatistics stats = cg.Solve(A, b, xComputed, true);
                 comparer.AssertEqual(xExpected, xComputed);
             });
         }

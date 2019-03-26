@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.LinearAlgebra.Iterative;
-using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
+using ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -56,14 +56,14 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             projection.ProjectVector(r0, pcgRhs, true);
 
             // Solve the interface problem using PCG algorithm
-            var pcgBuilder = new PcgAlgorithm_v2.Builder();
+            var pcgBuilder = new PcgAlgorithm.Builder();
             pcgBuilder.MaxIterationsProvider = new PercentageMaxIterationsProvider(pcgMaxIterationsOverSize);
             pcgBuilder.ResidualTolerance = pcgConvergenceTolerance;
             pcgBuilder.Convergence = new ApproximatePcgConvergence(globalForcesNorm);
             //pcgBuilder.ResidualNormCalculator = calcExactResidualNorm(); //TODO: implement this for regular PCG too. WARNING. λ = λ0 + P^T * λbar is needed.
-            PcgAlgorithm_v2 pcg = pcgBuilder.Build();
+            PcgAlgorithm pcg = pcgBuilder.Build();
             var lagrangesBar = Vector.CreateZero(systemOrder);
-            CGStatistics stats = pcg.Solve(pcgMatrix, pcgPreconditioner, pcgRhs, lagrangesBar, true,
+            IterativeStatistics stats = pcg.Solve(pcgMatrix, pcgPreconditioner, pcgRhs, lagrangesBar, true,
                 () => Vector.CreateZero(systemOrder));
 
             // Log statistics about PCG execution

@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
+using ISAAR.MSolve.LinearAlgebra.Iterative;
+using ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -59,7 +60,7 @@ namespace ISAAR.MSolve.Solvers.Iterative
                 mustUpdatePreconditioner = false;
             }
 
-            CGStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, linearSystem.RhsVector,
+            IterativeStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, linearSystem.RhsVector,
                 linearSystem.Solution, true, () => linearSystem.CreateZeroVector()); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0
             if (!stats.HasConverged)
             {
@@ -96,7 +97,7 @@ namespace ISAAR.MSolve.Solvers.Iterative
                 //      in CG will be slow.
                 Vector rhsVector = otherMatrix.GetColumn(j);
 
-                CGStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, rhsVector,
+                IterativeStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, rhsVector,
                     solutionVector, true, () => linearSystem.CreateZeroVector());
 
                 solutionVectors.SetSubcolumn(j, solutionVector);

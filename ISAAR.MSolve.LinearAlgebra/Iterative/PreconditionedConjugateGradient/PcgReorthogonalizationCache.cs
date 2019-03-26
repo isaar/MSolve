@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
+namespace ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient
 {
     /// <summary>
     /// Manages the insertion and removal of PCG direction vectors and related data, that will be used for reorthogonalization.
@@ -74,21 +74,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
         /// <summary>
         /// Stores a new direction vector and other related data. The new entries will be regarded as latest.
         /// </summary>
-        /// <param name="direction">
-        /// The new direction vector, which is conjugate to other direction vectors stored previously.
-        /// </param>
-        /// <param name="matrixTimesDirection">
-        /// The product systemMatrix * <paramref name="direction"/>.
-        /// </param>
-        /// <param name="directionTimesMatrixTimesDirection">
-        /// The product <paramref name="direction"/> * systemMatrix * <paramref name="direction"/>.
-        /// </param>
-        public void StoreDirectionData(IVectorView direction, IVectorView matrixTimesDirection,
-            double directionTimesMatrixTimesDirection)
+        /// <param name="pcg">The Preconditioned Conjugate Gradient Aglorithm that uses this object.</param>
+        public void StoreDirectionData(PcgWithReorthogonalization pcg)
         {
-            Directions.Add(direction.Copy());
-            MatrixTimesDirections.Add(matrixTimesDirection.Copy());
-            DirectionsTimesMatrixTimesDirections.Add(directionTimesMatrixTimesDirection);
+            Directions.Add(pcg.Direction.Copy());
+            MatrixTimesDirections.Add(pcg.MatrixTimesDirection.Copy());
+            DirectionsTimesMatrixTimesDirections.Add(pcg.DirectionTimesMatrixTimesDirection);
         }
     }
 }

@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
-using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
-using ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: I would rather implement reorthogonalization as an alternative strategy, rather than a different class.
 //TODO: needs builder
-namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
+namespace ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient
 {
     /// <summary>
     /// Implements the untransformed Preconditioned Conjugate Gradient algorithm for solving linear systems with symmetric 
@@ -16,16 +13,23 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
     /// "Seismic soil-structure interaction with finite elements and the method of substructures", George Stavroulakis, 2014
     /// Authors: Serafeim Bakalakos, George Stavroulakis 
     /// </summary>
-    public class PcgWithReorthogonalization: PcgAlgorithmBase
+    public class PcgWithReorthogonalization : PcgAlgorithmBase
     {
+        private const string name = "PCG with reorthogonalization";
+
         //TODO: this could be abstracted to use a cyclic cache.
         private readonly PcgReorthogonalizationCache reorthoCache = new PcgReorthogonalizationCache();
 
         private PcgWithReorthogonalization(double residualTolerance, IMaxIterationsProvider maxIterationsProvider,
-            IResidualConvergence residualConvergence, IResidualCorrection residualCorrection) :
+            IPcgResidualConvergence residualConvergence, IPcgResidualUpdater residualCorrection) :
             base(residualTolerance, maxIterationsProvider, residualConvergence, residualCorrection)
         {
         }
+
+        /// <summary>
+        /// The dot product d * (A*d), where d is the direction vector <see cref="PcgAlgorithmBase.Direction"/>.
+        /// </summary>
+        public double DirectionTimesMatrixTimesDirection { get; private set; }
 
         /// <summary>
         /// Calculates the initial approximation to the linear system's solution vector, by using a series of conjugate direction 
@@ -65,41 +69,46 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             }
         }
 
-        protected override CGStatistics SolveInternal(ILinearTransformation matrix, IPreconditioner preconditioner,
-            IVectorView rhs, IVector solution, IVector residual, Func<IVector> zeroVectorInitializer)
+        /// <summary>
+        /// See <see cref="PcgAlgorithmBase.Clear"/>
+        /// </summary>
+        public override void Clear()
         {
-            int maxIterations = maxIterationsProvider.GetMaxIterationsForMatrix(matrix);
+            base.Clear();
+            DirectionTimesMatrixTimesDirection = 0.0;
+        }
 
+        protected override IterativeStatistics SolveInternal(int maxIterations, Func<IVector> zeroVectorInitializer)
+        {
             // In contrast to the source algorithm, we initialize s here. At each iteration it will be overwritten, 
             // thus avoiding allocating deallocating a new vector.
-            IVector preconditionedResidual = zeroVectorInitializer();
+            precondResidual = zeroVectorInitializer();
 
             // d = inv(M) * r
-            IVector direction = zeroVectorInitializer();
-            preconditioner.SolveLinearSystem(residual, direction);
+            direction = zeroVectorInitializer();
+            Preconditioner.SolveLinearSystem(residual, direction);
 
             // q = A * d
-            IVector matrixTimesDirection = zeroVectorInitializer();
-            matrix.Multiply(direction, matrixTimesDirection);
+            matrixTimesDirection = zeroVectorInitializer();
+            Matrix.Multiply(direction, matrixTimesDirection);
             double directionTimesMatrixTimesDirection = direction.DotProduct(matrixTimesDirection);
 
             // Update the direction vectors cache
-            reorthoCache.StoreDirectionData(direction, matrixTimesDirection, directionTimesMatrixTimesDirection);
+            reorthoCache.StoreDirectionData(this);
 
             // δnew = δ0 = r * d
-            double dotPreconditionedResidualNew = residual.DotProduct(direction);
+            double resDotPrecondRes = residual.DotProduct(direction);
 
-            // This is only used as output
-            double normResidualInitial = Math.Sqrt(dotPreconditionedResidualNew);
+            // The convergence strategy must be initialized immediately after the first r and r*inv(M)*r are computed.
+            convergence.Initialize(this);
 
-            // Initialize the strategy objects
-            residualConvergence.Initialize(matrix, rhs, residualTolerance, dotPreconditionedResidualNew);
-            residualCorrection.Initialize(matrix, rhs);
+            // This is also used as output
+            double residualNormRatio = double.NaN;
 
             //TODO: Find proof that this correct. Why is it better than the default formula α = (r * s) / (d * q)?
             // α = (d * r) / (d * q) = (d * r) / (d * (A * d)) 
             // In the first iteration all multiplications have already been performed.
-            double stepSize = dotPreconditionedResidualNew / directionTimesMatrixTimesDirection;
+            stepSize = resDotPrecondRes / directionTimesMatrixTimesDirection;
 
             for (int iteration = 0; iteration < maxIterations; ++iteration)
             {
@@ -107,56 +116,52 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
                 solution.AxpyIntoThis(direction, stepSize);
 
                 // Normally the residual vector is updated as: r = r - α * q. However corrections might need to be applied.
-                bool isResidualCorrected = residualCorrection.UpdateResidual(iteration, solution, residual,
-                    (r) => r.AxpyIntoThis(matrixTimesDirection, -stepSize));
+                residualUpdater.UpdateResidual(this, residual);
 
                 // s = inv(M) * r
-                preconditioner.SolveLinearSystem(residual, preconditionedResidual);
+                Preconditioner.SolveLinearSystem(residual, precondResidual);
 
                 // δold = δnew
-                double dotPreconditionedResidualOld = dotPreconditionedResidualNew;
+                resDotPrecondResOld = resDotPrecondRes;
 
                 // δnew = r * s 
-                dotPreconditionedResidualNew = residual.DotProduct(preconditionedResidual);
+                resDotPrecondRes = residual.DotProduct(precondResidual);
 
-                // At this point we can check if CG has converged and exit, thus avoiding the uneccesary operations that follow.
-                // During the convergence check, it may be necessary to correct the residual vector (if it hasn't already been
-                // corrected) and its dot product.
-                bool hasConverged = residualConvergence.HasConverged(solution, residual, ref dotPreconditionedResidualNew,
-                    isResidualCorrected, r => r.DotProduct(preconditionedResidual));
-                if (hasConverged)
+                /// At this point we can check if CG has converged and exit, thus avoiding the uneccesary operations that follow.
+                residualNormRatio = convergence.EstimateResidualNormRatio(this);
+                if (residualNormRatio <= residualTolerance)
                 {
-                    return new CGStatistics
+                    return new IterativeStatistics
                     {
-                        AlgorithmName = "Conjugate Gradient",
+                        AlgorithmName = name,
                         HasConverged = true,
                         NumIterationsRequired = iteration + 1,
-                        ResidualNormRatioEstimation = Math.Sqrt(dotPreconditionedResidualNew) / normResidualInitial
+                        ResidualNormRatioEstimation = residualNormRatio
                     };
                 }
 
                 // Update the direction vector using previous cached direction vectors.
-                UpdateDirectionVector(preconditionedResidual, direction);
+                UpdateDirectionVector(precondResidual, direction);
 
                 // q = A * d
-                matrix.Multiply(direction, matrixTimesDirection);
+                Matrix.Multiply(direction, matrixTimesDirection);
                 directionTimesMatrixTimesDirection = direction.DotProduct(matrixTimesDirection);
 
                 // Update the direction vectors cache
-                reorthoCache.StoreDirectionData(direction, matrixTimesDirection, directionTimesMatrixTimesDirection);
+                reorthoCache.StoreDirectionData(this);
 
                 //TODO: Find proof that this correct. Why is it better than the default formula α = (r * s) / (d * q)?
                 // α = (d * r) / (d * q) = (d * r) / (d * (A * d)) 
                 stepSize = direction.DotProduct(residual) / directionTimesMatrixTimesDirection;
             }
 
-            // We reached the max iterations before CG converged
-            return new CGStatistics
+            // We reached the max iterations before PCG converged
+            return new IterativeStatistics
             {
-                AlgorithmName = "Conjugate Gradient",
+                AlgorithmName = name,
                 HasConverged = false,
                 NumIterationsRequired = maxIterations,
-                ResidualNormRatioEstimation = Math.Sqrt(dotPreconditionedResidualNew) / normResidualInitial
+                ResidualNormRatioEstimation = residualNormRatio
             };
         }
 
@@ -185,8 +190,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             /// </summary>
             public PcgWithReorthogonalization Build()
             {
-                return new PcgWithReorthogonalization(ResidualTolerance, MaxIterationsProvider, ResidualConvergence,
-                    ResidualCorrection);
+                return new PcgWithReorthogonalization(ResidualTolerance, MaxIterationsProvider, Convergence, ResidualUpdater);
             }
         }
     }

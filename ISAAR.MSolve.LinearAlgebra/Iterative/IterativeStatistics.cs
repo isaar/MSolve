@@ -1,18 +1,20 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
 //TODO: Add time measurements, flop measurements, etc. 
 //TODO: Alternatively I could use a logger (pull observer) in the algorithm
 //TODO: Needs a better name
 //TODO: Each algorithm/author outputs something different. Once enough have been implemented/ported, find an appropriate design
 //      to unify them. 
-namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
+namespace ISAAR.MSolve.LinearAlgebra.Iterative
 {
     /// <summary>
     /// Data Transfer Object that collects information about the execution and convergence when solving a linear system with 
-    /// the Conjugate Gradient algorithm.
+    /// an iterative algorithm.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class CGStatistics
+    public class IterativeStatistics
     {
         /// <summary>
         /// The name of the iterative algorithm. E.g CG, PCG, ...
@@ -34,7 +36,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
         /// The value of norm2(b-A*x) / norm2(b-A*x0), where x is the solution vector after the final iteration of the algorithm
         /// and x0 the intial guess for the same solution vector (usually x0 = 0). Depending on the algorithm estimations of this
         /// may be used to check convergence, e.g. PCG uses norm2(r^T*inv(M)*r)/norm(r0^T*inv(M)*r0). Those methods report the
-        /// ratio that will be checked.
+        /// ratio that is checked.
         /// </summary>
         public double ResidualNormRatioEstimation { get; set; }
 

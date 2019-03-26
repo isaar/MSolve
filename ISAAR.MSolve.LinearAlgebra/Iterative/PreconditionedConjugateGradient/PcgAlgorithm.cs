@@ -1,13 +1,14 @@
 ﻿using System;
-using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
-using ISAAR.MSolve.LinearAlgebra.Iterative.ResidualUpdate;
+using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: Needs Builder pattern
 //TODO: perhaps all quantities should be stored as mutable fields, exposed as readonly properties and the various strategies 
 //      should read them from a reference of CG/PCG/PCPG, instead of having them injected.
-namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
+//TODO: In regular CG, there is a check to perevent premature convergence, by correcting the residual. Can this be done for PCG 
+//      as well? Would the preconditioned residual be updated as well?
+namespace ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient
 {
     /// <summary>
     /// Implements the untransformed Preconditioned Conjugate Gradient algorithm for solving linear systems with symmetric 
@@ -17,101 +18,93 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
     /// </summary>
     public class PcgAlgorithm : PcgAlgorithmBase
     {
+        private const string name = "Preconditioned Conjugate Gradient";
         private readonly IPcgBetaParameterCalculation betaCalculation;
 
         private PcgAlgorithm(double residualTolerance, IMaxIterationsProvider maxIterationsProvider,
-            IResidualConvergence residualConvergence, IResidualCorrection residualCorrection, 
+            IPcgResidualConvergence pcgConvergence, IPcgResidualUpdater residualUpdater, 
             IPcgBetaParameterCalculation betaCalculation) : 
-            base(residualTolerance, maxIterationsProvider, residualConvergence, residualCorrection)
+            base(residualTolerance, maxIterationsProvider, pcgConvergence, residualUpdater)
         {
             this.betaCalculation = betaCalculation;
         }
 
-        protected override CGStatistics SolveInternal(ILinearTransformation matrix, IPreconditioner preconditioner,
-            IVectorView rhs, IVector solution, IVector residual, Func<IVector> zeroVectorInitializer)
+        protected override IterativeStatistics SolveInternal(int maxIterations, Func<IVector> zeroVectorInitializer)
         {
-            int maxIterations = maxIterationsProvider.GetMaxIterationsForMatrix(matrix);
-
             // In contrast to the source algorithm, we initialize s here. At each iteration it will be overwritten, 
-            // thus avoiding allocating deallocating a new vector.
-            IVector preconditionedResidual = zeroVectorInitializer();
+            // thus avoiding allocating & deallocating a new vector.
+            precondResidual = zeroVectorInitializer();
 
             // d = inv(M) * r
-            IVector direction = zeroVectorInitializer();
-            preconditioner.SolveLinearSystem(residual, direction);
+            direction = zeroVectorInitializer();
+            Preconditioner.SolveLinearSystem(residual, direction);
 
             // δnew = δ0 = r * d
-            double dotPreconditionedResidualNew = residual.DotProduct(direction);
+            resDotPrecondRes = residual.DotProduct(direction);
 
-            // This is only used as output
-            double normResidualInitial = Math.Sqrt(dotPreconditionedResidualNew);
+            // The convergence and beta strategies must be initialized immediately after the first r and r*inv(M)*r are computed.
+            convergence.Initialize(this);
+            betaCalculation.Initialize(this);
 
-            // Initialize the strategy objects
-            betaCalculation.Initialize(residual);
-            residualCorrection.Initialize(matrix, rhs);
-            residualConvergence.Initialize(matrix, rhs, residualTolerance, dotPreconditionedResidualNew);
+            // This is also used as output
+            double residualNormRatio = double.NaN;
 
             // Allocate memory for other vectors, which will be reused during each iteration
-            IVector matrixTimesDirection = zeroVectorInitializer();
+            matrixTimesDirection = zeroVectorInitializer();
 
-            for (int iteration = 0; iteration < maxIterations; ++iteration)
+            for (iteration = 0; iteration < maxIterations; ++iteration)
             {
                 // q = A * d
-                matrix.Multiply(direction, matrixTimesDirection);
+                Matrix.Multiply(direction, matrixTimesDirection);
 
                 // α = δnew / (d * q)
-                double stepSize = dotPreconditionedResidualNew / direction.DotProduct(matrixTimesDirection);
+                stepSize = resDotPrecondRes / direction.DotProduct(matrixTimesDirection);
 
                 // x = x + α * d
                 solution.AxpyIntoThis(direction, stepSize);
 
                 // Normally the residual vector is updated as: r = r - α * q. However corrections might need to be applied.
-                bool isResidualCorrected = residualCorrection.UpdateResidual(iteration, solution, residual,
-                    (r) => r.AxpyIntoThis(matrixTimesDirection, -stepSize));
+                residualUpdater.UpdateResidual(this, residual);
 
                 // s = inv(M) * r
-                preconditioner.SolveLinearSystem(residual, preconditionedResidual);
+                Preconditioner.SolveLinearSystem(residual, precondResidual);
 
                 // δold = δnew
-                double dotPreconditionedResidualOld = dotPreconditionedResidualNew;
+                resDotPrecondResOld = resDotPrecondRes;
 
                 // δnew = r * s 
-                dotPreconditionedResidualNew = residual.DotProduct(preconditionedResidual);
+                resDotPrecondRes = residual.DotProduct(precondResidual);
 
                 // At this point we can check if CG has converged and exit, thus avoiding the uneccesary operations that follow.
-                // During the convergence check, it may be necessary to correct the residual vector (if it hasn't already been
-                // corrected) and its dot product.
-                bool hasConverged = residualConvergence.HasConverged(solution, residual, ref dotPreconditionedResidualNew,
-                    isResidualCorrected, r => r.DotProduct(preconditionedResidual));
-                if (hasConverged)
+                residualNormRatio = convergence.EstimateResidualNormRatio(this);
+                if (residualNormRatio <= residualTolerance)
                 {
-                    return new CGStatistics
+                    return new IterativeStatistics
                     {
-                        AlgorithmName = "Conjugate Gradient",
+                        AlgorithmName = name,
                         HasConverged = true,
                         NumIterationsRequired = iteration + 1,
-                        ResidualNormRatioEstimation = Math.Sqrt(dotPreconditionedResidualNew) / normResidualInitial
+                        ResidualNormRatioEstimation = residualNormRatio
                     };
                 }
 
                 // The default Fletcher-Reeves formula is: β = δnew / δold = (sNew * rNew) / (sOld * rOld)
                 // However we could use a different one, e.g. for variable preconditioning Polak-Ribiere is usually better.
-                double beta = betaCalculation.CalculateBeta(residual, preconditionedResidual, 
-                    dotPreconditionedResidualNew, dotPreconditionedResidualOld);
+                paramBeta = betaCalculation.CalculateBeta(this);
 
                 // d = s + β * d
                 //TODO: benchmark the two options to find out which is faster
                 //direction = preconditionedResidual.Axpy(direction, beta); //This allocates a new vector d, copies r and GCs the existing d.
-                direction.LinearCombinationIntoThis(beta, preconditionedResidual, 1.0); //This performs additions instead of copying and needless multiplications.
+                direction.LinearCombinationIntoThis(paramBeta, precondResidual, 1.0); //This performs additions instead of copying and needless multiplications.
             }
 
-            // We reached the max iterations before CG converged
-            return new CGStatistics
+            // We reached the max iterations before PCG converged
+            return new IterativeStatistics
             {
-                AlgorithmName = "Conjugate Gradient",
+                AlgorithmName = name,
                 HasConverged = false,
                 NumIterationsRequired = maxIterations,
-                ResidualNormRatioEstimation = Math.Sqrt(dotPreconditionedResidualNew) / normResidualInitial
+                ResidualNormRatioEstimation = residualNormRatio
             };
         }
 
@@ -132,7 +125,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             /// </summary>
             public PcgAlgorithm Build()
             {
-                return new PcgAlgorithm(ResidualTolerance, MaxIterationsProvider, ResidualConvergence, ResidualCorrection, 
+                return new PcgAlgorithm(ResidualTolerance, MaxIterationsProvider, Convergence, ResidualUpdater, 
                     BetaCalculation);
             }
         }
