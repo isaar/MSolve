@@ -29,7 +29,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
         private IVector matrixTimesDirection;
         private double resDotRes;
         private IVector residual;
-        private IVectorView rhs;
         private IVector solution;
 
         private CGAlgorithm(double residualTolerance, IMaxIterationsProvider maxIterationsProvider,
@@ -79,7 +78,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
         /// <summary>
         /// The right hand side of the linear system b = A * x.
         /// </summary>
-        public IVectorView Rhs => rhs;
+        public IVectorView Rhs { get; private set; }
 
         /// <summary>
         /// The current approximation to the solution of the linear system A * x = b
@@ -97,7 +96,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
         public void Clear()
         {
             Matrix = null;
-            rhs = null;
+            Rhs = null;
             solution = null;
             residual = null;
             direction = null;
@@ -165,14 +164,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             Preconditions.CheckSystemSolutionDimensions(matrix.NumRows, rhs.Length);
 
             this.Matrix = matrix;
-            this.rhs = rhs;
+            this.Rhs = rhs;
             this.solution = solution;
 
             // r = b - A * x
             if (initialGuessIsZero) residual = rhs.Copy();
             else residual = ExactResidual.Calculate(matrix, rhs, solution);
 
-            return SolveInternal(maxIterationsProvider.GetMaxIterationsForMatrix(matrix));
+            return SolveInternal(maxIterationsProvider.GetMaxIterations(matrix.NumColumns));
         }
 
         private IterativeStatistics SolveInternal(int maxIterations)
@@ -190,7 +189,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient
             direction = residual.Copy();
 
             // Allocate memory for other vectors, which will be reused during each iteration
-            matrixTimesDirection = rhs.CreateZeroVectorWithSameFormat();
+            matrixTimesDirection = Rhs.CreateZeroVectorWithSameFormat();
 
             for (Iteration = 0; Iteration < maxIterations; ++Iteration)
             {

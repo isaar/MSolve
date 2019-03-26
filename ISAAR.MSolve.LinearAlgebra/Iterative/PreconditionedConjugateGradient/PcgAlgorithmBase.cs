@@ -27,7 +27,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient
         protected double resDotPrecondRes;
         protected double resDotPrecondResOld;
         protected IVector residual;
-        protected IVectorView rhs;
         protected IVector solution;
         protected double stepSize;
 
@@ -93,7 +92,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient
         /// <summary>
         /// The right hand side of the linear system b = A * x.
         /// </summary>
-        public IVectorView Rhs => rhs;
+        public IVectorView Rhs { get; private set; }
 
         /// <summary>
         /// The current approximation to the solution of the linear system A * x = b
@@ -111,7 +110,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient
         public virtual void Clear()
         {
             Matrix = null;
-            rhs = null;
+            Rhs = null;
             solution = null;
             residual = null;
             direction = null;
@@ -198,13 +197,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient
 
             this.Matrix = matrix;
             this.Preconditioner = preconditioner;
-            this.rhs = rhs;
+            this.Rhs = rhs;
             this.solution = solution;
 
             // r = b - A * x
             if (initialGuessIsZero) residual = rhs.Copy();
             else residual = ExactResidual.Calculate(matrix, rhs, solution);
-            return SolveInternal(maxIterationsProvider.GetMaxIterationsForMatrix(matrix), zeroVectorInitializer);
+            return SolveInternal(maxIterationsProvider.GetMaxIterations(matrix.NumColumns), zeroVectorInitializer);
         }
 
         protected abstract IterativeStatistics SolveInternal(int maxIterations, Func<IVector> zeroVectorInitializer);
