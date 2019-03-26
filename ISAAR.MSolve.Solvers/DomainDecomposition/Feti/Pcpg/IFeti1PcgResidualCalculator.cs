@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Pcpg
 {
-    internal interface IPcpgResidualConvergence
+    public interface IFeti1PcgResidualCalculator
     {
         /// <summary>
-        /// Calculates the ratio norm2(f(r(x))) / norm2(g(r(x0))), where f and g are vector functions of the residual 
-        /// vector r(x).
+        /// Calculates norm2(f(r(λ))), where f is a vector function of the residual vector r(x) and λ is the vector of lagrange 
+        /// multipliers.
         /// </summary>
         /// <param name="lagrangeMultipliers">
         /// The lagrange multipliers which is the unknown vector in the linear system solved by PCPG.
@@ -19,6 +18,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Pcpg
         /// The vector resulting from projecting and preconditioning the residual: z = inv(M) * P *  r, where r is the residual, 
         /// M is the preconditioner and P is the projection.
         ///</param>
-        double EstimateResidualNormRatio(IVectorView lagrangeMultipliers, IVectorView projectedPrecondResidual);
+        double CalcResidualNormRatio(IVectorView lagrangeMultipliers, IVectorView projectedPrecondResidual);
+
+        /// <summary>
+        /// Initializes internal data.
+        /// </summary>
+        void Initialize();
     }
 }

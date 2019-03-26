@@ -19,13 +19,15 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
     public class Feti1UnprojectedInterfaceProblemSolver : IFeti1InterfaceProblemSolver
     {
         private readonly IMaxIterationsProvider maxIterationsProvider;
-        private readonly double pcgConvergenceTolerance;
+        private readonly IFetiPcgConvergenceFactory pcgConvergenceStrategyFactory;
+        private readonly double pcpgConvergenceTolerance;
 
-        public Feti1UnprojectedInterfaceProblemSolver(double pcgConvergenceTolerance, 
-            IMaxIterationsProvider maxIterationsProvider)
+        private Feti1UnprojectedInterfaceProblemSolver(IMaxIterationsProvider maxIterationsProvider,
+            double pcgConvergenceTolerance, IFetiPcgConvergenceFactory pcgConvergenceStrategyFactory)
         {
-            this.pcgConvergenceTolerance = pcgConvergenceTolerance;
             this.maxIterationsProvider = maxIterationsProvider;
+            this.pcpgConvergenceTolerance = pcgConvergenceTolerance;
+            this.pcgConvergenceStrategyFactory = pcgConvergenceStrategyFactory;
         }
 
         public Vector CalcLagrangeMultipliers(Feti1FlexibilityMatrix flexibility, IFetiPreconditioner preconditioner, 
@@ -34,8 +36,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         {
             // PCPG starts from the particular lagrange multipliers: λ0 = Q * G * inv(G^T * Q * G) * e
             Vector lagranges = projection.CalcParticularLagrangeMultipliers(rigidBodyModesWork);
-            IPcpgResidualConvergence pcpgConvergence = new ApproximateResidualConvergence(globalForcesNorm);
-            var pcpg = new PcpgAlgorithm(pcgConvergenceTolerance, pcpgConvergence, maxIterationsProvider);
+            IFetiPcgConvergence pcpgConvergenceStrategy = 
+                pcgConvergenceStrategyFactory.CreateConvergenceStrategy(globalForcesNorm);
+            var pcpg = new PcpgAlgorithm(maxIterationsProvider, pcpgConvergenceTolerance, pcpgConvergenceStrategy);
             IterativeStatistics stats = 
                 pcpg.Solve(flexibility, preconditioner, projection, disconnectedDisplacements, lagranges);
 
@@ -50,6 +53,17 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             logger.PcgResidualNormRatio = stats.ResidualNormRatioEstimation;
 
             return lagranges;
+        }
+
+        public class Builder
+        {
+            public IMaxIterationsProvider MaxIterationsProvider { get; set; } = new PercentageMaxIterationsProvider(1.0);
+            public IFetiPcgConvergenceFactory PcgConvergenceStrategyFactory { get; set; } =
+                new ApproximateResidualConvergence.Factory();
+            public double PcgConvergenceTolerance { get; set; } = 1E-7;
+
+            public Feti1UnprojectedInterfaceProblemSolver Build() => new Feti1UnprojectedInterfaceProblemSolver(
+                MaxIterationsProvider, PcgConvergenceTolerance, PcgConvergenceStrategyFactory);
         }
     }
 }

@@ -85,7 +85,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
 
             // In the reference solution the error is 5.5E-10, but it is almost impossible for two different codes run on 
             // different machines to achieve the exact same accuracy.
-            Assert.Equal(0.0, normalizedError, 6);
+            Assert.Equal(0.0, normalizedError, 7);
         }
 
         private static Model_v2 CreateModel()
@@ -135,26 +135,21 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             Model_v2 multiSubdomainModel = CreateModel();
 
             // Solver
-            //var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
             var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
             solverBuilder.IsProblemHomogeneous = true;
-            //solverBuilder.PcgConvergenceTolerance = pcpgConvergenceTolerance;
-            //solverBuilder.InterfaceProblemSolver = new Feti1ProjectedInterfaceProblemSolver(pcpgConvergenceTolerance, 1.0,
-            //    Feti1ProjectedInterfaceProblemSolver.ProjectionSide.Both,
-            //    Feti1ProjectedInterfaceProblemSolver.ProjectionSide.Both);
-            solverBuilder.InterfaceProblemSolver = new Feti1UnprojectedInterfaceProblemSolver(pcpgConvergenceTolerance, 
-                new PercentageMaxIterationsProvider(1.0));
+            var interfaceProblemSolverBuilder = new Feti1UnprojectedInterfaceProblemSolver.Builder();
+            interfaceProblemSolverBuilder.PcgConvergenceTolerance = pcpgConvergenceTolerance;
+            ExactPcpgConvergence.Factory convergenceStrategyFactory = null;
+            if (exactResidual) // PCG needs to use the exact residual for the comparison with the expected values
+            {
+                convergenceStrategyFactory = new ExactPcpgConvergence.Factory(CreateSingleSubdomainModel(),
+                   solverBuilder.DofOrderer, (model, solver) => new ProblemStructural_v2(model, solver));
+                interfaceProblemSolverBuilder.PcgConvergenceStrategyFactory = convergenceStrategyFactory;
+            }
+            solverBuilder.InterfaceProblemSolver = interfaceProblemSolverBuilder.Build();
             solverBuilder.PreconditionerFactory = preconditioning;
-
-            // PCPG needs to use the exact residual for the comparison with the expected values
-            //if (exactResidual)
-            //{
-            //    var exactResidualCalculator = new ExactPcpgResidualCalculator(CreateSingleSubdomainModel(),
-            //       solverBuilder.DofOrderer, (model, solver) => new ProblemStructural_v2(model, solver));
-            //    exactResidualCalculator.BuildLinearSystem();
-            //    solverBuilder.PcgExactResidual = exactResidualCalculator;
-            //}
             Feti1Solver fetiSolver = solverBuilder.BuildSolver(multiSubdomainModel);
+            if (exactResidual) convergenceStrategyFactory.FetiSolver = fetiSolver;
 
             // Structural problem provider
             var provider = new ProblemStructural_v2(multiSubdomainModel, fetiSolver);

@@ -154,24 +154,25 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             // Solver
             var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
             solverBuilder.IsProblemHomogeneous = false;
+            var interfaceProblemSolverBuilder = new Feti1ProjectedInterfaceProblemSolver.Builder();
+            interfaceProblemSolverBuilder.PcgConvergenceTolerance = pcpgConvergenceTolerance;
+            Feti1ProjectedInterfaceProblemSolver interfaceProblemSolver = interfaceProblemSolverBuilder.Build();
+            ExactPcpgConvergence.Factory convergenceStrategyFactory = null;
+            if (exactResidual) // PCG needs to use the exact residual for the comparison with the expected values
+            {
+                convergenceStrategyFactory = new ExactPcpgConvergence.Factory(
+                   CreateSingleSubdomainModel(fixedOverFloatingSubdomainElasticity), solverBuilder.DofOrderer, 
+                   (model, solver) => new ProblemStructural_v2(model, solver));
+                interfaceProblemSolverBuilder.PcgConvergenceStrategyFactory = convergenceStrategyFactory;
+            }
+            solverBuilder.InterfaceProblemSolver = interfaceProblemSolver;
             solverBuilder.PreconditionerFactory = preconditioning;
-            //solverBuilder.PcgConvergenceTolerance = pcpgConvergenceTolerance;
-            //solverBuilder.InterfaceProblemSolver = new Feti1ProjectedInterfaceProblemSolver(pcpgConvergenceTolerance, 1.0,
-            //    Feti1ProjectedInterfaceProblemSolver.ProjectionSide.Both,
-            //    Feti1ProjectedInterfaceProblemSolver.ProjectionSide.Both);
-            solverBuilder.InterfaceProblemSolver = new Feti1UnprojectedInterfaceProblemSolver(pcpgConvergenceTolerance,
-                new PercentageMaxIterationsProvider(1.0));
-
-            // PCPG needs to use the exact residual for the comparison with the expected values
-            //if (exactResidual)
-            //{
-            //    var exactResidualCalculator = new ExactPcpgResidualCalculator(
-            //        CreateSingleSubdomainModel(fixedOverFloatingSubdomainElasticity),
-            //        solverBuilder.DofOrderer, (model, solver) => new ProblemStructural_v2(model, solver));
-            //    exactResidualCalculator.BuildLinearSystem();
-            //    solverBuilder.PcgExactResidual = exactResidualCalculator;
-            //}
             Feti1Solver fetiSolver = solverBuilder.BuildSolver(multiSubdomainModel);
+            if (exactResidual)
+            {
+                convergenceStrategyFactory.FetiSolver = fetiSolver;
+                convergenceStrategyFactory.InterfaceProblemSolver = interfaceProblemSolver;
+            }
 
             // Structural problem provider
             var provider = new ProblemStructural_v2(multiSubdomainModel, fetiSolver);

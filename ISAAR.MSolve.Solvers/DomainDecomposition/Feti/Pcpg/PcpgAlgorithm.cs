@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Iterative;
+using ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -16,12 +17,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Pcpg
     internal class PcpgAlgorithm
     {
         private const string name = "Preconditioned Conjugate Projected Gradient";
-        protected readonly IPcpgResidualConvergence convergence;
+        private readonly IFetiPcgConvergence convergence;
         private readonly IMaxIterationsProvider maxIterationsProvider;
         private readonly double residualTolerance;
 
-        internal PcpgAlgorithm(double residualTolerance, IPcpgResidualConvergence convergence,
-            IMaxIterationsProvider maxIterationsProvider)
+        internal PcpgAlgorithm(IMaxIterationsProvider maxIterationsProvider, double residualTolerance, 
+            IFetiPcgConvergence convergence)
         {
             this.residualTolerance = residualTolerance;
             this.convergence = convergence;
@@ -65,7 +66,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Pcpg
                     {
                         AlgorithmName = name,
                         HasConverged = true,
-                        NumIterationsRequired = iter - 1,
+                        NumIterationsRequired = iter - 1, //TODO: not sure about this.
                         ResidualNormRatioEstimation = residualNormRatio
                     };
                 }

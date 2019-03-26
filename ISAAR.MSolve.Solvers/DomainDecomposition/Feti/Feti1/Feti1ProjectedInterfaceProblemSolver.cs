@@ -9,6 +9,7 @@ using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Pcpg;
 
 //TODO: probably needs a builder
+//TODO: all those enums are not objected oriented. Create strategies.
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 {
     /// <summary>
@@ -19,23 +20,42 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
     /// </summary>
     public class Feti1ProjectedInterfaceProblemSolver : IFeti1InterfaceProblemSolver
     {
+        public enum LagrangeMultiplierSeparation
+        {
+            /// <summary>
+            /// λ = λ0 + λbar
+            /// </summary>
+            Simple,
+
+            /// <summary>
+            /// λ = λ0 + P * λbar
+            /// </summary>
+            WithProjection
+        }
+
         public enum ProjectionSide
         {
             None, Left, Both
         }
-
-        private readonly double pcgConvergenceTolerance;
+        
+        private readonly LagrangeMultiplierSeparation lagrangeSeparation;
         private readonly IMaxIterationsProvider maxIterationsProvider;
-        private readonly ProjectionSide matrixProjectionSide;
-        private readonly ProjectionSide preconditionerProjectionSide;
+        private readonly IFetiPcgConvergenceFactory pcgConvergenceStrategyFactory;
+        private readonly double pcgConvergenceTolerance;
+        private readonly ProjectionSide projectionSideMatrix;
+        private readonly ProjectionSide projectionSidePreconditioner;
 
-        public Feti1ProjectedInterfaceProblemSolver(double pcgConvergenceTolerance, IMaxIterationsProvider maxIterationsProvider,
-            ProjectionSide matrixProjectionSide, ProjectionSide preconditionerProjectionSide)
+        private Feti1ProjectedInterfaceProblemSolver(IMaxIterationsProvider maxIterationsProvider, 
+            double pcgConvergenceTolerance, IFetiPcgConvergenceFactory pcgConvergenceStrategyFactory,
+            ProjectionSide projectionSideMatrix, ProjectionSide projectionSidePreconditioner,
+            LagrangeMultiplierSeparation lagrangeSeparation)
         {
-            this.pcgConvergenceTolerance = pcgConvergenceTolerance;
             this.maxIterationsProvider = maxIterationsProvider;
-            this.matrixProjectionSide = matrixProjectionSide;
-            this.preconditionerProjectionSide = preconditionerProjectionSide;
+            this.pcgConvergenceTolerance = pcgConvergenceTolerance;
+            this.pcgConvergenceStrategyFactory = pcgConvergenceStrategyFactory;
+            this.projectionSideMatrix = projectionSideMatrix;
+            this.projectionSidePreconditioner = projectionSidePreconditioner;
+            this.lagrangeSeparation = lagrangeSeparation;
         }
 
         public Vector CalcLagrangeMultipliers(Feti1FlexibilityMatrix flexibility, IFetiPreconditioner preconditioner, 
@@ -60,8 +80,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             var pcgBuilder = new PcgAlgorithm.Builder();
             pcgBuilder.MaxIterationsProvider = maxIterationsProvider;
             pcgBuilder.ResidualTolerance = pcgConvergenceTolerance;
-            pcgBuilder.Convergence = new ApproximateResidualConvergence(globalForcesNorm);
-            //pcgBuilder.ResidualNormCalculator = calcExactResidualNorm(); //TODO: implement this for regular PCG too. WARNING. λ = λ0 + P^T * λbar is needed.
+            pcgBuilder.Convergence = pcgConvergenceStrategyFactory.CreateConvergenceStrategy(globalForcesNorm);
             PcgAlgorithm pcg = pcgBuilder.Build();
             var lagrangesBar = Vector.CreateZero(systemOrder);
             IterativeStatistics stats = pcg.Solve(pcgMatrix, pcgPreconditioner, pcgRhs, lagrangesBar, true,
@@ -77,11 +96,32 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             logger.PcgIterations = stats.NumIterationsRequired;
             logger.PcgResidualNormRatio = stats.ResidualNormRatioEstimation;
 
-            // Calculate the lagrange multipliers from the separation formula: λ = λ0 + P * λbar
+            // Calculate the actual lagrange multipliers from the separation formula: λ = λ0 + P * λbar
             var lagranges = Vector.CreateZero(systemOrder);
             projection.ProjectVector(lagrangesBar, lagranges, false);
             lagranges.AddIntoThis(lagrangesParticular);
             return lagranges;
+        }
+
+        /// <summary>
+        /// Calculates the actual lagrange multipliers depending on the separation formula.
+        /// </summary>
+        internal Vector CombineLagrangeMultipliers(Vector lagrangesParticular, Vector lagrangesBar, Feti1Projection projection)
+        {
+            if (lagrangeSeparation == LagrangeMultiplierSeparation.Simple)
+            {
+                // λ = λ0 + P * λbar
+                return lagrangesBar + lagrangesParticular;
+            }
+            else if (lagrangeSeparation == LagrangeMultiplierSeparation.WithProjection)
+            {
+                // λ = λ0 + P * λbar
+                var lagranges = Vector.CreateZero(lagrangesBar.Length);
+                projection.ProjectVector(lagrangesBar, lagranges, false);
+                lagranges.AddIntoThis(lagrangesParticular);
+                return lagranges;
+            }
+            else throw new ArgumentException("The lagrange separation can only be: a) λ = λ0 + λbar or b) λ = λ0 + P * λbar");
         }
 
         private PcgMatrix DefinePcgMatrix(Feti1FlexibilityMatrix flexibility, Feti1Projection projection)
@@ -91,12 +131,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             //      vectors passed in as results will always be overwritten. The latter forces the method that accepts them to 
             //      clear them (if the method needs to), which is not needed if the resulting vector has just be initialized to 0.
 
-            if (matrixProjectionSide == ProjectionSide.Left)
+            if (projectionSideMatrix == ProjectionSide.Left)
             {
                 // A * x = (P^T * F) * x = P^T * (F * x)
                 return new PcgMatrix(flexibility.Order, (x, y) => projection.ProjectVector(flexibility.Multiply(x), y, true));
             }
-            else if (matrixProjectionSide == ProjectionSide.Both)
+            else if (projectionSideMatrix == ProjectionSide.Both)
             {
                 // A * x = (P^T * F * P) * x = P^T * (F * (P * x))
                 return new PcgMatrix(flexibility.Order, (x, y) =>
@@ -111,12 +151,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
         private PcgPreconditioner DefinePcgPreconditioner(IFetiPreconditioner preconditioner, Feti1Projection projection)
         {
-            if (matrixProjectionSide == ProjectionSide.None)
+            if (projectionSideMatrix == ProjectionSide.None)
             {
                 // x = prec(A) * y => x = prec(F) * y
                 return new PcgPreconditioner((x, y) => preconditioner.SolveLinearSystem(y, x));
             }
-            else if (matrixProjectionSide == ProjectionSide.Left)
+            else if (projectionSideMatrix == ProjectionSide.Left)
             {
                 // x = prec(A) * y => x = (P * prec(F)) * y => x = P * (prec(F) * y)
                 return new PcgPreconditioner((y, x) =>
@@ -127,7 +167,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
                     projection.ProjectVector(temp, x, false);
                 });
             }
-            else if (matrixProjectionSide == ProjectionSide.Both)
+            else if (projectionSideMatrix == ProjectionSide.Both)
             {
                 // x = prec(A) * y => x = (P * prec(F) * P^T) * y => x = P * (prec(F) * (P^T * y))
                 return new PcgPreconditioner((y, x) =>
@@ -142,6 +182,21 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             }
             else throw new ArgumentException(
                 "The FETI-1 preconditioner can be multiplied from the left side, both sides or not at all.");
+        }
+
+        public class Builder
+        {
+            public LagrangeMultiplierSeparation LagrangeSeparation { get; set; } = LagrangeMultiplierSeparation.WithProjection;
+            public IMaxIterationsProvider MaxIterationsProvider { get; set; } = new PercentageMaxIterationsProvider(1.0);
+            public IFetiPcgConvergenceFactory PcgConvergenceStrategyFactory { get; set; } =
+                new ApproximateResidualConvergence.Factory();
+            public double PcgConvergenceTolerance { get; set; } = 1E-7;
+            public ProjectionSide ProjectionSideMatrix { get; set; } = ProjectionSide.Both;
+            public ProjectionSide ProjectionSidePreconditioner { get; set; } = ProjectionSide.Both;
+
+            public Feti1ProjectedInterfaceProblemSolver Build() => new Feti1ProjectedInterfaceProblemSolver(
+                MaxIterationsProvider, PcgConvergenceTolerance, PcgConvergenceStrategyFactory,  
+                ProjectionSideMatrix, ProjectionSidePreconditioner, LagrangeSeparation);
         }
 
         //TODO: Perhaps PCG, PCPG could accept delegates as well as matrix/preconditioner classes. Then client code needs to 

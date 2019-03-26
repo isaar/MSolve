@@ -8,28 +8,33 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //      sum(Bpb * Kbb * Bpb^T) * residual
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Pcpg
 {
-    public class ApproximateResidualConvergence : IPcgResidualConvergence, IPcpgResidualConvergence
+    public class ApproximateResidualConvergence : IFetiPcgConvergence
     {
-        public ApproximateResidualConvergence(double globalForces)
-        {
-            this.GlobalForcesNorm = globalForces;
-        }
+        private readonly double globalForcesNorm;
 
-        //TODO: this should be injected in when FETI initializes the object, thus the user needs another way to specify this strategy
-        internal double GlobalForcesNorm { get; } = 0.0;
+        private ApproximateResidualConvergence(double globalForcesNorm)
+        {
+            this.globalForcesNorm = globalForcesNorm;
+        }
 
         public double EstimateResidualNormRatio(PcgAlgorithmBase pcg)
         {
-            Debug.Assert(GlobalForcesNorm != 0.0, "norm2(globalForces) must be set first");
-            return pcg.PrecondResidual.Norm2() / GlobalForcesNorm;
+            Debug.Assert(globalForcesNorm != 0.0, "norm2(globalForces) must be set first");
+            return pcg.PrecondResidual.Norm2() / globalForcesNorm;
         }
 
         public double EstimateResidualNormRatio(IVectorView lagrangeMultipliers, IVectorView projectedPrecondResidual)
         {
-            Debug.Assert(GlobalForcesNorm != 0.0, "norm2(globalForces) must be set first");
-            return projectedPrecondResidual.Norm2() / GlobalForcesNorm;
+            Debug.Assert(globalForcesNorm != 0.0, "norm2(globalForces) must be set first");
+            return projectedPrecondResidual.Norm2() / globalForcesNorm;
         }
 
         public void Initialize(PcgAlgorithmBase pcg) { } // Do nothing
+
+        public class Factory : IFetiPcgConvergenceFactory
+        {
+            public IFetiPcgConvergence CreateConvergenceStrategy(double globalForcesNorm)
+                => new ApproximateResidualConvergence(globalForcesNorm);
+        }
     }
 }
