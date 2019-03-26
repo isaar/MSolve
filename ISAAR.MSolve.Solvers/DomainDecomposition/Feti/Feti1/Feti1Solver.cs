@@ -31,7 +31,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         private readonly bool isProblemHomogeneous;
         private readonly Dictionary<int, SingleSubdomainSystem<SkylineMatrix>> linearSystems;
         private readonly IStructuralModel_v2 model;
-        private readonly IExactResidualCalculator pcpgExactResidual; //TODO: this and related logic should be move to the class that handles PCG/PCPG
         private readonly PdeOrder pde;
         private readonly IFetiPreconditionerFactory preconditionerFactory;
 
@@ -51,7 +50,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
         private Feti1Solver(IStructuralModel_v2 model, IDofOrderer dofOrderer, double factorizationPivotTolerance,
             IFetiPreconditionerFactory preconditionerFactory, IFeti1InterfaceProblemSolver interfaceProblemSolver,
-            IExactResidualCalculator pcgExactResidual, bool isProblemHomogeneous, PdeOrder pde)
+            bool isProblemHomogeneous, PdeOrder pde)
         {
             // Model
             if (model.Subdomains.Count == 1) throw new InvalidSolverException(
@@ -83,7 +82,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
             // PCPG
             this.interfaceProblemSolver = interfaceProblemSolver;
-            this.pcpgExactResidual = pcgExactResidual;
 
             this.lagrangeEnumerator = new LagrangeMultipliersEnumerator(crosspointStrategy);
 
@@ -287,21 +285,21 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             return displacements;
         }
 
-        //TODO: This is only used by the corresponding PCPG convergence criteria, which itself is for testing purposes only. 
-        //      It should be moved to another class. If private members of this class are needed, then reflection should be used
-        //      to access them.
-        private double CalcExactResidualNorm(Vector lagranges, Feti1FlexibilityMatrix flexibility, 
-            Feti1Projection projection, Vector disconnectedDisplacements)
-        {
-            Vector rbmCoeffs = CalcRigidBodyModesCoefficients(flexibility, projection, disconnectedDisplacements, lagranges);
-            var subdomainDisplacements = new Dictionary<int, IVectorView>();
-            foreach (var idDisplacements in CalcActualDisplacements(lagranges, rbmCoeffs))
-            {
-                subdomainDisplacements[idDisplacements.Key] = idDisplacements.Value;
-            }
-            Vector globalDisplacements = GatherGlobalDisplacements(subdomainDisplacements);
-            return pcpgExactResidual.CalculateExactResidualNorm(globalDisplacements);
-        }
+        ////TODO: This is only used by the corresponding PCPG convergence criteria, which itself is for testing purposes only. 
+        ////      It should be moved to another class. If private members of this class are needed, then reflection should be used
+        ////      to access them.
+        //private double CalcExactResidualNorm(Vector lagranges, Feti1FlexibilityMatrix flexibility, 
+        //    Feti1Projection projection, Vector disconnectedDisplacements)
+        //{
+        //    Vector rbmCoeffs = CalcRigidBodyModesCoefficients(flexibility, projection, disconnectedDisplacements, lagranges);
+        //    var subdomainDisplacements = new Dictionary<int, IVectorView>();
+        //    foreach (var idDisplacements in CalcActualDisplacements(lagranges, rbmCoeffs))
+        //    {
+        //        subdomainDisplacements[idDisplacements.Key] = idDisplacements.Value;
+        //    }
+        //    Vector globalDisplacements = GatherGlobalDisplacements(subdomainDisplacements);
+        //    return pcpgExactResidual.CalculateExactResidualNorm(globalDisplacements);
+        //}
 
         /// <summary>
         /// Calculate the norm of the forces vector |f| = |K*u|. It is needed to check the convergence of PCG/PCPG.
@@ -422,11 +420,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
                 new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
 
             public IFeti1InterfaceProblemSolver InterfaceProblemSolver { get; set; } =
-                new Feti1ProjectedInterfaceProblemSolver(1E-7, 1.0, Feti1ProjectedInterfaceProblemSolver.ProjectionSide.Both,
+                new Feti1ProjectedInterfaceProblemSolver(1E-7, new PercentageMaxIterationsProvider(1.0), 
+                    Feti1ProjectedInterfaceProblemSolver.ProjectionSide.Both,
                     Feti1ProjectedInterfaceProblemSolver.ProjectionSide.Both);
 
             public bool IsProblemHomogeneous { get; set; } = true;
-            internal IExactResidualCalculator PcgExactResidual { get; set; } = null;
             public double PcgConvergenceTolerance { get; set; } = 1E-7;
             public double PcgMaxIterationsOverSize { get; set; } = 1.0;
             public PdeOrder PdeOrder { get; set; } = PdeOrder.Second;
@@ -434,7 +432,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             
             public Feti1Solver BuildSolver(Model_v2 model)
                 => new Feti1Solver(model, DofOrderer, factorizationPivotTolerance, PreconditionerFactory,
-                     InterfaceProblemSolver, PcgExactResidual, IsProblemHomogeneous, PdeOrder);
+                     InterfaceProblemSolver, IsProblemHomogeneous, PdeOrder);
         }
     }
 }

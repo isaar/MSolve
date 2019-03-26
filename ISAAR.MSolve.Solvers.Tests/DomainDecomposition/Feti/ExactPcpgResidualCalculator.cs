@@ -16,7 +16,7 @@ using ISAAR.MSolve.Solvers.Ordering;
 //TODO: Ensure that the global dof ordering is the same as the one FETI uses
 namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti
 {
-    public class ExactPcpgResidualCalculator : IExactResidualCalculator
+    public class ExactPcpgResidualCalculator //: IExactResidualCalculator
     {
         private readonly Func<Model_v2, ISolver_v2, IStaticProvider_v2> createProblemProvider;
         private readonly IDofOrderer originalDofOrderer;

@@ -2,6 +2,7 @@
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
@@ -158,17 +159,18 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             //solverBuilder.InterfaceProblemSolver = new Feti1ProjectedInterfaceProblemSolver(pcpgConvergenceTolerance, 1.0,
             //    Feti1ProjectedInterfaceProblemSolver.ProjectionSide.Both,
             //    Feti1ProjectedInterfaceProblemSolver.ProjectionSide.Both);
-            solverBuilder.InterfaceProblemSolver = new Feti1UnprojectedInterfaceProblemSolver(pcpgConvergenceTolerance, 1.0);
+            solverBuilder.InterfaceProblemSolver = new Feti1UnprojectedInterfaceProblemSolver(pcpgConvergenceTolerance,
+                new PercentageMaxIterationsProvider(1.0));
 
             // PCPG needs to use the exact residual for the comparison with the expected values
-            if (exactResidual)
-            {
-                var exactResidualCalculator = new ExactPcpgResidualCalculator(
-                    CreateSingleSubdomainModel(fixedOverFloatingSubdomainElasticity),
-                    solverBuilder.DofOrderer, (model, solver) => new ProblemStructural_v2(model, solver));
-                exactResidualCalculator.BuildLinearSystem();
-                solverBuilder.PcgExactResidual = exactResidualCalculator;
-            }
+            //if (exactResidual)
+            //{
+            //    var exactResidualCalculator = new ExactPcpgResidualCalculator(
+            //        CreateSingleSubdomainModel(fixedOverFloatingSubdomainElasticity),
+            //        solverBuilder.DofOrderer, (model, solver) => new ProblemStructural_v2(model, solver));
+            //    exactResidualCalculator.BuildLinearSystem();
+            //    solverBuilder.PcgExactResidual = exactResidualCalculator;
+            //}
             Feti1Solver fetiSolver = solverBuilder.BuildSolver(multiSubdomainModel);
 
             // Structural problem provider

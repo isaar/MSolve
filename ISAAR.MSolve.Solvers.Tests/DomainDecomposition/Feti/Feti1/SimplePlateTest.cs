@@ -3,6 +3,7 @@ using System.Diagnostics;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
@@ -83,7 +84,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Feti.Feti1
             var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
             solverBuilder.PreconditionerFactory = new Feti1LumpedPreconditioner.Factory();
             solverBuilder.IsProblemHomogeneous = true;
-            solverBuilder.InterfaceProblemSolver = new Feti1UnprojectedInterfaceProblemSolver(1E-7, 1.0);
+            solverBuilder.InterfaceProblemSolver = new Feti1UnprojectedInterfaceProblemSolver(1E-7, 
+                new PercentageMaxIterationsProvider(1.0));
             Feti1Solver fetiSolver = solverBuilder.BuildSolver(multiSubdomainModel);
 
             // Linear static analysis

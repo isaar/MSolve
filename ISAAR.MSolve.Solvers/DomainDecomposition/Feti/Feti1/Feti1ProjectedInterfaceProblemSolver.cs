@@ -6,6 +6,7 @@ using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Pcpg;
 
 //TODO: probably needs a builder
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
@@ -24,15 +25,15 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         }
 
         private readonly double pcgConvergenceTolerance;
-        private readonly double pcgMaxIterationsOverSize;
+        private readonly IMaxIterationsProvider maxIterationsProvider;
         private readonly ProjectionSide matrixProjectionSide;
         private readonly ProjectionSide preconditionerProjectionSide;
 
-        public Feti1ProjectedInterfaceProblemSolver(double pcgConvergenceTolerance, double pcgMaxIterationsOverSize,
+        public Feti1ProjectedInterfaceProblemSolver(double pcgConvergenceTolerance, IMaxIterationsProvider maxIterationsProvider,
             ProjectionSide matrixProjectionSide, ProjectionSide preconditionerProjectionSide)
         {
             this.pcgConvergenceTolerance = pcgConvergenceTolerance;
-            this.pcgMaxIterationsOverSize = pcgMaxIterationsOverSize;
+            this.maxIterationsProvider = maxIterationsProvider;
             this.matrixProjectionSide = matrixProjectionSide;
             this.preconditionerProjectionSide = preconditionerProjectionSide;
         }
@@ -57,9 +58,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
             // Solve the interface problem using PCG algorithm
             var pcgBuilder = new PcgAlgorithm.Builder();
-            pcgBuilder.MaxIterationsProvider = new PercentageMaxIterationsProvider(pcgMaxIterationsOverSize);
+            pcgBuilder.MaxIterationsProvider = maxIterationsProvider;
             pcgBuilder.ResidualTolerance = pcgConvergenceTolerance;
-            pcgBuilder.Convergence = new ApproximatePcgConvergence(globalForcesNorm);
+            pcgBuilder.Convergence = new ApproximateResidualConvergence(globalForcesNorm);
             //pcgBuilder.ResidualNormCalculator = calcExactResidualNorm(); //TODO: implement this for regular PCG too. WARNING. λ = λ0 + P^T * λbar is needed.
             PcgAlgorithm pcg = pcgBuilder.Build();
             var lagrangesBar = Vector.CreateZero(systemOrder);

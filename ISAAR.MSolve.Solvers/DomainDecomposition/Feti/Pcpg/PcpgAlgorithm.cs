@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.LinearAlgebra.Iterative;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: rearrange the PCPCG algorithm such that unnecessary operations are avoided.
 //TODO: rearrange the PCPCG algorithm, rename variables and use CG utility classes such that PCPCG is consistent with the CG and PCG algorithms.
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Pcpg
 {
     /// <summary>
     /// Implementation of the Preconditioned Conjugate Projected Gradient Method used in the FETI method.
@@ -13,66 +15,65 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
     /// </summary>
     internal class PcpgAlgorithm
     {
-        private readonly double maxIterationsOverSystemSize, residualNormTolerance;
-        private readonly CalculateExactResidualNorm calcExactResidualNorm;
+        private const string name = "Preconditioned Conjugate Projected Gradient";
+        protected readonly IPcpgResidualConvergence convergence;
+        private readonly IMaxIterationsProvider maxIterationsProvider;
+        private readonly double residualTolerance;
 
-        internal PcpgAlgorithm(double maxIterationsOverSystemSize, double residualNormTolerance,
-            CalculateExactResidualNorm calcExactResidualNorm)
+        internal PcpgAlgorithm(double residualTolerance, IPcpgResidualConvergence convergence,
+            IMaxIterationsProvider maxIterationsProvider)
         {
-            this.maxIterationsOverSystemSize = maxIterationsOverSystemSize;
-            this.residualNormTolerance = residualNormTolerance;
-            this.calcExactResidualNorm = calcExactResidualNorm;
+            this.residualTolerance = residualTolerance;
+            this.convergence = convergence;
+            this.maxIterationsProvider = maxIterationsProvider;
         }
 
-        internal PcpgStatistics Solve(IInterfaceFlexibilityMatrix matrix, IFetiPreconditioner preconditioner,
-            IInterfaceProjection projector, Vector rhs, double initialForcesNorm, Vector lagrangeMultipliers)
+        internal IterativeStatistics Solve(IInterfaceFlexibilityMatrix matrix, IFetiPreconditioner preconditioner,
+            IInterfaceProjection projector, Vector rhs, Vector lagrangeMultipliers)
         {
             int n = matrix.Order;
-            int maxIterations = (int)Math.Ceiling(n * maxIterationsOverSystemSize);
+            int maxIterations = maxIterationsProvider.GetMaxIterations(matrix.Order);
 
             // r0 = d - F * λ0
             var residual = matrix.Multiply(lagrangeMultipliers);
             residual.LinearCombinationIntoThis(-1.0, rhs, 1.0);
 
             // Other allocations
-            var projectedResidual = Vector.CreateZero(n);
-            var preconditionedResidual = Vector.CreateZero(n);
-            var preconditionedProjectedResidual = Vector.CreateZero(n);
+            var w = Vector.CreateZero(n);
+            var y = Vector.CreateZero(n);
+            var z = Vector.CreateZero(n);
             var direction = Vector.CreateZero(n);
             var matrixTimesDirection = Vector.CreateZero(n);
             double residualDotProductPrevious = double.NaN;
-            double residualNormEstimateRatio = double.NaN;
+            double residualNormRatio = double.NaN;
             double beta = double.NaN;
 
             for (int iter = 1; iter <= maxIterations; ++iter)
             {
                 // w(m-1) = P * r(m-1)
-                projector.ProjectVector(residual, projectedResidual, false);
+                projector.ProjectVector(residual, w, false);
 
                 // z(m-1) = preconditioner * w(m-1)
-                preconditioner.SolveLinearSystem(projectedResidual, preconditionedProjectedResidual);
+                preconditioner.SolveLinearSystem(w, z);
 
                 // Check convergence: usually if ||z|| / ||f|| < tolerance
-                if (calcExactResidualNorm != null) 
-                {
-                    residualNormEstimateRatio = calcExactResidualNorm(lagrangeMultipliers.Copy()) / initialForcesNorm;
-                }
-                else residualNormEstimateRatio = preconditionedProjectedResidual.Norm2() / initialForcesNorm;
-                if (residualNormEstimateRatio <= residualNormTolerance) 
+                residualNormRatio = convergence.EstimateResidualNormRatio(lagrangeMultipliers, z);
+                if (residualNormRatio <= residualTolerance)
                 {
                     //TODO: is it correct to check for convergence here? How many iterations should I return?
-                    return new PcpgStatistics
+                    return new IterativeStatistics
                     {
+                        AlgorithmName = name,
                         HasConverged = true,
-                        NumIterations = iter - 1,
-                        ResidualNormEstimateRatio = residualNormEstimateRatio
+                        NumIterationsRequired = iter - 1,
+                        ResidualNormRatioEstimation = residualNormRatio
                     };
                 }
 
                 // y(m-1) = P * z(m-1)
-                projector.ProjectVector(preconditionedProjectedResidual, preconditionedResidual, false);
+                projector.ProjectVector(z, y, false);
 
-                double residualDotProductCurrent = preconditionedResidual.DotProduct(projectedResidual);
+                double residualDotProductCurrent = y.DotProduct(w);
 
                 if (iter == 1)
                 {
@@ -80,7 +81,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
                     beta = 0;
 
                     // p(1) = y0
-                    direction.CopyFrom(preconditionedResidual);
+                    direction.CopyFrom(y);
                 }
                 else
                 {
@@ -88,13 +89,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
                     beta = residualDotProductCurrent / residualDotProductPrevious;
 
                     // p(m) = y(m-1) + β(m) * p(m-1), if m > 1
-                    direction.LinearCombinationIntoThis(beta, preconditionedResidual, 1.0);
+                    direction.LinearCombinationIntoThis(beta, y, 1.0);
                 }
                 residualDotProductPrevious = residualDotProductCurrent;
 
                 // γ(m) = (y(m-1) * w(m-1)) / (p(m) * F * p(m))
                 matrix.Multiply(direction, matrixTimesDirection);
-                double stepSize = (preconditionedResidual * projectedResidual) / (direction * matrixTimesDirection);
+                double stepSize = (y * w) / (direction * matrixTimesDirection);
 
                 // λ(m) = λ(m-1) + γ(m) * p(m)
                 lagrangeMultipliers.AxpyIntoThis(direction, stepSize);
@@ -103,11 +104,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti
                 residual.AxpyIntoThis(matrixTimesDirection, -stepSize);
             }
 
-            return new PcpgStatistics
+            return new IterativeStatistics
             {
+                AlgorithmName = name,
                 HasConverged = false,
-                NumIterations = maxIterations,
-                ResidualNormEstimateRatio = residualNormEstimateRatio
+                NumIterationsRequired = maxIterations,
+                ResidualNormRatioEstimation = residualNormRatio
             };
         }
     }
