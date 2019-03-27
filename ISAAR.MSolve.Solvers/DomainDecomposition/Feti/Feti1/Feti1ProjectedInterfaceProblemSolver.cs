@@ -151,12 +151,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
         private PcgPreconditioner DefinePcgPreconditioner(IFetiPreconditioner preconditioner, Feti1Projection projection)
         {
-            if (projectionSideMatrix == ProjectionSide.None)
+            if (projectionSidePreconditioner == ProjectionSide.None)
             {
                 // x = prec(A) * y => x = prec(F) * y
                 return new PcgPreconditioner((x, y) => preconditioner.SolveLinearSystem(y, x));
             }
-            else if (projectionSideMatrix == ProjectionSide.Left)
+            else if (projectionSidePreconditioner == ProjectionSide.Left)
             {
                 // x = prec(A) * y => x = (P * prec(F)) * y => x = P * (prec(F) * y)
                 return new PcgPreconditioner((y, x) =>
@@ -167,7 +167,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
                     projection.ProjectVector(temp, x, false);
                 });
             }
-            else if (projectionSideMatrix == ProjectionSide.Both)
+            else if (projectionSidePreconditioner == ProjectionSide.Both)
             {
                 // x = prec(A) * y => x = (P * prec(F) * P^T) * y => x = P * (prec(F) * (P^T * y))
                 return new PcgPreconditioner((y, x) =>

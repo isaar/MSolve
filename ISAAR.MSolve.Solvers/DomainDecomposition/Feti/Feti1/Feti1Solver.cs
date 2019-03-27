@@ -28,10 +28,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         private readonly IDofOrderer dofOrderer;
         private readonly double factorizationPivotTolerance;
         private readonly IFeti1InterfaceProblemSolver interfaceProblemSolver;
-        private readonly bool isProblemHomogeneous;
+        private readonly bool problemIsHomogeneous;
+        private readonly bool projectionMatrixQIsIdentity;
         private readonly Dictionary<int, SingleSubdomainSystem<SkylineMatrix>> linearSystems;
         private readonly IStructuralModel_v2 model;
-        private readonly PdeOrder pde;
+        //private readonly PdeOrder pde; // Instead the user explicitly sets Q.
         private readonly IFetiPreconditionerFactory preconditionerFactory;
 
         //TODO: fix the mess of Dictionary<int, ISubdomain>, List<ISubdomain>, Dictionary<int, Subdomain>, List<Subdomain>
@@ -51,7 +52,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
         private Feti1Solver(IStructuralModel_v2 model, IDofOrderer dofOrderer, double factorizationPivotTolerance,
             IFetiPreconditionerFactory preconditionerFactory, IFeti1InterfaceProblemSolver interfaceProblemSolver,
-            bool isProblemHomogeneous, PdeOrder pde)
+            bool problemIsHomogeneous, bool projectionMatrixQIsIdentity)
         {
             // Model
             if (model.Subdomains.Count == 1) throw new InvalidSolverException(
@@ -87,8 +88,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             this.lagrangeEnumerator = new LagrangeMultipliersEnumerator(crosspointStrategy);
 
             // Homogeneous/heterogeneous problems
-            this.pde = pde;
-            this.isProblemHomogeneous = isProblemHomogeneous;
+            this.problemIsHomogeneous = problemIsHomogeneous;
+            this.projectionMatrixQIsIdentity = projectionMatrixQIsIdentity;
         }
 
         public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
@@ -186,7 +187,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             dofSeparator.SeparateBoundaryInternalDofs(model);
 
             // Define lagrange multipliers and boolean matrices
-            if (isProblemHomogeneous) lagrangeEnumerator.DefineBooleanMatrices(model, dofSeparator); // optimization in this case
+            if (problemIsHomogeneous) lagrangeEnumerator.DefineBooleanMatrices(model, dofSeparator); // optimization in this case
             else lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model, dofSeparator);
 
             // Log dof statistics
@@ -330,8 +331,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
 
         private void BuildProjection()
         {
-            //Feti1Projection projection;
-            if ((pde == PdeOrder.Fourth) || (!isProblemHomogeneous))
+            if (!projectionMatrixQIsIdentity) // Previously (pde == PdeOrder.Fourth) || (!problemIsHomogeneous)
             {
                 // Q = preconditioner
                 projection = new Feti1Projection(lagrangeEnumerator.BooleanMatrices, rigidBodyModes,
@@ -367,7 +367,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
         {
             // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
             //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
-            if (isProblemHomogeneous) stiffnessDistribution = new HomogeneousStiffnessDistribution(model, dofSeparator);
+            if (problemIsHomogeneous) stiffnessDistribution = new HomogeneousStiffnessDistribution(model, dofSeparator);
             else stiffnessDistribution = new HeterogeneousStiffnessDistribution(model, dofSeparator, stiffnessMatrices);
         }
 
@@ -404,13 +404,14 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Feti.Feti1
             public IFeti1InterfaceProblemSolver InterfaceProblemSolver { get; set; } = 
                 (new Feti1ProjectedInterfaceProblemSolver.Builder()).Build();
 
-            public bool IsProblemHomogeneous { get; set; } = true;
-            public PdeOrder PdeOrder { get; set; } = PdeOrder.Second;
             public IFetiPreconditionerFactory PreconditionerFactory { get; set; } = new Feti1LumpedPreconditioner.Factory();
-            
+            public bool ProblemIsHomogeneous { get; set; } = true;
+            public bool ProjectionMatrixQIsIdentity { get; set; } = true;
+            //public PdeOrder PdeOrder { get; set; } = PdeOrder.Second; // Instead the user explicitly sets Q.
+
             public Feti1Solver BuildSolver(Model_v2 model)
                 => new Feti1Solver(model, DofOrderer, factorizationPivotTolerance, PreconditionerFactory,
-                     InterfaceProblemSolver, IsProblemHomogeneous, PdeOrder);
+                     InterfaceProblemSolver, ProblemIsHomogeneous, ProjectionMatrixQIsIdentity);
         }
     }
 }
