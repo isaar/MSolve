@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Geometry.Coordinates;
@@ -86,22 +87,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			var jacobianMatrix = CalculateJacobianMatrix(elementCollocation, nurbs);
 
 			var hessianMatrix = CalculateHessian(elementCollocation, nurbs, 0);
-			var squareDerivatives = Matrix3by3.CreateFromArray(new double[3, 3]
-				{
-					{
-						jacobianMatrix[0, 0] * jacobianMatrix[0, 0], 2 * jacobianMatrix[0, 0] * jacobianMatrix[0, 1],
-						jacobianMatrix[0, 1] * jacobianMatrix[0, 1]
-					},
-
-
-					{
-						jacobianMatrix[0, 0] * jacobianMatrix[1, 0],
-						jacobianMatrix[0, 0] * jacobianMatrix[1, 1] + jacobianMatrix[0, 1] * jacobianMatrix[1, 0],
-						jacobianMatrix[0, 1] * jacobianMatrix[1, 1]
-					},
-
-					{jacobianMatrix[1, 0] * jacobianMatrix[1, 0], 2*jacobianMatrix[1, 0]*jacobianMatrix[1, 1], jacobianMatrix[1, 1] * jacobianMatrix[1, 1]},
-				},false);
+			var squareDerivatives = CalculateSquareDerivatives(jacobianMatrix);
 
 			var inverseJacobian = jacobianMatrix.Invert();
 			var dR = CalculateNaturalDerivatives(nurbs, inverseJacobian);
@@ -110,22 +96,43 @@ namespace ISAAR.MSolve.IGA.Elements
 			
 			return CalculateCollocationPointStiffness(elementCollocation, ddR);
 		}
-		
+
+		public Matrix3by3 CalculateSquareDerivatives(Matrix2by2 jacobianMatrix)
+		{
+			var squareDerivatives = Matrix3by3.CreateFromArray(new double[3, 3]
+			{
+				{
+					jacobianMatrix[0, 0] * jacobianMatrix[0, 0], jacobianMatrix[0, 1] * jacobianMatrix[0, 1], 2 * jacobianMatrix[0, 0] * jacobianMatrix[0, 1]
+				},
+				{
+					jacobianMatrix[1, 0] * jacobianMatrix[1, 0],
+					jacobianMatrix[1, 1] * jacobianMatrix[1, 1],
+					2 * jacobianMatrix[1, 0] * jacobianMatrix[1, 1]
+				},
+				{
+					jacobianMatrix[0, 0] * jacobianMatrix[1, 0],
+					jacobianMatrix[0, 1] * jacobianMatrix[1, 1],
+					jacobianMatrix[0, 0] * jacobianMatrix[1, 1] + jacobianMatrix[0, 1] * jacobianMatrix[1, 0],
+				},
+			}, false);
+			return squareDerivatives;
+		}
+
 		public Matrix CalculateCollocationPointStiffness(NURBSElement2DCollocation elementCollocation, double[,] ddR)
 		{
 			var collocationPointStiffness = Matrix.CreateZero(2, elementCollocation.ControlPoints.Count * 2);
 
 			var E = elementCollocation.Patch.Material.YoungModulus;
 			var nu = elementCollocation.Patch.Material.PoissonRatio;
-			var temp = E / (1 - nu) / (1 - nu);
+			var temp = E / (1 - nu*nu);
 			for (int i = 0; i < elementCollocation.ControlPoints.Count * 2; i += 2)
 			{
 				var index = i / 2;
-				collocationPointStiffness[0, i] = (ddR[0, index] + (1 - nu) / 2 * ddR[2, index]) * temp;
-				collocationPointStiffness[1, i] = (1 + nu) / 2 * ddR[1, index] * temp;
+				collocationPointStiffness[0, i] = (ddR[0, index] + (1 - nu) / 2 * ddR[1, index]) * temp;
+				collocationPointStiffness[1, i] = (1 + nu) / 2 * ddR[2, index] * temp;
 
-				collocationPointStiffness[0, i + 1] = (1 + nu) / 2 * ddR[1, index] * temp;
-				collocationPointStiffness[1, i + 1] = (ddR[2, index] + (1 - nu) / 2 * ddR[0, index]) * temp;
+				collocationPointStiffness[0, i + 1] = (1 + nu) / 2 * ddR[2, index] * temp;
+				collocationPointStiffness[1, i + 1] = (ddR[1, index] + (1 - nu) / 2 * ddR[0, index]) * temp;
 			}
 
 			return collocationPointStiffness;
@@ -144,15 +151,20 @@ namespace ISAAR.MSolve.IGA.Elements
 
 			var ddR = new double[3, nurbs.NurbsSecondDerivativeValueKsi.Rows];
 			var squareInvert = squareDerivatives.Invert();
+			
+			var ddR3 = new double[3, nurbs.NurbsSecondDerivativeValueKsi.Rows];
+			for (int i = 0; i < ddR2.GetLength(1); i++)
+			{
+				ddR3[0, i] = nurbs.NurbsSecondDerivativeValueKsi[i, 0] - ddR2[0, i];
+				ddR3[1, i] = nurbs.NurbsSecondDerivativeValueHeta[i, 0] - ddR2[1, i];
+				ddR3[2, i] = nurbs.NurbsSecondDerivativeValueKsiHeta[i, 0] - ddR2[2, i];
+			}
+
 			for (int i = 0; i < ddR.GetLength(1); i++)
 			{
-				var temp1 = nurbs.NurbsSecondDerivativeValueKsi[i, 0] - ddR2[0, i];
-				var temp2 = nurbs.NurbsSecondDerivativeValueHeta[i, 0] - ddR2[1, i];
-				var temp3 = nurbs.NurbsSecondDerivativeValueKsiHeta[i, 0] - ddR2[2, i];
-
-				ddR[0, i] = squareInvert[0, 0] * temp1 + squareInvert[0, 1] * temp2 + squareInvert[0, 2] * temp3;
-				ddR[1, i] = squareInvert[1, 0] * temp1 + squareInvert[1, 1] * temp2 + squareInvert[1, 2] * temp3;
-				ddR[2, i] = squareInvert[2, 0] * temp1 + squareInvert[2, 1] * temp2 + squareInvert[2, 2] * temp3;
+				ddR[0, i] = squareInvert[0, 0] * ddR3[0, i] + squareInvert[0, 1] * ddR3[1, i] + squareInvert[0, 2] * ddR3[2, i];
+				ddR[1, i] = squareInvert[1, 0] * ddR3[0, i] + squareInvert[1, 1] * ddR3[1, i] + squareInvert[1, 2] * ddR3[2, i];
+				ddR[2, i] = squareInvert[2, 0] * ddR3[0, i] + squareInvert[2, 1] * ddR3[1, i] + squareInvert[2, 2] * ddR3[2, i];
 			}
 
 			return ddR;
