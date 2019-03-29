@@ -32,6 +32,15 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
         private bool ResetGeneration = true;
         private int PreviousIteration = -1;
 
+        /// <summary>Initializes a new instance of the <see cref="KarhunenLoeveCoefficientsProvider"/> class.</summary>
+        /// <param name="partition">The partition.</param>
+        /// <param name="meanValue">The mean value.</param>
+        /// <param name="midpointMethod">if set to <c>true</c> [midpoint method].</param>
+        /// <param name="isGaussian">if set to <c>true</c> [is gaussian].</param>
+        /// <param name="karLoeveTerms">The kar loeve terms.</param>
+        /// <param name="domainBounds">The domain bounds.</param>
+        /// <param name="sigmaSquare">The sigma square.</param>
+        /// <param name="correlationLength">Length of the correlation.</param>
         public KarhunenLoeveCoefficientsProvider (int partition, double meanValue, bool midpointMethod, bool isGaussian, int karLoeveTerms,
             double[] domainBounds, double sigmaSquare, double correlationLength)
         {
@@ -52,6 +61,12 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
         }
 
 
+        /// <summary>Covariance function.</summary>
+        /// <param name="x">The x.</param>
+        /// <param name="y">The y.</param>
+        /// <param name="sigmaSquare">The sigma square.</param>
+        /// <param name="correlationLength">Length of the correlation.</param>
+        /// <returns></returns>
         public double GaussianKernelCovarianceFunction(double x, double y, double sigmaSquare, double correlationLength)
         {
             //CorrelationLength = correlationLength;
@@ -61,6 +76,7 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             return correlationFunction;
         }
 
+        /// <summary>Resets the sample generation.</summary>
         private void ResetSampleGeneration()
         {            
             Kse = new double[KarLoeveTerms];
@@ -71,6 +87,11 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             }
         }
 
+        /// <summary>Realizes the specified iteration based on a stochastic domain mapper and the respective domain parameters.</summary>
+        /// <param name="iteration">The iteration.</param>
+        /// <param name="domainMapper">The domain mapper.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns></returns>
         public double Realize(int iteration, IStochasticDomainMapper domainMapper, double[] parameters)
         {
             ResetGeneration = (PreviousIteration != iteration);
@@ -82,6 +103,13 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             return value;
         }
 
+        /// <summary>  Calculates the Fredholm integral that provides eigenvalues and eigenfunctions of the expansion.</summary>
+        /// <param name="KarLoeveTerms">The kar loeve terms.</param>
+        /// <param name="domainBounds">The domain bounds.</param>
+        /// <param name="sigmaSquare">The sigma square.</param>
+        /// <param name="partition">The partition.</param>
+        /// <param name="correlationLength">Length of the correlation.</param>
+        /// <returns></returns>
         public Tuple<double[], double[], double[,]> KarhunenLoeveFredholmWithFEM(int KarLoeveTerms, double[] domainBounds, double sigmaSquare, int partition, double correlationLength)
         {
             //FEM parameters 
@@ -195,6 +223,11 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
 
         }
 
+        /// <summary>Calculates the eigenmodes at specified point.</summary>
+        /// <param name="xCoordinates">The x coordinates.</param>
+        /// <param name="eigenModes">The eigen modes.</param>
+        /// <param name="stochasticDomainPoint">The stochastic domain point.</param>
+        /// <returns></returns>
         public double[] CalculateEigenmodesAtPoint(double[] xCoordinates, double[,] eigenModes, double stochasticDomainPoint)
         {
             List<double> xCoordinatesList = xCoordinates.ToList();
@@ -216,6 +249,17 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             return eigenmodesAtPoint;
         }
 
+        /// <summary>  Field realization based on KL expansion.</summary>
+        /// <param name="stochasticDomainPoint">The stochastic domain point.</param>
+        /// <param name="eigenValues">The eigen values.</param>
+        /// <param name="eigenmodesAtPoint">The eigenmodes at point.</param>
+        /// <param name="meanValue">The mean value.</param>
+        /// <param name="midpointMethod">if set to <c>true</c> [midpoint method].</param>
+        /// <param name="isGaussian">if set to <c>true</c> [is gaussian].</param>
+        /// <returns></returns>
+        /// <exception cref="System.ArgumentException">It is not supported at the moment
+        /// or
+        /// It is not supported at the moment</exception>
         public double KarhunenLoeveFredholm1DSampleGenerator(double[] stochasticDomainPoint, double[] eigenValues, double[] eigenmodesAtPoint, double meanValue, bool midpointMethod, bool isGaussian)
         {
             if (midpointMethod == false) throw new ArgumentException("It is not supported at the moment");

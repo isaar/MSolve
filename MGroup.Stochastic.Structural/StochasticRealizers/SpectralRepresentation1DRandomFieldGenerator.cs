@@ -9,7 +9,7 @@ using ISAAR.MSolve.Materials.Interfaces;
 using MGroup.Stochastic.Interfaces;
 using Troschuetz.Random.Distributions.Continuous;
 
-namespace ISAAR.MSolve.Analyzers
+namespace MGroup.Stochastic.Structural.StochasticRealizers
 {
     public class SpectralRepresentation1DRandomFieldGenerator : IUncertainParameterRealizer
     {
@@ -26,6 +26,14 @@ namespace ISAAR.MSolve.Analyzers
         private bool ResetGeneration = true;
         private int PreviousIteration = -1;
 
+        /// <summary>A class implementing the Spectral Respresentation methodology
+        /// using Fourier series that generates 1D stochastic fields with user selected correlation structure parameters.</summary>
+        /// <param name="b">The b.</param>
+        /// <param name="spectrumStandardDeviation">The spectrum standard deviation.</param>
+        /// <param name="meanValue">The mean value.</param>
+        /// <param name="cutoffError">The cutoff error.</param>
+        /// <param name="frequencyIncrement">The frequency increment.</param>
+        /// <param name="frequencyIntervals">The frequency intervals.</param>
         public SpectralRepresentation1DRandomFieldGenerator(double b, double spectrumStandardDeviation, double meanValue, double cutoffError,
             double frequencyIncrement = 0.1, int frequencyIntervals = 256)
         {
@@ -48,6 +56,7 @@ namespace ISAAR.MSolve.Analyzers
         public int CurrentMCS { get; set; }
         public int CurrentFrequency { get; set; }
 
+        /// <summary>Calculates method intrinsics.</summary>
         private void Calculate()
         {
             double integral = AutoCorrelation(0) / 2d;
@@ -92,6 +101,11 @@ namespace ISAAR.MSolve.Analyzers
         }
 
 
+        /// <summary>Realizes a sample function for respective stochastic domain mapper and parameters.</summary>
+        /// <param name="iteration">The iteration.</param>
+        /// <param name="domainMapper">The domain mapper.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns></returns>
         public double Realize(int iteration, IStochasticDomainMapper domainMapper, double[] parameters)
         {
             ResetGeneration = (PreviousIteration != iteration);

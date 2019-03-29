@@ -23,6 +23,10 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
         private readonly RandomVariableDistributionType _distributionType;
         public IStochasticDomainMapper DomainMapper;
 
+        /// <summary>Initializes a new instance of the <see cref="RandomVariable"/> class with specified mean value, standard deviation and pdf.</summary>
+        /// <param name="meanValue">The mean value.</param>
+        /// <param name="standardDeviation">The standard deviation.</param>
+        /// <param name="distributionType">Type of the distribution.</param>
         public RandomVariable(double meanValue, double standardDeviation, RandomVariableDistributionType distributionType)
         {
             this._meanValue = meanValue;
@@ -30,6 +34,12 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             _distributionType = distributionType;
         }
 
+        /// <summary>Realizes the specified iteration for given stochasti domain mapper and domain prameters.</summary>
+        /// <param name="iteration">The iteration.</param>
+        /// <param name="domainMapper">The domain mapper.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns></returns>
+        /// <exception cref="System.NotImplementedException"></exception>
         public double Realize(int iteration, IStochasticDomainMapper domainMapper, double[] parameters)
         {
             switch (_distributionType)

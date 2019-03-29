@@ -40,6 +40,9 @@ namespace MGroup.Stochastic.Structural
         //    StochasticRealization = new RandomVariable(youngModulus, domainMapper);
         //}
 
+        /// <summary>Initializes a new instance of the <see cref="StructuralStochasticEvaluator"/> class.</summary>
+        /// <param name="youngModulus">The young modulus.</param>
+        /// <param name="domainMapper">The domain mapper.</param>
         public StructuralStochasticEvaluator(double youngModulus, IStochasticDomainMapper domainMapper)
         {
             YoungModulus = youngModulus;
@@ -50,6 +53,8 @@ namespace MGroup.Stochastic.Structural
             //StochasticRealization = new SpectralRepresentation1DRandomFieldGenerator(10, 0.1, youngModulus, .05, 0.1, 256);
         }
 
+        /// <summary>Realizes the specified iteration.</summary>
+        /// <param name="iteration">The iteration.</param>
         public void Realize(int iteration)
         {
             currentModel = ModelBuilder.GetModel(StochasticRealization, DomainMapper, iteration);
@@ -57,6 +62,9 @@ namespace MGroup.Stochastic.Structural
 
 
 
+        /// <summary>Evaluates the specified iteration.</summary>
+        /// <param name="iteration">The iteration.</param>
+        /// <returns></returns>
         public double[] Evaluate(int iteration)
         {
             var linearSystems = new Dictionary<int, ILinearSystem>

@@ -3,11 +3,12 @@ using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.Materials.Interfaces;
 using System;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
+using MGroup.Stochastic.Interfaces;
 using Troschuetz.Random.Distributions.Continuous;
 
-namespace ISAAR.MSolve.Analyzers
+namespace MGroup.Stochastic.Structural.StochasticRealizers
 {
-    public class SpectralRepresentation2DRandomField : IStochasticCoefficientsProvider
+    public class SpectralRepresentation2DRandomField : IUncertainParameterRealizer
     {
         private readonly double XDirectionCorrelationLengthParameter;
         private readonly double YDirectionCorrelationLengthParameter;
@@ -17,7 +18,18 @@ namespace ISAAR.MSolve.Analyzers
         private int frequencyCounter, frequencyCounterY;
         private double[] randomVariables = new double[0];
         private double[,] phi1, phi2;
+        private bool ResetGeneration = true;
+        private int PreviousIteration = -1;
 
+        /// <summary>A class implementing the Spectral Respresentation methodology
+        /// using Fourier series that generates 2D stochastic fields with user selected correlation structure parameters.</summary>
+        /// <param name="XDirectionCorrelationLengthParameter">The x direction correlation length parameter.</param>
+        /// <param name="YDirectionCorrelationLengthParameter">The y direction correlation length parameter.</param>
+        /// <param name="spectrumStandardDeviation">The spectrum standard deviation.</param>
+        /// <param name="cutoffError">The cutoff error.</param>
+        /// <param name="frequencyIncrement">The frequency increment.</param>
+        /// <param name="frequencyIntervals">The frequency intervals.</param>
+        /// <param name="tolerance">The tolerance.</param>
         public SpectralRepresentation2DRandomField(double XDirectionCorrelationLengthParameter, double YDirectionCorrelationLengthParameter, double spectrumStandardDeviation, double cutoffError,
             double frequencyIncrement = 0.1, int frequencyIntervals = 256, double tolerance = 1e-10)
         {
@@ -55,6 +67,7 @@ namespace ISAAR.MSolve.Analyzers
                 Math.Exp(-.25 * (Math.Pow(bxkx, 2) + Math.Pow(byky, 2)));
         }
 
+        /// <summary>Calculates method intrinsics.</summary>
         private void Calculate()
         {
             double integral = AutoCorrelation(0, 0) / 4d;
@@ -91,28 +104,9 @@ namespace ISAAR.MSolve.Analyzers
             period = 2d * Math.PI / dk;
         }
 
-        public double GetCoefficient(double meanValue, double[] coordinate)
+        public double[] GetDerivative(IStochasticDomainMapper domainMapper, double[] parameters)
         {
-            var dk = kupper / (double)frequencyIntervals;
-            double randomCoefficient = 0;
-            for (int i = 0; i < frequencyIntervals; i++)
-            {
-                for (int j = 0; j < frequencyIntervals; j++)
-                {
-                    randomCoefficient += Math.Sqrt(2) * (Math.Sqrt(2 * SpectralDensity(dk / 2 + i * dk, dk / 2 + j * dk) * dk) *
-                                         (Math.Cos((dk / 2 + i * dk) * coordinate[0] + (dk / 2 + j * dk) * coordinate[1] + phi1[i, j])) +
-                                          Math.Sqrt(2 * SpectralDensity(dk / 2 + i * dk, -(dk / 2 + j * dk)) * dk) *
-                                          (Math.Cos((dk / 2 + i * dk) * coordinate[0] - (dk / 2 + j * dk) * coordinate[1] + phi2[i, j])));
-                }
-
-            }
-
-            return randomCoefficient;
-
-        }
-
-        public double[] GetDerivative(double[] coordinate)
-        {
+            double[] stochasticDomainPoint = domainMapper.Map(parameters);
             var dk = kupper / (double)frequencyIntervals;
             double[] derivative = { 0, 0 };
             for (int i = 0; i < frequencyIntervals; i++)
@@ -120,13 +114,13 @@ namespace ISAAR.MSolve.Analyzers
                 for (int j = 0; j < frequencyIntervals; j++)
                 {
                     derivative[0] += -(dk / 2 + i * dk) * Math.Sqrt(2) * (Math.Sqrt(2 * SpectralDensity(dk / 2 + i * dk, dk / 2 + j * dk) * dk) *
-                                                                          (Math.Sin((dk / 2 + i * dk) * coordinate[0] + (dk / 2 + j * dk) * coordinate[1] + phi1[i, j])) +
+                                                                          (Math.Sin((dk / 2 + i * dk) * stochasticDomainPoint[0] + (dk / 2 + j * dk) * stochasticDomainPoint[1] + phi1[i, j])) +
                                                                           Math.Sqrt(2 * SpectralDensity(dk / 2 + i * dk, -(dk / 2 + j * dk)) * dk) *
-                                                                          (Math.Sin((dk / 2 + i * dk) * coordinate[0] - (dk / 2 + j * dk) * coordinate[1] + phi2[i, j])));
+                                                                          (Math.Sin((dk / 2 + i * dk) * stochasticDomainPoint[0] - (dk / 2 + j * dk) * stochasticDomainPoint[1] + phi2[i, j])));
                     derivative[1] += -(dk / 2 + j * dk) * Math.Sqrt(2) * (Math.Sqrt(2 * SpectralDensity(dk / 2 + i * dk, dk / 2 + j * dk) * dk) *
-                                                                          (Math.Sin((dk / 2 + i * dk) * coordinate[0] + (dk / 2 + j * dk) * coordinate[1] + phi1[i, j])) -
+                                                                          (Math.Sin((dk / 2 + i * dk) * stochasticDomainPoint[0] + (dk / 2 + j * dk) * stochasticDomainPoint[1] + phi1[i, j])) -
                                                                           Math.Sqrt(2 * SpectralDensity(dk / 2 + i * dk, -(dk / 2 + j * dk)) * dk) *
-                                                                          (Math.Sin((dk / 2 + i * dk) * coordinate[0] - (dk / 2 + j * dk) * coordinate[1] + phi2[i, j])));
+                                                                          (Math.Sin((dk / 2 + i * dk) * stochasticDomainPoint[0] - (dk / 2 + j * dk) * stochasticDomainPoint[1] + phi2[i, j])));
                 }
 
             }
@@ -135,26 +129,40 @@ namespace ISAAR.MSolve.Analyzers
 
         }
 
-        public double[] RandomVariables
+        public double Realize(int iteration, IStochasticDomainMapper domainMapper, double[] parameters)
         {
-            get
+            ResetGeneration = (PreviousIteration != iteration);
+            if (ResetGeneration) ResetSampleGeneration();
+            double[] stochasticDomainPoint = domainMapper.Map(parameters);
+            var dk = kupper / (double)frequencyIntervals;
+            double randomCoefficient = 0;
+            for (int i = 0; i < frequencyIntervals; i++)
             {
-                return randomVariables;
-            }
-            set
-            {
-                phi1 = new double[frequencyIntervals, frequencyIntervals];
-                phi2 = new double[frequencyIntervals, frequencyIntervals];
-                var Phi = new ContinuousUniformDistribution(0d, 2d * Math.PI);
-                for (int i = 0; i < frequencyIntervals; i++)
+                for (int j = 0; j < frequencyIntervals; j++)
                 {
-                    for (int j = 0; j < frequencyIntervals; j++)
-                    {
-                        phi1[i, j] = Phi.NextDouble();
-                        phi2[i, j] = Phi.NextDouble();
-                    }
+                    randomCoefficient += Math.Sqrt(2) * (Math.Sqrt(2 * SpectralDensity(dk / 2 + i * dk, dk / 2 + j * dk) * dk) *
+                                                         (Math.Cos((dk / 2 + i * dk) * stochasticDomainPoint[0] + (dk / 2 + j * dk) * stochasticDomainPoint[1] + phi1[i, j])) +
+                                                         Math.Sqrt(2 * SpectralDensity(dk / 2 + i * dk, -(dk / 2 + j * dk)) * dk) *
+                                                         (Math.Cos((dk / 2 + i * dk) * stochasticDomainPoint[0] - (dk / 2 + j * dk) * stochasticDomainPoint[1] + phi2[i, j])));
                 }
-                randomVariables = value;
+
+            }
+
+            return randomCoefficient;
+        }
+
+        public void ResetSampleGeneration()
+        {
+            phi1 = new double[frequencyIntervals, frequencyIntervals];
+            phi2 = new double[frequencyIntervals, frequencyIntervals];
+            var Phi = new ContinuousUniformDistribution(0d, 2d * Math.PI);
+            for (int i = 0; i < frequencyIntervals; i++)
+            {
+                for (int j = 0; j < frequencyIntervals; j++)
+                {
+                    phi1[i, j] = Phi.NextDouble();
+                    phi2[i, j] = Phi.NextDouble();
+                }
             }
         }
     }
