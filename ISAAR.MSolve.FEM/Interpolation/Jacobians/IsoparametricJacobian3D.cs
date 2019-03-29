@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
         public IsoparametricJacobian3D(IReadOnlyList<Node_v2> nodes, Matrix naturalDerivatives)
         {
             DirectMatrix = CalculateJacobianMatrix(nodes, naturalDerivatives);
-            (InverseMatrix, DirectDeterminant) = DirectMatrix.InvertAndDetermninant();
+            (InverseMatrix, DirectDeterminant) = DirectMatrix.InvertAndDeterminant();
             //(InverseMatrix, DirectDeterminant) = InvertAndDeterminant(DirectMatrix);
             if (DirectDeterminant < determinantTolerance)
             {
