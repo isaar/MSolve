@@ -80,7 +80,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             inverse[4] = (matrix[0] * matrix[8] - matrix[6] * matrix[2]) / det;     // inv[1,1]: c11 = + a00*a22 - a02*a20
             inverse[5] = (-matrix[0] * matrix[5] + matrix[3] * matrix[2]) / det;    // inv[2,1]: c12 = - a00*a21 + a01*a20
             inverse[6] = (matrix[3] * matrix[7] - matrix[6] * matrix[4]) / det;     // inv[0,2]: c20 = + a01*a12 - a02*a11
-            inverse[7] = (-matrix[0] * matrix[7] + matrix[6] * matrix[7]) / det;    // inv[1,2]: c21 = - a00*a12 + a02*a12
+            inverse[7] = (-matrix[0] * matrix[7] + matrix[6] * matrix[1]) / det;    // inv[1,2]: c21 = - a00*a12 + a02*a10
             inverse[8] = (matrix[0] * matrix[4] - matrix[3] * matrix[1]) / det;     // inv[2,2]: c22 = + a00*a11 - a01*a10
 
             return (inverse, det);

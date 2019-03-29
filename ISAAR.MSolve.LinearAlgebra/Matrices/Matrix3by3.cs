@@ -535,7 +535,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             inverse[1, 1] = (data[0, 0] * data[2, 2] - data[0, 2] * data[2, 0]) / det;     // inv[1,1]: c11 = + a00*a22 - a02*a20
             inverse[2, 1] = (-data[0, 0] * data[2, 1] + data[0, 1] * data[2, 0]) / det;    // inv[2,1]: c12 = - a00*a21 + a01*a20
             inverse[0, 2] = (data[0, 1] * data[1, 2] - data[0, 2] * data[1, 1]) / det;     // inv[0,2]: c20 = + a01*a12 - a02*a11
-            inverse[1, 2] = (-data[0, 0] * data[1, 2] + data[0, 2] * data[1, 2]) / det;    // inv[1,2]: c21 = - a00*a12 + a02*a12
+            inverse[1, 2] = (-data[0, 0] * data[1, 2] + data[0, 2] * data[1, 0]) / det;    // inv[1,2]: c21 = - a00*a12 + a02*a10
             inverse[2, 2] = (data[0, 0] * data[1, 1] - data[0, 1] * data[1, 0]) / det;     // inv[2,2]: c22 = + a00*a11 - a01*a10
 
             return (new Matrix3by3(inverse), det);
