@@ -16,6 +16,7 @@ using ISAAR.MSolve.Preprocessor.Meshes;
 using ISAAR.MSolve.Preprocessor.Meshes.Custom;
 using ISAAR.MSolve.Preprocessor.Meshes.GMSH;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
 
 namespace ISAAR.MSolve.SamplesConsole.FEM
@@ -165,7 +166,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
         {
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();
-            SkylineSolver solver = solverBuilder.BuildSolver(model);
+            ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
             // Structural problem provider
             var provider = new ProblemStructural_v2(model, solver);

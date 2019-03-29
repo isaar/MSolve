@@ -8,6 +8,7 @@ using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.IGA.SupportiveClasses;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
@@ -21,9 +22,9 @@ namespace ISAAR.MSolve.IGA.Elements
 		public int DegreeHeta { get; set; }
 		protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
 		protected DOFType[][] dofTypes;
-		protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+		protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
 
-		public IElementDOFEnumerator DOFEnumerator
+		public IElementDofEnumerator_v2 DofEnumerator
 		{
 			get
 			{
@@ -86,12 +87,12 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix2D DampingMatrix(IElement element)
+		public IMatrix DampingMatrix(IElement_v2 element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
+		public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
 		{
 			var nurbsElement = (TSplineKirchhoffLoveShellElement)element;
 			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
@@ -102,7 +103,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			return dofTypes;
 		}
 
-		public IMatrix2D MassMatrix(IElement element)
+		public IMatrix MassMatrix(IElement_v2 element)
 		{
 			throw new NotImplementedException();
 		}
@@ -112,7 +113,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix2D StiffnessMatrix(IElement element)
+		public IMatrix StiffnessMatrix(IElement_v2 element)
 		{
 			var shellElement = (TSplineKirchhoffLoveShellElement)element;
             IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(shellElement);
@@ -160,7 +161,7 @@ namespace ISAAR.MSolve.IGA.Elements
 				stiffnessMatrixElement.Add(Kmembrane);
 				stiffnessMatrixElement.Add(Kbending);
 			}
-			return stiffnessMatrixElement;
+			return Matrix.CreateFromArray(stiffnessMatrixElement.Data);
 		}
 
 		private Matrix2D CalculateConstitutiveMatrix(TSplineKirchhoffLoveShellElement element, Vector surfaceBasisVector1, Vector surfaceBasisVector2)
@@ -170,7 +171,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			auxMatrix1[0, 1] = surfaceBasisVector1.DotProduct(surfaceBasisVector2);
 			auxMatrix1[1, 0] = surfaceBasisVector2.DotProduct(surfaceBasisVector1);
             auxMatrix1[1, 1] = surfaceBasisVector2.DotProduct(surfaceBasisVector2);
-            (Matrix2D inverse, double det) = auxMatrix1.Invert2x2AndDeterminant();
+            (Matrix2D inverse, double det) = auxMatrix1.Invert2x2AndDeterminant(1e-20);
 
 			var material = ((IContinuumMaterial2D)element.Patch.Material);
 			var constitutiveMatrix = new Matrix2D(new double[3, 3]
@@ -369,6 +370,60 @@ namespace ISAAR.MSolve.IGA.Elements
                     new Knot(){ID=2,Ksi=1,Heta = -1,Zeta = 0},
                     new Knot(){ID=3,Ksi=1,Heta = 1,Zeta = 0}
                 });
+		}
+
+		public double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements)
+		{
+			var tsplineElement = (TSplineKirchhoffLoveShellElement)element;
+			var knotParametricCoordinatesKsi = new Vector(new double[] { -1, 1 });
+			var knotParametricCoordinatesHeta = new Vector(new double[] { -1, 1 });
+
+			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(tsplineElement, tsplineElement.ControlPoints, knotParametricCoordinatesKsi, knotParametricCoordinatesHeta);
+
+			var knotDisplacements = new double[4, 3];
+			var paraviewKnotRenumbering = new int[] { 0, 3, 1, 2 };
+			for (int j = 0; j < knotDisplacements.GetLength(0); j++)
+			{
+				for (int i = 0; i < element.ControlPoints.Count; i++)
+				{
+					knotDisplacements[paraviewKnotRenumbering[j], 0] += tsplines.TSplineValues[i, j] * localDisplacements[i, 0];
+					knotDisplacements[paraviewKnotRenumbering[j], 1] += tsplines.TSplineValues[i, j] * localDisplacements[i, 1];
+					knotDisplacements[paraviewKnotRenumbering[j], 2] += tsplines.TSplineValues[i, j] * localDisplacements[i, 2];
+				}
+			}
+
+			return knotDisplacements;
+		}
+
+		public double[,] CalculatePointsForPostProcessing(TSplineKirchhoffLoveShellElement element)
+		{
+			var localCoordinates = new double[4, 2]
+			{
+				{-1, -1},
+				{-1, 1},
+				{1, -1},
+				{1, 1}
+			};
+
+			var knotParametricCoordinatesKsi = new Vector(new double[] { -1, 1 });
+			var knotParametricCoordinatesHeta = new Vector(new double[] { -1, 1 });
+
+			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(element, element.ControlPoints, knotParametricCoordinatesKsi, knotParametricCoordinatesHeta);
+
+			var knotDisplacements = new double[4, 3];
+			var paraviewKnotRenumbering = new int[] { 0, 3, 1, 2 };
+			for (int j = 0; j < localCoordinates.GetLength(0); j++)
+			{
+				for (int i = 0; i < element.ControlPoints.Count; i++)
+				{
+					knotDisplacements[paraviewKnotRenumbering[j], 0] += tsplines.TSplineValues[i, j] * element.ControlPoints[i].X;
+					knotDisplacements[paraviewKnotRenumbering[j], 1] += tsplines.TSplineValues[i, j] * element.ControlPoints[i].Y;
+					knotDisplacements[paraviewKnotRenumbering[j], 2] += tsplines.TSplineValues[i, j] * element.ControlPoints[i].Z;
+				}
+			}
+
+			return knotDisplacements;
+
 		}
 	}
 }

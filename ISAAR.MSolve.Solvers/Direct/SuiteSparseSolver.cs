@@ -139,6 +139,8 @@ namespace ISAAR.MSolve.Solvers.Direct
 
             public SuiteSparseSolver BuildSolver(IStructuralModel_v2 model)
                 => new SuiteSparseSolver(model, FactorizationPivotTolerance, DofOrderer);
+
+            public ISolverBuilder Clone() => new Builder();
         }
     }
 }

@@ -37,6 +37,7 @@ namespace ISAAR.MSolve.FEM.Entities
 		IElementType_v2 IElement_v2.ElementType => ElementType;
         public IFiniteElement_v2 ElementType { get; set; }
 
+        ISubdomain_v2 IElement_v2.Subdomain => this.Subdomain;
         public Subdomain_v2 Subdomain { get; set; }
         public int[] DOFs { get; set; }
 

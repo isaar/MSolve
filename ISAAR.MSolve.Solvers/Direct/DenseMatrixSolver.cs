@@ -139,6 +139,8 @@ namespace ISAAR.MSolve.Solvers.Direct
 
             public DenseMatrixSolver BuildSolver(IStructuralModel_v2 model)
                 => new DenseMatrixSolver(model, DofOrderer, IsMatrixPositiveDefinite);
+
+            public ISolverBuilder Clone() => new Builder();
         }
     }
 }

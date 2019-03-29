@@ -19,9 +19,11 @@ namespace ISAAR.MSolve.IGA.Entities
 
         public int[] Degrees = new int[2];
 
+        //public Patch Patch { get; set; }
+
         public Patch Patch { get; set; }
 
-        public Dictionary<int,IVector> KnotValueVectors =new Dictionary<int, IVector>();
+		public Dictionary<int,IVector> KnotValueVectors =new Dictionary<int, IVector>();
 
         private readonly Dictionary<int, ControlPoint> controlPointsDictionary = new Dictionary<int, ControlPoint>();
 
@@ -193,7 +195,8 @@ namespace ISAAR.MSolve.IGA.Entities
                     {
                         ID = elementID,
                         ElementType = new NURBSElement2D(),
-						Patch = Patch
+						Patch = Patch,
+						Model=Patch.Elements[0].Model
                     };
                     element.AddKnots(knotsOfElement);
                     element.AddControlPoints(elementControlPoints);

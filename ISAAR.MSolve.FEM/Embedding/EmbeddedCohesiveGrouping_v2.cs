@@ -8,6 +8,10 @@ using System.Linq;
 //TODO: this and EmbeddedGrouping have most things in common. Use a base class for them and template method or use polymorhism from the composed classes.
 namespace ISAAR.MSolve.FEM.Embedding
 {
+    /// <summary>
+    /// Appropriate for iplementing embedding kinematic constraints only for some nodes of the embedded element so that bond slip phenomena can be modeled.
+    /// Authors: Gerasimos Sotiropoulos
+    /// </summary>
     public class EmbeddedCohesiveGrouping_v2
     {
         private readonly Model_v2 model;
@@ -42,8 +46,7 @@ namespace ISAAR.MSolve.FEM.Embedding
         {
             IEmbeddedDOFInHostTransformationVector_v2 transformer;
             if (hasEmbeddedRotations)
-                //transformer = new Hexa8TranslationAndRotationTransformationVector_v2();
-                throw new NotImplementedException();
+                transformer = new Hexa8TranslationAndRotationTransformationVector_v2();
             else
                 transformer = new Hexa8LAndNLTranslationTransformationVector_v2();
 

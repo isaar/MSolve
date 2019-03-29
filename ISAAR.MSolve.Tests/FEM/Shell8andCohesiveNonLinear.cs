@@ -119,7 +119,7 @@ namespace ISAAR.MSolve.Tests.FEM
             var watchDofs = new Dictionary<int, int[]>();
             watchDofs.Add(subdomainID, new int[5] { 0, 11, 23, 35, 39 });
             var log1 = new TotalDisplacementsPerIterationLog(watchDofs);
-            childAnalyzer.IncrementalDisplacementsLog = log1;
+            childAnalyzer.IterativeDisplacementsLog = log1;
 
 
             childAnalyzer.SetMaxIterations = 100;
@@ -154,6 +154,7 @@ namespace ISAAR.MSolve.Tests.FEM
             // Analyzers
             int increments = 2;
             var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
+            childAnalyzerBuilder.ResidualTolerance = 1E-8;
             childAnalyzerBuilder.MaxIterationsPerIncrement = 100;
             childAnalyzerBuilder.NumIterationsForMatrixRebuild = 1;
             //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) }; // This is the default
@@ -176,7 +177,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
         private static void ShellAndCohesiveRAM_11tlkShellPaktwsh(Model model)
         {
-            //PROELEFSI: dhmiourgithike kata to ParadeigmataElegxwnBuilder.ShellAndCohesiveRAM_11ShellPaktwsh(model);
+            //Origin: dhmiourgithike kata to ParadeigmataElegxwnBuilder.ShellAndCohesiveRAM_11ShellPaktwsh(model);
             // allaxame to cohesive element
             // gewmetria
             double Tk = 0.5;
@@ -269,7 +270,7 @@ namespace ISAAR.MSolve.Tests.FEM
             //    YoungModulus = 1353000,
             //    PoissonRatio = 0.3,
             //};
-            ShellElasticMaterial material2 = new ShellElasticMaterial()
+            ShellElasticMaterial3D material2 = new ShellElasticMaterial3D()
             {
                 YoungModulus = 1353000,
                 PoissonRatio = 0.3,
@@ -391,7 +392,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
         private static void ShellAndCohesiveRAM_11tlkShellPaktwsh_v2(Model_v2 model)
         {
-            //PROELEFSI: dhmiourgithike kata to ParadeigmataElegxwnBuilder.ShellAndCohesiveRAM_11ShellPaktwsh(model);
+            //Origin: dhmiourgithike kata to ParadeigmataElegxwnBuilder.ShellAndCohesiveRAM_11ShellPaktwsh(model);
             // allaxame to cohesive element
             // gewmetria
             double Tk = 0.5;

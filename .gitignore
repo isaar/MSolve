@@ -245,3 +245,6 @@ ModelManifest.xml
 .fake/
 *.iga
 *.dat
+*.vtu
+*.vts
+/ISAAR.MSolve.IGA.Tests/OutputFiles

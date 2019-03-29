@@ -11,6 +11,8 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.IGA.Entities.Loads;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
@@ -19,10 +21,11 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
     {
         protected readonly static DOFType[] controlPointDOFTypes = new  DOFType[] {DOFType.X, DOFType.Y , DOFType.Z };
         protected DOFType[][] dofTypes;
-        protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
+	    private DynamicMaterial dynamicProperties;
 
 
-        public IElementDOFEnumerator DOFEnumerator
+		public IElementDofEnumerator_v2 DofEnumerator
         {
             get
             {
@@ -43,7 +46,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
             }
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
         {
 	        var nurbsElement = (NURBSElement3D) element;
 			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
@@ -87,21 +90,21 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
             throw new NotImplementedException();
         }
 
-        public IMatrix2D DampingMatrix(IElement element)
+        public IMatrix DampingMatrix(IElement_v2 element)
         {
             throw new NotImplementedException();
         }
 
-        public IMatrix2D MassMatrix(IElement element)
+        public IMatrix MassMatrix(IElement_v2 element)
         {
             throw new NotImplementedException();
         }
 
-        public IMatrix2D StiffnessMatrix(IElement element)
+        public IMatrix StiffnessMatrix(IElement_v2 element)
         {
 	        var nurbsElement = (NURBSElement3D)element;
 			IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(nurbsElement);
-            Matrix2D stiffnessMatrixElement = new Matrix2D(nurbsElement.ControlPointsDictionary.Count * 3, nurbsElement.ControlPointsDictionary.Count * 3);
+			Matrix2D stiffnessMatrixElement = new Matrix2D(nurbsElement.ControlPointsDictionary.Count * 3, nurbsElement.ControlPointsDictionary.Count * 3);
 
             NURBS3D nurbs = new NURBS3D(nurbsElement, nurbsElement.ControlPoints);
 
@@ -129,7 +132,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
                     }
                 }
             }
-            return stiffnessMatrixElement;
+            return Matrix.CreateFromArray(stiffnessMatrixElement.Data);
 
         }
 
@@ -265,5 +268,28 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
         {
             throw new NotSupportedException();
         }
-    }
+
+		public double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements)
+		{
+			var nurbsElement = (NURBSElement3D)element;
+			var knotParametricCoordinatesKsi = new Vector(new double[] { element.Knots[0].Ksi, element.Knots[4].Ksi });
+			var knotParametricCoordinatesHeta = new Vector(new double[] { element.Knots[0].Heta, element.Knots[2].Heta });
+			var knotParametricCoordinatesΖeta = new Vector(new double[] { element.Knots[0].Zeta, element.Knots[1].Zeta });
+			NURBS3D nurbs = new NURBS3D(nurbsElement, nurbsElement.ControlPoints, knotParametricCoordinatesKsi,
+				knotParametricCoordinatesHeta, knotParametricCoordinatesΖeta);
+			var knotDisplacements = new double[8, 3];
+			var paraviewKnotRenumbering = new int[] { 0,4,2,6,1,5,3,7 };
+			for (int j = 0; j < element.Knots.Count; j++)
+			{
+				for (int i = 0; i < element.ControlPoints.Count; i++)
+				{
+					knotDisplacements[paraviewKnotRenumbering[j], 0] += nurbs.NurbsValues[i, j] * localDisplacements[i, 0];
+					knotDisplacements[paraviewKnotRenumbering[j], 1] += nurbs.NurbsValues[i, j] * localDisplacements[i, 1];
+					knotDisplacements[paraviewKnotRenumbering[j], 2] += nurbs.NurbsValues[i, j] * localDisplacements[i, 2];
+				}
+			}
+
+			return knotDisplacements;
+		}
+	}
 }

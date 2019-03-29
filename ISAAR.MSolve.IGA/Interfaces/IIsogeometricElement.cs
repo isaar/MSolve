@@ -11,11 +11,11 @@ using ISAAR.MSolve.Discretization.Interfaces;
 namespace ISAAR.MSolve.IGA.Interfaces
 {
 
-    public interface IIsogeometricElement: IElementType
+    public interface IIsogeometricElement: IElementType_v2
 	{
         int ID { get; }
         ElementDimensions ElementDimensions { get; }
-	    IElementDOFEnumerator DOFEnumerator { get; set; }
+        IElementDofEnumerator_v2 DofEnumerator { get; set; }
         //IList<IList<DOFType>> GetElementDOFTypes(IElement element);
         bool MaterialModified { get; }
         //IMatrix2D StiffnessMatrix(Element element);
@@ -29,6 +29,7 @@ namespace ISAAR.MSolve.IGA.Interfaces
         Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements);
         double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements);
         double[] CalculateForcesForLogging(Element element, double[] localDisplacements);
+		double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements);
         //double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads);
         //void SaveMaterialState();
         void ClearMaterialState();

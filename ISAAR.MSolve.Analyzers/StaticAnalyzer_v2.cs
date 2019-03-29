@@ -67,6 +67,7 @@ namespace ISAAR.MSolve.Analyzers
                     //TODO: Perhaps these shouldn't be done if an analysis has already been executed. The model will not be 
                     //      modified. Why should the linear system be?
                     linearSystem.Reset(); 
+                    linearSystem.Subdomain.Forces = Vector.CreateZero(linearSystem.Size);
                 }
             }
 

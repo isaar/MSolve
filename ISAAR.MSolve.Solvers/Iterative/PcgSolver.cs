@@ -119,6 +119,8 @@ namespace ISAAR.MSolve.Solvers.Iterative
 
             public PcgSolver BuildSolver(IStructuralModel_v2 model) 
                 => new PcgSolver(model, PcgAlgorithm, PreconditionerFactory, DofOrderer);
+
+            public ISolverBuilder Clone() => new Builder();
         }
     }
 }

@@ -2,13 +2,14 @@
 using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Materials
 {
     public class ElasticMaterial2D_v2 : IIsotropicContinuumMaterial2D_v2
     {
         private readonly double[] strains = new double[3];
-        private readonly double[] stresses = new double[3];
+        private double[] stresses = new double[3];
         private Matrix constitutiveMatrix = null;
 
         public double[] Coordinates { get; set; }
@@ -71,6 +72,10 @@ namespace ISAAR.MSolve.Materials
                 constitutiveMatrix[1, 0] = PoissonRatio * aux;
                 constitutiveMatrix[2, 2] = (1 - 2 * PoissonRatio) / 2 * aux;
             }
+            // correction for stress calculation 
+            stresses = (constitutiveMatrix * Vector.CreateFromArray( strains)).CopyToArray();
+            // TODO correct strains add update strains depends of how we define update strain tou ulikou
+
         }
 
         #endregion

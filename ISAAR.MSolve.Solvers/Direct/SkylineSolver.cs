@@ -116,6 +116,8 @@ namespace ISAAR.MSolve.Solvers.Direct
             {
                 return new SkylineSolver(model, FactorizationPivotTolerance, DofOrderer);
             }
+
+            public ISolverBuilder Clone() => new Builder();
         }
     }
 }

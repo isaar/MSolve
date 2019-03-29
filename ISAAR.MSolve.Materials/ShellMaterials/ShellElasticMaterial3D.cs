@@ -9,11 +9,12 @@ namespace ISAAR.MSolve.Materials
     /// Isotropic.
     /// Authors Gerasimos-Serafeim 
     /// </summary>
-    public class ShellElasticMaterial : IShellMaterial 
+    public class ShellElasticMaterial3D : IShellMaterial 
     {
         public double[] NormalVectorV3 { get; set; }
         public double[] TangentVectorV1 { get; set; }
-        public double YoungModulus { get; set; }
+	    public double[] TangentVectorV2 { get; set; }
+		public double YoungModulus { get; set; }
         public double PoissonRatio { get; set; }
         public double ShearCorrectionCoefficientK { get; set; }
 
@@ -25,7 +26,7 @@ namespace ISAAR.MSolve.Materials
 
         public IShellMaterial Clone()
         {
-            return new ShellElasticMaterial()
+            return new ShellElasticMaterial3D()
             {
                YoungModulus=this.YoungModulus,
                PoissonRatio=this.PoissonRatio,

@@ -4,6 +4,10 @@ using System;
 
 namespace ISAAR.MSolve.Materials
 {
+    /// <summary>
+    /// Benzeggagh-Kenane Mixed mode damage propagation criterion. Bilinear traction separation law. 
+    /// Authors Gerasimos Sotiropoulos
+    /// </summary>
     public class BenzeggaghKenaneCohesiveMaterial_v2 : ICohesiveZoneMaterial3D_v2
     {
         private bool modified;

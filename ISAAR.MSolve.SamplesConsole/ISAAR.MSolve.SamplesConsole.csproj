@@ -16,4 +16,7 @@
     <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Tests\ISAAR.MSolve.Tests.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="SupportiveClasses\" />
+  </ItemGroup>
 </Project>

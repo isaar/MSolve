@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
+using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra;
@@ -11,7 +12,7 @@ using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
-    public abstract class Beam3DCorotationalAbstract_v2 : IFiniteElement_v2
+    public abstract class Beam3DCorotationalAbstract_v2 : IFiniteElement_v2, IEmbeddedElement_v2
     {
         protected static readonly int NATURAL_DEFORMATION_COUNT = 6;
         protected static readonly int FREEDOM_DEGREE_COUNT = 12;
@@ -35,6 +36,8 @@ namespace ISAAR.MSolve.FEM.Elements
         protected double[] beamAxisX;
         protected double[] beamAxisY;
         protected double[] beamAxisZ;
+        private readonly List<EmbeddedNode_v2> embeddedNodes = new List<EmbeddedNode_v2>();
+
 
         public double RayleighAlpha { get; set; }
         public double RayleighBeta { get; set; }
@@ -58,6 +61,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public int ID => 100;
         public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
+        public IList<EmbeddedNode_v2> EmbeddedNodes { get { return embeddedNodes; } }
         public bool MaterialModified => material.Modified;
         public IElementDofEnumerator_v2 DofEnumerator
         {
@@ -489,7 +493,7 @@ namespace ISAAR.MSolve.FEM.Elements
             Matrix rotationMatrixBlock = this.CalculateBlockRotationMatrix();
             Matrix localStiffnessMatrix = this.CalculateLocalStiffnessMatrix();
             Matrix s = rotationMatrixBlock.MultiplyRight(localStiffnessMatrix).MultiplyRight(rotationMatrixBlock, false, true);
-            return s;
+            return dofEnumerator.GetTransformedMatrix(s);
         }      
         
         public IMatrix MassMatrix(IElement_v2 element)
@@ -558,7 +562,7 @@ namespace ISAAR.MSolve.FEM.Elements
             massMatrix[11, 7] = -(11.0 * L / 210.0) * fullMass;
             massMatrix[10, 8] = (11.0 * L / 210.0) * fullMass;
 
-            return massMatrix;
+            return dofEnumerator.GetTransformedMatrix(massMatrix);
         }
 
         public IMatrix DampingMatrix(IElement_v2 element)
@@ -566,14 +570,14 @@ namespace ISAAR.MSolve.FEM.Elements
             IMatrix k = StiffnessMatrix(element);
             IMatrix m = MassMatrix(element);
             k.LinearCombinationIntoThis(RayleighBeta, m, RayleighAlpha);
-            return k;
+            return dofEnumerator.GetTransformedMatrix(k);
         }
 
         public void ResetMaterialModified() => material.ResetModified();
 
         public Tuple<double[], double[]> CalculateStresses(Element_v2 element, double[] localDisplacements, double[] localdDisplacements)
         {
-            UpdateState(localdDisplacements);
+            UpdateState(dofEnumerator.GetTransformedDisplacementsVector(localdDisplacements));
             //TODO: Should calculate strains and update material as well
             //material.UpdateMaterial(strains);
             //TODO: Should calculate stresses as well
@@ -583,7 +587,7 @@ namespace ISAAR.MSolve.FEM.Elements
         public double[] CalculateForces(Element_v2 element, double[] localDisplacements, double[] localdDisplacements)
         {
             double[] internalForces = this.CalculateForcesInGlobalSystem();
-            return internalForces;
+            return dofEnumerator.GetTransformedForcesVector(internalForces);
         }
 
         public double[] CalculateForcesForLogging(Element_v2 element, double[] localDisplacements)
@@ -617,5 +621,15 @@ namespace ISAAR.MSolve.FEM.Elements
         public void ClearMaterialState() => material.ClearState();
 
         public void ClearMaterialStresses() => material.ClearStresses();
+
+        public Dictionary<DOFType, int> GetInternalNodalDOFs(Element_v2 element, Node_v2 node)
+        {
+            throw new NotImplementedException();
+        }
+
+        public double[] GetLocalDOFValues(Element_v2 hostElement, double[] hostDOFValues)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

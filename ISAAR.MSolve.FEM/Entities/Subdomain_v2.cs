@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -225,6 +226,109 @@ namespace ISAAR.MSolve.FEM.Entities
                 }
                 else elementDofIdx += dofs[i].Count;
             }
+        }
+
+        //ADDED1
+        public IVector GetRHSFromSolutionWithInitialDisplacemntsEffect(IVectorView solution, IVectorView dSolution, Dictionary<int, Node_v2> boundaryNodes,
+            Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements,
+            int nIncrement, int totalIncrements)
+        {
+            ////prosthiki print
+
+            //ekteleseis_counter2 += 1;
+            //string counter_data = ekteleseis_counter2.ToString();
+            //string path = string.Format(string2, counter_data);
+            ////solution.WriteToFile(path);
+            //double[] solution_data = new double[solution.Length];
+            //solution_data = solution.CopyToArray();
+            //WriteToFileVector(solution_data, path);
+
+            var forces = Vector.CreateZero(FreeDofOrdering.NumFreeDofs); //TODO: use Vector
+            foreach (Element_v2 element in Elements)
+            {
+                var localSolution = GetLocalVectorFromGlobalWithoutPrescribedDisplacements(element, solution);
+                ImposePrescribedDisplacementsWithInitialConditionSEffect(element, localSolution, boundaryNodes, initialConvergedBoundaryDisplacements, totalBoundaryDisplacements, nIncrement, totalIncrements);
+                var localdSolution = GetLocalVectorFromGlobalWithoutPrescribedDisplacements(element, dSolution);
+                ImposePrescribed_d_DisplacementsWithInitialConditionSEffect(element, localdSolution, boundaryNodes, initialConvergedBoundaryDisplacements, totalBoundaryDisplacements, nIncrement, totalIncrements);
+                element.ElementType.CalculateStresses(element, localSolution, localdSolution);
+                if (element.ElementType.MaterialModified)
+                    element.Subdomain.MaterialsModified = true;
+                var f = element.ElementType.CalculateForces(element, localSolution, localdSolution);
+                FreeDofOrdering.AddVectorElementToSubdomain(element, f, forces);
+            }
+            return forces;
+        }
+
+        public double[] GetLocalVectorFromGlobalWithoutPrescribedDisplacements(Element_v2 element, IVectorView globalDisplacementVector)
+        {
+            double[] elementNodalDisplacements = FreeDofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector);
+            return elementNodalDisplacements;
+        }
+        
+
+        public void ImposePrescribedDisplacementsWithInitialConditionSEffect(Element_v2 element, double[] localSolution, Dictionary<int, Node_v2> boundaryNodes,
+            Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements,
+            int nIncrement, int totalIncrements)
+        {
+
+            var elementDOFTypes = element.ElementType.DofEnumerator.GetDOFTypes(element);
+            var matrixAssemblyNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
+            int iElementMatrixColumn = 0;
+            for (int j = 0; j < elementDOFTypes.Count; j++)
+            {
+                INode nodeColumn = matrixAssemblyNodes[j];
+                int nodalDofsNumber = elementDOFTypes[j].Count;
+                if (boundaryNodes.ContainsKey(nodeColumn.ID))
+                {
+                    Dictionary<DOFType, double> nodalConvergedDisplacements = initialConvergedBoundaryDisplacements[nodeColumn.ID];
+                    Dictionary<DOFType, double> nodalTotalDisplacements = totalBoundaryDisplacements[nodeColumn.ID];
+                    int positionOfDofInNode = 0;
+                    foreach (DOFType doftype1 in elementDOFTypes[j])
+                    {
+                        if (nodalConvergedDisplacements.ContainsKey(doftype1))
+                        {
+                            localSolution[iElementMatrixColumn + positionOfDofInNode] = nodalConvergedDisplacements[doftype1] + (nodalTotalDisplacements[doftype1] - nodalConvergedDisplacements[doftype1]) * ((double)nIncrement / (double)totalIncrements);
+                            // TODO: this can be done faster: create a dictionary<...,dictionary> with the difference of the two values and use that and precalculate coefficient for scaling
+                        }
+                        positionOfDofInNode += 1;
+                    }
+                }
+                iElementMatrixColumn += nodalDofsNumber;
+            }
+
+        }
+
+        public void ImposePrescribed_d_DisplacementsWithInitialConditionSEffect(Element_v2 element, double[] localSolution, Dictionary<int, Node_v2> boundaryNodes,
+            Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements,
+            int nIncrement, int totalIncrements)
+        {
+
+            var elementDOFTypes = element.ElementType.DofEnumerator.GetDOFTypes(element);
+            var matrixAssemblyNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
+            int iElementMatrixColumn = 0;
+            for (int j = 0; j < elementDOFTypes.Count; j++)
+            {
+                INode nodeColumn = matrixAssemblyNodes[j];
+                int nodalDofsNumber = elementDOFTypes[j].Count;
+                if (boundaryNodes.ContainsKey(nodeColumn.ID))
+                {
+                    Dictionary<DOFType, double> nodalConvergedDisplacements = initialConvergedBoundaryDisplacements[nodeColumn.ID];
+                    Dictionary<DOFType, double> nodalTotalDisplacements = totalBoundaryDisplacements[nodeColumn.ID];
+                    int positionOfDofInNode = 0;
+                    foreach (DOFType doftype1 in elementDOFTypes[j])
+                    {
+                        if (nodalConvergedDisplacements.ContainsKey(doftype1))
+                        {
+                            localSolution[iElementMatrixColumn + positionOfDofInNode] = (nodalTotalDisplacements[doftype1] - nodalConvergedDisplacements[doftype1]) * ((double)nIncrement / (double)totalIncrements);
+                            // 1) den vazoume mono (1/increments) alla (nIncrement/increments) dioti metaxu aftwn twn nIncrements den exei mesolavhsei save sta material ths mikroklimakas
+                            // TODO: this can be done faster: create a dictionary<...,dictionary> with the difference of the two values and use that and precalculate coefficient for scaling
+                        }
+                        positionOfDofInNode += 1;
+                    }
+                }
+                iElementMatrixColumn += nodalDofsNumber;
+            }
+
         }
     }
 }

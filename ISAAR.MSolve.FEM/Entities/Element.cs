@@ -25,6 +25,11 @@ namespace ISAAR.MSolve.FEM.Entities
             get { return absorptions; }
         }
 
+        internal object Select(Func<object, object> p)
+        {
+            throw new NotImplementedException();
+        }
+
         public IList<Node> Nodes
         {
             get { return nodesDictionary.Values.ToList<Node>(); }

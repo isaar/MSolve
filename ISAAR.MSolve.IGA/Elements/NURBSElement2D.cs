@@ -11,6 +11,8 @@ using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
@@ -19,11 +21,13 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 	{
 		protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] {DOFType.X, DOFType.Y};
 		protected DOFType[][] dofTypes;
-		protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+		protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
+		private DynamicMaterial dynamicProperties;
 
 		#region IStructuralIsogeometricElement
 
-		public IElementDOFEnumerator DOFEnumerator
+
+		public IElementDofEnumerator_v2 DofEnumerator
 		{
 			get { return dofEnumerator; }
 
@@ -35,7 +39,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 			get { return ElementDimensions.TwoD; }
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
+		public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
 		{
 			var nurbsElement = (NURBSElement2D) element;
 			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
@@ -73,17 +77,17 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix2D DampingMatrix(IElement element)
+		public IMatrix DampingMatrix(IElement_v2 element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IMatrix2D MassMatrix(IElement element)
+		public IMatrix MassMatrix(IElement_v2 element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IMatrix2D StiffnessMatrix(IElement element)
+		public IMatrix StiffnessMatrix(IElement_v2 element)
 		{
 			var nurbsElement = (NURBSElement2D) element;
 			IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(nurbsElement);
@@ -128,7 +132,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 				}
 
 				Matrix2D B = B1 * B2;
-				Matrix2D ElasticityMatrix = ((IContinuumMaterial2D) nurbsElement.Patch.Material).ConstitutiveMatrix;
+				Matrix2D ElasticityMatrix = ((IContinuumMaterial2D)nurbsElement.Patch.Material).ConstitutiveMatrix;
 				Matrix2D stiffnessMatrixGaussPoint = B.Transpose() * ElasticityMatrix;
 				stiffnessMatrixGaussPoint = stiffnessMatrixGaussPoint * B;
 				stiffnessMatrixGaussPoint = stiffnessMatrixGaussPoint *
@@ -143,7 +147,28 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 				}
 			}
 
-			return stiffnessMatrixElement;
+			return Matrix.CreateFromArray(stiffnessMatrixElement.Data);
+		}
+
+
+		public double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements)
+		{
+			var nurbsElement = (NURBSElement2D)element;
+			var knotParametricCoordinatesKsi= new Vector(new double[]{element.Knots[0].Ksi, element.Knots[2].Ksi });
+			var knotParametricCoordinatesHeta = new Vector(new double[] { element.Knots[0].Heta, element.Knots[1].Heta });
+			NURBS2D nurbs = new NURBS2D(nurbsElement, nurbsElement.ControlPoints, knotParametricCoordinatesKsi, knotParametricCoordinatesHeta);
+			var knotDisplacements = new double[4, 2];
+			var paraviewKnotRenumbering = new int[] {0, 3, 1, 2};
+			for (int j = 0; j < element.Knots.Count; j++)
+			{
+				for (int i = 0; i < element.ControlPoints.Count; i++)
+				{
+					knotDisplacements[paraviewKnotRenumbering[j], 0] += nurbs.NurbsValues[i, j] * localDisplacements[i, 0];
+					knotDisplacements[paraviewKnotRenumbering[j], 1] += nurbs.NurbsValues[i, j] * localDisplacements[i, 1];
+				}
+			}
+
+			return knotDisplacements;
 		}
 
 		public Dictionary<int, double> CalculateLoadingCondition(Element element, Edge edge,
@@ -198,9 +223,13 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 
 				for (int k = 0; k < element.ControlPoints.Count; k++)
 				{
-					int dofIDX = element.Patch.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.X];
-					int dofIDY = element.Patch.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.Y];
-					int dofIDZ = element.Patch.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.Y];
+					//int dofIDX = element.Model.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.X];
+					//int dofIDY = element.Model.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.Y];
+					//int dofIDZ = element.Model.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.Y];
+					int dofIDX = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], DOFType.X];
+					int dofIDY = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], DOFType.Y];
+					int dofIDZ = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], DOFType.Z];
+
 					if (neumannLoad.ContainsKey(dofIDX))
 						neumannLoad[dofIDX] += nurbs.NurbsValues[k, j] * jacdet * gaussPoints[j].WeightFactor *
 						                       neumann.Value(xGaussPoint, yGaussPoint, zGaussPoint)[0] *
@@ -284,7 +313,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 				{
 					for (int m = 0; m < 3; m++)
 					{
-						int dofID = element.Patch.ControlPointDOFsDictionary[element.ControlPoints[k].ID][dofs[m]];
+						int dofID = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k],dofs[m]];
 						;
 						if (pressureLoad.ContainsKey(dofID))
 						{

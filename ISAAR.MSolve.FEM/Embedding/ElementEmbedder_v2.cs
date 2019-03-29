@@ -171,7 +171,7 @@ namespace ISAAR.MSolve.FEM.Embedding
 
         public double[] GetTransformedDisplacementsVector(double[] vector)
         {
-            var e = embeddedElement.ElementType as IEmbeddedElement;
+            var e = embeddedElement.ElementType as IEmbeddedElement_v2;
             //if (e == null || !isElementEmbedded) return matrix;
             if (e == null) return vector;
             if (e.EmbeddedNodes.Count == 0) return vector;
@@ -181,7 +181,7 @@ namespace ISAAR.MSolve.FEM.Embedding
 
         public double[] GetTransformedForcesVector(double[] vector) //compa prosthiki msolve
         {
-            var e = embeddedElement.ElementType as IEmbeddedElement;
+            var e = embeddedElement.ElementType as IEmbeddedElement_v2;
             //if (e == null || !isElementEmbedded) return matrix;
             if (e == null) return vector;
             if (e.EmbeddedNodes.Count == 0) return vector;
