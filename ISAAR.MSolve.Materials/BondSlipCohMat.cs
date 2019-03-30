@@ -7,7 +7,7 @@ using ISAAR.MSolve.Materials.Interfaces; //using ISAAR.MSolve.PreProcessor.Inter
 using ISAAR.MSolve.LinearAlgebra; //using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.LinearAlgebra.Triangulation;
 
 namespace ISAAR.MSolve.Materials
 {

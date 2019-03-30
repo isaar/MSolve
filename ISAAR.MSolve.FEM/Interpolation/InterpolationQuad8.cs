@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
     {
         private static readonly InterpolationQuad8 uniqueInstance = new InterpolationQuad8();
 
-        private InterpolationQuad8() : base(CellType2D.Quad8, 8)
+        private InterpolationQuad8() : base(CellType.Quad8, 8)
         {
             NodalNaturalCoordinates = new NaturalPoint2D[]
             {
@@ -89,23 +89,25 @@ namespace ISAAR.MSolve.FEM.Interpolation
             double xiEta = xi * eta;
 
             var derivatives = Matrix.CreateZero(8, 2);
-            derivatives[0, 0] = -0.25 * (xi2 + eta) * (eta - 1);
-            derivatives[0, 1] = -0.25 * (xi - 1) * (xi + eta2);
-            derivatives[1, 0] = -0.25 * (xi2 - eta) * (eta - 1);
-            derivatives[1, 1] = -0.25 * (xi + 1) * (xi - eta2);
-            derivatives[2, 0] = -0.25 * (xi2 + eta) * (-eta - 1);
-            derivatives[2, 1] = -0.25 * (xi + 1) * (-xi - eta2);
-            derivatives[3, 0] = -0.25 * (xi2 - eta) * (-eta - 1);
-            derivatives[3, 1] = -0.25 * (xi - 1) * (-xi + eta2);
 
+            derivatives[0, 0] = -0.25 * (xi2 + eta) * (eta - 1);
+            derivatives[1, 0] = -0.25 * (xi2 - eta) * (eta - 1);
+            derivatives[2, 0] = -0.25 * (xi2 + eta) * (-eta - 1);
+            derivatives[3, 0] = -0.25 * (xi2 - eta) * (-eta - 1);
             derivatives[4, 0] = xi * (eta - 1);
-            derivatives[4, 1] = 0.5 * (xiSq - 1);
             derivatives[5, 0] = 0.5 * (1 - etaSq);
-            derivatives[5, 1] = -eta * (xi + 1);
             derivatives[6, 0] = -xi * (eta + 1);
-            derivatives[6, 1] = -0.5 * (xiSq - 1);
             derivatives[7, 0] = -0.5 * (1 - etaSq);
+
+            derivatives[0, 1] = -0.25 * (xi - 1) * (xi + eta2);
+            derivatives[1, 1] = -0.25 * (xi + 1) * (xi - eta2);
+            derivatives[2, 1] = -0.25 * (xi + 1) * (-xi - eta2);
+            derivatives[3, 1] = -0.25 * (xi - 1) * (-xi + eta2);
+            derivatives[4, 1] = 0.5 * (xiSq - 1);
+            derivatives[5, 1] = -eta * (xi + 1);
+            derivatives[6, 1] = -0.5 * (xiSq - 1);
             derivatives[7, 1] = eta * (xi - 1);
+
             return derivatives;
         }
     }

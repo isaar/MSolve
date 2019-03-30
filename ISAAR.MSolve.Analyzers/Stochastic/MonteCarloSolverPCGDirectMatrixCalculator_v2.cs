@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using ISAAR.MSolve.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.LinearSystems;
@@ -10,13 +10,13 @@ namespace ISAAR.MSolve.Analyzers
     public class MonteCarloSolverPCGDirectMatrixCalculator_v2
     {
         private MonteCarloAnalyzerWithStochasticMaterial analyzer;
-        private CholeskySkyline preconditioner;
+        private LdlSkyline preconditioner;
 
         public int VectorSize => LinearSystem.RhsVector.Length;
 
         public ILinearSystem_v2 LinearSystem { get; set; }
 
-        public void Precondition(IVectorView rhs, IVector lhs)
+        public void Precondition(Vector rhs, Vector lhs)
         {
             //if (analyzer.FactorizedMatrices.Count != 1)
             //    throw new InvalidOperationException("Cannot precondition with more than one subdomains");
@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.Analyzers
 
                 if (preconditioner == null)
                 {
-                    preconditioner = ((SkylineMatrix)linearSystem.Matrix).FactorCholesky(false, 1e-8);
+                    preconditioner = ((SkylineMatrix)linearSystem.Matrix).FactorLdl(false, 1e-8);
                 }
             }
 

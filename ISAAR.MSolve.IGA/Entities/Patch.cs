@@ -13,7 +13,7 @@ using ISAAR.MSolve.Numerical.Commons;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-	public class Patch:ISubdomain_v2
+	public class Patch: ISubdomain_v2
 	{
 		private readonly Dictionary<int, Edge> edgesDictionary = new Dictionary<int, Edge>();
 		private readonly Dictionary<int, Face> facesDictionary = new Dictionary<int, Face>();
@@ -30,7 +30,8 @@ namespace ISAAR.MSolve.IGA.Entities
 		IReadOnlyList<INode> ISubdomain_v2.Nodes => controlPoints;
 		public IReadOnlyList<ControlPoint> ControlPoints => controlPoints;
 
-		public ISubdomainFreeDofOrdering DofOrdering { get; set; }
+        public ISubdomainConstrainedDofOrdering ConstrainedDofOrdering { get; set; }
+        public ISubdomainFreeDofOrdering FreeDofOrdering { get; set; }
 
 		public Vector Forces { get; set; }
 
@@ -50,7 +51,7 @@ namespace ISAAR.MSolve.IGA.Entities
 
 		public double[] CalculateElementIncrementalConstraintDisplacements(IElement_v2 element, double constraintScalingFactor)
 		{
-			var elementNodalDisplacements = new double[DofOrdering.CountElementDofs(element)];
+			var elementNodalDisplacements = new double[FreeDofOrdering.CountElementDofs(element)];
 			ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
 			return elementNodalDisplacements;
 		}
@@ -87,8 +88,8 @@ namespace ISAAR.MSolve.IGA.Entities
 
 		public double[] CalculateElementDisplacements(Element element, IVectorView globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
 		{
-			var elementNodalDisplacements = new double[DofOrdering.CountElementDofs(element)];
-			DofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector);
+			var elementNodalDisplacements = new double[FreeDofOrdering.CountElementDofs(element)];
+			FreeDofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector);
 			ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
 			return elementNodalDisplacements;
 		}
@@ -134,7 +135,7 @@ namespace ISAAR.MSolve.IGA.Entities
 
 		public IVector GetRhsFromSolution(IVectorView solution, IVectorView dSolution)
 		{
-			var forces = Vector.CreateZero(DofOrdering.NumFreeDofs); //TODO: use Vector
+			var forces = Vector.CreateZero(FreeDofOrdering.NumFreeDofs); //TODO: use Vector
 			foreach (Element element in Elements)
 			{
 				double[] localSolution = CalculateElementDisplacements(element, solution);
@@ -143,7 +144,7 @@ namespace ISAAR.MSolve.IGA.Entities
 				if (element.ElementType.MaterialModified)
 					element.Patch.MaterialsModified = true;
 				var f = element.ElementType.CalculateForces(element, localSolution, localdSolution);
-				DofOrdering.AddVectorElementToSubdomain(element, f, forces);
+				FreeDofOrdering.AddVectorElementToSubdomain(element, f, forces);
 			}
 			return forces;
 		}

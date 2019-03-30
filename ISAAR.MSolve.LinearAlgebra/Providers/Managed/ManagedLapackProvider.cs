@@ -5,6 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 //TODO: find a managed BLAS that supports the methods DotNumerics doesn't.
 //TODO: In the custom LAPACK implementations, provide error checking for more than just the index where singularity, etc. is 
 //      found. See LAPACK source for the checks. Error checking needs to be improved in general.
+//TODO: My custom implementations do not use BLAS as they should have. Better port reference LAPACK.
 namespace ISAAR.MSolve.LinearAlgebra.Providers.Managed
 {
     /// <summary>
@@ -95,7 +96,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.Managed
                 ref work, offsetWork, lWork, ref info);
 
         public void Dpotrf(string uplo, int n, double[] a, int offsetA, int ldA, ref int info)
-        {
+        { 
             try
             {
                 if (IsUpper(uplo)) LapackImplementations.CholeskyUpperFullColMajor(n, a, offsetA, ldA, ref info);

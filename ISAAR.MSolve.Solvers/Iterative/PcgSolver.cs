@@ -1,7 +1,11 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
+﻿using System.Collections.Generic;
+using System.Linq;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Iterative;
+using ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Ordering;
@@ -29,13 +33,13 @@ namespace ISAAR.MSolve.Solvers.Iterative
             this.preconditionerFactory = preconditionerFactory;
         }
 
-        public override void Initialize() { }
-
         public override void HandleMatrixWillBeSet()
         {
             mustUpdatePreconditioner = true;
             preconditioner = null;
         }
+
+        public override void Initialize() { }
 
         public override void PreventFromOverwrittingSystemMatrices()
         {
@@ -56,11 +60,53 @@ namespace ISAAR.MSolve.Solvers.Iterative
                 mustUpdatePreconditioner = false;
             }
 
-            CGStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, linearSystem.RhsVector,
+            IterativeStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, linearSystem.RhsVector,
                 linearSystem.Solution, true, () => linearSystem.CreateZeroVector()); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0
+            if (!stats.HasConverged)
+            {
+                throw new IterativeSolverNotConvergedException(name + " did not converge to a solution. PCG algorithm run for"
+                    + $" {stats.NumIterationsRequired} iterations and the residual norm ratio was"
+                    + $" {stats.ResidualNormRatioEstimation}");
+            }
         }
 
-        public class Builder
+        protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)
+        {
+            //TODO: Use a reorthogonalizetion approach when solving multiple rhs vectors. It would be even better if the CG
+            //      algorithm exposed a method for solving for multiple rhs vectors.
+
+            // Preconditioning
+            if (mustUpdatePreconditioner)
+            {
+                preconditioner = preconditionerFactory.CreatePreconditionerFor(linearSystem.Matrix);
+                mustUpdatePreconditioner = false;
+            }
+
+            // Solution vectors
+            int systemOrder = linearSystem.Matrix.NumColumns;
+            int numRhs = otherMatrix.NumColumns;
+            var solutionVectors = Matrix.CreateZero(systemOrder, numRhs);
+            Vector solutionVector = linearSystem.CreateZeroVector();
+
+            // Solve each linear system
+            for (int j = 0; j < numRhs; ++j)
+            {
+                if (j != 0) solutionVector.Clear();
+
+                //TODO: we should make sure this is the same type as the vectors used by this solver, otherwise vector operations
+                //      in CG will be slow.
+                Vector rhsVector = otherMatrix.GetColumn(j);
+
+                IterativeStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, rhsVector,
+                    solutionVector, true, () => linearSystem.CreateZeroVector());
+
+                solutionVectors.SetSubcolumn(j, solutionVector);
+            }
+
+            return solutionVectors;
+        }
+
+        public class Builder : ISolverBuilder
         {
             public IDofOrderer DofOrderer { get; set; }
                 = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
@@ -68,6 +114,8 @@ namespace ISAAR.MSolve.Solvers.Iterative
             public PcgAlgorithm PcgAlgorithm { get; set; } = (new PcgAlgorithm.Builder()).Build();
 
             public IPreconditionerFactory PreconditionerFactory { get; set; } = new JacobiPreconditioner.Factory();
+
+            ISolver_v2 ISolverBuilder.BuildSolver(IStructuralModel_v2 model) => BuildSolver(model);
 
             public PcgSolver BuildSolver(IStructuralModel_v2 model) 
                 => new PcgSolver(model, PcgAlgorithm, PreconditionerFactory, DofOrderer);

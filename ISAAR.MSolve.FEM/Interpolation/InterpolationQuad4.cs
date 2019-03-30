@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
     {
         private static readonly InterpolationQuad4 uniqueInstance = new InterpolationQuad4();
 
-        private InterpolationQuad4(): base(CellType2D.Quad4, 4)
+        private InterpolationQuad4(): base(CellType.Quad4, 4)
         {
             NodalNaturalCoordinates = new NaturalPoint2D[]
             {
@@ -64,14 +64,17 @@ namespace ISAAR.MSolve.FEM.Interpolation
         protected override sealed Matrix EvaluateGradientsAt(double xi, double eta)
         {
             var derivatives = Matrix.CreateZero(4, 2);
+
             derivatives[0, 0] = -0.25 * (1 - eta);
-            derivatives[0, 1] = -0.25 * (1 - xi);
             derivatives[1, 0] = 0.25 * (1 - eta);
-            derivatives[1, 1] = -0.25 * (1 + xi);
             derivatives[2, 0] = 0.25 * (1 + eta);
-            derivatives[2, 1] = 0.25 * (1 + xi);
             derivatives[3, 0] = -0.25 * (1 + eta);
+
+            derivatives[0, 1] = -0.25 * (1 - xi);
+            derivatives[1, 1] = -0.25 * (1 + xi);
+            derivatives[2, 1] = 0.25 * (1 + xi);
             derivatives[3, 1] = 0.25 * (1 - xi);
+
             return derivatives;
         }
     }

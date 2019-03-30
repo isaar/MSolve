@@ -314,7 +314,7 @@ namespace ISAAR.MSolve.SamplesConsole
             var provider = new ProblemStructural_v2(model, solver);
 
             // Linear static analysis
-            var childAnalyzer = new LinearAnalyzer_v2(solver);
+            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
             // Run the analysis
@@ -690,7 +690,7 @@ namespace ISAAR.MSolve.SamplesConsole
             var provider = new ProblemStructural_v2(model, solver);
 
             // Linear dynamic analysis
-            var childAnalyzer = new LinearAnalyzer_v2(solver);
+            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
             var parentAnalyzerBuilder = new NewmarkDynamicAnalyzer_v2.Builder(model, solver, provider, childAnalyzer, 0.02, 53.74);
             //parentAnalyzerBuilder.SetNewmarkParametersForConstantAcceleration(); // Not necessary. This is the default
             parentAnalyzerBuilder.SetNewmarkParameters(0.6, 1.0);
@@ -774,7 +774,7 @@ namespace ISAAR.MSolve.SamplesConsole
             var provider = new ProblemStructural_v2(model, solver);
 
             // Linear static analysis
-            var childAnalyzer = new LinearAnalyzer_v2(solver);
+            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
             // Run the analysis
@@ -871,7 +871,7 @@ namespace ISAAR.MSolve.SamplesConsole
             var provider = new ProblemStructural_v2(model, solver);
 
             // Linear static analysis
-            var childAnalyzer = new LinearAnalyzer_v2(solver);
+            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
             // Run the analysis
@@ -971,7 +971,7 @@ namespace ISAAR.MSolve.SamplesConsole
             var provider = new ProblemStructural_v2(model, solver);
 
             // Linear dynamic analysis
-            var childAnalyzer = new LinearAnalyzer_v2(solver);
+            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
             var parentAnalyzerBuilder = new NewmarkDynamicAnalyzer_v2.Builder(model, solver, provider, childAnalyzer, 0.02, 53.74);
             //parentAnalyzerBuilder.SetNewmarkParametersForConstantAcceleration(); // Not necessary. This is the default
             parentAnalyzerBuilder.SetNewmarkParameters(0.6, 1.0);
@@ -1095,7 +1095,7 @@ namespace ISAAR.MSolve.SamplesConsole
             var provider = new ProblemStructural_v2(model, solver);
 
             // Linear static analysis
-            var childAnalyzer = new LinearAnalyzer_v2(solver);
+            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
             // Run the analysis

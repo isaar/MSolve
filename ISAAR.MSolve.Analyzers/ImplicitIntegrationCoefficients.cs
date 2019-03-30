@@ -7,8 +7,8 @@ namespace ISAAR.MSolve.Analyzers
 {
     public class ImplicitIntegrationCoefficients
     {
-        public double Mass { get; set; }
-        public double Damping { get; set; }
-        public double Stiffness { get; set; }
+        public double Mass { get; set; } = double.NaN;
+        public double Damping { get; set; } = double.NaN;
+        public double Stiffness { get; set; } = double.NaN;
     }
 }

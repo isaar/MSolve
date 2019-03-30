@@ -136,14 +136,36 @@ namespace ISAAR.MSolve.Analyzers.Dynamic
             return result;
         }
 
-        public void Initialize()
+        public void Initialize(bool isFirstAnalysis = true)
         {
-            model.ConnectDataStructures();
-            solver.OrderDofsAndClearLinearSystems();
-            solver.ResetSubdomainForcesVector();
-            model.AssignLoads();
+            if (isFirstAnalysis)
+            {
+                // The order in which the next initializations happen is very important.
+                model.ConnectDataStructures();
+                solver.OrderDofs(false);
+                foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+                {
+                    linearSystem.Reset(); // Necessary to define the linear system's size 
+                    linearSystem.Subdomain.Forces = Vector.CreateZero(linearSystem.Size);
+                }
+            }
+            else
+            {
+                foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+                {
+                    //TODO: Perhaps these shouldn't be done if an analysis has already been executed. The model will not be 
+                    //      modified. Why should the linear system be?
+                    linearSystem.Reset();
+                    linearSystem.Subdomain.Forces = Vector.CreateZero(linearSystem.Size);
+                }
+            }
 
-            //TODO: this should be done elsewhere. It makes sense to assign the Rhs vector when the stiffness matrix is assigned
+            //TODO: Perhaps this should be called by the child analyzer
+            BuildMatrices();
+
+            // Loads must be created after building the matrices.
+            //TODO: Some loads may not have to be recalculated each time the stiffness changes.
+            model.AssignLoads(solver.DistributeNodalLoads);
             foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
                 linearSystem.RhsVector = linearSystem.Subdomain.Forces;
@@ -153,12 +175,13 @@ namespace ISAAR.MSolve.Analyzers.Dynamic
             InitializeInternalVectors();
             //InitializeMatrices();
             InitializeRhs();
-            ChildAnalyzer.Initialize();
+
+            if (ChildAnalyzer == null) throw new InvalidOperationException("Newmark analyzer must contain an embedded analyzer.");
+            ChildAnalyzer.Initialize(isFirstAnalysis);
         }
 
         public void Solve()
         {
-            BuildMatrices(); //TODO: this should be called by the child analyzer
             int numTimeSteps = (int)(totalTime / timeStep);
             for (int i = 0; i < numTimeSteps; ++i)
             {
@@ -281,7 +304,7 @@ namespace ISAAR.MSolve.Analyzers.Dynamic
                 uc.Add(id, linearSystem.CreateZeroVector());
                 ucc.Add(id, linearSystem.CreateZeroVector());
                 u.Add(id, linearSystem.CreateZeroVector());
-                v.Add(id, linearSystem.CreateZeroVector());
+                //v.Add(id, linearSystem.CreateZeroVector());
                 v1.Add(id, linearSystem.CreateZeroVector());
                 v2.Add(id, linearSystem.CreateZeroVector());
                 rhs.Add(id, linearSystem.CreateZeroVector());
@@ -289,7 +312,7 @@ namespace ISAAR.MSolve.Analyzers.Dynamic
                 // Account for initial conditions coming from a previous solution. 
                 //TODO: This doesn't work as intended. The solver (previously the LinearSystem) initializes the solution to zero.
                 if (linearSystem.Solution != null) v[id] = linearSystem.Solution.Copy();
-                else v[id] = linearSystem.CreateZeroVector();
+                else v.Add(id, linearSystem.CreateZeroVector());
             }
         }
 
@@ -302,7 +325,6 @@ namespace ISAAR.MSolve.Analyzers.Dynamic
             foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
             {
                 provider.ProcessRhs(coeffs, linearSystem.Subdomain, linearSystem.RhsVector);
-                int dofs = linearSystem.RhsVector.Length;
                 rhs[linearSystem.Subdomain.ID] = linearSystem.RhsVector.Copy(); //TODO: copying the vectors is wasteful.
             }
         }

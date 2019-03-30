@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Exceptions;
+﻿using ISAAR.MSolve.LinearAlgebra.Commons;
+using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
@@ -62,6 +63,30 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
                 SparseRectangular10by5.CscValues, SparseRectangular10by5.CscRowIndices, SparseRectangular10by5.CscColOffsets,
                 true);
             Assert.True(full3.Equals(csc3));
+        }
+
+        [Fact]
+        private static void TestGetColumn()
+        {
+            var matrix = Matrix.CreateFromArray(RectangularFullRank10by5.Matrix);
+            for (int j = 0; j < RectangularFullRank10by5.NumCols; ++j)
+            {
+                Vector colExpected = DenseStrategies.GetColumn(matrix, j);
+                Vector colComputed = matrix.GetColumn(j);
+                comparer.AssertEqual(colExpected, colComputed);
+            }
+        }
+
+        [Fact]
+        private static void TestGetRow()
+        {
+            var matrix = Matrix.CreateFromArray(RectangularFullRank10by5.Matrix);
+            for (int i = 0; i < RectangularFullRank10by5.NumRows; ++i)
+            {
+                Vector rowExpected = DenseStrategies.GetRow(matrix, i);
+                Vector rowComputed = matrix.GetRow(i);
+                comparer.AssertEqual(rowExpected, rowComputed);
+            }
         }
 
         [Theory]

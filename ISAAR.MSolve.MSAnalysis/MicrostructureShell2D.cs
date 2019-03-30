@@ -50,7 +50,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements;
         private IScaleTransitions_v2 scaleTransitions = new SmallStrain3Dto2DplaneStressScaleTransition(); //TODO: mporoume na to dinoume ston constructor
         Random rnd1 = new Random();
-        ISolverBuilder_v2 solverBuilder;
+        private readonly Func<Model_v2, ISolver_v2> createSolver;
 
         Matrix constitutiveMatrix;
         private double[] trueStressVec; // TODO: rename stresses 
@@ -73,10 +73,11 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         //Random properties 
         private int database_size;
 
-        public MicrostructureShell2D(IdegenerateRVEbuilder_v2 rveBuilder, ISolverBuilder_v2 solverBuilder, bool EstimateOnlyLinearResponse, int database_size)
+        public MicrostructureShell2D(IdegenerateRVEbuilder_v2 rveBuilder, Func<Model_v2, ISolver_v2> createSolver, 
+            bool EstimateOnlyLinearResponse, int database_size)
         {
             this.rveBuilder = rveBuilder;
-            this.solverBuilder = solverBuilder;
+            this.createSolver = createSolver;
             this.EstimateOnlyLinearResponse = EstimateOnlyLinearResponse;
             this.database_size = database_size;
         }
@@ -106,7 +107,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             uInitialFreeDOFDisplacementsPerSubdomain = new Dictionary<int, IVector>();
             foreach(Subdomain_v2 subdomain in model.SubdomainsDictionary.Values)
             {
-                uInitialFreeDOFDisplacementsPerSubdomain.Add(subdomain.ID, Vector.CreateZero(subdomain.DofOrdering.NumFreeDofs));// prosoxh sto Id twn subdomain
+                uInitialFreeDOFDisplacementsPerSubdomain.Add(subdomain.ID, Vector.CreateZero(subdomain.FreeDofOrdering.NumFreeDofs));// prosoxh sto Id twn subdomain
             }            
             double[] smallStrainVec = new double[3] ;
             initialConvergedBoundaryDisplacements = new Dictionary<int, Dictionary<DOFType, double>>();
@@ -121,15 +122,10 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         {
             Random rnd1 = new Random();
             int new_rve_id = rnd1.Next(1, database_size+1);
-            return new MicrostructureShell2D((IdegenerateRVEbuilder_v2)rveBuilder.Clone(new_rve_id), solverBuilder.Clone(), EstimateOnlyLinearResponse,database_size);
+            return new MicrostructureShell2D((IdegenerateRVEbuilder_v2)rveBuilder.Clone(new_rve_id), createSolver, EstimateOnlyLinearResponse,database_size);
         }
 
-        object ICloneable.Clone()
-        {
-            Random rnd1 = new Random();
-            int new_rve_id = rnd1.Next(1, database_size + 1);
-            return new MicrostructureShell2D((IdegenerateRVEbuilder_v2)rveBuilder.Clone(new_rve_id), solverBuilder.Clone(), EstimateOnlyLinearResponse, database_size);
-        }
+        object ICloneable.Clone() => this.Clone();
 
         public Dictionary<int, Node_v2> BoundaryNodesDictionary
         {
@@ -147,18 +143,22 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             {
                 this.InitializeMatrices();
                 this.InitializeData();
-                solver = solverBuilder.BuildSolver(model);
-                solver.OrderDofsAndClearLinearSystems(); //model.GlobalDofOrdering = solver.DofOrderer.OrderDofs(model); //TODO find out if new structures cause any problems
-                solver.ResetSubdomainForcesVector();
+                solver = createSolver(model);
+                solver.OrderDofs(false);
+                foreach (ILinearSystem_v2 linearSystem in solver.LinearSystems.Values)
+                {
+                    linearSystem.Reset(); //TODO find out if new structures cause any problems
+                    linearSystem.Subdomain.Forces = Vector.CreateZero(linearSystem.Size);
+                }
                 this.InitializeFreeAndPrescribedDofsInitialDisplacementVectors();
             }
             else
             {
-                solver = solverBuilder.BuildSolver(model);
-                solver.OrderDofsAndClearLinearSystems(); //v2.1
-                //solver.ResetSubdomainForcesVector();
+                solver = createSolver(model);
+                solver.OrderDofs(false); //v2.1. TODO: Is this needed in this case?
                 foreach (ILinearSystem_v2 linearSystem in solver.LinearSystems.Values)
                 {
+                    linearSystem.Reset();
                     linearSystem.RhsVector = linearSystem.Subdomain.Forces; //TODO MS 
                 }
             }
@@ -422,15 +422,20 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             {
                 this.InitializeMatrices();
                 this.InitializeData();
-                solver = solverBuilder.BuildSolver(model);
-                solver.OrderDofsAndClearLinearSystems(); //model.GlobalDofOrdering = solver.DofOrderer.OrderDofs(model); //TODO find out if new structures cause any problems
-                solver.ResetSubdomainForcesVector();
+                solver = createSolver(model);
+                solver.OrderDofs(false); //model.GlobalDofOrdering = solver.DofOrderer.OrderDofs(model); //TODO find out if new structures cause any problems
+                foreach (ILinearSystem_v2 linearSystem in solver.LinearSystems.Values)
+                {
+                    linearSystem.Reset();
+                    linearSystem.Subdomain.Forces = Vector.CreateZero(linearSystem.Size);
+                }
                 this.InitializeFreeAndPrescribedDofsInitialDisplacementVectors();
             }
             else
             {
-                solver = solverBuilder.BuildSolver(model);
-                solver.OrderDofsAndClearLinearSystems(); //v2.1
+                solver = createSolver(model);
+                solver.OrderDofs(false); //v2.1. TODO: Is this needed in this case?
+                foreach (ILinearSystem_v2 linearSystem in solver.LinearSystems.Values) linearSystem.Reset();
                 //solver.ResetSubdomainForcesVector();
             }
 

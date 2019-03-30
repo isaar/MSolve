@@ -1,4 +1,6 @@
-﻿namespace ISAAR.MSolve.LinearAlgebra.Output.Formatting
+﻿using System;
+
+namespace ISAAR.MSolve.LinearAlgebra.Output.Formatting
 {
     /// <summary>
     /// Describes how entries of a 1D array, list or vector are separated during output.
@@ -14,6 +16,12 @@
 
         /// <summary>
         /// E.g. 
+        /// [ 1 2 3 ]
+        /// </summary>
+        public static readonly Array1DFormat CSharpArray = new Array1DFormat("{ ", " }", ", ");
+
+        /// <summary>
+        /// E.g. 
         /// 1 2 3
         /// </summary>
         public static readonly Array1DFormat PlainHorizontal = new Array1DFormat("", "", " ");
@@ -24,7 +32,7 @@
         /// 2
         /// 3
         /// </summary>
-        public static readonly Array1DFormat PlainVertical = new Array1DFormat("", "", "\n");
+        public static readonly Array1DFormat PlainVertical = new Array1DFormat("", "", Environment.NewLine);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Array1DFormat"/> with the provided properties.

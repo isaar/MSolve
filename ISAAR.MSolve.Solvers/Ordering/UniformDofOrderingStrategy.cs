@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
     /// Based on that assumption, this class is much faster than its alternatives. Constrained dofs are ignored.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class UniformDofOrderingStrategy : IDofOrderingStrategy
+    public class UniformDofOrderingStrategy : IFreeDofOrderingStrategy
     {
         private readonly IReadOnlyList<DOFType> dofsPerNode;
 

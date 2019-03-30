@@ -42,8 +42,6 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             Assert.True(BondSlipTest.AreDisplacementsSame_v2(consCheck1, consCheck1Expected));
             Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(stressesCheck3, stressesCheck3Expected));
             Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(stressesCheck4, stressesCheck4Expected));
-
-
         }
 
         [Fact]
@@ -64,8 +62,6 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             Assert.True(AreDisplacementsSame_v2(hexaPrint, hexaPrintExpected));
             Assert.True(AreDisplacementsSame_v2(cohePrint, cohePrintExpected));
             Assert.True(AreDisplacementsSame_v2(shellPrint, shellPrintExpected));
-
-
         }
 
         public static bool AreDisplacementsSame_v2(int[] expectedValues,

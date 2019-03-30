@@ -13,12 +13,15 @@ using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.LinearSystems;
 
 //TODO: Usually the LinearSystem is passed in, but for GetRHSFromHistoryLoad() it is stored as a field. Decide on one method.
-//TODO: I am not too fond of the provider storing global sized matrices.
+//TODO: I am not too fond of the provider storing global sized matrices. However it is necessary to abstract from the analyzers 
+//      the various matrices in coupled problems (e.g. stiffness, porous, coupling).
+//TODO: Right now this class decides when to build or rebuild the matrices. The analyzer should decide that.
 namespace ISAAR.MSolve.Problems
 {
     public class ProblemStructural_v2 : IImplicitIntegrationProvider_v2, IStaticProvider_v2, INonLinearProvider_v2
     {
-        private Dictionary<int, IMatrix> ms, cs, ks;
+        private Dictionary<int, IMatrix> mass, damping, stiffnessFreeFree;
+        private Dictionary<int, IMatrixView> stiffnessFreeConstr, stiffnessConstrFree, stiffnessConstrConstr;
         private readonly IStructuralModel_v2 model;
         private readonly ISolver_v2 solver;
         private IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
@@ -39,79 +42,93 @@ namespace ISAAR.MSolve.Problems
 
         public IDirichletEquivalentLoadsAssembler DirichletLoadsAssembler { get; } 
 
-        private IDictionary<int, IMatrix> Ms
+        private IDictionary<int, IMatrix> Mass
         {
             get
             {
-                if (ms == null) BuildMs();
-                return ms;
+                if (mass == null) BuildMass();
+                return mass;
             }
         }
 
-        private IDictionary<int, IMatrix> Cs
+        private IDictionary<int, IMatrix> Damping
         {
             get
             {
-                if (cs == null) BuildCs();
-                return cs;
+                if (damping == null) BuildDamping();
+                return damping;
             }
         }
 
-        private IDictionary<int, IMatrix> Ks
+        private IDictionary<int, IMatrix> StiffnessFreeFree
         {
             get
             {
-                if (ks == null)
-                    BuildKs();
+                if (stiffnessFreeFree == null)
+                    BuildStiffnessFreeFree();
                 else
                 {
                     //TODO I am not too fond of side effects, especially in getters
-                    RebuildKs(); // This is the same but also resets the material modified properties. 
+                    RebuildBuildStiffnessFreeFree(); // This is the same but also resets the material modified properties. 
                 }
-                return ks;
+                return stiffnessFreeFree;
             }
         }
 
-        private void BuildKs()
+        private void BuildStiffnessFreeFree() => stiffnessFreeFree = solver.BuildGlobalMatrices(stiffnessProvider);
+
+        private void BuildStiffnessSubmatrices()
         {
-            ks = new Dictionary<int, IMatrix>(model.Subdomains.Count);
+            Dictionary<int, (IMatrix Kff, IMatrixView Kfc, IMatrixView Kcf, IMatrixView Kcc)> matrices =
+                solver.BuildGlobalSubmatrices(stiffnessProvider);
+
+            stiffnessFreeFree = new Dictionary<int, IMatrix>(model.Subdomains.Count);
+            stiffnessFreeConstr = new Dictionary<int, IMatrixView>(model.Subdomains.Count);
+            stiffnessConstrFree = new Dictionary<int, IMatrixView>(model.Subdomains.Count);
+            stiffnessConstrConstr = new Dictionary<int, IMatrixView>(model.Subdomains.Count);
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
-                ks.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, stiffnessProvider));
+                int id = subdomain.ID;
+                stiffnessFreeFree.Add(id, matrices[id].Kff);
+                stiffnessFreeConstr.Add(id, matrices[id].Kfc);
+                stiffnessConstrFree.Add(id, matrices[id].Kcf);
+                stiffnessConstrConstr.Add(id, matrices[id].Kcc);
             }
         }
 
-        private void RebuildKs()
+        private void RebuildBuildStiffnessFreeFree()
         {
+            //TODO: This will rebuild all the stiffnesses of all subdomains, if even one subdomain has MaterialsModified = true.
+            //      Optimize this, by passing a flag foreach subdomain to solver.BuildGlobalSubmatrices().
+
+            bool mustRebuild = false;
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 if (subdomain.MaterialsModified)
                 {
-                    ks[subdomain.ID] = solver.BuildGlobalMatrix(subdomain, stiffnessProvider);
-                    subdomain.ResetMaterialsModifiedProperty();
+                    mustRebuild = true;
+                    break;
                 }
             }
+            if (mustRebuild) stiffnessFreeFree = solver.BuildGlobalMatrices(stiffnessProvider);
+            foreach (ISubdomain_v2 subdomain in model.Subdomains) subdomain.ResetMaterialsModifiedProperty();
+
+            // Original code kept, in case we need to reproduce its behavior.
+            //foreach (ISubdomain_v2 subdomain in model.Subdomains)
+            //{
+            //    if (subdomain.MaterialsModified)
+            //    {
+            //        stiffnessFreeFree[subdomain.ID] = solver.BuildGlobalMatrices(subdomain, stiffnessProvider);
+            //        subdomain.ResetMaterialsModifiedProperty();
+            //    }
+            //}
         }
 
-        private void BuildMs()
-        {
-            ms = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
-            {
-                ms.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, massProvider));
-            }
-        }
+        private void BuildMass() => mass = solver.BuildGlobalMatrices(massProvider);
 
         //TODO: With Rayleigh damping, C is more efficiently built using linear combinations of global K, M, 
         //      instead of building and assembling element k, m matrices.
-        private void BuildCs()
-        {
-            cs = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
-            {
-                cs.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, dampingProvider));
-            }
-        }
+        private void BuildDamping() => damping = solver.BuildGlobalMatrices(dampingProvider);
 
         #region IAnalyzerProvider Members
         public void Reset()
@@ -124,9 +141,11 @@ namespace ISAAR.MSolve.Problems
                 }
             }
 
-            cs = null;
-            ks = null;
-            ms = null;
+            damping = null;
+            stiffnessFreeFree = null;
+            stiffnessConstrFree = null;
+            stiffnessConstrConstr = null;
+            mass = null;
         }
         #endregion 
 
@@ -149,10 +168,10 @@ namespace ISAAR.MSolve.Problems
             //if (linearSystem.IsMatrixOverwrittenBySolver) BuildKs();
 
             int id = subdomain.ID;
-            IMatrix matrix = this.Ks[id];
-            matrix.LinearCombinationIntoThis(coefficients.Stiffness, Ms[id], coefficients.Mass);
-            matrix.AxpyIntoThis(Cs[id], coefficients.Damping);
-            return this.Ks[id];
+            IMatrix matrix = this.StiffnessFreeFree[id];
+            matrix.LinearCombinationIntoThis(coefficients.Stiffness, Mass[id], coefficients.Mass);
+            matrix.AxpyIntoThis(Damping[id], coefficients.Damping);
+            return matrix;
         }
 
         public void ProcessRhs(ImplicitIntegrationCoefficients coefficients, ISubdomain_v2 subdomain, IVector rhs)
@@ -177,7 +196,7 @@ namespace ISAAR.MSolve.Problems
                 foreach (ISubdomain_v2 subdomain in model.Subdomains)
                 {
                     int[] subdomainToGlobalDofs = model.GlobalDofOrdering.MapFreeDofsSubdomainToGlobal(subdomain);
-                    foreach ((INode node, DOFType dofType, int subdomainDofIdx) in subdomain.DofOrdering.FreeDofs)
+                    foreach ((INode node, DOFType dofType, int subdomainDofIdx) in subdomain.FreeDofOrdering.FreeDofs)
                     {
                         int globalDofIdx = subdomainToGlobalDofs[subdomainDofIdx];
                         foreach (var l in m)
@@ -229,19 +248,19 @@ namespace ISAAR.MSolve.Problems
         {
             foreach (ISubdomain_v2 subdomain in model.Subdomains) subdomain.Forces.Clear(); //TODO: this is also done by model.AssignLoads()
 
-            model.AssignLoads();
+            model.AssignLoads(solver.DistributeNodalLoads);
             model.AssignMassAccelerationHistoryLoads(timeStep);
 
             var rhsVectors = new Dictionary<int, IVector>();
-            foreach (Subdomain_v2 subdomain in model.Subdomains) rhsVectors.Add(subdomain.ID, subdomain.Forces);
+            foreach (ISubdomain_v2 subdomain in model.Subdomains) rhsVectors.Add(subdomain.ID, subdomain.Forces);
             return rhsVectors;
         }
 
         public IVector MassMatrixVectorProduct(ISubdomain_v2 subdomain, IVectorView vector)
-            => this.Ms[subdomain.ID].Multiply(vector);
+            => this.Mass[subdomain.ID].Multiply(vector);
 
         public IVector DampingMatrixVectorProduct(ISubdomain_v2 subdomain, IVectorView vector)
-            => this.Cs[subdomain.ID].Multiply(vector);
+            => this.Damping[subdomain.ID].Multiply(vector);
 
         #endregion
 
@@ -249,8 +268,21 @@ namespace ISAAR.MSolve.Problems
 
         public IMatrixView CalculateMatrix(ISubdomain_v2 subdomain)
         {
-            if (ks == null) BuildKs();
-            return ks[subdomain.ID];
+            if (stiffnessFreeFree == null) BuildStiffnessFreeFree();
+            return stiffnessFreeFree[subdomain.ID];
+        }
+
+
+        public (IMatrixView matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree, 
+            IMatrixView matrixConstrConstr) CalculateSubMatrices(ISubdomain_v2 subdomain)
+        {
+            int id = subdomain.ID;
+            if ((stiffnessFreeFree == null) || (stiffnessFreeConstr == null) 
+                || (stiffnessConstrFree == null) || (stiffnessConstrConstr == null))
+            {
+                BuildStiffnessSubmatrices();
+            }
+            return (stiffnessFreeFree[id], stiffnessFreeConstr[id], stiffnessConstrFree[id], stiffnessConstrConstr[id]);
         }
 
         #endregion

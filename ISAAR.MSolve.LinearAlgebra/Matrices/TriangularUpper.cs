@@ -221,8 +221,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public double[,] CopyToArray2D() => Conversions.PackedUpperColMajorToArray2D(data);
 
         /// <summary>
-        /// Initializes a new <see cref="Matrix"/> instance by copying the entries of this <see cref="TriangularUpper"/> into
-        /// the lower triangle of the new matrix.
+        /// See <see cref="IMatrixView.CopyToFullMatrix()"/>
         /// </summary>
         public Matrix CopyToFullMatrix()
         {
@@ -308,6 +307,42 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// See <see cref="IIndexable2D.Equals(IIndexable2D, double)"/>.
         /// </summary>
         public bool Equals(IIndexable2D other, double tolerance = 1e-13) => DenseStrategies.AreEqual(this, other, tolerance);
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetColumn(int)"/>.
+        /// </summary>
+        public Vector GetColumn(int colIndex)
+        {
+            Preconditions.CheckIndexCol(this, colIndex);
+            var columnVector = new double[NumRows];
+            int numNonZerosCol = colIndex + 1;
+            int colOffset = (colIndex * (colIndex + 1)) / 2;
+            Array.Copy(data, colOffset, columnVector, 0, numNonZerosCol);
+            return Vector.CreateFromArray(columnVector);
+        }
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetRow(int)"/>.
+        /// </summary>
+        public Vector GetRow(int rowIndex)
+        {
+            Preconditions.CheckIndexRow(this, rowIndex);
+            var rowVector = new double[NumColumns];
+            for (int j = rowIndex; j < NumRows; ++j) rowVector[j] = data[rowIndex + (j * (j + 1)) / 2];
+            return Vector.CreateFromArray(rowVector);
+        }
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetSubmatrix(int[], int[])"/>.
+        /// </summary>
+        public Matrix GetSubmatrix(int[] rowIndices, int[] colIndices)
+            => DenseStrategies.GetSubmatrix(this, rowIndices, colIndices);
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetSubmatrix(int, int, int, int)"/>.
+        /// </summary>
+        public Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
+            => DenseStrategies.GetSubmatrix(this, rowStartInclusive, rowEndExclusive, colStartInclusive, colEndExclusive);
 
         /// <summary>
         /// See <see cref="IMatrixView.LinearCombination(double, IMatrixView, double)"/>.

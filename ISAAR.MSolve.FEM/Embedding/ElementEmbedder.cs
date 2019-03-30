@@ -166,8 +166,9 @@ namespace ISAAR.MSolve.FEM.Embedding
             //if (e == null || !isElementEmbedded) return matrix;
             if (e == null) return matrix;
             if (e.EmbeddedNodes.Count == 0) return matrix;
-
-            return transformationMatrix.Transpose() * ((SymmetricMatrix2D)matrix).ToMatrix2D() * transformationMatrix;
+            if (matrix is Matrix2D dense) return transformationMatrix.Transpose() * dense * transformationMatrix;
+            else if (matrix is SymmetricMatrix2D symmetric) return transformationMatrix.Transpose() * symmetric.ToMatrix2D() * transformationMatrix;
+            else throw new NotImplementedException("Use other matrix type");
         }
 
         public double[] GetTransformedDisplacementsVector(double[] vector)
@@ -180,7 +181,7 @@ namespace ISAAR.MSolve.FEM.Embedding
             return (transformationMatrix * new Vector(vector)).Data;
         }
 
-        public double[] GetTransformedForcesVector(double[] vector) //compa prosthiki msolve
+        public double[] GetTransformedForcesVector(double[] vector)
         {
             var e = embeddedElement.ElementType as IEmbeddedElement;
             //if (e == null || !isElementEmbedded) return matrix;

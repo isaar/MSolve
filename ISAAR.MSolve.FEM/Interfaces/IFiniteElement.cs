@@ -6,7 +6,7 @@ using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Interfaces
 {
-    public interface IFiniteElement: IElementType
+    public interface IFiniteElement : IElementType
     {
         int ID { get; }
         ElementDimensions ElementDimensions { get; }

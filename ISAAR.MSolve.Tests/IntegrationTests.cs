@@ -86,7 +86,7 @@ namespace ISAAR.MSolve.Tests
             var solverBuilder = new SkylineSolver.Builder();
             ISolver_v2 solver = solverBuilder.BuildSolver(model);
             var provider = new ProblemStructural_v2(model, solver);
-            var childAnalyzer = new LinearAnalyzer_v2(solver);
+            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
             //childAnalyzer.LogFactories[1] = new LinearAnalyzerLogFactory_v2(new int[] { 47 });
 
@@ -266,7 +266,7 @@ namespace ISAAR.MSolve.Tests
             var solverBuilder = new SkylineSolver.Builder();
             ISolver_v2 solver = solverBuilder.BuildSolver(model);
             var provider = new ProblemStructural_v2(model, solver);
-            var childAnalyzer = new LinearAnalyzer_v2(solver);
+            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
             parentAnalyzer.Initialize();
@@ -1056,7 +1056,7 @@ namespace ISAAR.MSolve.Tests
             var solverBuilder = new SkylineSolver.Builder();
             ISolver_v2 solver = solverBuilder.BuildSolver(trussModel);
             var provider = new ProblemStructural_v2(trussModel, solver);
-            var childAnalyzer = new LinearAnalyzer_v2(solver);
+            var childAnalyzer = new LinearAnalyzer_v2(trussModel, solver, provider);
             var parentAnalyzer = new StaticAnalyzer_v2(trussModel, solver, provider, childAnalyzer);
 
             parentAnalyzer.Initialize();

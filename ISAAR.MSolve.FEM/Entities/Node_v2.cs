@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.FEM.Entities
 	{
         private readonly List<Constraint> constraints = new List<Constraint>();
         private readonly Dictionary<int, Element_v2> elementsDictionary = new Dictionary<int, Element_v2>();
-        private readonly Dictionary<int, Subdomain_v2> subdomainsDictionary = new Dictionary<int, Subdomain_v2>();
+        private readonly Dictionary<int, ISubdomain_v2> subdomainsDictionary = new Dictionary<int, ISubdomain_v2>();
         private readonly Dictionary<int, Subdomain_v2> nonMatchingSubdomainsDictionary = new Dictionary<int, Subdomain_v2>();
 
         public override string ToString()
@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public Dictionary<int, Element_v2> ElementsDictionary => elementsDictionary;
 
-        public Dictionary<int, Subdomain_v2> SubdomainsDictionary => subdomainsDictionary;
+        public Dictionary<int, ISubdomain_v2> SubdomainsDictionary => subdomainsDictionary;
 
         public Dictionary<int, Subdomain_v2> NonMatchingSubdomainsDictionary => nonMatchingSubdomainsDictionary;
 

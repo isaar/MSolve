@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
     /// Constrained dofs are ignored.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class SimpleDofOrderingStrategy
+    public class SimpleDofOrderingStrategy //: IFreeDofOrderingStrategy
     {
         public (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderGlobalDofs(IStructuralModel_v2 model)
             => OrderFreeDofsOfElementSet(model.Elements, model.Constraints);

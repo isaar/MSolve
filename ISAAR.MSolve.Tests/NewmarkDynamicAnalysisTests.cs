@@ -137,7 +137,7 @@ namespace ISAAR.MSolve.Tests
             var provider = new ProblemStructural_v2(model, solver);
 
             // Analyzers
-            var childAnalyzer = new LinearAnalyzer_v2(solver);
+            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
             var parentAnalyzerBuilder = new NewmarkDynamicAnalyzer_v2.Builder(model, solver, provider, childAnalyzer, 0.28, 3.36);
             parentAnalyzerBuilder.SetNewmarkParametersForConstantAcceleration(); // Not necessary. This is the default
             //parentAnalyzerBuilder.SetNewmarkParameters(0.25, 0.5); // Not necessary. This is the default

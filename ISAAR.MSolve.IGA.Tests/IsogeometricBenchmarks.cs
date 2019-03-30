@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			var provider = new ProblemStructural_v2(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
+			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
 			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
@@ -144,16 +144,14 @@ namespace ISAAR.MSolve.IGA.Tests
 				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Y });
 			}
 
-			var solverBuilder = new SuiteSparseSolver.Builder();
-			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), new NullReordering());
+			var solverBuilder = new SkylineSolver.Builder();
 			ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
 			var provider = new ProblemStructural_v2(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
+			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
 			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
@@ -250,7 +248,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			var provider = new ProblemStructural_v2(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
+			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
 			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
@@ -359,16 +357,14 @@ namespace ISAAR.MSolve.IGA.Tests
 		
 
 			// Solvers
-			var solverBuilder = new SuiteSparseSolver.Builder();
-			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), new NullReordering());
+			var solverBuilder = new SkylineSolver.Builder();
 			ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
 			var provider = new ProblemStructural_v2(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
+			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
 			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
@@ -992,16 +988,14 @@ namespace ISAAR.MSolve.IGA.Tests
 			}
 
 			// Solvers
-			var solverBuilder = new SuiteSparseSolver.Builder();
-			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), new NullReordering());
+			var solverBuilder = new SkylineSolver.Builder();
 			ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
 			var provider = new ProblemStructural_v2(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
+			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
 			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
@@ -1063,16 +1057,14 @@ namespace ISAAR.MSolve.IGA.Tests
 			}
 
 			// Solvers
-			var solverBuilder = new SuiteSparseSolver.Builder();
-			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), new NullReordering());
+			var solverBuilder = new SkylineSolver.Builder();
 			ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
 			var provider = new ProblemStructural_v2(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
+			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
 			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
@@ -1611,16 +1603,14 @@ namespace ISAAR.MSolve.IGA.Tests
 			model.ControlPointsDictionary[0].Constrains.Add(new Constraint() {DOF = DOFType.Y});
 			
 			// Solvers
-			var solverBuilder = new SuiteSparseSolver.Builder();
-			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), new NullReordering());
+			var solverBuilder = new SkylineSolver.Builder();
 			ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
 			var provider = new ProblemStructural_v2(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
+			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
 			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
@@ -1673,16 +1663,14 @@ namespace ISAAR.MSolve.IGA.Tests
 			}
 
 			// Solvers
-			var solverBuilder = new SuiteSparseSolver.Builder();
-			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), new NullReordering());
+			var solverBuilder = new SkylineSolver.Builder();
 			ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
 			var provider = new ProblemStructural_v2(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
+			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
 			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
@@ -1735,16 +1723,14 @@ namespace ISAAR.MSolve.IGA.Tests
 			}
 
 			// Solvers
-			var solverBuilder = new SuiteSparseSolver.Builder();
-			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), new NullReordering());
+			var solverBuilder = new SkylineSolver.Builder();
 			ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
 			var provider = new ProblemStructural_v2(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
+			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
 			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
@@ -1799,16 +1785,14 @@ namespace ISAAR.MSolve.IGA.Tests
 
 
 			// Solvers
-			var solverBuilder = new SuiteSparseSolver.Builder();
-			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), new NullReordering());
+			var solverBuilder = new SkylineSolver.Builder();
 			ISolver_v2 solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
 			var provider = new ProblemStructural_v2(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
+			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
 			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
 			// Run the analysis

@@ -428,10 +428,10 @@ namespace ISAAR.MSolve.FEM.Elements
             index = 0;
             foreach (Node_v2 node in element.NodesDictionary.Values)
             {
-                foreach (DOFType dofType in element.Subdomain.DofOrdering.FreeDofs.GetColumnsOfRow(node))
+                foreach (DOFType dofType in element.Subdomain.FreeDofOrdering.FreeDofs.GetColumnsOfRow(node))
                 {
                     if (dofType != DOFType.Pore) continue;
-                    if (element.Subdomain.DofOrdering.FreeDofs[node, dofType] < 0) impermeableDOFs[index] = true;
+                    if (element.Subdomain.FreeDofOrdering.FreeDofs[node, dofType] < 0) impermeableDOFs[index] = true;
                     index++;
                 }
             }

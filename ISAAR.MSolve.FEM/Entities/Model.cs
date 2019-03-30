@@ -270,10 +270,8 @@ namespace ISAAR.MSolve.FEM.Entities
                 subdomain.BuildConstraintDisplacementDictionary();
         }
 
-        private void AssignNodalLoads()
+        public void AssignNodalLoads()
         {
-            foreach (Subdomain subdomain in subdomainsDictionary.Values)
-                Array.Clear(subdomain.Forces, 0, subdomain.Forces.Length);
             foreach (Load load in loads)
                 foreach (Subdomain subdomain in load.Node.SubdomainsDictionary.Values)
                 {
@@ -304,6 +302,8 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public void AssignLoads()
         {
+            foreach (Subdomain subdomain in subdomainsDictionary.Values)
+                Array.Clear(subdomain.Forces, 0, subdomain.Forces.Length);
             AssignNodalLoads();
             AssignElementMassLoads();
             AssignMassAccelerationLoads();

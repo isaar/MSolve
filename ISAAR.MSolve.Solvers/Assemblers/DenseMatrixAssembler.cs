@@ -13,12 +13,16 @@ namespace ISAAR.MSolve.Solvers.Assemblers
     /// </summary>
     public class DenseMatrixAssembler: IGlobalMatrixAssembler<Matrix>
     {
+        //TODO: we need dense matrices for the constrained dofs as well.
+        private ConstrainedMatricesAssembler constrainedAssembler = new ConstrainedMatricesAssembler();
+
         public Matrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement_v2> elements, 
             IElementMatrixProvider_v2 elementMatrixProvider)
         {
             int numFreeDofs = dofOrdering.NumFreeDofs;
             var subdomainMatrix = Matrix.CreateZero(numFreeDofs, numFreeDofs);
 
+            // Process the stiffness of each element
             foreach (IElement_v2 element in elements)
             {
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
@@ -29,6 +33,35 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             }
 
             return subdomainMatrix;
+        }
+
+        public (Matrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
+            IMatrixView matrixConstrConstr) BuildGlobalSubmatrices(
+            ISubdomainFreeDofOrdering freeDofOrdering, ISubdomainConstrainedDofOrdering constrainedDofOrdering,
+            IEnumerable<IElement_v2> elements, IElementMatrixProvider_v2 matrixProvider)
+        {
+            int numFreeDofs = freeDofOrdering.NumFreeDofs;
+            var subdomainMatrix = Matrix.CreateZero(numFreeDofs, numFreeDofs);
+
+            //TODO: also reuse the indexers of the constrained matrices.
+            constrainedAssembler.InitializeNewMatrices(freeDofOrdering.NumFreeDofs, constrainedDofOrdering.NumConstrainedDofs);
+
+            // Process the stiffness of each element
+            foreach (IElement_v2 element in elements)
+            {
+                (int[] elementDofsFree, int[] subdomainDofsFree) = freeDofOrdering.MapFreeDofsElementToSubdomain(element);
+                //IReadOnlyDictionary<int, int> elementToGlobalDofs = dofOrdering.MapFreeDofsElementToSubdomain(element);
+                (int[] elementDofsConstrained, int[] subdomainDofsConstrained) =
+                    constrainedDofOrdering.MapConstrainedDofsElementToSubdomain(element);
+
+                IMatrix elementMatrix = matrixProvider.Matrix(element);
+                AddElementToGlobalMatrix(subdomainMatrix, elementMatrix, elementDofsFree, subdomainDofsFree);
+                constrainedAssembler.AddElementMatrix(elementMatrix, elementDofsFree, subdomainDofsFree,
+                    elementDofsConstrained, subdomainDofsConstrained);
+            }
+
+            (CsrMatrix matrixConstrFree, CsrMatrix matrixConstrConstr) = constrainedAssembler.BuildMatrices();
+            return (subdomainMatrix, matrixConstrFree.TransposeToCSC(false), matrixConstrFree, matrixConstrConstr);
         }
 
         public void HandleDofOrderingWillBeModified()

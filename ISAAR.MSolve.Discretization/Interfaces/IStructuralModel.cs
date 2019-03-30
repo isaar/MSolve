@@ -22,7 +22,8 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 		RotX = 4,
 		RotY = 5,
 		RotZ = 6,
-		Pore = 7
+		Pore = 7,
+        Temperature = 8
 	}
 
 }

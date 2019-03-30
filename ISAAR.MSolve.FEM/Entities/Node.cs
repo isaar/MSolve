@@ -92,6 +92,10 @@ namespace ISAAR.MSolve.FEM.Entities
         public double Y { get; set; }
         public double Z { get; set; }
 
+        //TODO: This should be removed, but then I would have to implement a INode_v2 and replace INode almost everywhere.
+        //      Since this class will be removed, it is not worth the trouble.
+        Dictionary<int, ISubdomain_v2> INode.SubdomainsDictionary => throw new NotImplementedException();
+
         public void BuildSubdomainDictionary()
         {
             foreach (Element element in elementsDictionary.Values)

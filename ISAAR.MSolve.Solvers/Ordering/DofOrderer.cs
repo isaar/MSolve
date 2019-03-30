@@ -17,29 +17,44 @@ namespace ISAAR.MSolve.Solvers.Ordering
         //TODO: this should also be a strategy, so that I could have caching with fallbacks, in case of insufficient memor.
         private readonly bool cacheElementToSubdomainDofMaps = true; 
         private readonly bool doOptimizationsIfSingleSubdomain = true; // No idea why someone would want this to be false.
-        private readonly IDofOrderingStrategy orderingStrategy;
+        private readonly ConstrainedDofOrderingStrategy constrainedOrderingStrategy;
+        private readonly IFreeDofOrderingStrategy freeOrderingStrategy;
         private readonly IDofReorderingStrategy reorderingStrategy;
 
-        public DofOrderer(IDofOrderingStrategy orderingStrategy, IDofReorderingStrategy reorderingStrategy,
+        public DofOrderer(IFreeDofOrderingStrategy freeOrderingStrategy, IDofReorderingStrategy reorderingStrategy,
             bool doOptimizationsIfSingleSubdomain = true, bool cacheElementToSubdomainDofMaps = true)
         {
-            this.orderingStrategy = orderingStrategy;
+            this.constrainedOrderingStrategy = new ConstrainedDofOrderingStrategy();
+            this.freeOrderingStrategy = freeOrderingStrategy;
             this.reorderingStrategy = reorderingStrategy;
             this.doOptimizationsIfSingleSubdomain = doOptimizationsIfSingleSubdomain;
             this.cacheElementToSubdomainDofMaps = cacheElementToSubdomainDofMaps;
         }
 
-        public IGlobalFreeDofOrdering OrderDofs(IStructuralModel_v2 model)
+        public ISubdomainConstrainedDofOrdering OrderConstrainedDofs(ISubdomain_v2 subdomain)
+        {
+            (int numConstrainedDofs, DofTable constrainedDofs) = 
+                constrainedOrderingStrategy.OrderSubdomainDofs(subdomain);
+            if (cacheElementToSubdomainDofMaps)
+            {
+                return new SubdomainConstrainedDofOrderingCaching(numConstrainedDofs, constrainedDofs);
+            }
+            else return new SubdomainConstrainedDofOrderingGeneral(numConstrainedDofs, constrainedDofs);
+        }
+
+        public IGlobalFreeDofOrdering OrderFreeDofs(IStructuralModel_v2 model)
         {
             if (doOptimizationsIfSingleSubdomain && (model.Subdomains.Count == 1))
             {
                 ISubdomain_v2 subdomain = model.Subdomains.First();
 
                 // Order subdomain dofs
-                (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) = orderingStrategy.OrderSubdomainDofs(subdomain);
+                (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) = freeOrderingStrategy.OrderSubdomainDofs(subdomain);
                 ISubdomainFreeDofOrdering subdomainOrdering;
-                if (cacheElementToSubdomainDofMaps) subdomainOrdering = new SubdomainFreeDofOrderingCaching(
-                    numSubdomainFreeDofs, subdomainFreeDofs);
+                if (cacheElementToSubdomainDofMaps)
+                {
+                    subdomainOrdering = new SubdomainFreeDofOrderingCaching(numSubdomainFreeDofs, subdomainFreeDofs);
+                }
                 else subdomainOrdering = new SubdomainFreeDofOrderingGeneral(numSubdomainFreeDofs, subdomainFreeDofs);
 
                 // Reorder subdomain dofs
@@ -54,7 +69,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
                 var subdomainOrderings = new Dictionary<ISubdomain_v2, ISubdomainFreeDofOrdering>(model.Subdomains.Count);
                 foreach (ISubdomain_v2 subdomain in model.Subdomains)
                 {
-                    (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) = orderingStrategy.OrderSubdomainDofs(subdomain);
+                    (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) = freeOrderingStrategy.OrderSubdomainDofs(subdomain);
                     ISubdomainFreeDofOrdering subdomainOrdering;
                     if (cacheElementToSubdomainDofMaps) subdomainOrdering = new SubdomainFreeDofOrderingCaching(
                         numSubdomainFreeDofs, subdomainFreeDofs);
@@ -66,7 +81,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
                 }
 
                 // Order global dofs
-                (int numGlobalFreeDofs, DofTable globalFreeDofs) = orderingStrategy.OrderGlobalDofs(model);
+                (int numGlobalFreeDofs, DofTable globalFreeDofs) = freeOrderingStrategy.OrderGlobalDofs(model);
                 return new GlobalFreeDofOrderingGeneral(numGlobalFreeDofs, globalFreeDofs, subdomainOrderings);
             }
         }

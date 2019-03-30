@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using ISAAR.MSolve.Discretization;
@@ -10,12 +11,12 @@ using ISAAR.MSolve.Numerical.Commons;
 
 //TODO: find what is going on with the dynamic loads and refactor them. That 564000000 in AssignMassAccelerationHistoryLoads()
 //      cannot be correct.
+//TODO: ConnectDataStructures() should not be called twice. There should be a flag that determines if it has been called. If it
+//      has the method should just return without doing anything.
 namespace ISAAR.MSolve.FEM.Entities
 {
     public class Model_v2 : IStructuralModel_v2
     {
-        private IGlobalFreeDofOrdering globalDofOrdering;
-
         //public IList<EmbeddedNode> EmbeddedNodes { get; } = new List<EmbeddedNode>();
 
         public IList<Cluster> Clusters => ClustersDictionary.Values.ToList();
@@ -29,7 +30,7 @@ namespace ISAAR.MSolve.FEM.Entities
             = new List<ElementMassAccelerationHistoryLoad_v2>();
         public IList<ElementMassAccelerationLoad_v2> ElementMassAccelerationLoads { get; } 
             = new List<ElementMassAccelerationLoad_v2>();
-        public IList<Load_v2> Loads { get; } = new List<Load_v2>();
+        public IList<Load_v2> Loads { get; private set; } = new List<Load_v2>();
         public IList<MassAccelerationLoad> MassAccelerationLoads { get; } = new List<MassAccelerationLoad>();
         public IList<IMassAccelerationHistoryLoad> MassAccelerationHistoryLoads { get; } = new List<IMassAccelerationHistoryLoad>();
 
@@ -38,17 +39,19 @@ namespace ISAAR.MSolve.FEM.Entities
         public Dictionary<int, Node_v2> NodesDictionary { get; } = new Dictionary<int, Node_v2>();
 
         IReadOnlyList<ISubdomain_v2> IStructuralModel_v2.Subdomains => SubdomainsDictionary.Values.ToList();
-        public IList<Subdomain_v2> Subdomains => SubdomainsDictionary.Values.ToList();
+        public IReadOnlyList<Subdomain_v2> Subdomains => SubdomainsDictionary.Values.ToList();
         public Dictionary<int, Subdomain_v2> SubdomainsDictionary { get; } = new Dictionary<int, Subdomain_v2>();
+
+        public IList<ITimeDependentNodalLoad> TimeDependentNodalLoads { get; private set; } = new List<ITimeDependentNodalLoad>();
 
         public Table<INode, DOFType, double> Constraints { get; private set; } = new Table<INode, DOFType, double>();//TODOMaria: maybe it's useless in model class
 
         public IGlobalFreeDofOrdering GlobalDofOrdering { get; set; }
 
-        public void AssignLoads()
+        public void AssignLoads(NodalLoadsToSubdomainsDistributor distributeNodalLoads)
         {
             foreach (Subdomain_v2 subdomain in SubdomainsDictionary.Values) subdomain.Forces.Clear();
-            AssignNodalLoads();
+            AssignNodalLoads(distributeNodalLoads);
             AssignElementMassLoads();
             AssignMassAccelerationLoads();
         }
@@ -68,7 +71,7 @@ namespace ISAAR.MSolve.FEM.Entities
                     foreach (Element_v2 element in subdomain.Elements)
                     {
                         double[] accelerationForces = element.ElementType.CalculateAccelerationForces(element, m);
-                        subdomain.DofOrdering.AddVectorElementToSubdomain(element, accelerationForces, subdomain.Forces);
+                        subdomain.FreeDofOrdering.AddVectorElementToSubdomain(element, accelerationForces, subdomain.Forces);
                     }
                 }
             }
@@ -83,8 +86,35 @@ namespace ISAAR.MSolve.FEM.Entities
                 ISubdomain_v2 subdomain = element.Subdomain;
                 var accelerationForces = element.ElementType.CalculateAccelerationForces(
                     load.Element, (new MassAccelerationLoad[] { hl }).ToList());
-                globalDofOrdering.SubdomainDofOrderings[subdomain].AddVectorElementToSubdomain(element, accelerationForces,
+                GlobalDofOrdering.SubdomainDofOrderings[subdomain].AddVectorElementToSubdomain(element, accelerationForces,
                     subdomain.Forces);
+            }
+        }
+
+        public void AssignNodalLoads(NodalLoadsToSubdomainsDistributor distributeNodalLoads)
+        {
+            var globalNodalLoads = new Table<INode, DOFType, double>();
+            foreach (Load_v2 load in Loads) globalNodalLoads.TryAdd(load.Node, load.DOF, load.Amount);
+
+            Dictionary<int, SparseVector> subdomainNodalLoads = distributeNodalLoads(globalNodalLoads);
+            foreach (var idSubdomainLoads in subdomainNodalLoads)
+            {
+                SubdomainsDictionary[idSubdomainLoads.Key].Forces.AddIntoThis(idSubdomainLoads.Value);
+            }
+        }
+
+        public void AssignTimeDependentNodalLoads(int timeStep, NodalLoadsToSubdomainsDistributor distributeNodalLoads)
+        {
+            var globalNodalLoads = new Table<INode, DOFType, double>();
+            foreach (ITimeDependentNodalLoad load in TimeDependentNodalLoads)
+            {
+                globalNodalLoads.TryAdd(load.Node, load.DOF, load.GetLoadAmount(timeStep));
+            }
+
+            Dictionary<int, SparseVector> subdomainNodalLoads = distributeNodalLoads(globalNodalLoads);
+            foreach (var idSubdomainLoads in subdomainNodalLoads)
+            {
+                SubdomainsDictionary[idSubdomainLoads.Key].Forces.AddIntoThis(idSubdomainLoads.Value);
             }
         }
 
@@ -96,7 +126,7 @@ namespace ISAAR.MSolve.FEM.Entities
             SubdomainsDictionary.Clear();
             ElementsDictionary.Clear();
             NodesDictionary.Clear();
-            globalDofOrdering = null;
+            GlobalDofOrdering = null;
             Constraints.Clear();
             ElementMassAccelerationHistoryLoads.Clear();
             ElementMassAccelerationLoads.Clear();
@@ -107,10 +137,10 @@ namespace ISAAR.MSolve.FEM.Entities
         // Warning: This is called by the analyzer, so that the user does not have to call it explicitly. However, it is must be 
         // called explicitly before the AutomaticDomainDecompositioner is used.
         public void ConnectDataStructures()
-        {
+        {         
             BuildInterconnectionData();
             AssignConstraints();
-            //EnumerateDOFs();
+            RemoveInactiveNodalLoads();
 
             //TODOSerafeim: This should be called by the analyzer, which defines when the dofs are ordered and when the global vectors/matrices are built.
             //AssignLoads();
@@ -138,7 +168,7 @@ namespace ISAAR.MSolve.FEM.Entities
                 ISubdomain_v2 subdomain = load.Element.Subdomain;
                 var accelerationForces = load.Element.ElementType.CalculateAccelerationForces(
                     load.Element, MassAccelerationLoads);
-                globalDofOrdering.SubdomainDofOrderings[subdomain].AddVectorElementToSubdomain(load.Element,
+                GlobalDofOrdering.SubdomainDofOrderings[subdomain].AddVectorElementToSubdomain(load.Element,
                     accelerationForces, subdomain.Forces);
             }
         }
@@ -151,37 +181,9 @@ namespace ISAAR.MSolve.FEM.Entities
             {
                 foreach (Element_v2 element in subdomain.Elements)
                 {
-                    subdomain.DofOrdering.AddVectorElementToSubdomain(element,
+                    subdomain.FreeDofOrdering.AddVectorElementToSubdomain(element,
                         element.ElementType.CalculateAccelerationForces(element, MassAccelerationLoads),
                         subdomain.Forces);
-                }
-            }
-        }
-
-        private void AssignNodalLoads()
-        {
-            foreach (Subdomain_v2 subdomain in SubdomainsDictionary.Values)
-            {
-                subdomain.NodalLoads = new Table<Node_v2, DOFType, double>();
-            }
-
-            foreach (Load_v2 load in Loads)
-            {
-                double amountPerSubdomain = load.Amount / load.Node.SubdomainsDictionary.Count;
-                foreach (Subdomain_v2 subdomain in load.Node.SubdomainsDictionary.Values)
-                {
-                    bool wasNotContained = subdomain.NodalLoads.TryAdd(load.Node, load.DOF, amountPerSubdomain);
-                    Debug.Assert(wasNotContained, $"Duplicate load at node {load.Node.ID}, dof {load.DOF}");
-                }
-            }
-
-            //TODO: this should be done by the subdomain when the analyzer decides.
-            foreach (Subdomain_v2 subdomain in SubdomainsDictionary.Values)
-            {
-                foreach ((Node_v2 node, DOFType dofType, double amount) in subdomain.NodalLoads)
-                {
-                    int subdomainDofIdx = subdomain.DofOrdering.FreeDofs[node, dofType];
-                    subdomain.Forces[subdomainDofIdx] = amount;
                 }
             }
         }
@@ -252,6 +254,27 @@ namespace ISAAR.MSolve.FEM.Entities
                 foreach (var s in subs.Where(x => x.ID != e.Subdomain.ID))
                     s.Elements.Add(e);
             }
+        }
+
+        private void RemoveInactiveNodalLoads()
+        {
+            // Static loads
+            var activeLoadsStatic = new List<Load_v2>(Loads.Count);
+            foreach (Load_v2 load in Loads)
+            {
+                bool isConstrained = Constraints.Contains(load.Node, load.DOF);
+                if (!isConstrained) activeLoadsStatic.Add(load);
+            }
+            Loads = activeLoadsStatic;
+
+            // Dynamic loads
+            var activeLoadsDynamic = new List<ITimeDependentNodalLoad>(TimeDependentNodalLoads.Count);
+            foreach (ITimeDependentNodalLoad load in TimeDependentNodalLoads)
+            {
+                bool isConstrained = Constraints.Contains(load.Node, load.DOF);
+                if (!isConstrained) activeLoadsDynamic.Add(load);
+            }
+            TimeDependentNodalLoads = activeLoadsDynamic;
         }
 
         //private void EnumerateGlobalDOFs()

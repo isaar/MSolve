@@ -210,7 +210,7 @@ namespace ISAAR.MSolve.Tests
             var provider = new ProblemStructural_v2(model, solver);
 
             // Analyzers
-            var childAnalyzer = new LinearAnalyzer_v2(solver);
+            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
             var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
 
             // Run the anlaysis 

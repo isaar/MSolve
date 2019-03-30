@@ -94,7 +94,7 @@ namespace ISAAR.MSolve.Logging
             IVectorView totalDisplacements, IVectorView totalInternalForces)
         {
             double displacement, force;
-            bool isFreeDof = subdomain.DofOrdering.FreeDofs.TryGetValue(monitorNode, monitorDof, out int subdomainDofIdx); //TODO: Should this be cached?
+            bool isFreeDof = subdomain.FreeDofOrdering.FreeDofs.TryGetValue(monitorNode, monitorDof, out int subdomainDofIdx); //TODO: Should this be cached?
             if (isFreeDof)
             {
                 displacement = totalDisplacements[subdomainDofIdx];

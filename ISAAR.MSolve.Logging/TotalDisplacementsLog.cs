@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.Logging
 
             foreach ((INode node, DOFType dofType, int dofIdx) in watchedDofs)
             {
-                int globalDofIdx = subdomain.DofOrdering.FreeDofs[node, dofType];
+                int globalDofIdx = subdomain.FreeDofOrdering.FreeDofs[node, dofType];
                 displacements[dofIdx] = solution[globalDofIdx];
             }
         }

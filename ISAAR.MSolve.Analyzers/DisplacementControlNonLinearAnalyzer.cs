@@ -242,6 +242,8 @@ namespace ISAAR.MSolve.Analyzers
             foreach (ILinearSystem subdomain in linearSystems)
             {
                 Vector subdomainRHS = ((Vector)subdomain.RHS);
+
+                //TODO: Remove the next line. It does nothing.
                 var subdomainUpdater = subdomainUpdaters[linearSystems.Select((v, i) => new { System = v, Index = i })
                                                                       .First(x => x.System.ID == subdomain.ID).Index];
 

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Runtime;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Input;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Output;
@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.Analyzers
         private readonly List<double> matrixMagnitudes = new List<double>();
         private Dictionary<int, double[]> vrfs;
 
-        public IDictionary<int, CholeskySkyline> FactorizedMatrices { get; } = new Dictionary<int, CholeskySkyline>();
+        public IDictionary<int, LdlSkyline> FactorizedMatrices { get; } = new Dictionary<int, LdlSkyline>();
 
         public VRFMonteCarloAnalyzerWithStochasticMaterial_v2(Model_v2 model, IAnalyzerProvider_v2 provider, 
             IChildAnalyzer embeddedAnalyzer, ISolver_v2 solver, 
@@ -126,7 +126,7 @@ namespace ISAAR.MSolve.Analyzers
             ChildAnalyzer.BuildMatrices();
         }
 
-        public void Initialize()
+        public void Initialize(bool isFirstAnalysis)
         {
             if (ChildAnalyzer == null) throw new InvalidOperationException("Monte Carlo analyzer must contain an embedded analyzer.");
 
@@ -154,7 +154,7 @@ namespace ISAAR.MSolve.Analyzers
         {
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[150][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[84][DOFType.Y];
-            int dofNo = model.Subdomains[0].DofOrdering.FreeDofs[model.Nodes[80], DOFType.X];
+            int dofNo = model.Subdomains[0].FreeDofOrdering.FreeDofs[model.Nodes[80], DOFType.X];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[450][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[601][DOFType.Y];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[6051][DOFType.Y];
@@ -197,7 +197,7 @@ namespace ISAAR.MSolve.Analyzers
                     //if (stiffnessMatrixProductionMode == StiffnessMatrixProductionMode.StoreToDisk) continue;
 
                     e = DateTime.Now;
-                    ChildAnalyzer.Initialize();
+                    ChildAnalyzer.Initialize(false);
                     times["factorize"] += DateTime.Now - e;
                     GCSettings.LatencyMode = GCLatencyMode.LowLatency;
                     e = DateTime.Now;
@@ -287,7 +287,7 @@ namespace ISAAR.MSolve.Analyzers
             ISubdomain_v2 subdomain = model.Subdomains[0];
             foreach (var node in subdomain.Nodes)
             {
-                bool isFree = subdomain.DofOrdering.FreeDofs.TryGetValue(node, DOFType.Y, out int dofIdx);
+                bool isFree = subdomain.FreeDofOrdering.FreeDofs.TryGetValue(node, DOFType.Y, out int dofIdx);
                 s += (isFree ? dofIdx.ToString() : "0") + ";";
             }
             return s;
@@ -303,9 +303,9 @@ namespace ISAAR.MSolve.Analyzers
 
             foreach (var linearSystem in linearSystems)
             {
-                SkylineMatrix m = SkylineMatrixReader.ReadFromSingleFile(
+                SkylineMatrix m = SkylineMatrixReader.ReadFromSimilarlyNamedFiles(
                     String.Format("{0}\\{1}Sub{3}Sim{4}{2}", path, nameOnly, ext, linearSystem.Key, matrixNo));
-                CholeskySkyline factor = m.FactorCholesky(true, 1e-8);
+                LdlSkyline factor = m.FactorLdl(true, 1e-8);
                 if (FactorizedMatrices.ContainsKey(linearSystem.Key)) FactorizedMatrices[linearSystem.Key] = factor;
                 else FactorizedMatrices.Add(linearSystem.Key, factor);
             }

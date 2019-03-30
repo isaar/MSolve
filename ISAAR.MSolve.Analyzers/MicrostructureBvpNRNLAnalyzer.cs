@@ -168,7 +168,7 @@ namespace ISAAR.MSolve.Analyzers
             rhsNorm = provider.CalculateRhsNorm(globalRhs);
         }
 
-        public void Initialize()
+        public void Initialize(bool isFirstAnalysis = true)
         {
             InitializeInternalVectors();
             solver.Initialize();

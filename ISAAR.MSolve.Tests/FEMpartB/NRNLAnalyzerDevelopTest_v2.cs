@@ -47,8 +47,12 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             var solverBuilder = new SkylineSolver.Builder();
             solverBuilder.DofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
             var solver = solverBuilder.BuildSolver(model);
-            solver.OrderDofsAndClearLinearSystems();//model.GlobalDofOrdering = solver.DofOrderer.OrderDofs(model);
-            solver.ResetSubdomainForcesVector();
+            solver.OrderDofs(false);
+            foreach (ILinearSystem_v2 linearSystem in solver.LinearSystems.Values)
+            {
+                linearSystem.Reset(); 
+                linearSystem.Subdomain.Forces = Vector.CreateZero(linearSystem.Size);
+            }
             //kai dhmiourgia twn mhdenikwn dianusmatwn forces ligo parakatw
 
             //DdmCalculationsGeneral_v2.BuildModelInterconnectionData(model);
@@ -129,7 +133,8 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             var solverBuilder2 = new SkylineSolver.Builder();
             solverBuilder2.DofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
             ISolver_v2 solver2 = solverBuilder2.BuildSolver(model);
-            solver2.OrderDofsAndClearLinearSystems();
+            solver2.OrderDofs(false);
+            foreach (ILinearSystem_v2 linearSystem in solver2.LinearSystems.Values) linearSystem.Reset();
             //kalutera apotelesmata otan to parakatw den kratietai, ara pragmati resets ta subd.forces
             //solver.ResetSubdomainForcesVector();
             var linearSystems2 = solver2.LinearSystems; // elegxos me model.subdomainsDictionary[1]

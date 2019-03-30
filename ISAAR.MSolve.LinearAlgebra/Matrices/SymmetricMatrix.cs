@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
-using ISAAR.MSolve.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -301,6 +301,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return Conversions.PackedUpperColMajorToArray2DSymm(data, Order);
         }
 
+        /// <summary>
+        /// See <see cref="IMatrixView.CopyToFullMatrix()"/>
+        /// </summary>
         public Matrix CopyToFullMatrix()
         {
             double[] fullData = Conversions.PackedUpperColMajorToFullSymmColMajor(data, Order);
@@ -423,6 +426,41 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             Definiteness = DefiniteProperty.PositiveDefinite; // An exception would have been thrown otherwise.
             return factor;
         }
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetColumn(int)"/>.
+        /// </summary>
+        public Vector GetColumn(int colIndex)
+        {
+            Preconditions.CheckIndexCol(this, colIndex);
+            var columnVector = new double[Order];
+
+            // Upper triangle and diagonal entries of the column are stored explicitly and contiguously
+            int colOffset = (colIndex * (colIndex + 1)) / 2;
+            Array.Copy(data, colOffset, columnVector, 0, colIndex + 1);
+
+            // Lower triangle entries of the column can be found in the row with the same index
+            for (int j = colIndex + 1; j < Order; ++j) columnVector[j] = data[colIndex + (j * (j + 1)) / 2];
+
+            return Vector.CreateFromArray(columnVector);
+        }
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetRow(int)"/>.
+        /// </summary>
+        public Vector GetRow(int rowIndex) => GetColumn(rowIndex);
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetSubmatrix(int[], int[])"/>.
+        /// </summary>
+        public Matrix GetSubmatrix(int[] rowIndices, int[] colIndices)
+            => DenseStrategies.GetSubmatrix(this, rowIndices, colIndices);
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetSubmatrix(int, int, int, int)"/>.
+        /// </summary>
+        public Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
+            => DenseStrategies.GetSubmatrix(this, rowStartInclusive, rowEndExclusive, colStartInclusive, colEndExclusive);
 
         public IMatrix LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {

@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         private readonly Dictionary<IQuadrature2D, IReadOnlyList<double[]>> cachedFunctionsAtGPs;
         private readonly Dictionary<IQuadrature2D, IReadOnlyList<Matrix>> cachedNaturalGradientsAtGPs;
 
-        protected IsoparametricInterpolation2DBase(CellType2D cellType, int numFunctions)
+        protected IsoparametricInterpolation2DBase(CellType cellType, int numFunctions)
         {
             this.CellType = cellType;
             this.NumFunctions = numFunctions;
@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <summary>
         /// See <see cref="IIsoparametricInterpolation2D.CellType"/>.
         /// </summary>
-        public CellType2D CellType { get; }
+        public CellType CellType { get; }
 
         /// <summary>
         /// See <see cref="IIsoparametricInterpolation2D.NumFunctions"/>.

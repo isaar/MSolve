@@ -21,35 +21,73 @@ namespace ISAAR.MSolve.Solvers.Assemblers
     {
         private const string name = "SkylineAssembler"; // for error messages
 
-        bool isIndexerCached = false;
-        private int[] skylineColHeights; //TODO: better have reusable Skyline matrix builders
+        bool areIndexersCached = false;
+        private SkylineBuilder skylineBuilder;
+        private ConstrainedMatricesAssembler constrainedAssembler = new ConstrainedMatricesAssembler();
 
         public SkylineMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement_v2> elements,
             IElementMatrixProvider_v2 matrixProvider)
         {
-            if (!isIndexerCached)
+            if (!areIndexersCached)
             {
-                skylineColHeights = FindSkylineColumnHeights(elements, dofOrdering.NumFreeDofs, dofOrdering.FreeDofs);
-                isIndexerCached = true;
+                skylineBuilder = SkylineBuilder.Create(dofOrdering.NumFreeDofs,
+                    FindSkylineColumnHeights(elements, dofOrdering.NumFreeDofs, dofOrdering.FreeDofs));
+                areIndexersCached = true;
             }
+            else skylineBuilder.ClearValues();
 
-            var subdomainMatrix = SkylineBuilder.Create(dofOrdering.NumFreeDofs, skylineColHeights);
             foreach (IElement_v2 element in elements)
             {
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 (int[] elementDofIndices, int[] subdomainDofIndices) = dofOrdering.MapFreeDofsElementToSubdomain(element);
                 IMatrix elementMatrix = matrixProvider.Matrix(element);
-                subdomainMatrix.AddSubmatrixSymmetric(elementMatrix, elementDofIndices, subdomainDofIndices);
+                skylineBuilder.AddSubmatrixSymmetric(elementMatrix, elementDofIndices, subdomainDofIndices);
             }
 
-            return subdomainMatrix.BuildSkylineMatrix();
+            return skylineBuilder.BuildSkylineMatrix();
+        }
+
+        public (SkylineMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree, 
+            IMatrixView matrixConstrConstr) BuildGlobalSubmatrices(
+            ISubdomainFreeDofOrdering freeDofOrdering, ISubdomainConstrainedDofOrdering constrainedDofOrdering, 
+            IEnumerable<IElement_v2> elements, IElementMatrixProvider_v2 matrixProvider)
+        {
+            if (!areIndexersCached)
+            {
+                skylineBuilder = SkylineBuilder.Create(freeDofOrdering.NumFreeDofs,
+                    FindSkylineColumnHeights(elements, freeDofOrdering.NumFreeDofs, freeDofOrdering.FreeDofs));
+                areIndexersCached = true;
+            }
+            else skylineBuilder.ClearValues();
+
+            //TODO: also reuse the indexers of the constrained matrices.
+            constrainedAssembler.InitializeNewMatrices(freeDofOrdering.NumFreeDofs, constrainedDofOrdering.NumConstrainedDofs);
+
+            // Process the stiffness of each element
+            foreach (IElement_v2 element in elements)
+            {
+                // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
+                (int[] elementDofsFree, int[] subdomainDofsFree) = freeDofOrdering.MapFreeDofsElementToSubdomain(element);
+                (int[] elementDofsConstrained, int[] subdomainDofsConstrained) = 
+                    constrainedDofOrdering.MapConstrainedDofsElementToSubdomain(element);
+
+                IMatrix elementMatrix = matrixProvider.Matrix(element);
+                skylineBuilder.AddSubmatrixSymmetric(elementMatrix, elementDofsFree, subdomainDofsFree);
+                constrainedAssembler.AddElementMatrix(elementMatrix, elementDofsFree, subdomainDofsFree,
+                    elementDofsConstrained, subdomainDofsConstrained);
+            }
+
+            // Create the free and constrained matrices. 
+            SkylineMatrix matrixFreeFree = skylineBuilder.BuildSkylineMatrix();
+            (CsrMatrix matrixConstrFree, CsrMatrix matrixConstrConstr) = constrainedAssembler.BuildMatrices();
+            return (matrixFreeFree, matrixConstrFree.TransposeToCSC(false), matrixConstrFree, matrixConstrConstr);
         }
 
         public void HandleDofOrderingWillBeModified()
         {
             //TODO: perhaps the indexer should be disposed altogether. Then again it could be in use by other matrices.
-            skylineColHeights = null;
-            isIndexerCached = false;
+            skylineBuilder = null;
+            areIndexersCached = false;
         }
 
         //TODO: If one element engages some dofs (of a node) and another engages other dofs, the ones not in the intersection 

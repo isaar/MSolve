@@ -5,7 +5,7 @@ using System.Linq;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
-using ISAAR.MSolve.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Logging.Interfaces;
 using ISAAR.MSolve.Solvers;
@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.Analyzers
         private List<int>[] nonZeroPsi;
 
         public IDictionary<int, IMatrix>[] Matrices { get { return matrices; } }
-        public IList<Dictionary<int, CholeskySkyline>> FactorizedMatrices { get; } = new List<Dictionary<int, CholeskySkyline>>();
+        public IList<Dictionary<int, LdlSkyline>> FactorizedMatrices { get; } = new List<Dictionary<int, LdlSkyline>>();
 
         public PolynomialChaosAnalyzer_v2(Model_v2 model, IAnalyzerProvider_v2 provider, IChildAnalyzer embeddedAnalyzer, 
             ISolver_v2 solver, IPCCoefficientsProvider coefficientsProvider, int expansionOrder, int simulations, 
@@ -81,14 +81,14 @@ namespace ISAAR.MSolve.Analyzers
         {
             FactorizedMatrices.Clear();
             for (int i = 0; i < matrices.Length; i++)
-                FactorizedMatrices.Add(new Dictionary<int, CholeskySkyline>());
+                FactorizedMatrices.Add(new Dictionary<int, LdlSkyline>());
 
             foreach (var sub in linearSystems)
             {
                 //for (int i = 0; i < matrices.Length; i++)
                 for (int i = 0; i < 1; i++)
                 {
-                    CholeskySkyline m = ((SkylineMatrix)matrices[i][sub.Key]).FactorCholesky(false, 1e-32);
+                    LdlSkyline m = ((SkylineMatrix)matrices[i][sub.Key]).FactorLdl(false, 1e-32);
 
                     if (FactorizedMatrices[i].ContainsKey(sub.Key)) FactorizedMatrices[i][sub.Key] = m;
                     else FactorizedMatrices[i].Add(sub.Key, m);
@@ -158,7 +158,7 @@ namespace ISAAR.MSolve.Analyzers
         //    //    subdomain.Matrix.LinearCombination(coefficients, matricesPerSubdomain[subdomain.ID]);
         //}
 
-        public void Initialize()
+        public void Initialize(bool isFirstAnalysis)
         {
             if (ChildAnalyzer == null) throw new InvalidOperationException("Polynomial chaos analyzer must contain an embedded analyzer.");
         }
@@ -187,10 +187,10 @@ namespace ISAAR.MSolve.Analyzers
             //BuildStochasticMatrices();
             InitializeNonZeroPsi();
             if (shouldFactorizeMatrices) MakePreconditioners();
-            ChildAnalyzer.Initialize();
+            ChildAnalyzer.Initialize(true);
             ChildAnalyzer.Solve();
 
-            int dofNo = model.Subdomains[0].DofOrdering.FreeDofs[model.NodesDictionary[1], DOFType.X];
+            int dofNo = model.Subdomains[0].FreeDofOrdering.FreeDofs[model.NodesDictionary[1], DOFType.X];
             //int dofNo = model.Subdomains[0].GlobalNodalDOFsDictionary[84][DOFType.Y];
             //int dofNo = 112;
             var subdomain = linearSystems.Select(x => x.Value).First();

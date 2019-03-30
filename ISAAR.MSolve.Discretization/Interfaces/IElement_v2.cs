@@ -7,5 +7,6 @@ namespace ISAAR.MSolve.Discretization.Interfaces
         int ID { get; set; }
         IElementType_v2 ElementType { get; }
         IList<INode> Nodes { get; }
+        ISubdomain_v2 Subdomain { get; }
     }
 }

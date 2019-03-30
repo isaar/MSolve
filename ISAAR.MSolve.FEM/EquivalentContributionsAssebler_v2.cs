@@ -39,10 +39,10 @@ namespace ISAAR.MSolve.FEM
             Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements,
             int nIncrement, int totalIncrements)
         {
-            var dofOrdering = subdomain.DofOrdering; //_v2.1
-            var FreeDofs = subdomain.DofOrdering.FreeDofs;//_v2.1 Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary = subdomain.NodalDOFsDictionary;
+            var dofOrdering = subdomain.FreeDofOrdering; //_v2.1
+            var FreeDofs = subdomain.FreeDofOrdering.FreeDofs;//_v2.1 Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary = subdomain.NodalDOFsDictionary;
 
-            double[] Kfp_Ustep = new double[subdomain.DofOrdering.NumFreeDofs];//_v2.2 subdomain.TotalDOFs]; 
+            double[] Kfp_Ustep = new double[subdomain.FreeDofOrdering.NumFreeDofs];//_v2.2 subdomain.TotalDOFs]; 
 
             var times = new Dictionary<string, TimeSpan>();
             var totalStart = DateTime.Now;

@@ -510,6 +510,13 @@ namespace ISAAR.MSolve.Numerical.LinearAlgebra
             return clone;
         }
 
+        public SkylineMatrix2D Copy()
+        {
+            var clone = new SkylineMatrix2D(this.rowIndex);
+            this.data.CopyTo(clone.Data, 0);
+            clone.isFactorized = isFactorized;
+            return clone;
+        }
         #endregion
     }
 }

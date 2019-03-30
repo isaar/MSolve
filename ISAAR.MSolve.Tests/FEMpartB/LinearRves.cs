@@ -52,7 +52,12 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             double[,] consCheck1 = new double[3, 3];
             for (int i1 = 0; i1 < 3; i1++) { for (int i2 = 0; i2 < 3; i2++) { consCheck1[i1, i2] = material3.ConstitutiveMatrix[i1, i2]; } }
 
-            var material4 = new MicrostructureShell2D(homogeneousRveBuilder1, new SkylineSolver.Builder(), false, 1) { TangentVectorV1 = new double[3] { Vec1[0], Vec1[1], Vec1[2] }, TangentVectorV2 = new double[3] { Vec2[0], Vec2[1], Vec2[2] } }; ;
+            var material4 = new MicrostructureShell2D(homogeneousRveBuilder1, 
+                model => (new SkylineSolver.Builder()).BuildSolver(model), false, 1)
+            {
+                TangentVectorV1 = new double[3] { Vec1[0], Vec1[1], Vec1[2] },
+                TangentVectorV2 = new double[3] { Vec2[0], Vec2[1], Vec2[2] }
+            };
             var Matrix2 = Matrix.CreateZero(3, 3); for (int i1 = 0; i1 < 3; i1++) { for (int i2 = 0; i2 < 3; i2++) { Matrix2[i1, i2] = material4.ConstitutiveMatrix[i1, i2]; } }
             material4.UpdateMaterial(strain);
             double[] stressesCheck4 = new double[3] { material4.Stresses[0], material4.Stresses[1], material4.Stresses[2] };
@@ -89,7 +94,8 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             IdegenerateRVEbuilder_v2 homogeneousRveBuilder1 = new HomogeneousRVEBuilderLinearAndDegenerate();
             //IRVEbuilder homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheckEnaHexa();
 
-            IContinuumMaterial2D_v2 microstructure3 = new Microstructure2DplaneStress(homogeneousRveBuilder1, new SkylineSolver.Builder(), false, 1);
+            IContinuumMaterial2D_v2 microstructure3 = new Microstructure2DplaneStress(homogeneousRveBuilder1, 
+                model => (new SkylineSolver.Builder()).BuildSolver(model), false, 1);
             //IContinuumMaterial3DDefGrad microstructure3copyConsCheck = new Microstructure3copyConsCheckEna(homogeneousRveBuilder1);
             double[,] consCheck1 = new double[3, 3];
             for (int i1 = 0; i1 < 3; i1++) { for (int i2 = 0; i2 < 3; i2++) { consCheck1[i1, i2] = microstructure3.ConstitutiveMatrix[i1, i2]; } }
@@ -132,7 +138,8 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             IRVEbuilder_v2 homogeneousRveBuilder1 = new HomogeneousRVEBuilderLinear();
             //IRVEbuilder homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheckEnaHexa();
 
-            IContinuumMaterial3D_v2 microstructure3 = new Microstructure3D(homogeneousRveBuilder1, new SkylineSolver.Builder(), false, 1);
+            IContinuumMaterial3D_v2 microstructure3 = new Microstructure3D(homogeneousRveBuilder1, 
+                model => (new SkylineSolver.Builder()).BuildSolver(model), false, 1);
             //IContinuumMaterial3DDefGrad microstructure3copyConsCheck = new Microstructure3copyConsCheckEna(homogeneousRveBuilder1);
             double[,] consCheck1 = new double[6, 6];
             for (int i1 = 0; i1 < 6; i1++) { for (int i2 = 0; i2 < 6; i2++) { consCheck1[i1, i2] = microstructure3.ConstitutiveMatrix[i1, i2]; } }

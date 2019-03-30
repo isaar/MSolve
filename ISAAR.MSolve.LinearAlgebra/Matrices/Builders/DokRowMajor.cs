@@ -152,6 +152,36 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         }
 
         /// <summary>
+        /// See <see cref="IGeneralMatrixBuilder.AddSubmatrix(IIndexable2D, int[], int[], int[], int[])"/>.
+        /// </summary>
+        public void AddSubmatrix(IIndexable2D subMatrix, int[] subMatrixRows, int[] globalMatrixRows, 
+            int[] subMatrixCols, int[] globalMatrixCols)
+        {
+            int numRows = subMatrixRows.Length;
+            int numCols = subMatrixCols.Length;
+            Debug.Assert(numRows == globalMatrixRows.Length);
+            Debug.Assert(numCols == globalMatrixCols.Length);
+
+            for (int i = 0; i < numRows; ++i)
+            {
+                int subRow = subMatrixRows[i];
+                int globalRow = globalMatrixRows[i];
+                Debug.Assert((globalRow >= 0) && (globalRow < NumRows));
+
+                for (int j = 0; j < numCols; ++j)
+                {
+                    int subCol = subMatrixCols[j];
+                    int globalCol = globalMatrixCols[j];
+                    Debug.Assert((globalCol >= 0) && (globalCol < NumColumns));
+
+                    double subVal = subMatrix[subRow, subCol];
+                    rows[globalRow].TryGetValue(globalCol, out double oldGlobalVal); // default value = 0.0, if the entry is new
+                    rows[globalRow][globalCol] = subVal + oldGlobalVal;
+                }
+            }
+        }
+
+        /// <summary>
         /// See <see cref="IGeneralMatrixBuilder.AddSubmatrixSymmetric(IIndexable2D, IReadOnlyDictionary{int, int})"/>.
         /// </summary>
         public void AddSubmatrixSymmetric(IIndexable2D subMatrix, IReadOnlyDictionary<int, int> subIndicesToGlobalIndices)

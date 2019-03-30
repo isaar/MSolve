@@ -1,6 +1,8 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.LinearAlgebra.Factorizations;
+﻿using System.Collections.Generic;
+using System.Linq;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.Ordering;
@@ -16,15 +18,19 @@ namespace ISAAR.MSolve.Solvers.Direct
     /// </summary>
     public class DenseMatrixSolver: SingleSubdomainSolverBase<Matrix>
     {
+        private readonly bool isMatrixPositiveDefinite; //TODO: actually there should be 3 states: posDef, symmIndef, unsymm
+
         private bool factorizeInPlace = true;
-        private bool mustFactorize = true;
-        private CholeskyFull factorizedMatrix;
+        private bool mustInvert = true;
+        private Matrix inverse;
 
-        private DenseMatrixSolver(IStructuralModel_v2 model, IDofOrderer dofOrderer):
+        private DenseMatrixSolver(IStructuralModel_v2 model, IDofOrderer dofOrderer, bool isMatrixPositiveDefinite) :
             base(model, dofOrderer, new DenseMatrixAssembler(), "DenseMatrixSolver")
-        { }
+        {
+            this.isMatrixPositiveDefinite = isMatrixPositiveDefinite;
+        }
 
-        public override IMatrix BuildGlobalMatrix(ISubdomain_v2 subdomain, IElementMatrixProvider_v2 elementMatrixProvider)
+        public override Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider_v2 elementMatrixProvider)
         {
             #region Code to facilitate debugging
             //var writer = new FullMatrixWriter();
@@ -73,17 +79,20 @@ namespace ISAAR.MSolve.Solvers.Direct
             //writer.WriteToConsole(matrix);
             #endregion
 
-            return assembler.BuildGlobalMatrix(subdomain.DofOrdering, subdomain.Elements, 
-                elementMatrixProvider);
+            return new Dictionary<int, IMatrix>
+            {
+                { subdomain.ID,
+                    assembler.BuildGlobalMatrix(subdomain.FreeDofOrdering, subdomain.Elements, elementMatrixProvider) }
+            };
         }
-
-        public override void Initialize() {}
 
         public override void HandleMatrixWillBeSet()
         {
-            mustFactorize = true;
-            factorizedMatrix = null;
+            mustInvert = true;
+            inverse = null;
         }
+
+        public override void Initialize() {}
 
         public override void PreventFromOverwrittingSystemMatrices() => factorizeInPlace = false;
 
@@ -96,24 +105,40 @@ namespace ISAAR.MSolve.Solvers.Direct
             if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
             //else linearSystem.Solution.Clear(); // no need to waste computational time on this in a direct solver
 
-            if (mustFactorize)
+            if (mustInvert)
             {
-                factorizedMatrix = linearSystem.Matrix.FactorCholesky(factorizeInPlace);
-                mustFactorize = false;
+                if (isMatrixPositiveDefinite) inverse = linearSystem.Matrix.FactorCholesky(factorizeInPlace).Invert(true);
+                else inverse = linearSystem.Matrix.FactorLU(factorizeInPlace).Invert(true);
+                mustInvert = false;
             }
-
-            factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
+            inverse.MultiplyIntoResult(linearSystem.RhsVector, linearSystem.Solution);
         }
 
-        public class Builder
+        protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)
+        {
+            if (mustInvert)
+            {
+                if (isMatrixPositiveDefinite) inverse = linearSystem.Matrix.FactorCholesky(factorizeInPlace).Invert(true);
+                else inverse = linearSystem.Matrix.FactorLU(factorizeInPlace).Invert(true);
+                mustInvert = false;
+            }
+
+            return inverse.MultiplyRight(otherMatrix);
+        }
+
+        public class Builder: ISolverBuilder
         {
             public Builder() { }
 
             public IDofOrderer DofOrderer { get; set; }
                 = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
 
+            public bool IsMatrixPositiveDefinite { get; set; } = true;
+
+            ISolver_v2 ISolverBuilder.BuildSolver(IStructuralModel_v2 model) => BuildSolver(model);
+
             public DenseMatrixSolver BuildSolver(IStructuralModel_v2 model)
-                => new DenseMatrixSolver(model, DofOrderer);
+                => new DenseMatrixSolver(model, DofOrderer, IsMatrixPositiveDefinite);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// around or allow acceess to it, consider using this interface instead of <see cref="Matrix"/> for extra safety.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public interface IMatrixView: IIndexable2D, IReducible
+    public interface IMatrixView: IIndexable2D, IReducible, ISliceable2D
     {
         /// <summary>
         /// Performs the following operation for all (i, j):
@@ -39,6 +39,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         IMatrix Copy(bool copyIndexingData = false);
 
         /// <summary>
+        /// Copies this <see cref="IMatrixView"/> object. The new matrix will have all its entries explicitly stored.
+        /// </summary>
+        Matrix CopyToFullMatrix();
+
+        /// <summary>
         /// Performs a binary operation on each pair of entries: 
         /// result[i, j] = <paramref name="binaryOperation"/>(this[i, j], <paramref name="matrix"/>[i]). 
         /// The resulting matrix is written in a new object and then returned.
@@ -56,7 +61,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="unaryOperation">A method that takes 1 argument and returns 1 result.</param>
         IMatrix DoToAllEntries(Func<double, double> unaryOperation);
-
 
         /// <summary>
         /// Performs the following operation for all (i, j):

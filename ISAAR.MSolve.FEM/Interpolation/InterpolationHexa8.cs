@@ -13,91 +13,124 @@ namespace ISAAR.MSolve.FEM.Interpolation
     /// </summary>
     public class InterpolationHexa8 : IsoparametricInterpolation3DBase
     {
-		private static readonly InterpolationHexa8 uniqueInstance= new InterpolationHexa8();
+        private const double oneOverEight = 0.125;
 
-	    private InterpolationHexa8() : base(8)
-	    {
-		    NodalNaturalCoordinates = new NaturalPoint3D[]
-		    {
-			    new NaturalPoint3D(-1, -1, -1),
-			    new NaturalPoint3D(1, -1, -1),
-			    new NaturalPoint3D(1, 1, -1),
-			    new NaturalPoint3D(-1, 1, -1),
-			    new NaturalPoint3D(-1, -1, 1),
-			    new NaturalPoint3D(1, -1, 1),
-			    new NaturalPoint3D(1, 1, 1),
-			    new NaturalPoint3D(-1, 1, 1),
-		    };
-	    }
+        private static readonly InterpolationHexa8 uniqueInstance= new InterpolationHexa8();
 
-		/// <summary>
-		/// The coordinates of the finite element's nodes in the natural (element local) coordinate system. The order of these
-		/// nodes matches the order of the shape functions and is always the same for each element.
-		/// </summary>
-		public override IReadOnlyList<NaturalPoint3D> NodalNaturalCoordinates { get; }
+        private InterpolationHexa8() : base(8)
+        {
+            NodalNaturalCoordinates = new NaturalPoint3D[]
+            {
+                new NaturalPoint3D(-1, -1, -1),
+                new NaturalPoint3D(1, -1, -1),
+                new NaturalPoint3D(1, 1, -1),
+                new NaturalPoint3D(-1, 1, -1),
+                new NaturalPoint3D(-1, -1, 1),
+                new NaturalPoint3D(1, -1, 1),
+                new NaturalPoint3D(1, 1, 1),
+                new NaturalPoint3D(-1, 1, 1),
+            };
+        }
 
-		/// <summary>
-		/// Get the unique <see cref="InterpolationHexa8"/> object for the whole program. Thread safe.
-		/// </summary>
-	    public static InterpolationHexa8 UniqueInstance => uniqueInstance;
+        /// <summary>
+        /// The coordinates of the finite element's nodes in the natural (element local) coordinate system. The order of these
+        /// nodes matches the order of the shape functions and is always the same for each element.
+        /// </summary>
+        public override IReadOnlyList<NaturalPoint3D> NodalNaturalCoordinates { get; }
+
+        /// <summary>
+        /// Get the unique <see cref="InterpolationHexa8"/> object for the whole program. Thread safe.
+        /// </summary>
+        public static InterpolationHexa8 UniqueInstance => uniqueInstance;
 
 
-	    /// <summary>
-	    /// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.
-	    /// </summary>
-	    /// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
-	    /// <returns></returns>
-	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node_v2> nodes) =>
-		    new InverseInterpolationHexa8(nodes);
+        /// <summary>
+        /// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.
+        /// </summary>
+        /// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
+        /// <returns></returns>
+        public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node_v2> nodes) =>
+            new InverseInterpolationHexa8(nodes);
 
-	    protected sealed  override double[] EvaluateAt(double xi, double eta, double zeta)
-	    {
-		    var values = new double[8];
-		    values[0] = 0.125 * (1 - xi) * (1 - eta) * (1 - zeta);
-		    values[1] = 0.125 * (1 + xi) * (1 - eta) * (1 - zeta);
-		    values[2] = 0.125 * (1 + xi) * (1 + eta) * (1 - zeta);
-		    values[3] = 0.125 * (1 - xi) * (1 + eta) * (1 - zeta);
-		    values[4] = 0.125 * (1 - xi) * (1 - eta) * (1 + zeta);
-		    values[5] = 0.125 * (1 + xi) * (1 - eta) * (1 + zeta);
-		    values[6] = 0.125 * (1 + xi) * (1 + eta) * (1 + zeta);
-		    values[7] = 0.125 * (1 - xi) * (1 + eta) * (1 + zeta);
-		    return values;
-	    }
+        protected sealed  override double[] EvaluateAt(double xi, double eta, double zeta)
+        {
+            var values = new double[8];
+            values[0] = oneOverEight * (1 - xi) * (1 - eta) * (1 - zeta);
+            values[1] = oneOverEight * (1 + xi) * (1 - eta) * (1 - zeta);
+            values[2] = oneOverEight * (1 + xi) * (1 + eta) * (1 - zeta);
+            values[3] = oneOverEight * (1 - xi) * (1 + eta) * (1 - zeta);
+            values[4] = oneOverEight * (1 - xi) * (1 - eta) * (1 + zeta);
+            values[5] = oneOverEight * (1 + xi) * (1 - eta) * (1 + zeta);
+            values[6] = oneOverEight * (1 + xi) * (1 + eta) * (1 + zeta);
+            values[7] = oneOverEight * (1 - xi) * (1 + eta) * (1 + zeta);
+            return values;
+        }
 
-	    protected sealed override Matrix EvaluateGradientsAt(double xi, double eta, double zeta)
-	    {
-		    var x = xi;
-		    var y = eta;
-		    var z = zeta;
+        protected sealed override Matrix EvaluateGradientsAt(double xi, double eta, double zeta)
+        {
+            var derivatives = Matrix.CreateZero(8, 3);
 
-		    var derivatives = Matrix.CreateZero(8, 3);
-		    derivatives[0, 0] = -((y - 1) * (z - 1)) / 8;
-		    derivatives[1, 0] = ((y - 1) * (z - 1)) / 8;
-		    derivatives[2, 0] = -((y + 1) * (z - 1)) / 8;
-		    derivatives[3, 0] = ((y + 1) * (z - 1)) / 8;
-		    derivatives[4, 0] = ((y - 1) * (z + 1)) / 8;
-		    derivatives[5, 0] = -((y - 1) * (z + 1)) / 8;
-		    derivatives[6, 0] = ((y + 1) * (z + 1)) / 8;
-		    derivatives[7, 0] = -((y + 1) * (z + 1)) / 8;
+            derivatives[0, 0] = -oneOverEight * (1 - eta) * (1 - zeta);
+            derivatives[1, 0] = +oneOverEight * (1 - eta) * (1 - zeta);
+            derivatives[2, 0] = +oneOverEight * (1 + eta) * (1 - zeta);
+            derivatives[3, 0] = -oneOverEight * (1 + eta) * (1 - zeta);
+            derivatives[4, 0] = -oneOverEight * (1 - eta) * (1 + zeta);
+            derivatives[5, 0] = +oneOverEight * (1 - eta) * (1 + zeta);
+            derivatives[6, 0] = +oneOverEight * (1 + eta) * (1 + zeta);
+            derivatives[7, 0] = -oneOverEight * (1 + eta) * (1 + zeta);
 
-		    derivatives[0, 1] = -(x - 1) * (z - 1) / 8;
-		    derivatives[1, 1] = (x + 1) * (z - 1) / 8;
-		    derivatives[2, 1] = -(x + 1) * (z - 1) / 8;
-		    derivatives[3, 1] = (x - 1) * (z - 1) / 8;
-		    derivatives[4, 1] = (x - 1) * (z + 1) / 8;
-		    derivatives[5, 1] = -(x + 1) * (z + 1) / 8;
-		    derivatives[6, 1] = (x + 1) * (z + 1) / 8;
-		    derivatives[6, 1] = -(x - 1) * (z + 1) / 8;
+            derivatives[0, 1] = -oneOverEight * (1 - xi) * (1 - zeta);
+            derivatives[1, 1] = -oneOverEight * (1 + xi) * (1 - zeta);
+            derivatives[2, 1] = +oneOverEight * (1 + xi) * (1 - zeta);
+            derivatives[3, 1] = +oneOverEight * (1 - xi) * (1 - zeta);
+            derivatives[4, 1] = -oneOverEight * (1 - xi) * (1 + zeta);
+            derivatives[5, 1] = -oneOverEight * (1 + xi) * (1 + zeta);
+            derivatives[6, 1] = +oneOverEight * (1 + xi) * (1 + zeta);
+            derivatives[7, 1] = +oneOverEight * (1 - xi) * (1 + zeta);
 
-		    derivatives[0, 2] = -(x - 1) * (y - 1) / 8;
-		    derivatives[1, 2] = (x + 1) * (y - 1) / 8;
-		    derivatives[2, 2] = -(x + 1) * (y + 1) / 8;
-		    derivatives[3, 2] = (x - 1) * (y + 1) / 8;
-		    derivatives[4, 2] = (x - 1) * (y - 1) / 8;
-		    derivatives[5, 2] = -(x + 1) * (y - 1) / 8;
-		    derivatives[6, 2] = (x + 1) * (y + 1) / 8;
-		    derivatives[7, 2] = -(x - 1) * (y + 1) / 8;
-		    return derivatives;
-	    }
+            derivatives[0, 2] = -oneOverEight * (1 - xi) * (1 - eta);
+            derivatives[1, 2] = -oneOverEight * (1 + xi) * (1 - eta);
+            derivatives[2, 2] = -oneOverEight * (1 + xi) * (1 + eta);
+            derivatives[3, 2] = -oneOverEight * (1 - xi) * (1 + eta);
+            derivatives[4, 2] = +oneOverEight * (1 - xi) * (1 - eta);
+            derivatives[5, 2] = +oneOverEight * (1 + xi) * (1 - eta);
+            derivatives[6, 2] = +oneOverEight * (1 + xi) * (1 + eta);
+            derivatives[7, 2] = +oneOverEight * (1 - xi) * (1 + eta);
+
+            #region untested
+            //var x = xi;
+            //var y = eta;
+            //var z = zeta;
+
+            //derivatives[0, 0] = -(y - 1) * (z - 1) / 8;
+            //derivatives[1, 0] = (y - 1) * (z - 1) / 8;
+            //derivatives[2, 0] = -(y + 1) * (z - 1) / 8;
+            //derivatives[3, 0] = (y + 1) * (z - 1) / 8;
+            //derivatives[4, 0] = (y - 1) * (z + 1) / 8;
+            //derivatives[5, 0] = -(y - 1) * (z + 1) / 8;
+            //derivatives[6, 0] = (y + 1) * (z + 1) / 8;
+            //derivatives[7, 0] = -(y + 1) * (z + 1) / 8;
+
+            //derivatives[0, 1] = -(x - 1) * (z - 1) / 8;
+            //derivatives[1, 1] = (x + 1) * (z - 1) / 8;
+            //derivatives[2, 1] = -(x + 1) * (z - 1) / 8;
+            //derivatives[3, 1] = (x - 1) * (z - 1) / 8;
+            //derivatives[4, 1] = (x - 1) * (z + 1) / 8;
+            //derivatives[5, 1] = -(x + 1) * (z + 1) / 8;
+            //derivatives[6, 1] = (x + 1) * (z + 1) / 8;
+            //derivatives[7, 1] = -(x - 1) * (z + 1) / 8;
+
+            //derivatives[0, 2] = -(x - 1) * (y - 1) / 8;
+            //derivatives[1, 2] = (x + 1) * (y - 1) / 8;
+            //derivatives[2, 2] = -(x + 1) * (y + 1) / 8;
+            //derivatives[3, 2] = (x - 1) * (y + 1) / 8;
+            //derivatives[4, 2] = (x - 1) * (y - 1) / 8;
+            //derivatives[5, 2] = -(x + 1) * (y - 1) / 8;
+            //derivatives[6, 2] = (x + 1) * (y + 1) / 8;
+            //derivatives[7, 2] = -(x - 1) * (y + 1) / 8;
+            #endregion
+
+            return derivatives;
+        }
     }
 }

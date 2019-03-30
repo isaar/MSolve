@@ -165,8 +165,8 @@ namespace ISAAR.MSolve.FEM
 
         public static double[][] CalculateKpfKffinverseKfpDq_v2(double[][] f2_vectors, Subdomain_v2 subdomain, IElementMatrixProvider_v2 elementProvider, IScaleTransitions_v2 scaleTransitions, Dictionary<int, Node_v2> boundaryNodes)
         {
-            var dofOrdering = subdomain.DofOrdering; //_v2.1
-            var FreeDofs = subdomain.DofOrdering.FreeDofs;//_v2.1Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary = subdomain.NodalDOFsDictionary;
+            var dofOrdering = subdomain.FreeDofOrdering; //_v2.1
+            var FreeDofs = subdomain.FreeDofOrdering.FreeDofs;//_v2.1Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary = subdomain.NodalDOFsDictionary;
 
             double[][] f3_vectors = new double[f2_vectors.GetLength(0)][];
             for (int i1 = 0; i1 < f2_vectors.GetLength(0); i1++)

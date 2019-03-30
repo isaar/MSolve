@@ -329,6 +329,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
+        /// See <see cref="IMatrixView.CopyToFullMatrix()"/>
+        /// </summary>
+        public Matrix CopyToFullMatrix() => Matrix.CreateFromArray(data);
+
+        /// <summary>
         /// Performs the following operation for 0 &lt;= i, j &lt; 3:
         /// result[i, j] = <paramref name="binaryOperation"/>(this[i,j], <paramref name="matrix"/>[i, j])
         /// The resulting matrix is written to a new <see cref="Matrix3by3"/> and then returned.
@@ -496,6 +501,36 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                     && comparer.AreEqual(this.data[2, 2], other[2, 2]);
             }
         }
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetColumn(int)"/>.
+        /// </summary>
+        public Vector GetColumn(int colIndex)
+        {
+            Preconditions.CheckIndexCol(this, colIndex);
+            return Vector.CreateFromArray(new double[] { data[0, colIndex], data[1, colIndex], data[2, colIndex] });
+        }
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetRow(int)"/>.
+        /// </summary>
+        public Vector GetRow(int rowIndex)
+        {
+            Preconditions.CheckIndexRow(this, rowIndex);
+            return Vector.CreateFromArray(new double[] { data[rowIndex, 0], data[rowIndex, 1], data[rowIndex, 2] });
+        }
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetSubmatrix(int[], int[])"/>.
+        /// </summary>
+        public Matrix GetSubmatrix(int[] rowIndices, int[] colIndices)
+            => DenseStrategies.GetSubmatrix(this, rowIndices, colIndices);
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetSubmatrix(int, int, int, int)"/>.
+        /// </summary>
+        public Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
+            => DenseStrategies.GetSubmatrix(this, rowStartInclusive, rowEndExclusive, colStartInclusive, colEndExclusive);
 
         /// <summary>
         /// Calculates the inverse matrix and returns it in a new <see cref="Matrix3by3"/> instance. This only works if this 

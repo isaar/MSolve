@@ -81,44 +81,29 @@ namespace ISAAR.MSolve.Problems
             BuildQs();
         }
 
-        private void BuildKs()
-        {
-            ks = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
-            {
-                ks.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, stiffnessProvider));
-            }
-        }
+        private void BuildKs() => ks = solver.BuildGlobalMatrices(stiffnessProvider);
 
         private void RebuildKs()
         {
+            //TODO: This will rebuild all the stiffnesses of all subdomains, if even one subdomain has MaterialsModified = true.
+            //      Optimize this, by passing a flag foreach subdomain to solver.BuildGlobalSubmatrices().
+
+            bool mustRebuild = false;
             foreach (ISubdomain_v2 subdomain in model.Subdomains)
             {
                 if (subdomain.MaterialsModified)
                 {
-                    ks[subdomain.ID] = solver.BuildGlobalMatrix(subdomain, stiffnessProvider);
-                    subdomain.ResetMaterialsModifiedProperty();
+                    mustRebuild = true;
+                    break;
                 }
             }
+            if (mustRebuild) ks = solver.BuildGlobalMatrices(stiffnessProvider);
+            foreach (ISubdomain_v2 subdomain in model.Subdomains) subdomain.ResetMaterialsModifiedProperty();
         }
 
-        private void BuildMs()
-        {
-            ms = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
-            {
-                ms.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, massProvider));
-            }
-        }
+        private void BuildMs() => ms = solver.BuildGlobalMatrices(massProvider);
 
-        private void BuildCs()
-        {
-            cs = new Dictionary<int, IMatrix>(model.Subdomains.Count);
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
-            {
-                cs.Add(subdomain.ID, solver.BuildGlobalMatrix(subdomain, dampingProvider));
-            }
-        }
+        private void BuildCs() => cs = solver.BuildGlobalMatrices(dampingProvider);
 
         private void BuildQs()
         {
@@ -133,9 +118,9 @@ namespace ISAAR.MSolve.Problems
         //TODO: make sure this is called whenever the ordering changes
         private CsrMatrix BuildQFromSubdomain(Subdomain_v2 subdomain) 
         {
-            int numFreeDofs = subdomain.DofOrdering.NumFreeDofs;
+            int numFreeDofs = subdomain.FreeDofOrdering.NumFreeDofs;
             var qSubdomain = DokRowMajor.CreateEmpty(numFreeDofs, numFreeDofs);
-            DofTable allDofs = subdomain.DofOrdering.FreeDofs;
+            DofTable allDofs = subdomain.FreeDofOrdering.FreeDofs;
             foreach (Element_v2 element in subdomain.Elements)
             {
                 if (!(element.ElementType is IPorousFiniteElement_v2)) continue;
@@ -176,7 +161,7 @@ namespace ISAAR.MSolve.Problems
 
         private void ScaleSubdomainSolidVector(ISubdomain_v2 subdomain, IVector vector)
         {
-            foreach ((INode node, DOFType dofType, int dofIdx) in subdomain.DofOrdering.FreeDofs)
+            foreach ((INode node, DOFType dofType, int dofIdx) in subdomain.FreeDofOrdering.FreeDofs)
             {
                 if (dofType!= DOFType.Pore) vector.Set(dofIdx, vector[dofIdx] * this.scalingCoefficient);
             }
@@ -224,7 +209,7 @@ namespace ISAAR.MSolve.Problems
         {
             foreach (Subdomain_v2 subdomain in model.Subdomains) subdomain.Forces.Clear(); //TODO: this is also done by model.AssignLoads()
 
-            model.AssignLoads();
+            model.AssignLoads(solver.DistributeNodalLoads);
             model.AssignMassAccelerationHistoryLoads(timeStep);
 
             var rhsVectors = new Dictionary<int, IVector>();
@@ -249,7 +234,7 @@ namespace ISAAR.MSolve.Problems
                 foreach (ISubdomain_v2 subdomain in model.Subdomains)
                 {
                     int[] subdomainToGlobalDofs = model.GlobalDofOrdering.MapFreeDofsSubdomainToGlobal(subdomain);
-                    foreach ((INode node, DOFType dofType, int subdomainDofIdx) in subdomain.DofOrdering.FreeDofs)
+                    foreach ((INode node, DOFType dofType, int subdomainDofIdx) in subdomain.FreeDofOrdering.FreeDofs)
                     {
                         int globalDofIdx = subdomainToGlobalDofs[subdomainDofIdx];
                         foreach (var l in m)
@@ -298,6 +283,12 @@ namespace ISAAR.MSolve.Problems
         #region IStaticProvider Members
 
         public IMatrixView CalculateMatrix(ISubdomain_v2 subdomain)
+        {
+            throw new NotImplementedException();
+        }
+
+        public (IMatrixView matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
+            IMatrixView matrixConstrConstr) CalculateSubMatrices(ISubdomain_v2 subdomain)
         {
             throw new NotImplementedException();
         }

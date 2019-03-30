@@ -22,8 +22,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
         }
 
         /// <summary>
-        /// See <see cref="IMaxIterationsProvider.GetMaxIterationsForMatrix(ILinearTransformation)"/>.
+        /// See <see cref="IMaxIterationsProvider.GetMaxIterations(int)"/>.
         /// </summary>
-        public int GetMaxIterationsForMatrix(ILinearTransformation matrix) => maxIterations;
+        public int GetMaxIterations(int matrixOrder) => maxIterations;
     }
 }

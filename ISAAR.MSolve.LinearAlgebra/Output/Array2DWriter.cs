@@ -59,7 +59,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
             {
                 writer.Write(ArrayFormat.ColSeparator + string.Format(numberFormat, array[0, j]));
             }
-            writer.Write(ArrayFormat.RowEnd);
 
             // Subsequent rows
             for (int i = 1; i < array.GetLength(0); ++i)
@@ -70,7 +69,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
                 {
                     writer.Write(ArrayFormat.ColSeparator + string.Format(numberFormat, array[i, j]));
                 }
-                writer.Write(ArrayFormat.RowEnd);
             }
             writer.Write(ArrayFormat.RowSeparator + ArrayFormat.ArrayEnd);
         }

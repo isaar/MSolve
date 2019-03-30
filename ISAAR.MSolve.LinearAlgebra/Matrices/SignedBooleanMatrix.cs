@@ -254,7 +254,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
         ///     <paramref name="vector"/> is different than the <see cref="NumColumns"/> of oper(this).</exception>
-        public Vector MultiplyRight(Vector vector, bool transposeThis)
+        public Vector Multiply(Vector vector, bool transposeThis)
         {
             //TODO: I think that dealing with arrays will be faster than iterating the dictionaries. Another reason to separate 
             //      construction from multiplications.

@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <summary>
         /// See <see cref="IIsoparametricInterpolation3D.CellType"/>.
         /// </summary>
-        public CellType3D CellType { get; }
+        public CellType CellType { get; }
 
         /// <summary>
         /// See <see cref="IIsoparametricInterpolation3D.NumFunctions"/>.

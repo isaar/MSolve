@@ -7,6 +7,8 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: this should not be in the same folder with the actual matrices and their interfaces
 //TODO: Split this into many classes: IMatrixExtensions, MatrixExtensions, CsrMatrixExtensions (or collectively 
 //      SparseMatrixExtensions, etc).
+//TODO: The GetColumn, GetDiagonal, GetRow should be implemented as default interface methods and overwritten by concrete matrix  
+//      classes when possible.
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
@@ -28,7 +30,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="matrix1"/> and <paramref name="matrix2"/>
         ///     have a different number of <see cref="IIndexable2D.NumRows"/> or 
         ///     <see cref="IIndexable2D.NumColumns"/>.</exception>
-        public static IMatrixView Add(this IMatrixView matrix1, IMatrixView matrix2) => matrix1.Axpy(matrix2, 1.0);
+        public static IMatrix Add(this IMatrixView matrix1, IMatrixView matrix2) => matrix1.Axpy(matrix2, 1.0);
 
         /// <summary>
         /// Performs the operation: 
@@ -123,6 +125,88 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
             return true;
         }
+        
+        /// <summary>
+        /// Computes the Reduced Row Echelon Form (rref) of the matrix and finds the independent columns of the matrix.  
+        /// See https://en.wikipedia.org/wiki/Row_echelon_form#Reduced_row_echelon_form.
+        /// </param>
+        public static (Matrix rref, List<int> independentCols) ReducedRowEchelonForm(this IMatrixView matrix)
+            => ReducedRowEchelonForm(matrix,
+                GlobalConstants.MachinePrecisionDouble * Math.Max(matrix.NumRows, matrix.NumColumns) * matrix.NormInf());
+
+        /// <summary>
+        /// Computes the Reduced Row Echelon Form (rref) of the matrix and finds the independent columns of the matrix.
+        /// See https://en.wikipedia.org/wiki/Row_echelon_form#Reduced_row_echelon_form. 
+        /// </summary>
+        /// <param name="pivotTolerance">
+        /// If the absolute values of a diagonal entry is less than this tolerance it is assumed to be zero.
+        /// </param>
+        public static (Matrix rref, List<int> independentCols) ReducedRowEchelonForm(this IMatrixView matrix, 
+            double pivotTolerance)
+        {
+            // Ported from octave's built-in implementation: https://searchcode.com/codesearch/view/9591940/.
+            var rref = matrix.CopyToFullMatrix();
+            int numRows = rref.NumRows;
+            int numCols = rref.NumColumns;
+
+            var independentCols = new List<int>();
+            int row = 0;
+            for (int col = 0; col < numCols; ++col)
+            {
+                // Find the pivot row
+                int pivotIdx = int.MinValue;
+                double pivotValue = double.MinValue;
+                for (int i = row; i < numRows; ++i)
+                {
+                    double abs = Math.Abs(rref[i, col]);
+                    if (abs > pivotValue)
+                    {
+                        pivotIdx = i;
+                        pivotValue = abs;
+                    }
+                }
+
+                if (pivotValue <= pivotTolerance) 
+                {
+                    // Skip column c, making sure the approximately zero terms are actually zero.
+                    for (int i = row; i < numRows; ++i) rref[i, col] = 0.0;
+                }
+                else
+                {
+                    // Keep track of bound variables
+                    independentCols.Add(col);
+
+                    // Swap current row and pivot row if necessary
+                    if (pivotIdx != row)
+                    {
+                        for (int j = col; j < numCols; ++j)
+                        {
+                            double swap = rref[row, j];
+                            rref[row, j] = rref[pivotIdx, j];
+                            rref[pivotIdx, j] = swap;
+                        }
+                    }
+
+                    // Normalize pivot row
+                    double diagonal = rref[row, col];
+                    for (int j = col; j < numCols; ++j) rref[row, j] /= diagonal;
+
+                    // Eliminate the current column
+                    for (int i = 0; i < numRows; ++i)
+                    {
+                        if (i == row) continue;
+                        double scale = rref[i, col];
+                        for (int j = col; j < numCols; ++j) rref[i, j] -= scale * rref[row, j];
+                    }
+
+                    // Check if done
+                    if (row == numRows - 1) return (rref, independentCols);
+                    else ++row;
+                }
+            }
+
+            return (rref, independentCols);
+        }
 
         /// <summary>
         /// Creates a new <see cref="Matrix"/> that contains the entries of <paramref name="matrix"/> with a different order,
@@ -178,7 +262,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="matrix1"/> and <paramref name="matrix2"/>
         ///     have a different number of <see cref="IIndexable2D.NumRows"/> or 
         ///     <see cref="IIndexable2D.NumColumns"/>.</exception>
-        public static IMatrixView Subtract(this IMatrixView matrix1, IMatrixView matrix2) => matrix1.Axpy(matrix2, -1.0);
+        public static IMatrix Subtract(this IMatrixView matrix1, IMatrixView matrix2) => matrix1.Axpy(matrix2, -1.0);
 
         /// <summary>
         /// Performs the operation: 

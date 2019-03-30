@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
-using ISAAR.MSolve.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -213,8 +213,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Initializes a new <see cref="Matrix"/> instance by copying the entries of this <see cref="SymmetricCscMatrix"/>.  
-        /// Warning: there may not be enough memory.
+        /// See <see cref="IMatrixView.CopyToFullMatrix()"/>
         /// </summary>
         public Matrix CopyToFullMatrix()
         {
@@ -318,6 +317,28 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public bool Equals(IIndexable2D other, double tolerance = 1e-13)
             => DenseStrategies.AreEqual(this, other, tolerance);
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetColumn(int)"/>.
+        /// </summary>
+        public Vector GetColumn(int colIndex) => DenseStrategies.GetColumn(this, colIndex);
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetRow(int)"/>.
+        /// </summary>
+        public Vector GetRow(int rowIndex) => GetColumn(rowIndex);
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetSubmatrix(int[], int[])"/>.
+        /// </summary>
+        public Matrix GetSubmatrix(int[] rowIndices, int[] colIndices)
+            => DenseStrategies.GetSubmatrix(this, rowIndices, colIndices);
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetSubmatrix(int, int, int, int)"/>.
+        /// </summary>
+        public Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
+            => DenseStrategies.GetSubmatrix(this, rowStartInclusive, rowEndExclusive, colStartInclusive, colEndExclusive);
 
         /// <summary>
         /// See <see cref="IMatrixView.LinearCombination(double, IMatrixView, double)"/>.

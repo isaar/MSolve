@@ -184,7 +184,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
             IChildAnalyzer childAnalyzer;
             if (Integrator == IntegratorOptions.Linear)
             {
-                var linearAnalyzer = new LinearAnalyzer_v2(solver);
+                var linearAnalyzer = new LinearAnalyzer_v2(model.CoreModel, solver, provider);
 
                 // Field output requests 
                 //TODO: this should work for all analyzers
@@ -234,7 +234,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
             }
 
             // Run the analysis
-            parentAnalyzer.Initialize();
+            parentAnalyzer.Initialize(true);
             parentAnalyzer.Solve();
         }
     }

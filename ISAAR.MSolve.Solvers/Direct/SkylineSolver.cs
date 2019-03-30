@@ -1,9 +1,10 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.LinearAlgebra.Factorizations;
+﻿using System;
+using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Triangulation;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
-using ISAAR.MSolve.Solvers.Commons;
-using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
@@ -20,7 +21,7 @@ namespace ISAAR.MSolve.Solvers.Direct
 
         private bool factorizeInPlace = true;
         private bool mustFactorize = true;
-        private CholeskySkyline factorizedMatrix;
+        private LdlSkyline factorizedMatrix;
 
         private SkylineSolver(IStructuralModel_v2 model, double factorizationPivotTolerance, IDofOrderer dofOrderer):
             base(model, dofOrderer, new SkylineAssembler(), "SkylineSolver")
@@ -28,13 +29,13 @@ namespace ISAAR.MSolve.Solvers.Direct
             this.factorizationPivotTolerance = factorizationPivotTolerance;
         }
 
-        public override void Initialize() { }
-
         public override void HandleMatrixWillBeSet()
         {
             mustFactorize = true;
             factorizedMatrix = null;
         }
+
+        public override void Initialize() { }
 
         public override void PreventFromOverwrittingSystemMatrices() => factorizeInPlace = false;
 
@@ -48,32 +49,73 @@ namespace ISAAR.MSolve.Solvers.Direct
 
             if (mustFactorize)
             {
-                factorizedMatrix = linearSystem.Matrix.FactorCholesky(factorizeInPlace, factorizationPivotTolerance); 
+                factorizedMatrix = linearSystem.Matrix.FactorLdl(factorizeInPlace, factorizationPivotTolerance); 
                 mustFactorize = false;
             }
 
             factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
         }
 
-        public class Builder : ISolverBuilder_v2
+        protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)
+        {
+            // Factorization
+            if (mustFactorize)
+            {
+                factorizedMatrix = linearSystem.Matrix.FactorLdl(factorizeInPlace, factorizationPivotTolerance);
+                mustFactorize = false;
+            }
+
+            // Solution vectors
+            int systemOrder = linearSystem.Matrix.NumColumns;
+            int numRhs = otherMatrix.NumColumns;
+            var solutionVectors = Matrix.CreateZero(systemOrder, numRhs);
+
+            if (otherMatrix is Matrix otherDense)
+            {
+                factorizedMatrix.SolveLinearSystems(otherDense, solutionVectors);
+                return solutionVectors;
+            }
+            else
+            {
+                try
+                {
+                    // If there is enough memory, copy the RHS matrix to a dense one, to speed up computations. 
+                    //TODO: must be benchmarked, if it is actually more efficient than solving column by column.
+                    Matrix rhsVectors = otherMatrix.CopyToFullMatrix();
+                    factorizedMatrix.SolveLinearSystems(rhsVectors, solutionVectors);
+                    return solutionVectors;
+                }
+                catch (InsufficientMemoryException) //TODO: what about OutOfMemoryException?
+                {
+                    // Solve each linear system separately, to avoid copying the RHS matrix to a dense one.
+                    Vector solutionVector = linearSystem.CreateZeroVector();
+                    for (int j = 0; j < numRhs; ++j)
+                    {
+                        if (j != 0) solutionVector.Clear();
+                        Vector rhsVector = otherMatrix.GetColumn(j);
+                        factorizedMatrix.SolveLinearSystem(rhsVector, solutionVector);
+                        solutionVectors.SetSubcolumn(j, solutionVector);
+                    }
+                    return solutionVectors;
+                }
+            }
+        }
+
+        public class Builder : ISolverBuilder
         {
             public Builder() { }
 
-            public IDofOrderer DofOrderer { get; set; }
+            public IDofOrderer DofOrderer { get; set; } 
                 = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
 
             public double FactorizationPivotTolerance { get; set; } = 1E-15;
 
-            ISolver_v2 ISolverBuilder_v2.BuildSolver(IStructuralModel_v2 model) => this.BuildSolver(model);
+            ISolver_v2 ISolverBuilder.BuildSolver(IStructuralModel_v2 model) => BuildSolver(model);
 
             public SkylineSolver BuildSolver(IStructuralModel_v2 model)
-                => new SkylineSolver(model, FactorizationPivotTolerance, DofOrderer);
-
-            public ISolverBuilder_v2 Clone()
             {
-                return new SkylineSolver.Builder();
+                return new SkylineSolver(model, FactorizationPivotTolerance, DofOrderer);
             }
-
         }
     }
 }

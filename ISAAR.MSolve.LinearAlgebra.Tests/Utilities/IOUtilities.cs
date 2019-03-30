@@ -87,7 +87,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Utilities
 
                     if ((line1 == null) && (line2 == null)) return true; // both files have ended without finding a difference.
                     else if ((line1 == null) != (line2 == null)) return false; // only 1 file has ended.
-                    if (!line1.Equals(line2)) return false;
+                    if (!line1.Trim().Equals(line2.Trim()))
+                    {
+                        return false;
+                    }
                 }
             }
         }

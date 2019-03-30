@@ -28,13 +28,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.Termination
         }
 
         /// <summary>
-        /// See <see cref="IMaxIterationsProvider.GetMaxIterationsForMatrix(ILinearTransformation)"/>
+        /// See <see cref="IMaxIterationsProvider.GetMaxIterations(int)"/>
         /// </summary>
-        public int GetMaxIterationsForMatrix(ILinearTransformation matrix)
+        public int GetMaxIterations(int matrixOrder)
         {
-            Preconditions.CheckSquare(matrix.NumRows, matrix.NumColumns);
-            if (maxIterationsOverMatrixOrder == 1.0) return matrix.NumRows;
-            else return (int)Math.Ceiling(maxIterationsOverMatrixOrder * matrix.NumRows);
+            if (maxIterationsOverMatrixOrder == 1.0) return matrixOrder;
+            else return (int)Math.Ceiling(maxIterationsOverMatrixOrder * matrixOrder);
         }
     }
 }
