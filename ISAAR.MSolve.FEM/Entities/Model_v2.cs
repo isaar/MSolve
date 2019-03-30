@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.FEM.Entities
             = new List<ElementMassAccelerationHistoryLoad_v2>();
         public IList<ElementMassAccelerationLoad_v2> ElementMassAccelerationLoads { get; } 
             = new List<ElementMassAccelerationLoad_v2>();
-        public IList<Load_v2> Loads { get; } = new List<Load_v2>();
+        public IList<Load_v2> Loads { get; private set; } = new List<Load_v2>();
         public IList<MassAccelerationLoad> MassAccelerationLoads { get; } = new List<MassAccelerationLoad>();
         public IList<IMassAccelerationHistoryLoad> MassAccelerationHistoryLoads { get; } = new List<IMassAccelerationHistoryLoad>();
 
@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.FEM.Entities
         public IReadOnlyList<Subdomain_v2> Subdomains => SubdomainsDictionary.Values.ToList();
         public Dictionary<int, Subdomain_v2> SubdomainsDictionary { get; } = new Dictionary<int, Subdomain_v2>();
 
-        public IList<ITimeDependentNodalLoad> TimeDependentNodalLoads { get; } = new List<ITimeDependentNodalLoad>();
+        public IList<ITimeDependentNodalLoad> TimeDependentNodalLoads { get; private set; } = new List<ITimeDependentNodalLoad>();
 
         public Table<INode, DOFType, double> Constraints { get; private set; } = new Table<INode, DOFType, double>();//TODOMaria: maybe it's useless in model class
 
@@ -140,7 +140,7 @@ namespace ISAAR.MSolve.FEM.Entities
         {         
             BuildInterconnectionData();
             AssignConstraints();
-            //EnumerateDOFs();
+            RemoveInactiveNodalLoads();
 
             //TODOSerafeim: This should be called by the analyzer, which defines when the dofs are ordered and when the global vectors/matrices are built.
             //AssignLoads();
@@ -254,6 +254,27 @@ namespace ISAAR.MSolve.FEM.Entities
                 foreach (var s in subs.Where(x => x.ID != e.Subdomain.ID))
                     s.Elements.Add(e);
             }
+        }
+
+        private void RemoveInactiveNodalLoads()
+        {
+            // Static loads
+            var activeLoadsStatic = new List<Load_v2>(Loads.Count);
+            foreach (Load_v2 load in Loads)
+            {
+                bool isConstrained = Constraints.Contains(load.Node, load.DOF);
+                if (!isConstrained) activeLoadsStatic.Add(load);
+            }
+            Loads = activeLoadsStatic;
+
+            // Dynamic loads
+            var activeLoadsDynamic = new List<ITimeDependentNodalLoad>(TimeDependentNodalLoads.Count);
+            foreach (ITimeDependentNodalLoad load in TimeDependentNodalLoads)
+            {
+                bool isConstrained = Constraints.Contains(load.Node, load.DOF);
+                if (!isConstrained) activeLoadsDynamic.Add(load);
+            }
+            TimeDependentNodalLoads = activeLoadsDynamic;
         }
 
         //private void EnumerateGlobalDOFs()

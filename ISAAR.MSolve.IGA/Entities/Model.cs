@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.IGA.Entities
 		public IList<Element> Elements => ElementsDictionary.Values.ToList();
 		public Dictionary<int, Element> ElementsDictionary => elementsDictionary;
 
-		public IList<Load> Loads { get; } = new List<Load>();
+		public IList<Load> Loads { get; private set; } = new List<Load>();
 
 		public IList<IMassAccelerationHistoryLoad> MassAccelerationHistoryLoads { get; } =
 			new List<IMassAccelerationHistoryLoad>();
@@ -126,18 +126,17 @@ namespace ISAAR.MSolve.IGA.Entities
 			}
 		}
 
-		private void AssignControlPointLoads(NodalLoadsToSubdomainsDistributor distributeNodalLoads)
+		private void AssignControlPointLoads(NodalLoadsToSubdomainsDistributor distributeControlPointLoads)
 		{
-            var globalNodalLoads = new Table<INode, DOFType, double>();
-            foreach (Load load in Loads) globalNodalLoads.TryAdd(load.ControlPoint, load.DOF, load.Amount);
+            var globalPointLoads = new Table<INode, DOFType, double>();
+            foreach (Load load in Loads) globalPointLoads.TryAdd(load.ControlPoint, load.DOF, load.Amount);
 
-            Dictionary<int, SparseVector> patchNodalLoads = distributeNodalLoads(globalNodalLoads);
-            foreach (var idPatchLoads in patchNodalLoads)
+            Dictionary<int, SparseVector> patchPointLoads = distributeControlPointLoads(globalPointLoads);
+            foreach (var idPatchLoads in patchPointLoads)
             {
                 PatchesDictionary[idPatchLoads.Key].Forces.AddIntoThis(idPatchLoads.Value);
             }
       
-
 
             // Old code. It should probably be deleted.
             //foreach (Patch patch in PatchesDictionary.Values)
@@ -185,7 +184,8 @@ namespace ISAAR.MSolve.IGA.Entities
 		{
 			BuildInterconnectionData();
 			AssignConstraints();
-		}
+            RemoveInactiveNodalLoads();
+        }
 
 		//TODO: constraints should not be saved inside the nodes. As it is right now (22/11/2018) the same constraint 
 		//      is saved in the node, the model constraints table and the subdomain constraints table. Furthermore,
@@ -229,5 +229,16 @@ namespace ISAAR.MSolve.IGA.Entities
 				element.Model = this;
 			}
 		}
-	}
+
+        private void RemoveInactiveNodalLoads()
+        {
+            var activeLoads = new List<Load>(Loads.Count);
+            foreach (Load load in Loads)
+            {
+                bool isConstrained = Constraints.Contains(load.ControlPoint, load.DOF);
+                if (!isConstrained) activeLoads.Add(load);
+            }
+            Loads = activeLoads;
+        }
+    }
 }
