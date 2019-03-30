@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements;
         private IScaleTransitions_v2 scaleTransitions = new SmallStrain3DScaleTransition();
         Random rnd1 = new Random();
-        ISolverBuilder solverBuilder;
+        private readonly Func<Model_v2, ISolver_v2> createSolver;
 
         // aparaithta gia to implementation tou IFiniteElementMaterial3D
         Matrix constitutiveMatrix;
@@ -73,10 +73,10 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         //Random properties 
         private int database_size;
 
-        public Microstructure3D(IRVEbuilder_v2 rveBuilder, ISolverBuilder solverBuilder, bool EstimateOnlyLinearResponse, int database_size)
+        public Microstructure3D(IRVEbuilder_v2 rveBuilder, Func<Model_v2, ISolver_v2> createSolver, bool EstimateOnlyLinearResponse, int database_size)
         {
             this.rveBuilder = rveBuilder;
-            this.solverBuilder = solverBuilder;
+            this.createSolver = createSolver;
             this.EstimateOnlyLinearResponse = EstimateOnlyLinearResponse;
             this.database_size = database_size;            
         }
@@ -120,7 +120,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         public object Clone()
         {
             int new_rve_id = rnd1.Next(1, database_size + 1);
-            return new Microstructure3D(rveBuilder.Clone(new_rve_id),solverBuilder.Clone(), EstimateOnlyLinearResponse, database_size);
+            return new Microstructure3D(rveBuilder.Clone(new_rve_id), createSolver, EstimateOnlyLinearResponse, database_size);
         }
 
         public Dictionary<int, Node_v2> BoundaryNodesDictionary
@@ -139,7 +139,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             {
                 this.InitializeMatrices();
                 this.InitializeData();
-                solver = solverBuilder.BuildSolver(model);
+                solver = createSolver(model);
                 solver.OrderDofs(false);
                 foreach (ILinearSystem_v2 linearSystem in solver.LinearSystems.Values)
                 {
@@ -150,7 +150,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             }
             else
             {
-                solver = solverBuilder.BuildSolver(model);
+                solver = createSolver(model);
                 solver.OrderDofs(false); //v2.1. TODO: Is this needed in this case?
                 foreach (ILinearSystem_v2 linearSystem in solver.LinearSystems.Values)
                 {
@@ -334,7 +334,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             {
                 this.InitializeMatrices();
                 this.InitializeData();
-                solver = solverBuilder.BuildSolver(model);
+                solver = createSolver(model);
                 solver.OrderDofs(false);
                 foreach (ILinearSystem_v2 linearSystem in solver.LinearSystems.Values)
                 {
@@ -345,7 +345,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             }
             else
             {
-                solver = solverBuilder.BuildSolver(model);
+                solver = createSolver(model);
                 solver.OrderDofs(false); //v2.1. TODO: Is this needed in this case?
                 foreach (ILinearSystem_v2 linearSystem in solver.LinearSystems.Values) linearSystem.Reset();
                 //solver.ResetSubdomainForcesVector();

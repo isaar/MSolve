@@ -78,7 +78,8 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks1
 
             IRVEbuilder_v2 homogeneousRveBuilder1 = new HomogeneousRVEBuilderNonLinear();
 
-            IContinuumMaterial3DDefGrad_v2 material1 = new MicrostructureDefGrad3D(homogeneousRveBuilder1, new SkylineSolver.Builder(), false, 1);
+            IContinuumMaterial3DDefGrad_v2 material1 = new MicrostructureDefGrad3D(homogeneousRveBuilder1,
+                m => (new SkylineSolver.Builder()).BuildSolver(m), false, 1);
 
             double[,] nodeData = new double[,] { {-0.250000,-0.250000,-1.000000},
             {0.250000,-0.250000,-1.000000},
