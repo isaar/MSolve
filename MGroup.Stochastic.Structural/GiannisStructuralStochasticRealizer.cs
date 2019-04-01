@@ -28,7 +28,10 @@ namespace MGroup.Stochastic.Structural
         bool midpointMethod = true;
         int mcsamples = 5;
 
-        
+
+        /// <summary>Initializes a new instance of the <see cref="GiannisStructuralStochasticRealizer"/> class.</summary>
+        /// <param name="youngModulus">The young modulus.</param>
+        /// <param name="domainMapper">The domain mapper.</param>
         public GiannisStructuralStochasticRealizer(double youngModulus, IStochasticDomainMapper domainMapper)
         {
             YoungModulus = youngModulus;
@@ -39,6 +42,8 @@ namespace MGroup.Stochastic.Structural
             isGaussian, karLoeveTerms, domainBounds, sigmaSquare, correlationLength);
         }
 
+        /// <summary>Realizes the specified iteration.</summary>
+        /// <param name="iteration">The iteration.</param>
         public void Realize(int iteration)
         {
             currentModel = ModelBuilder.GetModel(StochasticRealization, DomainMapper, iteration);

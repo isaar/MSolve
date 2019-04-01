@@ -22,6 +22,10 @@ namespace ISAAR.MSolve.Analyzers
         private readonly RandomVariableDistributionType _distributionType;
 
 
+        /// <summary>Initializes a new instance of the <see cref="RandomVariableTargetEvaluator"/> class.</summary>
+        /// <param name="meanValue">The mean value.</param>
+        /// <param name="standardDeviation">The standard deviation.</param>
+        /// <param name="distributionType">Type of the distribution.</param>
         public RandomVariableTargetEvaluator(double meanValue, double standardDeviation, RandomVariableDistributionType distributionType)
         {
             this._meanValue = meanValue;
@@ -29,12 +33,19 @@ namespace ISAAR.MSolve.Analyzers
             _distributionType = distributionType;
         }
 
+        /// <summary>Gets or sets the random variables.</summary>
+        /// <value>The random variables.</value>
         public double[] RandomVariables
         {
             get { return new double[1];}
             set { CalculateRandomVariable(); }
         }
 
+        /// <summary>
+        ///   <para>
+        ///  Calculates the random variable.
+        /// </para>
+        /// </summary>
         private void CalculateRandomVariable()
         {
             switch (_distributionType)
@@ -50,6 +61,10 @@ namespace ISAAR.MSolve.Analyzers
             }
         }
 
+        /// <summary>Gets the coefficient.</summary>
+        /// <param name="meanValue">The mean value.</param>
+        /// <param name="coordinates">The coordinates.</param>
+        /// <returns></returns>
         public double GetCoefficient(double meanValue, double[] coordinates)
         {
             return 1/_randomVariable;

@@ -1,15 +1,18 @@
-﻿using System;
+﻿using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.Materials.Interfaces;
+using System;
+using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using MGroup.Stochastic.Interfaces;
 using Troschuetz.Random.Distributions.Continuous;
 
 namespace MGroup.Stochastic.Structural.StochasticRealizers
 {
-    public class SpectralRepresentation2DRandomFieldGenerator : IUncertainParameterRealizer
+    public class SpectralRepresentation2DRandomField : IUncertainParameterRealizer
     {
-        private const double tolerance = 1e-10;
         private readonly double XDirectionCorrelationLengthParameter;
         private readonly double YDirectionCorrelationLengthParameter;
-        private readonly double spectrumStandardDeviation, cutoffError, frequencyIncrement;
+        private readonly double spectrumStandardDeviation, cutoffError, frequencyIncrement, tolerance;
         private readonly int nPhi, frequencyIntervals, nptsVRF;
         private double kupper, period;
         private int frequencyCounter, frequencyCounterY;
@@ -18,8 +21,17 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
         private bool ResetGeneration = true;
         private int PreviousIteration = -1;
 
-        public SpectralRepresentation2DRandomFieldGenerator(double XDirectionCorrelationLengthParameter, double YDirectionCorrelationLengthParameter, double spectrumStandardDeviation, double cutoffError,
-            double frequencyIncrement = 0.1, int frequencyIntervals = 256)
+        /// <summary>A class implementing the Spectral Respresentation methodology
+        /// using Fourier series that generates 2D stochastic fields with user selected correlation structure parameters.</summary>
+        /// <param name="XDirectionCorrelationLengthParameter">The x direction correlation length parameter.</param>
+        /// <param name="YDirectionCorrelationLengthParameter">The y direction correlation length parameter.</param>
+        /// <param name="spectrumStandardDeviation">The spectrum standard deviation.</param>
+        /// <param name="cutoffError">The cutoff error.</param>
+        /// <param name="frequencyIncrement">The frequency increment.</param>
+        /// <param name="frequencyIntervals">The frequency intervals.</param>
+        /// <param name="tolerance">The tolerance.</param>
+        public SpectralRepresentation2DRandomField(double XDirectionCorrelationLengthParameter, double YDirectionCorrelationLengthParameter, double spectrumStandardDeviation, double cutoffError,
+            double frequencyIncrement = 0.1, int frequencyIntervals = 256, double tolerance = 1e-10)
         {
             this.XDirectionCorrelationLengthParameter = XDirectionCorrelationLengthParameter;
             this.YDirectionCorrelationLengthParameter = YDirectionCorrelationLengthParameter;
@@ -27,6 +39,7 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             this.cutoffError = cutoffError;
             this.frequencyIncrement = frequencyIncrement;
             this.frequencyIntervals = frequencyIntervals;
+            this.tolerance = tolerance;
             Calculate();
         }
 
@@ -54,6 +67,7 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
                 Math.Exp(-.25 * (Math.Pow(bxkx, 2) + Math.Pow(byky, 2)));
         }
 
+        /// <summary>Calculates method intrinsics.</summary>
         private void Calculate()
         {
             double integral = AutoCorrelation(0, 0) / 4d;
@@ -90,29 +104,6 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             period = 2d * Math.PI / dk;
         }
 
-        public double Realize(int iteration, IStochasticDomainMapper domainMapper, double[] parameters)
-        {
-            ResetGeneration = (PreviousIteration != iteration);
-            if (ResetGeneration) ResetSampleGeneration();
-            double[] stochasticDomainPoint = domainMapper.Map(parameters);
-            var dk = kupper / (double)frequencyIntervals;
-            double randomCoefficient = 0;
-            for (int i = 0; i < frequencyIntervals; i++)
-            {
-                for (int j = 0; j < frequencyIntervals; j++)
-                {
-                    randomCoefficient += Math.Sqrt(2) * (Math.Sqrt(2 * SpectralDensity(dk / 2 + i * dk, dk / 2 + j * dk) * dk) *
-                                         (Math.Cos((dk / 2 + i * dk) * stochasticDomainPoint[0] + (dk / 2 + j * dk) * stochasticDomainPoint[1] + phi1[i, j])) +
-                                          Math.Sqrt(2 * SpectralDensity(dk / 2 + i * dk, -(dk / 2 + j * dk)) * dk) *
-                                          (Math.Cos((dk / 2 + i * dk) * stochasticDomainPoint[0] - (dk / 2 + j * dk) * stochasticDomainPoint[1] + phi2[i, j])));
-                }
-
-            }
-
-            return randomCoefficient;
-
-        }
-
         public double[] GetDerivative(IStochasticDomainMapper domainMapper, double[] parameters)
         {
             double[] stochasticDomainPoint = domainMapper.Map(parameters);
@@ -138,6 +129,28 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
 
         }
 
+        public double Realize(int iteration, IStochasticDomainMapper domainMapper, double[] parameters)
+        {
+            ResetGeneration = (PreviousIteration != iteration);
+            if (ResetGeneration) ResetSampleGeneration();
+            double[] stochasticDomainPoint = domainMapper.Map(parameters);
+            var dk = kupper / (double)frequencyIntervals;
+            double randomCoefficient = 0;
+            for (int i = 0; i < frequencyIntervals; i++)
+            {
+                for (int j = 0; j < frequencyIntervals; j++)
+                {
+                    randomCoefficient += Math.Sqrt(2) * (Math.Sqrt(2 * SpectralDensity(dk / 2 + i * dk, dk / 2 + j * dk) * dk) *
+                                                         (Math.Cos((dk / 2 + i * dk) * stochasticDomainPoint[0] + (dk / 2 + j * dk) * stochasticDomainPoint[1] + phi1[i, j])) +
+                                                         Math.Sqrt(2 * SpectralDensity(dk / 2 + i * dk, -(dk / 2 + j * dk)) * dk) *
+                                                         (Math.Cos((dk / 2 + i * dk) * stochasticDomainPoint[0] - (dk / 2 + j * dk) * stochasticDomainPoint[1] + phi2[i, j])));
+                }
+
+            }
+
+            return randomCoefficient;
+        }
+
         public void ResetSampleGeneration()
         {
             phi1 = new double[frequencyIntervals, frequencyIntervals];
@@ -152,5 +165,5 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
                 }
             }
         }
-    }    
+    }
 }
