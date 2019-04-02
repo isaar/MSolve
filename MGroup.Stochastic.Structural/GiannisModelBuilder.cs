@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.FEM;
 using MGroup.Stochastic.Structural.StochasticRealizers;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -61,12 +62,12 @@ namespace MGroup.Stochastic.Structural
                 m.SubdomainsDictionary[0].ElementsDictionary.Add(i, e);
             }
 
-            m.NodesDictionary[0].Constraints.Add(DOFType.X);
-            m.NodesDictionary[0].Constraints.Add(DOFType.Y);
-            m.NodesDictionary[0].Constraints.Add(DOFType.Z);
-            m.NodesDictionary[0].Constraints.Add(DOFType.RotX);
-            m.NodesDictionary[0].Constraints.Add(DOFType.RotY);
-            m.NodesDictionary[0].Constraints.Add(DOFType.RotZ);
+            m.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.X });
+            m.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.Y });
+            m.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.Z });
+            m.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.RotX });
+            m.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.RotY });
+            m.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
 
             m.Loads.Add(new Load() { Amount = 10, Node = m.NodesDictionary[10], DOF = DOFType.Z });
 

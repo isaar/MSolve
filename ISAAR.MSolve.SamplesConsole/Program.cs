@@ -18,6 +18,9 @@ using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.Tests.FEMpartB;
+using MGroup.Stochastic;
+using MGroup.Stochastic.Structural;
+using MGroup.Stochastic.Structural.Example;
 
 
 namespace ISAAR.MSolve.SamplesConsole
@@ -53,7 +56,8 @@ namespace ISAAR.MSolve.SamplesConsole
             //OneRveExample.Check_Graphene_rve_serial();
             //BondSlipTest.CheckStressStrainBonSlipMaterial();
             //OneRveExample.Check_Graphene_rve_parallel();
-            LinearRves.CheckShellScaleTransitionsAndMicrostructure();
+            //LinearRves.CheckShellScaleTransitionsAndMicrostructure();
+            SolveCantileverWithStochasticMaterial();
         }
 
         private static void SolveBuildingInNoSoilSmall()
@@ -254,43 +258,17 @@ namespace ISAAR.MSolve.SamplesConsole
             //Assert.Equal(-2.08333333333333333e-5, stohasticAnalyzer.MonteCarloMeanValue, 8);
         }
 
-        //private static void Solve()
-        //{
-        //    const int iterations = 1000;
-        //    const double youngModulus = 2.1e8;
 
-        //    var domainMapper = new CantileverStochasticDomainMapper(new[] { 0d, 0d, 0d });
-        //    var realizer = new GiannisStructuralStochasticRealizer(youngModulus, domainMapper);
-        //    var evaluator = new StructuralStochasticEvaluator(youngModulus, domainMapper);
-        //    var m = new MonteCarlo(iterations, realizer, evaluator);
-        //    m.Evaluate();
-        //}
-
-        private static void Solve()
+        private static void SolveCantileverWithStochasticMaterial()
         {
             VectorExtensions.AssignTotalAffinityCount();
             const int iterations = 1000;
             const double youngModulus = 2.1e8;
 
             var domainMapper = new CantileverStochasticDomainMapper(new[] { 0d, 0d, 0d });
-            //var evaluator = new StructuralStochasticEvaluator(youngModulus, domainMapper);
             var evaluator = new StructuralStochasticEvaluator(youngModulus, domainMapper);
             var m = new MonteCarlo(iterations, evaluator, evaluator);
             m.Evaluate();
-        }
-
-
-        public static void Main(string[] args)
-        {
-            Solve(); 
-            //SolveBuildingInNoSoilSmall();
-            //TrussExample.Run();
-            //FEM.Cantilever2D.Run();
-            //FEM.Cantilever2DPreprocessor.Run();
-            //FEM.WallWithOpenings.Run();
-            //SeparateCodeCheckingClass.Check06();
-
-            //Assert.Equal(-2.08333333333333333e-5, stohasticAnalyzer.MonteCarloMeanValue, 8);
         }
     }
 }
