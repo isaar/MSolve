@@ -9,6 +9,10 @@ namespace MGroup.Stochastic
         public ISystemRealizer SystemRealizer { get; }
         public ISystemResponseEvaluator SystemResponseEvaluator { get; }
 
+        /// <summary>Initializes a new instance of the <see cref="MonteCarlo"/> class.</summary>
+        /// <param name="noOfIterations">The no of iterations.</param>
+        /// <param name="systemRealizer">The system realizer.</param>
+        /// <param name="systemResponseEvaluator">The system response evaluator.</param>
         public MonteCarlo(int noOfIterations, ISystemRealizer systemRealizer, ISystemResponseEvaluator systemResponseEvaluator)
         {
             NoOfIterations = noOfIterations;
@@ -16,6 +20,7 @@ namespace MGroup.Stochastic
             SystemResponseEvaluator = systemResponseEvaluator;
         }
 
+        /// <summary>Evaluates 1st and 2nd statistical moments of the predesignated response.</summary>
         public void Evaluate()
         {
             SystemRealizer.Realize(0);
