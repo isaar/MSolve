@@ -28,6 +28,7 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
         public double[] Lambda { get; set; }
         public double[,] Eigenvectors { get; set; }
         public double[,] EigenModesAtPoint { get; set; }
+        private NormalDistribution KseNormalDistribution;
         private double[] Kse;
         private bool ResetGeneration = true;
         private int PreviousIteration = -1;
@@ -55,6 +56,7 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             double[] xCoordinates = KarhunenLoeveFredholmWithFEM(KarLoeveTerms, DomainBounds, SigmaSquare, Partition, CorrelationLength).Item1;
             double[] lambda = KarhunenLoeveFredholmWithFEM(KarLoeveTerms, DomainBounds, SigmaSquare, Partition, CorrelationLength).Item2;
             double[,] eigenvectors = KarhunenLoeveFredholmWithFEM(KarLoeveTerms, DomainBounds, SigmaSquare, Partition, CorrelationLength).Item3;
+            KseNormalDistribution = new NormalDistribution(27644437, 0, 1);
             Xcoordinates = xCoordinates;
             Lambda = lambda;
             Eigenvectors = eigenvectors;
@@ -82,7 +84,6 @@ namespace MGroup.Stochastic.Structural.StochasticRealizers
             Kse = new double[KarLoeveTerms];
             for (int i = 0; i < KarLoeveTerms; i++)
             {
-                var KseNormalDistribution = new NormalDistribution(0, 1);
                 Kse[i] = KseNormalDistribution.NextDouble();
             }
         }

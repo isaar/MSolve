@@ -39,6 +39,8 @@
     <ProjectReference Include="..\ISAAR.MSolve.Preprocessor\ISAAR.MSolve.Preprocessor.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Problems\ISAAR.MSolve.Problems.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj" />
+    <ProjectReference Include="..\MGroup.Stochastic.Structural\MGroup.Stochastic.Structural.csproj" />
+    <ProjectReference Include="..\MGroup.Stochastic\MGroup.Stochastic.csproj" />
   </ItemGroup>
 
   <ItemGroup>
