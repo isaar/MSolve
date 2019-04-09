@@ -10,6 +10,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: Allow other orderings, as I do in CholeskySuiteSparse
 //TODO: CSparse.NET also provides matrix update and downdate operations.
 //TODO: Improve error checking
+//TODO: expose internal factorized arrays 
 namespace ISAAR.MSolve.LinearAlgebra.Triangulation
 {
     /// <summary>
@@ -19,18 +20,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
     /// </summary>
     public class LUCSparseNet : ITriangulation
     {
-        public const double defaultPivotTolelance = 0.5; // TODO: Find a good default
-        private readonly double[] cscValues;
-        private readonly int[] cscRowIndices, cscColOffsets;
+        public const double defaultPivotTolelance = 0.1; // between 0.0, 1.0. TODO: Find a good default
         private readonly SparseLU factorization;
 
-        private LUCSparseNet(int order, double[] cscValues, int[] cscRowIndices,
-            int[] cscColOffsets, SparseLU factorization)
+        private LUCSparseNet(int order, SparseLU factorization)
         {
             this.Order = order;
-            this.cscValues = cscValues;
-            this.cscRowIndices = cscRowIndices;
-            this.cscColOffsets = cscColOffsets;
             this.factorization = factorization;
         }
 
@@ -76,7 +71,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
             {
                 var matrixCSparse = new SparseMatrix(order, order, cscValues, cscRowIndices, cscColOffsets);
                 var factorization = SparseLU.Create(matrixCSparse, ColumnOrdering.Natural, pivotTolerance);
-                return new LUCSparseNet(order, cscValues, cscRowIndices, cscColOffsets, factorization);
+                return new LUCSparseNet(order, factorization);
             }
             catch (Exception ex) //TODO: how can I make sure this exception was thrown because of an indefinite matrix?
             {

@@ -10,6 +10,8 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: Allow other orderings, as I do in CholeskySuiteSparse
 //TODO: CSparse.NET also provides matrix update and downdate operations.
 //TODO: Improve error checking
+//TODO: Improve error checking
+
 namespace ISAAR.MSolve.LinearAlgebra.Triangulation
 {
     /// <summary>
@@ -20,17 +22,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
     /// </summary>
     public class CholeskyCSparseNet : ITriangulation
     {
-        private readonly double[] cscValues;
-        private readonly int[] cscRowIndices, cscColOffsets;
         private readonly SparseCholesky factorization;
 
-        private CholeskyCSparseNet(int order, double[] cscValues, int[] cscRowIndices,
-            int[] cscColOffsets, SparseCholesky factorization)
+        private CholeskyCSparseNet(int order, SparseCholesky factorization)
         {
             this.Order = order;
-            this.cscValues = cscValues;
-            this.cscRowIndices = cscRowIndices;
-            this.cscColOffsets = cscColOffsets;
             this.factorization = factorization;
         }
 
@@ -76,7 +72,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
             {
                 var matrixCSparse = new SparseMatrix(order, order, cscValues, cscRowIndices, cscColOffsets);
                 var factorization = SparseCholesky.Create(matrixCSparse, ColumnOrdering.Natural);
-                return new CholeskyCSparseNet(order, cscValues, cscRowIndices, cscColOffsets, factorization);
+                return new CholeskyCSparseNet(order, factorization);
             }
             catch (Exception ex) //TODO: how can I make sure this exception was thrown because of an indefinite matrix?
             {
