@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Accord.Math" Version="3.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ISAAR.MSolve.Analyzers\ISAAR.MSolve.Analyzers.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.FEM\ISAAR.MSolve.FEM.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.Materials\ISAAR.MSolve.Materials.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.Problems\ISAAR.MSolve.Problems.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj" />
+    <ProjectReference Include="..\MGroup.Stochastic\MGroup.Stochastic.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="ISAAR.MSolve.Analyzers">
+      <HintPath>..\..\..\vs 2015\ISAAR.MSolve\Libraries\Debug\ISAAR.MSolve.Analyzers.dll</HintPath>
+    </Reference>
+    <Reference Include="ISAAR.MSolve.Logging">
+      <HintPath>..\..\..\vs 2015\ISAAR.MSolve\Libraries\Debug\ISAAR.MSolve.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="ISAAR.MSolve.Matrices">
+      <HintPath>..\..\..\vs 2015\ISAAR.MSolve\Libraries\Debug\ISAAR.MSolve.Matrices.dll</HintPath>
+    </Reference>
+    <Reference Include="ISAAR.MSolve.PreProcessor">
+      <HintPath>..\..\..\vs 2015\ISAAR.MSolve\Libraries\Debug\ISAAR.MSolve.PreProcessor.dll</HintPath>
+    </Reference>
+    <Reference Include="ISAAR.MSolve.SimpleMeshGenerator">
+      <HintPath>..\..\..\vs 2015\ISAAR.MSolve\Libraries\Debug\ISAAR.MSolve.SimpleMeshGenerator.dll</HintPath>
+    </Reference>
+    <Reference Include="ISAAR.MSolve.Solvers">
+      <HintPath>..\..\..\vs 2015\ISAAR.MSolve\Libraries\Debug\ISAAR.MSolve.Solvers.dll</HintPath>
+    </Reference>
+    <Reference Include="MPI">
+      <HintPath>..\..\..\vs 2015\ISAAR.MSolve\Libraries\Debug\MPI.dll</HintPath>
+    </Reference>
+    <Reference Include="MSolve.FETISolvers">
+      <HintPath>..\..\..\vs 2015\ISAAR.MSolve\Libraries\Debug\MSolve.FETISolvers.dll</HintPath>
+    </Reference>
+    <Reference Include="MSolve.Matrices">
+      <HintPath>..\..\..\vs 2015\ISAAR.MSolve\Libraries\Debug\MSolve.Matrices.dll</HintPath>
+    </Reference>
+    <Reference Include="MSolve.PreProcessor">
+      <HintPath>..\..\..\vs 2015\ISAAR.MSolve\Libraries\Debug\MSolve.PreProcessor.dll</HintPath>
+    </Reference>
+    <Reference Include="MSolve.SimpleMeshGenerator">
+      <HintPath>..\..\..\vs 2015\ISAAR.MSolve\Libraries\Debug\MSolve.SimpleMeshGenerator.dll</HintPath>
+    </Reference>
+    <Reference Include="MSolve.StructuralProblem">
+      <HintPath>..\..\..\vs 2015\ISAAR.MSolve\Libraries\Debug\MSolve.StructuralProblem.dll</HintPath>
+    </Reference>
+    <Reference Include="PommaLabs.Thrower">
+      <HintPath>..\..\..\vs 2015\ISAAR.MSolve\Libraries\Debug\PommaLabs.Thrower.dll</HintPath>
+    </Reference>
+    <Reference Include="Troschuetz.Random">
+      <HintPath>..\..\..\vs 2015\ISAAR.MSolve\Libraries\Debug\Troschuetz.Random.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
