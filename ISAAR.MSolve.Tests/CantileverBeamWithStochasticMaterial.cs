@@ -20,10 +20,12 @@ using MGroup.Stochastic.Structural;
 
 namespace ISAAR.MSolve.Tests
 {
-    public class CantileverBeamWithStochasticMaterial
+    public static class CantileverBeamWithStochasticMaterial
     {
-        public void Solve()
+        [Fact]
+        public static void Solve()
         {
+            VectorExtensions.AssignTotalAffinityCount();
             const int iterations = 1000;
             const double youngModulus = 2.1e8;
 
