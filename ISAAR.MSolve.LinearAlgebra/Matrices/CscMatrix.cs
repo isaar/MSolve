@@ -48,6 +48,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public int NumColumns { get; }
 
         /// <summary>
+        /// The number of non zero entries of the matrix.
+        /// </summary>
+        public int NumNonZeros => colOffsets[colOffsets.Length - 1];
+
+        /// <summary>
         /// The number of rows of the matrix.
         /// </summary>
         public int NumRows { get; }
