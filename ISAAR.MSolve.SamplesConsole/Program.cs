@@ -18,6 +18,10 @@ using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.Tests.FEMpartB;
+using MGroup.Stochastic;
+using MGroup.Stochastic.Structural;
+using MGroup.Stochastic.Structural.Example;
+
 
 namespace ISAAR.MSolve.SamplesConsole
 {
@@ -52,7 +56,8 @@ namespace ISAAR.MSolve.SamplesConsole
             //OneRveExample.Check_Graphene_rve_serial();
             //BondSlipTest.CheckStressStrainBonSlipMaterial();
             //OneRveExample.Check_Graphene_rve_parallel();
-            LinearRves.CheckShellScaleTransitionsAndMicrostructure();
+            //LinearRves.CheckShellScaleTransitionsAndMicrostructure();
+            SolveCantileverWithStochasticMaterial();
         }
 
         private static void SolveBuildingInNoSoilSmall()
@@ -253,89 +258,17 @@ namespace ISAAR.MSolve.SamplesConsole
             //Assert.Equal(-2.08333333333333333e-5, stohasticAnalyzer.MonteCarloMeanValue, 8);
         }
 
-        private static void SolveStochasticMaterialBeam2DWithBruteForceMonteCarlo_v2()
+
+        private static void SolveCantileverWithStochasticMaterial()
         {
-            #region Beam2D Geometry Data
-            double youngModulus = 2.0e08;
-            double poissonRatio = 0.3;
-            double nodalLoad = 10.0;
+            VectorExtensions.AssignTotalAffinityCount();
+            const int iterations = 1000;
+            const double youngModulus = 2.1e8;
 
-            IStochasticMaterialCoefficientsProvider coefficientProvider = 
-                new PowerSpectrumTargetEvaluatorCoefficientsProvider(10, 0.1, .05, 20, 200, DOFType.X, 0.1, 200, 1e-10);
-            var material = new StochasticElasticMaterial_v2(coefficientProvider)
-            {
-                YoungModulus = youngModulus,
-                PoissonRatio = poissonRatio,
-            };
-
-            // Model creation
-            var model = new Model_v2();
-
-            // Add a single subdomain to the model
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
-
-            // Add nodes to the nodes dictonary of the model
-            for (int i = 0; i < 11; i++)
-            {
-                model.NodesDictionary.Add(i, new Node_v2
-                {
-                    ID = i,
-                    X = i * 1,
-                    Y = 0,
-                    Z = 0
-                });
-            }
-
-            // Fix cantilever left end node of the model
-            model.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.X });
-            model.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.Y });
-            model.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
-
-            for (int i = 0; i < model.NodesDictionary.Count - 1; i++)
-            {
-                var element = new Element_v2()
-                {
-                    ID = i,
-                    ElementType = new Beam2DWithStochasticMaterial_v2(material)
-                    {
-                        SectionArea = 1,
-                        MomentOfInertia = 0.1
-                    }
-                };
-                element.AddNode(model.NodesDictionary[i]);
-                element.AddNode(model.NodesDictionary[i + 1]);
-                model.ElementsDictionary.Add(i, element);
-                model.SubdomainsDictionary[subdomainID].Elements.Add(element);
-            }
-
-
-            // Add nodal load values at the right end of the cantilever
-            model.Loads.Add(new Load_v2() { Amount = -nodalLoad, Node = model.NodesDictionary[model.NodesDictionary.Count - 1], DOF = DOFType.Y });
-            #endregion
-
-            // Solver
-            var solverBuilder = new SkylineSolver.Builder();
-            ISolver_v2 solver = solverBuilder.BuildSolver(model);
-
-            // Structural problem provider
-            var provider = new ProblemStructural_v2(model, solver);
-
-            // Linear static analysis
-            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-            var parentAnalyzerBuilder = new NewmarkDynamicAnalyzer_v2.Builder(model, solver, provider, childAnalyzer, 0.01, 0.1);
-            parentAnalyzerBuilder.SetNewmarkParametersForConstantAcceleration(); // Not necessary. This is the default
-            NewmarkDynamicAnalyzer_v2 parentAnalyzer = parentAnalyzerBuilder.Build();
-
-            //TODO: StaticAnalyzer and NewmarkDynamicAnalyzer should also implement IChildAnalyzer for the next to work, but 
-            //      stochastic logic will no longer be implemented as analyzers.
-            var stohasticAnalyzer = new MonteCarloAnalyzerWithStochasticMaterial_v2(model, provider, null/*parentAnalyzer*/,
-                    solver, coefficientProvider, 1, 10000);
-           
-            // Run the analysis
-            stohasticAnalyzer.Initialize();
-            stohasticAnalyzer.Solve();
-
-            //Assert.Equal(-2.08333333333333333e-5, stohasticAnalyzer.MonteCarloMeanValue, 8);
+            var domainMapper = new CantileverStochasticDomainMapper(new[] { 0d, 0d, 0d });
+            var evaluator = new StructuralStochasticEvaluator(youngModulus, domainMapper);
+            var m = new MonteCarlo(iterations, evaluator, evaluator);
+            m.Evaluate();
         }
     }
 }
