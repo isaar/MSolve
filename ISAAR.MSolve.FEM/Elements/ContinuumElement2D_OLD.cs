@@ -214,14 +214,14 @@ namespace ISAAR.MSolve.FEM.Elements
         /// a list with the dofs of the corresponding node. E.g. For node idx = 3, dof idx = 2 the IDof is result[3][2].
         /// </summary>
         /// <returns></returns>
-        public IReadOnlyList<IReadOnlyList<IDof>> GetNodalDofs()
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetNodalDofs()
         {
-            var allDofs = new IDof[Nodes.Count][];
+            var allDofs = new IDofType[Nodes.Count][];
             for (int i = 0; i < Nodes.Count; ++i)
             {
-                var nodalDofs = new IDof[2];
-                nodalDofs[0] = DisplacementDof.X;
-                nodalDofs[1] = DisplacementDof.Y;
+                var nodalDofs = new IDofType[2];
+                nodalDofs[0] = StructuralDof.TranslationX;
+                nodalDofs[1] = StructuralDof.TranslationY;
                 allDofs[i] = nodalDofs;
             }
             return allDofs;
