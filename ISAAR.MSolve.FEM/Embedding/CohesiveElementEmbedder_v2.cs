@@ -20,8 +20,8 @@ namespace ISAAR.MSolve.FEM.Embedding
         private readonly IElement_v2 embeddedElement;
         private readonly IEmbeddedDOFInHostTransformationVector_v2 transformation;
         private readonly Dictionary<SuperElementDof_v2, int> superElementMap = new Dictionary<SuperElementDof_v2, int>();
-        private readonly Dictionary<EmbeddedNode, Dictionary<DOFType, int>> dofToHostMapping
-            = new Dictionary<EmbeddedNode, Dictionary<DOFType, int>>();
+        private readonly Dictionary<EmbeddedNode_v2, Dictionary<DOFType, int>> dofToHostMapping
+            = new Dictionary<EmbeddedNode_v2, Dictionary<DOFType, int>>();
         private CscMatrix transformationMatrix;
 
         public CohesiveElementEmbedder_v2(Model_v2 model, Element_v2 embeddedElement,

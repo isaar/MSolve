@@ -9,7 +9,7 @@ namespace ISAAR.MSolve.FEM.Entities
     /// </summary>
 using System.Text;
     //public class Node2D: CartesianPoint2D, IDiscretizationPoint, IComparable<Node2D>
-    public class Node2D: Node, IComparable<Node2D> // temporary, till I create the rest 2D entities
+    public class Node2D: Node_v2, IComparable<Node2D> // temporary, till I create the rest 2D entities
     {
         ///// <summary>
         ///// Instantiates a <see cref="Node2D"/>.

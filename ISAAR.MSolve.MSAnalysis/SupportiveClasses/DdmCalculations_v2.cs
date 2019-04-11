@@ -206,12 +206,12 @@ namespace ISAAR.MSolve.MultiscaleAnalysisMerge.SupportiveClasses
 
             foreach (Element_v2 element in model.ElementsDictionary.Values)
             {
-                if (element.ElementType is IEmbeddedElement)
+                if (element.ElementType is IEmbeddedElement_v2)
                 {
                     Dictionary<int, IList<int>> HostSubdomains = new Dictionary<int, IList<int>>();
-                    foreach (var embeddedNode in ((IEmbeddedElement)element).EmbeddedNodes)
+                    foreach (var embeddedNode in ((IEmbeddedElement_v2)element).EmbeddedNodes)
                     {
-                        Element hostELement = embeddedNode.EmbeddedInElement;
+                        Element_v2 hostELement = embeddedNode.EmbeddedInElement;
                         if (HostSubdomains.ContainsKey(hostELement.Subdomain.ID))
                         {
                             if (!HostSubdomains[hostELement.Subdomain.ID].Contains(hostELement.ID))

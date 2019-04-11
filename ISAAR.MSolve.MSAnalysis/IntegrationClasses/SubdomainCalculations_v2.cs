@@ -126,7 +126,7 @@ namespace ISAAR.MSolve.FEM
             times.Add("addition", TimeSpan.Zero);
             foreach (Element_v2 element in subdomain.Elements)
             {
-                var isEmbeddedElement = element.ElementType is ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
+                var isEmbeddedElement = element.ElementType is ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement_v2;
                 var elStart = DateTime.Now;
                 //IMatrix2D ElementK = elementProvider.Matrix(element);
                 var localSolution = subdomain.GetLocalVectorFromGlobalWithoutPrescribedDisplacements(element, solution);
@@ -182,7 +182,7 @@ namespace ISAAR.MSolve.FEM
             times.Add("addition", TimeSpan.Zero);
             foreach (Element_v2 element in subdomain.Elements) //_v2.3 ElementsDictionary.Values)
             {
-                var isEmbeddedElement = element.ElementType is ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
+                var isEmbeddedElement = element.ElementType is ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement_v2;
                 var elStart = DateTime.Now;
                 IMatrix ElementK = elementProvider.Matrix(element);
                 times["element"] += DateTime.Now - elStart;

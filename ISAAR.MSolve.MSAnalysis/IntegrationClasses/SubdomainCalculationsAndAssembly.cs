@@ -101,7 +101,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             if (boundaryElements[subdomain.ID].ContainsKey(element.ID))//COPIED From UpdateSubdomainKffAndCalculateKfpDqAndKppDqp (prosoxh boundary elements Dictionary diathetoun kai to model kai to subdomain kai einai diaforetika edw exei diorthwthei
             {
                 //ADDED these lines from another part of UpdateSubdomainKffAndCalculateKfpDqAndKppDqp
-                var isEmbeddedElement = element.ElementType is ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
+                var isEmbeddedElement = element.ElementType is ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement_v2;
                 var elementDOFTypes = element.ElementType.DofEnumerator.GetDOFTypes(element);
                 var matrixAssemblyNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
 

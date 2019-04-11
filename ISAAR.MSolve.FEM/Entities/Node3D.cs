@@ -8,7 +8,7 @@ namespace ISAAR.MSolve.FEM.Entities
 	/// Vertex of a finite element in a 3-dimensional space. Immutable.
 	/// Authors: Dimitris Tsapetis
 	/// </summary>
-	public class Node3D : Node, IComparable<Node3D>
+	public class Node3D : Node_v2, IComparable<Node3D>
 	{
 		/// <summary>
 		/// Instantiates a <see cref="Node3D"/>

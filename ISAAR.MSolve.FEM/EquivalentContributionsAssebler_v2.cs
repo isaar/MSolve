@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.FEM
 
             foreach (Element_v2 element in subdomain.Elements) //_v2.3 ElementsDictionary.Values)    // TODOGerasimos edw mporei na xrhsimopoihthei to dictionary twn eleement pou exoun fp nodes
             {
-                var isEmbeddedElement = element.ElementType is IEmbeddedElement;
+                var isEmbeddedElement = element.ElementType is IEmbeddedElement_v2;
                 var elStart = DateTime.Now;
                 IMatrix ElementK = elementProvider.Matrix(element);
                 times["element"] += DateTime.Now - elStart;

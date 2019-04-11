@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.FEM.Embedding
         private readonly Element_v2 embeddedElement;
         private readonly IEmbeddedDOFInHostTransformationVector_v2 transformation;
         private readonly Dictionary<SuperElementDof_v2, int> superElementMap = new Dictionary<SuperElementDof_v2, int>();
-        private readonly Dictionary<EmbeddedNode, Dictionary<DOFType, int>> dofToHostMapping = new Dictionary<EmbeddedNode, Dictionary<DOFType, int>>();
+        private readonly Dictionary<EmbeddedNode_v2, Dictionary<DOFType, int>> dofToHostMapping = new Dictionary<EmbeddedNode_v2, Dictionary<DOFType, int>>();
         private Matrix transformationMatrix;
         //private bool isElementEmbedded = false;
 

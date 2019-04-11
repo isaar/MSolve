@@ -28,10 +28,10 @@ namespace ISAAR.MSolve.FEM.Postprocessing
             {
                 Node_v2 node = idxNodePair.Value;
                 //if (nodalDofs.Count != 2) throw new Exception("There must be exactly 2 dofs per node, X and Y");
-                int dofXIdx = model.GlobalDofOrdering.GlobalFreeDofs[node, DOFType.X];
-                double ux = (dofXIdx != Model.constrainedDofIdx) ? solution[dofXIdx] : 0.0;
-                int dofYIdx = model.GlobalDofOrdering.GlobalFreeDofs[node, DOFType.Y];
-                double uy = (dofYIdx != Model.constrainedDofIdx) ? solution[dofYIdx] : 0.0;
+                bool isFree = model.GlobalDofOrdering.GlobalFreeDofs.TryGetValue(node, DOFType.X, out int dofXIdx);
+                double ux = isFree ? solution[dofXIdx] : 0.0;
+                isFree = model.GlobalDofOrdering.GlobalFreeDofs.TryGetValue(node, DOFType.Y, out int dofYIdx);
+                double uy = isFree ? solution[dofYIdx] : 0.0;
                 data.Add(idxNodePair.Value, new double[] { ux, uy });
             }
         }

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace ISAAR.MSolve.FEM.Interfaces
 {
-    public interface IFiberFiniteElement : IFiniteElement
+    public interface IFiberFiniteElement : IFiniteElement_v2
     {
         IFiberFiniteElementMaterial Material { get; }
         IList<IFiber> Fibers { get; }

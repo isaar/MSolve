@@ -4,7 +4,6 @@ using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-//TODO: _v2 delete FEM.EquivalentLoadsAssembler
 //TODO: time logging must be refactored
 //TODO: perhaps this belongs to Solvers.Assemblers, since the vector type depends on the solver. In that case, the 
 //      elementMatrixProvider should be injected by the problem/provider.
