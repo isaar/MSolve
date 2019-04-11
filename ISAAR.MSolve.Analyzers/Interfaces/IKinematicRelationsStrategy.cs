@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
 
-namespace ISAAR.MSolve.Analyzers.Multiscale
+namespace ISAAR.MSolve.Analyzers.Interfaces
 {
     public interface IKinematicRelationsStrategy
     {

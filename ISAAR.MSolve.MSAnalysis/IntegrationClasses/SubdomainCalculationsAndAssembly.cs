@@ -5,7 +5,6 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.FEM.Providers;
-using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.Solvers.Interfaces;
 using System.Linq;
 using ISAAR.MSolve.FEM;

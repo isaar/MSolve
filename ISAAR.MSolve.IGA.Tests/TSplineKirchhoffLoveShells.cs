@@ -16,7 +16,6 @@ using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
-using ISAAR.MSolve.Solvers.Skyline;
 using Xunit;
 
 namespace ISAAR.MSolve.IGA.Tests

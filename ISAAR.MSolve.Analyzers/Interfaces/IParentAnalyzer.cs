@@ -1,4 +1,4 @@
-﻿namespace ISAAR.MSolve.Analyzers
+﻿namespace ISAAR.MSolve.Analyzers.Interfaces
 {
     public interface IParentAnalyzer: IAnalyzer_v2
     {

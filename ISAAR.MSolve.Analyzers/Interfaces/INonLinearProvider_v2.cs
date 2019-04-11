@@ -1,7 +1,7 @@
 ﻿using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.Analyzers.NonLinear
+namespace ISAAR.MSolve.Analyzers.Interfaces
 {
     public interface INonLinearProvider_v2 : IAnalyzerProvider_v2
     {

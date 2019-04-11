@@ -4,7 +4,7 @@ using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 
-namespace ISAAR.MSolve.Analyzers.Multiscale
+namespace ISAAR.MSolve.Analyzers.Interfaces
 {
     public interface IReferenceVolumeElement
     {

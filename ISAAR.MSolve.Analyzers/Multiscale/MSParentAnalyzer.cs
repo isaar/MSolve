@@ -8,7 +8,7 @@ using ISAAR.MSolve.Logging.Interfaces;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.LinearSystems;
 
-namespace ISAAR.MSolve.Analyzers
+namespace ISAAR.MSolve.Analyzers.Multiscale
 {
     /// <summary>
     /// Parent Analyzer for nonlinear static problems assosiated with a microstructure bvp handled by MicrostructureBvpNRNLAnalyzer

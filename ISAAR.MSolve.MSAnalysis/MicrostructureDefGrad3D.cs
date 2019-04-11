@@ -7,7 +7,6 @@ using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.PreProcessor;
 using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
@@ -27,6 +26,8 @@ using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.LinearSystems;
+using ISAAR.MSolve.Analyzers.NonLinear;
+using ISAAR.MSolve.Analyzers.Multiscale;
 
 namespace ISAAR.MSolve.MultiscaleAnalysis
 {

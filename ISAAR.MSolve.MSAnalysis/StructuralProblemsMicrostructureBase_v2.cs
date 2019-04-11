@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ISAAR.MSolve.Materials.Interfaces; //using ISAAR.MSolve.PreProcessor.Interfaces;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.PreProcessor;
 using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.FEM;
@@ -25,6 +23,8 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.LinearSystems;
+using ISAAR.MSolve.Analyzers.Multiscale;
+using ISAAR.MSolve.Analyzers.NonLinear;
 
 namespace ISAAR.MSolve.MultiscaleAnalysis
 {
@@ -35,33 +35,6 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     public abstract class StructuralProblemsMicrostructureBase_v2
     {
         public int SolverData { get; set; }
-
-        #region v1 will not be needed in v2
-        public virtual Dictionary<int, ILinearSystem> CreateNecessaryLinearSystems(Model model)
-        {
-            var linearSystems = new Dictionary<int, ILinearSystem>();
-            foreach (Subdomain subdomain in model.Subdomains)//TODO : or else "in model.SubdomainsDictionary.Values)" tou opoiu ta stoixeia ginontai access kai me ID
-            {
-                linearSystems.Add(subdomain.ID, new SkylineLinearSystem(subdomain.ID, subdomain.Forces));// prosoxh sto Id twn subdomain
-            }
-
-            return linearSystems;
-        }
-
-        public virtual ISolver GetAppropriateSolver(Dictionary<int, ILinearSystem> linearSystems)
-        {
-            //TODO: use solver data to create the chosen ISolver
-            if (linearSystems.Keys.Count == 1)
-            {
-                var solver = new SolverSkyline(linearSystems[1]); //linearSystems.ElementAt(0);
-                return solver;
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
-        }
-        #endregion
 
         public virtual Dictionary<int,Element_v2> GetBoundaryFiniteElementsDictionary_v2(Model_v2 model, Dictionary<int, Node_v2> boundaryNodes)
         {

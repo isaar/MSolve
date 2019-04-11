@@ -1,6 +1,7 @@
 ﻿using System;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.Dynamic;
+using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;

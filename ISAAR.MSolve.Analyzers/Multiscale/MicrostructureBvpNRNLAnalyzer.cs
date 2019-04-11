@@ -16,7 +16,7 @@ using ISAAR.MSolve.Solvers.LinearSystems;
 using ISAAR.MSolve.Analyzers.NonLinear;
 using ISAAR.MSolve.Solvers;
 
-namespace ISAAR.MSolve.Analyzers
+namespace ISAAR.MSolve.Analyzers.Multiscale
 {
     /// <summary>
     /// Newton Raphson Non-Linear Analyzer for the solution of boundary value problems that arise 
@@ -118,7 +118,7 @@ namespace ISAAR.MSolve.Analyzers
             set => parentAnalyzer = (INonLinearParentAnalyzer_v2)value; //TODO: remove this cast. Now it only serves as a check
         }
 
-        public IAnalyzer ChildAnalyzer
+        public IAnalyzer_v2 ChildAnalyzer
         {
             get { return null; }
             set { throw new InvalidOperationException("Newton-Raphson analyzer cannot contain an embedded analyzer."); }

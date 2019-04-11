@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Analyzers.NonLinear;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -13,6 +14,10 @@ using ISAAR.MSolve.Solvers.LinearSystems;
 //TODO: Use a base class for implicit time integration methods (perhaps to together with explicit)
 namespace ISAAR.MSolve.Analyzers.Dynamic
 {
+    /// <summary>
+    /// 
+    /// Authors: Yannis Kalogeris
+    /// </summary>
     public class ThermalDynamicAnalyzer_v2 : INonLinearParentAnalyzer_v2 //TODO: why is this non linear
     {
         private readonly double beta, timeStep, totalTime;

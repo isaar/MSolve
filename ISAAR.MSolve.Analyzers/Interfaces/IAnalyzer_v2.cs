@@ -2,7 +2,7 @@
 using ISAAR.MSolve.Logging.Interfaces;
 
 //TODO: should child analyzers hold references to their parent analyzers?
-namespace ISAAR.MSolve.Analyzers
+namespace ISAAR.MSolve.Analyzers.Interfaces
 {
     public interface IAnalyzer_v2
     {

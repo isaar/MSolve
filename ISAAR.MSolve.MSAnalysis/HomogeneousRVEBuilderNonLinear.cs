@@ -9,7 +9,6 @@ using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.PreProcessor;
 using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;

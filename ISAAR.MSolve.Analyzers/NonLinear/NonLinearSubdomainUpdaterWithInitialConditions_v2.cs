@@ -4,9 +4,8 @@ using ISAAR.MSolve.FEM.Entities;
 using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Analyzers.NonLinear;
 
-namespace ISAAR.MSolve.Analyzers
+namespace ISAAR.MSolve.Analyzers.NonLinear
 {
     /// <summary>
     /// Subdoomain state update class that accounts for non zero initial conditions (displacements).

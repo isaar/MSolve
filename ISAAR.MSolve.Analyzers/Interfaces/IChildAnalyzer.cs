@@ -1,4 +1,4 @@
-﻿namespace ISAAR.MSolve.Analyzers
+﻿namespace ISAAR.MSolve.Analyzers.Interfaces
 {
     public interface IChildAnalyzer: IAnalyzer_v2
     {

@@ -10,7 +10,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: Perhaps the providers should not hold references to the linear systems. Instead they would return vectors/matrices to 
 //      the analyzers (or the vectors/matrices would be passed in and overwritten).
 //TODO: Rename the Get~ methods to Calculate or something similar.
-namespace ISAAR.MSolve.Analyzers.Dynamic
+namespace ISAAR.MSolve.Analyzers.Interfaces
 {
     public interface IImplicitIntegrationProvider_v2 : IAnalyzerProvider_v2
     {
