@@ -180,85 +180,6 @@ namespace ISAAR.MSolve.SamplesConsole
             //TODO: No loads have been defined so the result is bound to be 0.
         }
 
-        private static void SolveStochasticMaterialBeam2DWithBruteForceMonteCarlo()
-        {
-            #region Beam2D Geometry Data
-            VectorExtensions.AssignTotalAffinityCount();
-            double youngModulus = 2.0e08;
-            double poissonRatio = 0.3;
-            double nodalLoad = 10.0;
-
-            IStochasticMaterialCoefficientsProvider coefficientProvider = new PowerSpectrumTargetEvaluatorCoefficientsProvider(10, 0.1, .05, 20, 200, DOFType.X, 0.1, 200, 1e-10);
-            StochasticElasticMaterial material = new StochasticElasticMaterial(coefficientProvider)
-            {
-                YoungModulus = youngModulus,
-                PoissonRatio = poissonRatio,
-            };
-
-            // Model creation
-            Model model = new Model();
-
-            // Add a single subdomain to the model
-            model.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
-
-            // Add nodes to the nodes dictonary of the model
-            for (int i = 0; i < 11; i++)
-            {
-                model.NodesDictionary.Add(i, new Node
-                {
-                    ID = i,
-                    X = i * 1,
-                    Y = 0,
-                    Z = 0
-                });
-            }
-
-            // Fix cantilever left end node of the model
-            model.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.X });
-            model.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.Y });
-            model.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
-
-            for (int i = 0; i < model.NodesDictionary.Count - 1; i++)
-            {
-                var element = new Element()
-                {
-                    ID = i,
-                    ElementType = new Beam2DWithStochasticMaterial(material)
-                    {
-                        SectionArea = 1,
-                        MomentOfInertia = 0.1
-                    }
-                };
-                element.AddNode(model.NodesDictionary[i]);
-                element.AddNode(model.NodesDictionary[i + 1]);
-                model.ElementsDictionary.Add(i, element);
-                model.SubdomainsDictionary[0].ElementsDictionary.Add(i, element);
-            }
-
-
-            // Add nodal load values at the right end of the cantilever
-            model.Loads.Add(new Load() { Amount = -nodalLoad, Node = model.NodesDictionary[model.NodesDictionary.Count - 1], DOF = DOFType.Y });
-
-            // Needed in order to make all the required data structures
-            model.ConnectDataStructures();
-            #endregion
-
-            var linearSystems = new Dictionary<int, ILinearSystem>();
-            linearSystems[0] = new SkylineLinearSystem(0, model.Subdomains[0].Forces);
-            SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-            ProblemStructural provider = new ProblemStructural(model, linearSystems);
-            LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
-            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
-            MonteCarloAnalyzerWithStochasticMaterial stohasticAnalyzer =
-            new MonteCarloAnalyzerWithStochasticMaterial(model, provider, parentAnalyzer, linearSystems,
-                    coefficientProvider, 1, 10000);
-            stohasticAnalyzer.Initialize();
-            stohasticAnalyzer.Solve();
-
-            //Assert.Equal(-2.08333333333333333e-5, stohasticAnalyzer.MonteCarloMeanValue, 8);
-        }
-
-
         private static void SolveCantileverWithStochasticMaterial()
         {
             VectorExtensions.AssignTotalAffinityCount();
@@ -266,7 +187,7 @@ namespace ISAAR.MSolve.SamplesConsole
             const double youngModulus = 2.1e8;
 
             var domainMapper = new CantileverStochasticDomainMapper(new[] { 0d, 0d, 0d });
-            var evaluator = new StructuralStochasticEvaluator(youngModulus, domainMapper);
+            var evaluator = new StructuralStochasticEvaluator_v2(youngModulus, domainMapper);
             var m = new MonteCarlo(iterations, evaluator, evaluator);
             m.Evaluate();
         }
