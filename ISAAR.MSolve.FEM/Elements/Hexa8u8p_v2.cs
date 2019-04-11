@@ -465,7 +465,7 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             get 
             {
-                foreach (IContinuumMaterial3D material in materialsAtGaussPoints)
+                foreach (IContinuumMaterial3D_v2 material in materialsAtGaussPoints)
                     if (material.Modified) return true;
                 return false;
             }
@@ -473,22 +473,22 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public void ResetMaterialModified()
         {
-            foreach (IContinuumMaterial3D material in materialsAtGaussPoints) material.ResetModified();
+            foreach (IContinuumMaterial3D_v2 material in materialsAtGaussPoints) material.ResetModified();
         }
 
         public void ClearMaterialState()
         {
-            foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.ClearState();
+            foreach (IContinuumMaterial3D_v2 m in materialsAtGaussPoints) m.ClearState();
         }
 
         public void SaveMaterialState()
         {
-            foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.SaveState();
+            foreach (IContinuumMaterial3D_v2 m in materialsAtGaussPoints) m.SaveState();
         }
 
         public void ClearMaterialStresses()
         {
-            foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.ClearStresses();
+            foreach (IContinuumMaterial3D_v2 m in materialsAtGaussPoints) m.ClearStresses();
         }
 
         #endregion

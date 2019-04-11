@@ -25,12 +25,12 @@ namespace ISAAR.MSolve.Preprocessor.UI
             TwoDimensionalPlaneStress, TwoDimensionalPlaneStrain, ThreeDimensional
         }
 
-        private readonly ElasticMaterial2D planeStrainMaterial;
+        private readonly ElasticMaterial2D_v2 planeStrainMaterial;
         private readonly double thickness;
         private readonly FEM.Entities.Model_v2 model;
         private bool isAssembled;
 
-        private PreprocessorModel(ProblemDimensions dimensions, double thickness, ElasticMaterial2D planeStrainMaterial)
+        private PreprocessorModel(ProblemDimensions dimensions, double thickness, ElasticMaterial2D_v2 planeStrainMaterial)
         {
             this.isAssembled = false;
             this.planeStrainMaterial = planeStrainMaterial;
@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="planeStrainMaterial">The material properties for a plane strain problem. For now they must be the same  
         ///     for the whole domain.</param>
         /// <returns></returns>
-        public static PreprocessorModel Create2DPlaneStrain(ElasticMaterial2D planeStrainMaterial) //TODO: extend this for non linear materials
+        public static PreprocessorModel Create2DPlaneStrain(ElasticMaterial2D_v2 planeStrainMaterial) //TODO: extend this for non linear materials
         {
             if (planeStrainMaterial.StressState != StressState2D.PlaneStrain)
             {
@@ -89,7 +89,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
 
         internal ProblemDimensions Dimensions { get; }
 
-        internal ElasticMaterial2D PlainStrainMaterial
+        internal ElasticMaterial2D_v2 PlainStrainMaterial
         {
             get
             {

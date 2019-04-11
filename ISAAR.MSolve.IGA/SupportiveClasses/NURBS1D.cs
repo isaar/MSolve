@@ -1,6 +1,6 @@
 ﻿using ISAAR.MSolve.IGA.Entities;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,27 +10,29 @@ namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
 {
     public class NURBS1D
     {
-        public IMatrix2D NurbsValues { get; private set; }
-        public IMatrix2D NurbsDerivativeValuesKsi { get; private set; }
+        public Matrix NurbsValues { get; private set; }
+        public Matrix NurbsDerivativeValuesKsi { get; private set; }
 
         public NURBS1D(Element element, IList<ControlPoint> controlPoints)
         {
             GaussQuadrature gauss = new GaussQuadrature();
             IList<GaussLegendrePoint3D> gaussPoints = gauss.CalculateElementGaussPoints(element.Patch.DegreeKsi, element.Knots);
 
-            IVector parametricGaussPointKsi = new Vector(element.Patch.DegreeKsi + 1);
+            var parametricGaussPointKsi = Vector.CreateZero(element.Patch.DegreeKsi + 1);
             for (int i = 0; i < element.Patch.DegreeKsi + 1; i++)
             {
                 parametricGaussPointKsi[i] = gaussPoints[i].Ksi;
             }
-            BSPLines1D bsplinesKsi = new BSPLines1D(element.Patch.DegreeKsi, element.Patch.KnotValueVectorKsi, parametricGaussPointKsi);
+            BSPLines1D bsplinesKsi = new BSPLines1D(element.Patch.DegreeKsi, 
+                Vector.CreateFromArray(((Numerical.LinearAlgebra.Vector)element.Patch.KnotValueVectorKsi).Data), 
+                parametricGaussPointKsi);
             bsplinesKsi.calculateBSPLinesAndDerivatives();
 
             int supportKsi = element.Patch.DegreeKsi + 1;
             int numberOfElementControlPoints = supportKsi;
 
-            NurbsValues = new Matrix2D(numberOfElementControlPoints, gaussPoints.Count);
-            NurbsDerivativeValuesKsi = new Matrix2D(numberOfElementControlPoints, gaussPoints.Count);
+            NurbsValues = Matrix.CreateZero(numberOfElementControlPoints, gaussPoints.Count);
+            NurbsDerivativeValuesKsi = Matrix.CreateZero(numberOfElementControlPoints, gaussPoints.Count);
             for (int i = 0; i < supportKsi; i++)
             {
                 double sumKsi = 0;
@@ -58,19 +60,21 @@ namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
             GaussQuadrature gauss = new GaussQuadrature();
             IList<GaussLegendrePoint3D> gaussPoints = gauss.CalculateElementGaussPoints(edge.Degree, element.Knots);
 
-            IVector parametricGaussPointKsi = new Vector(edge.Degree + 1);
+            var parametricGaussPointKsi = Vector.CreateZero(edge.Degree + 1);
             for (int i = 0; i < edge.Degree + 1; i++)
             {
                 parametricGaussPointKsi[i] = gaussPoints[i].Ksi;
             }
-            BSPLines1D bsplinesKsi = new BSPLines1D(edge.Degree, edge.KnotValueVector, parametricGaussPointKsi);
+            BSPLines1D bsplinesKsi = new BSPLines1D(edge.Degree, 
+                Vector.CreateFromArray(((Numerical.LinearAlgebra.Vector)edge.KnotValueVector).Data),
+                parametricGaussPointKsi);
             bsplinesKsi.calculateBSPLinesAndDerivatives();
 
             int supportKsi = edge.Degree + 1;
             int numberOfElementControlPoints = supportKsi;
 
-            NurbsValues = new Matrix2D(numberOfElementControlPoints, gaussPoints.Count);
-            NurbsDerivativeValuesKsi = new Matrix2D(numberOfElementControlPoints, gaussPoints.Count);
+            NurbsValues = Matrix.CreateZero(numberOfElementControlPoints, gaussPoints.Count);
+            NurbsDerivativeValuesKsi = Matrix.CreateZero(numberOfElementControlPoints, gaussPoints.Count);
 
             for (int i = 0; i < supportKsi; i++)
             {

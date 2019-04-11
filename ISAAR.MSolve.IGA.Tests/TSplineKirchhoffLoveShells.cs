@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			IGAFileReader modelReader = new IGAFileReader(model, filepath);
 			modelReader.CreateTSplineShellsModelFromFile();
 
-			model.PatchesDictionary[0].Material = new ElasticMaterial2D(StressState2D.PlaneStress)
+			model.PatchesDictionary[0].Material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
 			{
 				PoissonRatio = 0.0,
 				YoungModulus = 100
@@ -250,7 +250,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			//}, thickness);
 			modelReader.CreateTSplineShellsModelFromFile();
 
-			model.PatchesDictionary[0].Material = new ElasticMaterial2D(StressState2D.PlaneStress)
+			model.PatchesDictionary[0].Material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
 			{
 				PoissonRatio = 0.3,
 				YoungModulus = 10000

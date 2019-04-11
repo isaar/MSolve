@@ -1,6 +1,5 @@
-﻿using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Materials.Interfaces;
 using System;
 
 namespace ISAAR.MSolve.Materials
@@ -9,7 +8,7 @@ namespace ISAAR.MSolve.Materials
     /// Isotropic.
     /// Authors Gerasimos-Serafeim 
     /// </summary>
-    public class ShellElasticMaterial3D : IShellMaterial 
+    public class ShellElasticMaterial3D : IShellMaterial_v2 
     {
         public double[] NormalVectorV3 { get; set; }
         public double[] TangentVectorV1 { get; set; }
@@ -19,12 +18,12 @@ namespace ISAAR.MSolve.Materials
         public double ShearCorrectionCoefficientK { get; set; }
 
         private bool modified; // opws sto MohrCoulomb gia to modified
-        private double [,] ConsCartes;
+        private Matrix ConsCartes;
         private double[] SPKvec = new double[6];
 
         object ICloneable.Clone() => Clone();
 
-        public IShellMaterial Clone()
+        public IShellMaterial_v2 Clone()
         {
             return new ShellElasticMaterial3D()
             {
@@ -62,12 +61,12 @@ namespace ISAAR.MSolve.Materials
             get { return SPKvec; }
         }
 
-        public IMatrix2D  ConstitutiveMatrix
+        public IMatrixView  ConstitutiveMatrix
         {
             get
             {
                 if (ConsCartes == null) UpdateMaterial(new double[6]);
-                return new Matrix2D(ConsCartes);
+                return ConsCartes;
             } 
         }
 
@@ -106,7 +105,7 @@ namespace ISAAR.MSolve.Materials
         {
             double E = YoungModulus;
             double ni = PoissonRatio;
-            ConsCartes = new double[6, 6];
+            ConsCartes = Matrix.CreateZero(6, 6);
             double[,] Cons = new double[6, 6];
             double[,] Cons_T_e = new double[6, 6];
             double[] V2 = new double[3];

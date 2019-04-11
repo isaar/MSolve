@@ -926,7 +926,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			{
 				var element = new NURBSKirchhoffLoveShellElement();
 				var patch = new Patch();
-				patch.Material = new ElasticMaterial2D(StressState2D.PlaneStrain)
+				patch.Material = new ElasticMaterial2D_v2(StressState2D.PlaneStrain)
 				{
 					YoungModulus = 100,
 					PoissonRatio = 0.0
@@ -1758,7 +1758,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			IGAFileReader modelReader = new IGAFileReader(model, filename);
 			modelReader.CreateTSplineShellsModelFromFile();
 
-			model.PatchesDictionary[0].Material = new ElasticMaterial2D(StressState2D.PlaneStress)
+			model.PatchesDictionary[0].Material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
 			{
 				PoissonRatio = 0.3,
 				YoungModulus = 10e6

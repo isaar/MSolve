@@ -60,7 +60,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			{
 				var element = new NURBSElement2D();
 				var patch = new Patch();
-				patch.Material= new ElasticMaterial2D(StressState2D.PlaneStrain)
+				patch.Material= new ElasticMaterial2D_v2(StressState2D.PlaneStrain)
 				{
 					YoungModulus = 1,
 					PoissonRatio = 0.3
