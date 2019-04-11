@@ -1,30 +1,20 @@
-﻿using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Analyzers.Interfaces;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Analyzers.NonLinear;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
+using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Skyline;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
-using Xunit;
-using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.FEM;
-using ISAAR.MSolve.Discretization.Providers;
-using ISAAR.MSolve.Logging;
-using ISAAR.MSolve.FEM.Embedding;
-using System.Linq;
-using ISAAR.MSolve.Discretization.Integration.Quadratures;
-using System.IO;
-using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.FEM.Postprocessing;
-using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Analyzers.NonLinear;
+using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers.Direct;
 
 namespace ISAAR.MSolve.SamplesConsole
 {
@@ -35,8 +25,6 @@ namespace ISAAR.MSolve.SamplesConsole
 
         public static void EmbeddedCNT_20_20_inMatrix_NewtonRaphson()
         {
-            VectorExtensions.AssignTotalAffinityCount();
-
             // No. of increments
             int increments = 100;
 
@@ -122,8 +110,6 @@ namespace ISAAR.MSolve.SamplesConsole
 
         public static void EmbeddedCNT_20_20_inMatrix_DisplacementControl()
         {
-            VectorExtensions.AssignTotalAffinityCount();
-
             // No. of increments
             int increments = 100;
 

@@ -1,23 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.Dynamic;
-using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.Logging;
-using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
-//using ISAAR.MSolve.SamplesConsole.DdmBenchmarks1;
-using ISAAR.MSolve.SamplesConsole.Solvers;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Skyline;
-using ISAAR.MSolve.Tests.FEMpartB;
 using MGroup.Stochastic;
 using MGroup.Stochastic.Structural;
 using MGroup.Stochastic.Structural.Example;
@@ -60,33 +49,6 @@ namespace ISAAR.MSolve.SamplesConsole
             SolveCantileverWithStochasticMaterial();
         }
 
-        private static void SolveBuildingInNoSoilSmall()
-        {
-            VectorExtensions.AssignTotalAffinityCount();
-            Model model = new Model();
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain() { ID = subdomainID });
-            BeamBuildingBuilder.MakeBeamBuilding(model, 20, 20, 20, 5, 4, model.NodesDictionary.Count + 1,
-                model.ElementsDictionary.Count + 1, subdomainID, 4, false, false);
-            model.Loads.Add(new Load() { Amount = -100, Node = model.Nodes[21], DOF = DOFType.X });
-            model.ConnectDataStructures();
-
-            var linearSystems = new Dictionary<int, ILinearSystem>(); //I think this should be done automatically
-            linearSystems[subdomainID] = new SkylineLinearSystem(subdomainID, model.Subdomains[0].Forces);
-            SolverSkyline solver = new SolverSkyline(linearSystems[subdomainID]);
-            ProblemStructural provider = new ProblemStructural(model, linearSystems);
-            LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
-
-            analyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 420 });
-
-            parentAnalyzer.BuildMatrices();
-            parentAnalyzer.Initialize();
-            parentAnalyzer.Solve();
-
-            DOFSLog log = (DOFSLog)analyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
-            Console.WriteLine($"dof = {420}, u = {log.DOFValues[420]}");
-        }
-
         private static void SolveBuildingInNoSoilSmall_v2()
         {
             var model = new Model_v2();
@@ -117,32 +79,6 @@ namespace ISAAR.MSolve.SamplesConsole
             // Write output
             DOFSLog_v2 log = (DOFSLog_v2)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
             Console.WriteLine($"dof = {monitorDof}, u = {log.DOFValues[monitorDof]}");
-        }
-
-        private static void SolveBuildingInNoSoilSmallDynamic()
-        {
-            VectorExtensions.AssignTotalAffinityCount();
-            Model model = new Model();
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain() { ID = subdomainID });
-            BeamBuildingBuilder.MakeBeamBuilding(model, 20, 20, 20, 5, 4, model.NodesDictionary.Count + 1,
-                model.ElementsDictionary.Count + 1, subdomainID, 4, false, false);
-            model.ConnectDataStructures();
-
-            var linearSystems = new Dictionary<int, ILinearSystem>(); //I think this should be done automatically
-            linearSystems[subdomainID] = new SkylineLinearSystem(subdomainID, model.Subdomains[0].Forces);
-            SolverSkyline solver = new SolverSkyline(linearSystems[subdomainID]);
-            ProblemStructural provider = new ProblemStructural(model, linearSystems);
-            LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-            NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, analyzer, linearSystems, 0.25, 0.5, 0.01, 0.1);
-
-            analyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 420 });
-
-            parentAnalyzer.BuildMatrices();
-            parentAnalyzer.Initialize();
-            parentAnalyzer.Solve();
-
-            DOFSLog log = (DOFSLog)analyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
-            Console.WriteLine($"dof = {420}, u = {log.DOFValues[420]}");
         }
 
         private static void SolveBuildingInNoSoilSmallDynamic_v2()
@@ -182,7 +118,6 @@ namespace ISAAR.MSolve.SamplesConsole
 
         private static void SolveCantileverWithStochasticMaterial()
         {
-            VectorExtensions.AssignTotalAffinityCount();
             const int iterations = 1000;
             const double youngModulus = 2.1e8;
 

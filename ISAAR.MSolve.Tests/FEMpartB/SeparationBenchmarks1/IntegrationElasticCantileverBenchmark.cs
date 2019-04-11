@@ -1,24 +1,18 @@
-﻿//using ISAAR.MSolve.PreProcessor.Elements;
-//using ISAAR.MSolve.PreProcessor.Materials;
-using System.Collections.Generic;
-// compa
-using ISAAR.MSolve.FEM.Entities;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Analyzers.NonLinear;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.MultiscaleAnalysis;
 using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
-using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Discretization.Integration.Quadratures;
-using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Logging;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Skyline;
-using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers;
-using ISAAR.MSolve.Analyzers.NonLinear;
+using ISAAR.MSolve.Solvers.Direct;
 
 namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks1
 {

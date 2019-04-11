@@ -1,9 +1,7 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Commons;
+﻿using System;
+using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Xunit;
 
 namespace ISAAR.MSolve.Tests.FEMpartB

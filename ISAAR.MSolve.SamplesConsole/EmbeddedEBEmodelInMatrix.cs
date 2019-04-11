@@ -1,42 +1,31 @@
-﻿using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Analyzers.Interfaces;
-using ISAAR.MSolve.FEM.Elements;
-using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Skyline;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
-using Xunit;
-using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.FEM;
-using ISAAR.MSolve.Discretization.Providers;
-using ISAAR.MSolve.Logging;
-using ISAAR.MSolve.FEM.Embedding;
-using System.Linq;
-using ISAAR.MSolve.Discretization.Integration.Quadratures;
+﻿using System.Collections.Generic;
 using System.IO;
-using ISAAR.MSolve.Solvers.Direct;
-using ISAAR.MSolve.FEM.Postprocessing;
+using System.Linq;
+using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.NonLinear;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.FEM.Elements;
+using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
+using ISAAR.MSolve.FEM.Embedding;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Materials;
+using ISAAR.MSolve.FEM.Postprocessing;
+using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers.Direct;
 
 namespace ISAAR.MSolve.SamplesConsole
 {
     public class EmbeddedEBEmodelInMatrix
     {
-        private const string outputDirectory = @"E:\GEORGE_DATA\DESKTOP\MSolveResults"; //@"D:\George\Desktop\MSolveResults"; //
+        private const string outputDirectory = @"E:\GEORGE_DATA\DESKTOP\MSolveResults";
         private const int subdomainID = 0;
 
         public static void EmbeddedEBEinMatrix_NewtonRaphson()
         {
-            VectorExtensions.AssignTotalAffinityCount();
-
             // Model creation
             var model = new Model_v2();
 

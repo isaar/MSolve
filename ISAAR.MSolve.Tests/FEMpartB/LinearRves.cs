@@ -1,16 +1,13 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Commons;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
+﻿using ISAAR.MSolve.FEM.Materials;
+using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Xunit;
-using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
 using ISAAR.MSolve.MultiscaleAnalysis;
+using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
 using ISAAR.MSolve.Solvers.Direct;
-using ISAAR.MSolve.FEM.Materials;
+using Xunit;
 
 namespace ISAAR.MSolve.Tests.FEMpartB
 {

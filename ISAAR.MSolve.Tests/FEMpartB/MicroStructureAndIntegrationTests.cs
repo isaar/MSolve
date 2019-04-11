@@ -1,8 +1,5 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Xunit;
 
 namespace ISAAR.MSolve.Tests.FEMpartB
