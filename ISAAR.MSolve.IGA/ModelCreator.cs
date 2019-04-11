@@ -404,6 +404,39 @@ namespace ISAAR.MSolve.IGA
         //}
 
 
+        public void CreateCollocationModelData()
+        {
+	        int counterElementID = 0;
+	        int counterCPID = 0;
+	        for (int patchID = 0; patchID < NumberOfPatches; patchID++)
+	        {
+		        Patch patch = new Patch()
+		        {
+			        NumberOfDimensions = this.NumberOfDimensions,
+			        DegreeKsi = DegreeKsiDictionary[patchID],
+			        DegreeHeta = DegreeHetaDictionary[patchID],
+			        DegreeZeta = (NumberOfDimensions == 2) ? 0 : DegreeZetaDictionary[patchID],
+			        NumberOfControlPointsKsi = NumberOfControlPointsKsiDictionary[patchID],
+			        NumberOfControlPointsHeta = NumberOfControlPointsHetaDictionary[patchID],
+			        NumberOfControlPointsZeta = (NumberOfDimensions == 2) ? 0 : NumberOfControlPointsZetaDictionary[patchID],
+			        Material = this.Material,
+			        Thickness = (NumberOfDimensions == 2) ? this.Thickness : 0,
+			        KnotValueVectorKsi = KnotValueVectorsKsiDictionary[patchID],
+			        KnotValueVectorHeta = KnotValueVectorsHetaDictionary[patchID],
+			        KnotValueVectorZeta = (NumberOfDimensions == 2) ? null : KnotValueVectorsZetaDictionary[patchID],
+		        };
 
-    }
+		        for (int j = 0; j < ControlPointIDsDictionary[patchID].Length; j++)
+			        ((List<ControlPoint>)patch.ControlPoints).Add(ControlPointsDictionary[ControlPointIDsDictionary[patchID][j]]);
+		        patch.CreateCollocationPatchData();
+		        foreach (var element in patch.Elements)
+			        Model.ElementsDictionary.Add(counterElementID++, element);
+		        foreach (var controlPoint in patch.ControlPoints)
+			        Model.ControlPointsDictionary.Add(counterCPID++, controlPoint);
+
+		        this.Model.PatchesDictionary.Add(patchID, patch);
+	        }
+		}
+
+	}
 }

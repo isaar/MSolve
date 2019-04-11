@@ -14,7 +14,7 @@ using ISAAR.MSolve.Numerical.Commons;
 //      cannot be correct.
 namespace ISAAR.MSolve.IGA.Entities
 {
-	public class Model : IStructuralModel_v2
+	public class Model : IStructuralAsymmetricModel
 	{
 		private int numberOfPatches = 0;
 		private int numberOfInterfaces = 0;
@@ -83,8 +83,7 @@ namespace ISAAR.MSolve.IGA.Entities
 				globalDofOrdering = value;
 				foreach (Patch patch in Patches)
 				{
-					patch.DofOrdering = GlobalDofOrdering.SubdomainDofOrderings[patch];
-					patch.Forces = Vector.CreateZero(patch.DofOrdering.NumFreeDofs);
+					patch.DofRowOrdering = GlobalDofOrdering.SubdomainDofOrderings[patch];
 				}
 
 				//EnumerateSubdomainLagranges();
@@ -92,7 +91,45 @@ namespace ISAAR.MSolve.IGA.Entities
 			}
 		}
 
-		public void AssignLoads()
+        private IGlobalFreeDofOrdering globalRowDofOrdering;
+        public IGlobalFreeDofOrdering GlobalRowDofOrdering 
+        {
+            get => globalRowDofOrdering;
+            set
+            {
+                globalRowDofOrdering = value;
+                foreach (Patch patch in Patches)
+                {
+                    patch.DofColOrdering = GlobalRowDofOrdering.SubdomainDofOrderings[patch];
+                    patch.Forces = Vector.CreateZero(patch.DofColOrdering.NumFreeDofs);
+                }
+
+                //EnumerateSubdomainLagranges();
+                //EnumerateDOFMultiplicity();
+            }
+        }
+
+        private IGlobalFreeDofOrdering globalColDofOrdering;
+        public IGlobalFreeDofOrdering GlobalColDofOrdering
+        {
+            get => globalColDofOrdering;
+            set
+            {
+                globalColDofOrdering = value;
+                foreach (Patch patch in Patches)
+                {
+                    patch.DofColOrdering = GlobalColDofOrdering.SubdomainDofOrderings[patch];
+                    patch.Forces = Vector.CreateZero(patch.DofColOrdering.NumFreeDofs);
+                }
+
+                //EnumerateSubdomainLagranges();
+                //EnumerateDOFMultiplicity();
+            }
+        }
+
+        public IReadOnlyList<IAsymmetricSubdomain> Subdomains => patchesDictionary.Values.ToList();
+
+        public void AssignLoads()
 		{
 			foreach (Patch patch in PatchesDictionary.Values) patch.Forces.Clear();
 			AssignControlPointLoads();

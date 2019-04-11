@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.IGA.Entities;
@@ -14,14 +15,31 @@ using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.IGA.Elements
 {
-	public class NURBSElement2DCollocation : Element, IStructuralIsogeometricElement
-	{
-		public NaturalPoint2D CollocationPoint;
-		public ElementDimensions ElementDimensions => ElementDimensions.TwoD;
-		public IElementDofEnumerator_v2 DofEnumerator { get; set; }
-		public bool MaterialModified { get; }
+	public class NURBSElement2DCollocation : Element, IStructuralIsogeometricElement, ICollocationElement
+    {
+        protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X, DOFType.Y };
+        protected DOFType[][] dofTypes;
+        private CollocationPoint2D _collocationPoint;
 
-		public Dictionary<int, double> CalculateLoadingCondition(Element element, Edge edge,
+        public CollocationPoint2D CollocationPoint
+        {
+            get => _collocationPoint;
+            set => _collocationPoint = value;
+        }
+        
+		public ElementDimensions ElementDimensions => ElementDimensions.TwoD;
+        public IElementDofEnumerator_v2 DofEnumerator
+        {
+            get { return dofEnumerator; }
+
+            set { this.dofEnumerator = value; }
+        }
+        public bool MaterialModified { get; }
+        INode ICollocationElement.CollocationPoint { get => _collocationPoint; set => _collocationPoint=(CollocationPoint2D)value; }
+
+        protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
+
+        public Dictionary<int, double> CalculateLoadingCondition(Element element, Edge edge,
 			NeumannBoundaryCondition neumann)
 		{
 			throw new NotImplementedException();
@@ -237,9 +255,16 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
-		{
-			throw new NotImplementedException();
-		}
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
+        {
+            var nurbsElement = (NURBSElement2DCollocation)element;
+            dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
+            for (int i = 0; i < nurbsElement.ControlPoints.Count; i++)
+            {
+                dofTypes[i] = controlPointDOFTypes;
+            }
+
+            return dofTypes;
+        }
 	}
 }

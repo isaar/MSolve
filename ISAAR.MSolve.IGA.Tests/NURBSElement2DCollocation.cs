@@ -2,13 +2,23 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.IGA.Elements;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
+using ISAAR.MSolve.IGA.Readers;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
+using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers;
+using ISAAR.MSolve.Solvers.Assemblers.Collocation;
+using ISAAR.MSolve.Solvers.Ordering;
+using ISAAR.MSolve.Solvers.Ordering.Reordering;
+using MathNet.Numerics.Data.Matlab;
+using MathNet.Numerics.LinearAlgebra;
 using Xunit;
+using VectorExtensions = ISAAR.MSolve.Numerical.LinearAlgebra.VectorExtensions;
 
 namespace ISAAR.MSolve.IGA.Tests
 {
@@ -125,7 +135,7 @@ namespace ISAAR.MSolve.IGA.Tests
 				patch.KnotValueVectorKsi = KnotValueVectorKsi();
 				patch.KnotValueVectorHeta = KnotValueVectorHeta();
 				element.Patch = patch;
-				element.CollocationPoint=new NaturalPoint2D(0.00625000000000000, 0.0125000000000000);
+				element.CollocationPoint=new CollocationPoint2D(0,0.00625000000000000, 0.0125000000000000);
 				return element;
 			}
 		}
@@ -789,5 +799,46 @@ namespace ISAAR.MSolve.IGA.Tests
 			}
 		}
 
+		[Fact]
+		private void TestCollocationPointCreation()
+		{
+			VectorExtensions.AssignTotalAffinityCount();
+			Model model = new Model();
+			ModelCreator modelCreator = new ModelCreator(model);
+			string filename = "..\\..\\..\\InputFiles\\PlateWithHole.txt";
+			IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filename);
+			modelReader.CreateCollocationModelFromFile();
+
+            //var solverBuilder = new SuiteSparseSolver.Builder();
+            //solverBuilder.DofOrderer = new DofOrderer(
+            //    new NodeMajorDofOrderingStrategy(), new NullReordering());
+            ISolver_v2 solver = new GmresSolver(model,
+                new AsymmetricDofOrderer(new RowDofOrderingStrategy()), 
+                new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering()),
+                new CsrRectangularAssembler(), "CsrRectangularAssembler");
+
+            // Structural problem provider
+            var provider = new ProblemStructural_v2(model, solver);
+
+            // Linear static analysis
+            var childAnalyzer = new LinearAnalyzer_v2(solver);
+            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+
+            // Run the analysis
+            parentAnalyzer.Initialize();
+            parentAnalyzer.BuildMatrices();
+
+            var k = solver.LinearSystems[0].Matrix;
+            Matrix<double> kmatlab=MathNet.Numerics.LinearAlgebra.CreateMatrix.Dense<double>(k.NumRows,k.NumColumns);
+            for (int i = 0; i < k.NumRows; i++)
+            {
+                for (int j = 0; j < k.NumColumns; j++)
+                {
+                    kmatlab[i, j] = k[i, j];
+                }
+            }
+            MatlabWriter.Write("..\\..\\..\\InputFiles\\KcolMsolve.mat", kmatlab,"Ktotal");
+            
+        }
 	}
 }

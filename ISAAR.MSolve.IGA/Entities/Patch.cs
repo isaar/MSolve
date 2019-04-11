@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.IGA.Elements;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials.Interfaces;
@@ -12,8 +13,8 @@ using ISAAR.MSolve.Numerical.Commons;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-	public class Patch:ISubdomain_v2
-	{
+	public class Patch: IAsymmetricSubdomain
+    {
 		private readonly Dictionary<int, Edge> edgesDictionary = new Dictionary<int, Edge>();
 		private readonly Dictionary<int, Face> facesDictionary = new Dictionary<int, Face>();
 		
@@ -177,10 +178,12 @@ namespace ISAAR.MSolve.IGA.Entities
 		public double[] KnotValueVectorKsi { get; set; }
 		public double[] KnotValueVectorHeta { get; set; }
 		public double[] KnotValueVectorZeta { get; set; }
-		#endregion
+        public ISubdomainFreeDofOrdering DofRowOrdering { get; set; }
+        public ISubdomainFreeDofOrdering DofColOrdering { get; set; }
+        #endregion
 
 
-		internal void CreatePatchData()
+        public void CreatePatchData()
 		{
 			if (this.NumberOfDimensions == 2)
 			{
@@ -191,6 +194,141 @@ namespace ISAAR.MSolve.IGA.Entities
 				CreatePatchData3D();
 			}
 		}
+
+		public void CreateCollocationPatchData()
+		{
+			if (this.NumberOfDimensions == 2)
+			{
+				CreatePatchCollocationData2D();
+			}
+			else
+			{
+				//CreatePatchCollocationData3D();
+			}
+		}
+
+		private void CreatePatchCollocationData2D()
+		{
+			CreateCollocationPoints2D();
+		}
+
+		private void CreateCollocationPoints2D()
+		{
+			#region CollocationPoints
+			var collocationPoints= new List<CollocationPoint2D>();
+			var index = 0;
+			for (int i = 1; i < NumberOfControlPointsKsi-1; i++)
+			{
+				var coordinateKsi = 0.0;
+				for (int j = 1; j <= DegreeKsi; j++)
+					coordinateKsi += KnotValueVectorKsi[i+j];
+				coordinateKsi /= DegreeKsi;
+
+				for (int j = 1; j < NumberOfControlPointsHeta-1; j++)
+				{
+					var coordinateHeta = 0.0;
+					for (int k = 1; k <= DegreeHeta; k++)
+						coordinateHeta += KnotValueVectorHeta[j + k];
+
+					coordinateHeta /= DegreeHeta;
+
+					collocationPoints.Add( new CollocationPoint2D(index++,coordinateKsi, coordinateHeta));
+				}
+			}
+			#endregion
+			
+			#region Knots
+			Numerical.LinearAlgebra.Vector singleKnotValuesKsi = new Numerical.LinearAlgebra.Vector(KnotValueVectorKsi).RemoveDuplicatesFindMultiplicity()[0];
+			Numerical.LinearAlgebra.Vector singleKnotValuesHeta = new Numerical.LinearAlgebra.Vector(KnotValueVectorHeta).RemoveDuplicatesFindMultiplicity()[0];
+
+			List<Knot> knots = new List<Knot>();
+
+			int id = 0;
+			for (int i = 0; i < singleKnotValuesKsi.Length; i++)
+			{
+				for (int j = 0; j < singleKnotValuesHeta.Length; j++)
+				{
+					knots.Add(new Knot() { ID = id, Ksi = singleKnotValuesKsi[i], Heta = singleKnotValuesHeta[j], Zeta = 0.0 });
+					id++;
+				}
+			}
+			#endregion
+
+			#region Elements
+			Numerical.LinearAlgebra.Vector multiplicityKsi = new Numerical.LinearAlgebra.Vector(KnotValueVectorKsi).RemoveDuplicatesFindMultiplicity()[1];
+			Numerical.LinearAlgebra.Vector multiplicityHeta = new Numerical.LinearAlgebra.Vector(KnotValueVectorHeta).RemoveDuplicatesFindMultiplicity()[1];
+
+			int numberOfElementsKsi = singleKnotValuesKsi.Length - 1;
+			int numberOfElementsHeta = singleKnotValuesHeta.Length - 1;
+			if (numberOfElementsKsi * numberOfElementsHeta == 0)
+			{
+				throw new NullReferenceException("Number of Elements should be defined before Element Connectivity");
+			}
+
+			for (int i = 0; i < numberOfElementsKsi; i++)
+			{
+				for (int j = 0; j < numberOfElementsHeta; j++)
+				{
+					IList<Knot> knotsOfElement = new List<Knot>();
+					knotsOfElement.Add(knots[i * singleKnotValuesHeta.Length + j]);
+					knotsOfElement.Add(knots[i * singleKnotValuesHeta.Length + j + 1]);
+					knotsOfElement.Add(knots[(i + 1) * singleKnotValuesHeta.Length + j]);
+					knotsOfElement.Add(knots[(i + 1) * singleKnotValuesHeta.Length + j + 1]);
+
+					int multiplicityElementKsi = 0;
+					if (multiplicityKsi[i + 1] - this.DegreeKsi > 0)
+					{
+						multiplicityElementKsi = (int)multiplicityKsi[i + 1] - this.DegreeKsi;
+					}
+
+					int multiplicityElementHeta = 0;
+					if (multiplicityHeta[j + 1] - this.DegreeHeta > 0)
+					{
+						multiplicityElementHeta = (int)multiplicityHeta[j + 1] - this.DegreeHeta;
+					}
+
+					int nurbsSupportKsi = this.DegreeKsi + 1;
+					int nurbsSupportHeta = this.DegreeHeta + 1;
+
+					IList<ControlPoint> elementControlPoints = new List<ControlPoint>();
+
+					for (int k = 0; k < nurbsSupportKsi; k++)
+					{
+						for (int l = 0; l < nurbsSupportHeta; l++)
+						{
+							int controlPointID = (i + multiplicityElementKsi) * this.NumberOfControlPointsHeta +
+								(j + multiplicityElementHeta) + k * this.NumberOfControlPointsHeta + l;
+							elementControlPoints.Add(this.ControlPoints[controlPointID]);
+						}
+					}
+
+					var elementCollocationPoints = collocationPoints.Where(cp =>
+						knotsOfElement[0].Ksi <= cp.Xi && cp.Xi < knotsOfElement[3].Ksi &&
+						knotsOfElement[0].Heta <= cp.Eta && cp.Eta < knotsOfElement[3].Heta).ToList();
+
+					foreach (var point in elementCollocationPoints)
+					{
+						Element element = new NURBSElement2DCollocation
+						{
+							ID = point.ID,
+							Patch = this,
+							ElementType = new NURBSElement2DCollocation(),
+                            CollocationPoint = point
+						};
+						element.AddKnots(knotsOfElement);
+						element.AddControlPoints(elementControlPoints.ToList<ControlPoint>());
+						Elements.Add(element);
+					}
+				}
+			}
+
+            var orderedElements=Elements.OrderBy(e => ((ICollocationElement) e).CollocationPoint.ID).ToList();
+            Elements.Clear();
+            Elements.AddRange(orderedElements);
+
+
+            #endregion
+        }
 
 		private void CreatePatchData2D()
 		{

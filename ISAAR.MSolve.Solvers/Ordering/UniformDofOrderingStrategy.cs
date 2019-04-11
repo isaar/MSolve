@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
                     out IReadOnlyDictionary<DOFType, double> constraintsOfNode);
                 foreach (DOFType dof in dofsPerNode)
                 {
-                    bool isDofConstrained = isNodeConstrained ? constraintsOfNode.ContainsKey(dof) : false;
+                    bool isDofConstrained = isNodeConstrained && constraintsOfNode.ContainsKey(dof);
                     if (!isDofConstrained) freeDofs[node, dof] = dofCounter++;
                 }
             }
