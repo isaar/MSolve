@@ -4,13 +4,13 @@ using MGroup.Stochastic.Structural.StochasticRealizers;
 
 namespace MGroup.Stochastic.Structural
 {
-    public class GiannisStructuralStochasticRealizer : ISystemRealizer
+    public class GiannisStructuralStochasticRealizer_v2 : ISystemRealizer
     {
         public double YoungModulus { get; }
         private readonly IStochasticDomainMapper DomainMapper;
         public KarhunenLoeveCoefficientsProvider StochasticRealization { get; }
-        public GiannisModelBuilder ModelBuilder { get; }
-        private Model currentModel;
+        public GiannisModelBuilder_v2 ModelBuilder { get; }
+        private Model_v2 currentModel;
         int karLoeveTerms = 2;
         double[] domainBounds = new double[2] { 0, 1.0 };
         double sigmaSquare = 0.01;
@@ -26,12 +26,12 @@ namespace MGroup.Stochastic.Structural
         /// <summary>Initializes a new instance of the <see cref="GiannisStructuralStochasticRealizer"/> class.</summary>
         /// <param name="youngModulus">The young modulus.</param>
         /// <param name="domainMapper">The domain mapper.</param>
-        public GiannisStructuralStochasticRealizer(double youngModulus, IStochasticDomainMapper domainMapper)
+        public GiannisStructuralStochasticRealizer_v2(double youngModulus, IStochasticDomainMapper domainMapper)
         {
             YoungModulus = youngModulus;
             meanValue = youngModulus;
             DomainMapper= domainMapper;
-            ModelBuilder = new GiannisModelBuilder();
+            ModelBuilder = new GiannisModelBuilder_v2();
             StochasticRealization = new KarhunenLoeveCoefficientsProvider(partition, meanValue, midpointMethod, 
             isGaussian, karLoeveTerms, domainBounds, sigmaSquare, correlationLength);
         }

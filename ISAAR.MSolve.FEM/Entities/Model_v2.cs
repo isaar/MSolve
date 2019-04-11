@@ -192,7 +192,7 @@ namespace ISAAR.MSolve.FEM.Entities
         {
             foreach (Element_v2 element in ElementsDictionary.Values)
             {
-                foreach (Node_v2 node in element.Nodes) node.ElementsDictionary.Add(element.ID, element);
+                foreach (Node_v2 node in element.Nodes) node.ElementsDictionary[element.ID] = element;
             }
         }
 
