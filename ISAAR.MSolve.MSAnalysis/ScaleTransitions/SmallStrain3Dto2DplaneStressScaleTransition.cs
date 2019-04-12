@@ -1,16 +1,8 @@
-﻿using ISAAR.MSolve.PreProcessor;
-using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.FEM;
-using ISAAR.MSolve.FEM.Elements;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
-using ISAAR.MSolve.FEM.Interfaces;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
 
 namespace ISAAR.MSolve.MultiscaleAnalysis
 {

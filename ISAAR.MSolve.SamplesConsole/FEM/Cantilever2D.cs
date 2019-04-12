@@ -11,7 +11,6 @@ using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.VonMisesStress;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Preprocessor.Meshes;
 using ISAAR.MSolve.Preprocessor.Meshes.Custom;
 using ISAAR.MSolve.Preprocessor.Meshes.GMSH;
@@ -65,7 +64,6 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             // Initialize
             int numNodes = nodes.Count;
             int numElements = elements.Count;
-            VectorExtensions.AssignTotalAffinityCount();
 
             // Materials
             ElasticMaterial2D_v2 material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)

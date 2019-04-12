@@ -13,7 +13,6 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Postprocessing;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 
@@ -77,8 +76,6 @@ namespace ISAAR.MSolve.SamplesConsole
 
         public static void EmbeddedEBEinMatrix_DisplacementControl()
         {
-            VectorExtensions.AssignTotalAffinityCount();
-
             // Model creation
             var model = new Model_v2();
 

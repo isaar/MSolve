@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -13,7 +12,6 @@ using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
-using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using MathNet.Numerics.Data.Matlab;
@@ -22,7 +20,7 @@ using Xunit;
 
 namespace ISAAR.MSolve.IGA.Tests
 {
-	public class IsogeometricBenchmarks
+    public class IsogeometricBenchmarks
 	{
 		[Fact]
 		public void IsogeometricQuadraticCantilever2D()

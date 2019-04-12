@@ -1,21 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Elements;
 using ISAAR.MSolve.IGA.Entities;
-using ISAAR.MSolve.Solvers.Interfaces;
+using ISAAR.MSolve.Solvers.LinearSystems;
 
 namespace ISAAR.MSolve.IGA.Postprocessing
 {
-	public class ParaviewTsplines2D
+    public class ParaviewTsplines2D
 	{
 		private Model _model;
-		private ILinearSystem _linearSystem;
+		private ILinearSystem_v2 _linearSystem;
 		private string _filename;
 
-		public ParaviewTsplines2D(Model model, ILinearSystem linearSystem, string filename)
+		public ParaviewTsplines2D(Model model, ILinearSystem_v2 linearSystem, string filename)
 		{
 			_model = model;
 			_linearSystem = linearSystem;

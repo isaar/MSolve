@@ -1,18 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-//using ISAAR.MSolve.FEM.Interfaces;
-using ISAAR.MSolve.FEM.Entities;
-//using ISAAR.MSolve.Numerical.LinearAlgebra;
-//using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using ISAAR.MSolve.FEM.Providers;
-using ISAAR.MSolve.Solvers.Interfaces;
+﻿using System.Collections.Generic;
 using System.Linq;
-using ISAAR.MSolve.Analyzers.Interfaces;
-using ISAAR.MSolve.FEM;
-using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.FEM;
+using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.LinearSystems;
 

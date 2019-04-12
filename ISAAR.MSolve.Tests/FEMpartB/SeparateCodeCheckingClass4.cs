@@ -2,7 +2,6 @@
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.MultiscaleAnalysis;
 using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Solvers.Direct;
 
 namespace ISAAR.MSolve.Tests.FEMpartB
