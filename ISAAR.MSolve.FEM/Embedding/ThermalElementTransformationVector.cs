@@ -1,21 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.FEM.Entities;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Interfaces;
-using ISAAR.MSolve.FEM.Elements;
 
 namespace ISAAR.MSolve.FEM.Embedding
 {
     public class ThermalElementTransformationVector : IEmbeddedDOFInHostTransformationVector
     {
-        private readonly DOFType[] thermalDOFTypes = new DOFType[] { DOFType.Temperature };
+        private readonly IDofType[] thermalDOFTypes = new IDofType[] { ThermalDof.Temperature };
 
-        public IList<DOFType> GetDependentDOFTypes { get { return thermalDOFTypes; } }
+        public IList<IDofType> GetDependentDOFTypes { get { return thermalDOFTypes; } }
 
-        public IList<IList<DOFType>> GetDOFTypesOfHost(EmbeddedNode node)
+        public IList<IList<IDofType>> GetDOFTypesOfHost(EmbeddedNode node)
         {
             return node.EmbeddedInElement.ElementType.GetElementDOFTypes(node.EmbeddedInElement);
         }

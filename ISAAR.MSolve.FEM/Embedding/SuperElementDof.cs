@@ -1,6 +1,7 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
+﻿using System;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
-using System;
 
 namespace ISAAR.MSolve.FEM.Embedding
 {
@@ -9,7 +10,7 @@ namespace ISAAR.MSolve.FEM.Embedding
         public Element Element { get; set; }
         public INode HostNode { get; set; }
         public INode EmbeddedNode { get; set; }
-        public DOFType DOF { get; set; }
+        public IDofType DOF { get; set; }
 
         public override bool Equals(object obj)
         {

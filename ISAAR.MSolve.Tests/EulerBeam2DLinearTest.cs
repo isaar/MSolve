@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Materials;
@@ -52,12 +52,12 @@ namespace ISAAR.MSolve.Tests
             }
 
             // Constrain bottom nodes of the model
-            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.X });
-            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.Y });
-            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.Z });
-            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.RotX });
-            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.RotY });
-            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.RotationX });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.RotationY });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.RotationZ });
             // Generate elements of the structure
             int iNode = 1;
             for (int iElem = 0; iElem < nElems; iElem++)
@@ -89,7 +89,7 @@ namespace ISAAR.MSolve.Tests
             }
 
             // Add nodal load values at the top nodes of the model
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode], DOF = StructuralDof.TranslationY });
 
             // Solver
             //var solverBuilder = new MSolve.Solvers.Iterative.PcgSolver.Builder(

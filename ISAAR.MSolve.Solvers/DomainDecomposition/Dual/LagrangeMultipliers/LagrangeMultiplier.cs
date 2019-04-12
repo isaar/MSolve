@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 
 //TODO: perhaps I should also store the dof indices in each subdomain. In that case, creating the boolean matrices can be 
@@ -8,7 +7,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
 {
     internal class LagrangeMultiplier
     {
-        internal LagrangeMultiplier(INode node, DOFType dof, ISubdomain subdomainPlus, ISubdomain subdomainMinus)
+        internal LagrangeMultiplier(INode node, IDofType dof, ISubdomain subdomainPlus, ISubdomain subdomainMinus)
         {
             this.Node = node;
             this.DofType = dof;
@@ -16,7 +15,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
             this.SubdomainMinus = subdomainMinus;
         }
 
-        internal DOFType DofType { get; }
+        internal IDofType DofType { get; }
         internal INode Node { get; }
         internal ISubdomain SubdomainMinus { get; }
         internal ISubdomain SubdomainPlus { get; }

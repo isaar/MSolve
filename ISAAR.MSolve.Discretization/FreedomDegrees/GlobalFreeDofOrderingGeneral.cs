@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             foreach (var subdomainOrderingPair in subdomainDofOrderings)
             {
                 var subdomainToGlobalDofs = new int[subdomainOrderingPair.Value.NumFreeDofs];
-                foreach ((INode node, DOFType dofType, int subdomainDofIdx) in subdomainOrderingPair.Value.FreeDofs)
+                foreach ((INode node, IDofType dofType, int subdomainDofIdx) in subdomainOrderingPair.Value.FreeDofs)
                 {
                     subdomainToGlobalDofs[subdomainDofIdx] = globalFreeDofs[node, dofType];
                 }

@@ -1,12 +1,11 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 
 namespace ISAAR.MSolve.FEM.Postprocessing
 {
@@ -60,15 +59,15 @@ namespace ISAAR.MSolve.FEM.Postprocessing
                 for (int i = 0; i < numberOfPoints; i++)
                 {
                     var node = _model.Nodes[i];
-                    var dx = (!_model.GlobalDofOrdering.GlobalFreeDofs.Contains(node, DOFType.X))
+                    var dx = (!_model.GlobalDofOrdering.GlobalFreeDofs.Contains(node, StructuralDof.TranslationX))
                             ? 0.0
-                            : _solution[_model.GlobalDofOrdering.GlobalFreeDofs[node, DOFType.X]];
-                    var dy = (!_model.GlobalDofOrdering.GlobalFreeDofs.Contains(node, DOFType.Y))
+                            : _solution[_model.GlobalDofOrdering.GlobalFreeDofs[node, StructuralDof.TranslationX]];
+                    var dy = (!_model.GlobalDofOrdering.GlobalFreeDofs.Contains(node, StructuralDof.TranslationY))
                             ? 0.0
-                            : _solution[_model.GlobalDofOrdering.GlobalFreeDofs[node, DOFType.Y]];
-                    var dz = (!_model.GlobalDofOrdering.GlobalFreeDofs.Contains(node, DOFType.Z))
+                            : _solution[_model.GlobalDofOrdering.GlobalFreeDofs[node, StructuralDof.TranslationY]];
+                    var dz = (!_model.GlobalDofOrdering.GlobalFreeDofs.Contains(node, StructuralDof.TranslationZ))
                             ? 0.0
-                            : _solution[_model.GlobalDofOrdering.GlobalFreeDofs[node, DOFType.Z]];
+                            : _solution[_model.GlobalDofOrdering.GlobalFreeDofs[node, StructuralDof.TranslationZ]];
 
                     outputFile.WriteLine($"{dx} {dy} {dz}");
                 }

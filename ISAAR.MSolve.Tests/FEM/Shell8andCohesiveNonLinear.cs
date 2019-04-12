@@ -2,13 +2,13 @@
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.NonLinear;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
-using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 using Xunit;
@@ -176,9 +176,9 @@ namespace ISAAR.MSolve.Tests.FEM
             nodeID = 9;
             for (int j = 0; j < 8; j++)
             {
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
                 nodeID++;
             }
             //perioxh constraints ews edw
@@ -302,7 +302,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 load1 = new Load()
                 {
                     Node = model.NodesDictionary[points_with_negative_load[j + 1]],
-                    DOF = DOFType.Z,
+                    DOF = StructuralDof.TranslationZ,
                     Amount = -0.3333333 * value_ext,
                 };
                 model.Loads.Add(load1);
@@ -310,7 +310,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 load2 = new Load()
                 {
                     Node = model.NodesDictionary[points_with_positive_load[j + 1]],
-                    DOF = DOFType.Z,
+                    DOF = StructuralDof.TranslationZ,
                     Amount = 1.3333333 * value_ext,
                 };
                 model.Loads.Add(load2);

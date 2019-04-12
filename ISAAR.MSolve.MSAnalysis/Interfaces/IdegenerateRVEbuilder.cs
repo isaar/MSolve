@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Entities;
 
 
@@ -13,6 +11,6 @@ namespace ISAAR.MSolve.MultiscaleAnalysis.Interfaces
     /// </summary>
     public interface IdegenerateRVEbuilder : IRVEbuilder
     {
-        Dictionary<Node, IList<DOFType>> GetModelRigidBodyNodeConstraints(Model model);
+        Dictionary<Node, IList<IDofType>> GetModelRigidBodyNodeConstraints(Model model);
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Problems.Structural.Elements;
 using ISAAR.MSolve.Logging;
@@ -171,13 +171,13 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
                 model.SubdomainsDictionary[1].Elements.Add(element9);
                 model.SubdomainsDictionary[1].Elements.Add(element10);
 
-                model.NodesDictionary[5].Constraints.Add(new Constraint { DOF = DOFType.X, Amount = 0.0 });
-                model.NodesDictionary[5].Constraints.Add(new Constraint { DOF = DOFType.Y, Amount = 0.0 });
-                model.NodesDictionary[6].Constraints.Add(new Constraint { DOF = DOFType.X, Amount = 0.0 });
-                model.NodesDictionary[6].Constraints.Add(new Constraint { DOF = DOFType.Y, Amount = 0.0 });
+                model.NodesDictionary[5].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX, Amount = 0.0 });
+                model.NodesDictionary[5].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY, Amount = 0.0 });
+                model.NodesDictionary[6].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX, Amount = 0.0 });
+                model.NodesDictionary[6].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY, Amount = 0.0 });
 
-                model.Loads.Add(new Load() { Amount = -loadP, Node = model.NodesDictionary[2], DOF = DOFType.Y });
-                model.Loads.Add(new Load() { Amount = -loadP, Node = model.NodesDictionary[4], DOF = DOFType.Y });
+                model.Loads.Add(new Load() { Amount = -loadP, Node = model.NodesDictionary[2], DOF = StructuralDof.TranslationY });
+                model.Loads.Add(new Load() { Amount = -loadP, Node = model.NodesDictionary[4], DOF = StructuralDof.TranslationY });
 
                 return model;
             }
@@ -185,10 +185,10 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
             private void CreateLogs(Model model, LinearAnalyzer childAnalyzer)
             {
                 int[] monitoredDOFs = new int[] {
-                    model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[1], DOFType.Y],
-                    model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[2], DOFType.Y],
-                    model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[3], DOFType.Y],
-                    model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[4], DOFType.Y]
+                    model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[1], StructuralDof.TranslationY],
+                    model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[2], StructuralDof.TranslationY],
+                    model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[3], StructuralDof.TranslationY],
+                    model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[4], StructuralDof.TranslationY]
                 };
                 childAnalyzer.LogFactories[1] = new LinearAnalyzerLogFactory(monitoredDOFs);
                 //Element[] stressElements = model.ElementsDictionary.Values.ToArray<Element>();

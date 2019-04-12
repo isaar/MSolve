@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 
@@ -98,38 +98,38 @@ namespace ISAAR.MSolve.SamplesConsole
                     for (int k = 0; k < 5; k++)
                     {
                         model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + k * beamWidth, Y = startY, Z = startZ + j * beamWidth });
-                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
-                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
-                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
-                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotX });
-                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotY });
-                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
+                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
+                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationX });
+                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationY });
+                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationZ });
                         nodeID++;
                     }
                 }
                 model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 2 * beamWidth, Y = startY, Z = startZ + 3 * beamWidth });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotX });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotY });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationX });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationY });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationZ });
                 nodeID++;
                 model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 3 * beamWidth, Y = startY, Z = startZ + 3 * beamWidth });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotX });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotY });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationX });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationY });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationZ });
                 nodeID++;
                 model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 4 * beamWidth, Y = startY, Z = startZ + 3 * beamWidth });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotX });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotY });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationX });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationY });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationZ });
                 nodeID++;
             }
 

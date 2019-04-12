@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.FEM.Entities
             this.ID = id;
         }
 
-        public Table<INode, DOFType, double> Constraints { get; } = new Table<INode, DOFType, double>();
+        public Table<INode, IDofType, double> Constraints { get; } = new Table<INode, IDofType, double>();
 
         IReadOnlyList<IElement> ISubdomain.Elements => Elements;
         public List<Element> Elements { get; } = new List<Element>();
@@ -95,7 +95,7 @@ namespace ISAAR.MSolve.FEM.Entities
         //      is saved in the node, the model constraints table and the subdomain constraints table. Furthermore,
         //      displacement control analyzer updates the subdomain constraints table only (another bad design decision).  
         //      It is too easy to access the wrong instance of the constraint. 
-        public void ExtractConstraintsFromGlobal(Table<INode, DOFType, double> globalConstraints)
+        public void ExtractConstraintsFromGlobal(Table<INode, IDofType, double> globalConstraints)
         {
             //TODO: perhaps it is more efficient to traverse the global constraints instead of the subdomain's nodes, provided
             //      the latter are stored as a set. 
@@ -103,7 +103,7 @@ namespace ISAAR.MSolve.FEM.Entities
             foreach (Node node in Nodes)
             {
                 bool isNodeConstrained = globalConstraints.TryGetDataOfRow(node,
-                    out IReadOnlyDictionary<DOFType, double> constraintsOfNode);
+                    out IReadOnlyDictionary<IDofType, double> constraintsOfNode);
                 if (isNodeConstrained)
                 {
                     foreach (var dofDisplacementPair in constraintsOfNode)
@@ -200,20 +200,20 @@ namespace ISAAR.MSolve.FEM.Entities
         //      can perform optimizations, such as using a prescribed displacements vector and element constrained dof maps,
         //      similarly to how free displacements are handled by ISubdomainFreeDofOrdering
         private static void ApplyConstraintDisplacements(IElement element, double[] elementNodalDisplacements,
-            Table<INode, DOFType, double> constraints)
+            Table<INode, IDofType, double> constraints)
         {
             int elementDofIdx = 0;
             IList<INode> nodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
-            IList<IList<DOFType>> dofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
+            IList<IList<IDofType>> dofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
             for (int i = 0; i < nodes.Count; ++i)
             {
                 //bool isConstrainedNode = constraintsDictionary.TryGetValue(nodes[i].ID, 
                 //    out Dictionary<DOFType, double> constrainedDOFs);
                 bool isConstrainedNode = constraints.TryGetDataOfRow(nodes[i],
-                    out IReadOnlyDictionary<DOFType, double> constrainedDOFs);
+                    out IReadOnlyDictionary<IDofType, double> constrainedDOFs);
                 if (isConstrainedNode)
                 {
-                    foreach (DOFType dofType in dofs[i])
+                    foreach (IDofType dofType in dofs[i])
                     {
                         bool isConstrainedDof = constrainedDOFs.TryGetValue(dofType, out double constraintDisplacement);
                         //if (isConstrainedNode && isConstrainedDof)
@@ -231,7 +231,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
         //ADDED1
         public IVector GetRHSFromSolutionWithInitialDisplacemntsEffect(IVectorView solution, IVectorView dSolution, Dictionary<int, Node> boundaryNodes,
-            Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements,
+            Dictionary<int, Dictionary<IDofType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<IDofType, double>> totalBoundaryDisplacements,
             int nIncrement, int totalIncrements)
         {
             ////prosthiki print
@@ -268,7 +268,7 @@ namespace ISAAR.MSolve.FEM.Entities
         
 
         public void ImposePrescribedDisplacementsWithInitialConditionSEffect(Element element, double[] localSolution, Dictionary<int, Node> boundaryNodes,
-            Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements,
+            Dictionary<int, Dictionary<IDofType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<IDofType, double>> totalBoundaryDisplacements,
             int nIncrement, int totalIncrements)
         {
 
@@ -281,10 +281,10 @@ namespace ISAAR.MSolve.FEM.Entities
                 int nodalDofsNumber = elementDOFTypes[j].Count;
                 if (boundaryNodes.ContainsKey(nodeColumn.ID))
                 {
-                    Dictionary<DOFType, double> nodalConvergedDisplacements = initialConvergedBoundaryDisplacements[nodeColumn.ID];
-                    Dictionary<DOFType, double> nodalTotalDisplacements = totalBoundaryDisplacements[nodeColumn.ID];
+                    Dictionary<IDofType, double> nodalConvergedDisplacements = initialConvergedBoundaryDisplacements[nodeColumn.ID];
+                    Dictionary<IDofType, double> nodalTotalDisplacements = totalBoundaryDisplacements[nodeColumn.ID];
                     int positionOfDofInNode = 0;
-                    foreach (DOFType doftype1 in elementDOFTypes[j])
+                    foreach (IDofType doftype1 in elementDOFTypes[j])
                     {
                         if (nodalConvergedDisplacements.ContainsKey(doftype1))
                         {
@@ -300,7 +300,7 @@ namespace ISAAR.MSolve.FEM.Entities
         }
 
         public void ImposePrescribed_d_DisplacementsWithInitialConditionSEffect(Element element, double[] localSolution, Dictionary<int, Node> boundaryNodes,
-            Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements,
+            Dictionary<int, Dictionary<IDofType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<IDofType, double>> totalBoundaryDisplacements,
             int nIncrement, int totalIncrements)
         {
 
@@ -313,10 +313,10 @@ namespace ISAAR.MSolve.FEM.Entities
                 int nodalDofsNumber = elementDOFTypes[j].Count;
                 if (boundaryNodes.ContainsKey(nodeColumn.ID))
                 {
-                    Dictionary<DOFType, double> nodalConvergedDisplacements = initialConvergedBoundaryDisplacements[nodeColumn.ID];
-                    Dictionary<DOFType, double> nodalTotalDisplacements = totalBoundaryDisplacements[nodeColumn.ID];
+                    Dictionary<IDofType, double> nodalConvergedDisplacements = initialConvergedBoundaryDisplacements[nodeColumn.ID];
+                    Dictionary<IDofType, double> nodalTotalDisplacements = totalBoundaryDisplacements[nodeColumn.ID];
                     int positionOfDofInNode = 0;
-                    foreach (DOFType doftype1 in elementDOFTypes[j])
+                    foreach (IDofType doftype1 in elementDOFTypes[j])
                     {
                         if (nodalConvergedDisplacements.ContainsKey(doftype1))
                         {

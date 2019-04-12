@@ -1,11 +1,11 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
+﻿using ISAAR.MSolve.Discretization.FreedomDegrees;
 
 namespace ISAAR.MSolve.Discretization
 {
     public class Constraint
     {
         //public Node Node { get; set; }
-        public DOFType DOF { get; set; }
+        public IDofType DOF { get; set; }
         public double Amount { get; set; }
     }
 }

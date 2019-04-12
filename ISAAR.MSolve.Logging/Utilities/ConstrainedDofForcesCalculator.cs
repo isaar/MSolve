@@ -1,8 +1,8 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using System.Collections.Generic;
-using System.Diagnostics;
 
 //TODO: finding the contributing elements and the corresponding local dof indices can be done only once in the constructor.
 namespace ISAAR.MSolve.Logging.Utilities
@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.Logging.Utilities
             this.subdomain = subdomain;
         }
 
-        internal double CalculateForceAt(Node node, DOFType dofType, IVectorView totalDisplacements)
+        internal double CalculateForceAt(Node node, IDofType dofType, IVectorView totalDisplacements)
         {
             double totalForce = 0.0;
 
@@ -41,13 +41,13 @@ namespace ISAAR.MSolve.Logging.Utilities
         }
 
         /// <summary>
-        /// Returns -1 if the element does not engage the requested <see cref="DOFType"/>
+        /// Returns -1 if the element does not engage the requested <see cref="IDofType"/>
         /// </summary>
-        private int FindLocalDofIndex(Element element, Node node, DOFType dofType)
+        private int FindLocalDofIndex(Element element, Node node, IDofType dofType)
         {
             int localNodeIdx = element.Nodes.IndexOf(node);
             Debug.Assert(localNodeIdx != -1, "The element does not contain this node.");
-            IList<IList<DOFType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
+            IList<IList<IDofType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
             int localDofIdx = elementDofs[localNodeIdx].IndexOf(dofType);
             int multNum = elementDofs[localNodeIdx].Count;
             int dofIdx = multNum * (localNodeIdx + 1) - (localDofIdx + 1);

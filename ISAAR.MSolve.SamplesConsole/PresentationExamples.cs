@@ -4,7 +4,7 @@ using System.Linq;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.Dynamic;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Logging.VTK;
@@ -278,30 +278,30 @@ namespace ISAAR.MSolve.SamplesConsole
             var constrainedNodes = new int[] { 0, 1, 3, 4, 5, 6, 7, 8, 9 };
             for (int i = 0; i < constrainedNodes.Length; i++)
             {
-                model.NodesDictionary[constrainedNodes[i]].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[constrainedNodes[i]].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                model.NodesDictionary[constrainedNodes[i]].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[constrainedNodes[i]].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
             }
 
             #endregion
 
             #region Loads
             //ground vertical loads
-            model.Loads.Add(new Load() { Amount = -25800, Node = model.NodesDictionary[10], DOF = DOFType.Y });
-            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[11], DOF = DOFType.Y });
-            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[12], DOF = DOFType.Y });
-            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[13], DOF = DOFType.Y });
-            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[14], DOF = DOFType.Y });
-            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[15], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = -25800, Node = model.NodesDictionary[10], DOF = StructuralDof.TranslationY });
+            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[11], DOF = StructuralDof.TranslationY });
+            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[12], DOF = StructuralDof.TranslationY });
+            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[13], DOF = StructuralDof.TranslationY });
+            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[14], DOF = StructuralDof.TranslationY });
+            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[15], DOF = StructuralDof.TranslationY });
 
             //ground horizontal loads
-            model.Loads.Add(new Load() { Amount = -2130, Node = model.NodesDictionary[28], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = -11490, Node = model.NodesDictionary[26], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = -20990, Node = model.NodesDictionary[24], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = -30790, Node = model.NodesDictionary[22], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = -40600, Node = model.NodesDictionary[22], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = -25800, Node = model.NodesDictionary[20], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = -50390, Node = model.NodesDictionary[18], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = -28460, Node = model.NodesDictionary[15], DOF = DOFType.X });
+            model.Loads.Add(new Load() { Amount = -2130, Node = model.NodesDictionary[28], DOF = StructuralDof.TranslationX });
+            model.Loads.Add(new Load() { Amount = -11490, Node = model.NodesDictionary[26], DOF = StructuralDof.TranslationX });
+            model.Loads.Add(new Load() { Amount = -20990, Node = model.NodesDictionary[24], DOF = StructuralDof.TranslationX });
+            model.Loads.Add(new Load() { Amount = -30790, Node = model.NodesDictionary[22], DOF = StructuralDof.TranslationX });
+            model.Loads.Add(new Load() { Amount = -40600, Node = model.NodesDictionary[22], DOF = StructuralDof.TranslationX });
+            model.Loads.Add(new Load() { Amount = -25800, Node = model.NodesDictionary[20], DOF = StructuralDof.TranslationX });
+            model.Loads.Add(new Load() { Amount = -50390, Node = model.NodesDictionary[18], DOF = StructuralDof.TranslationX });
+            model.Loads.Add(new Load() { Amount = -28460, Node = model.NodesDictionary[15], DOF = StructuralDof.TranslationX });
             #endregion
 
             #endregion
@@ -652,32 +652,32 @@ namespace ISAAR.MSolve.SamplesConsole
             var constrainedNodes = new int[] { 0, 1, 3, 4, 5, 6, 7, 8, 9 };
             for (int i = 0; i < constrainedNodes.Length; i++)
             {
-                model.NodesDictionary[constrainedNodes[i]].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[constrainedNodes[i]].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                model.NodesDictionary[constrainedNodes[i]].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[constrainedNodes[i]].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
             }
 
             #endregion
 
             #region Loads
             //ground vertical loads
-            model.Loads.Add(new Load() { Amount = -25800, Node = model.NodesDictionary[10], DOF = DOFType.Y });
-            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[11], DOF = DOFType.Y });
-            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[12], DOF = DOFType.Y });
-            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[13], DOF = DOFType.Y });
-            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[14], DOF = DOFType.Y });
-            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[15], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = -25800, Node = model.NodesDictionary[10], DOF = StructuralDof.TranslationY });
+            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[11], DOF = StructuralDof.TranslationY });
+            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[12], DOF = StructuralDof.TranslationY });
+            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[13], DOF = StructuralDof.TranslationY });
+            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[14], DOF = StructuralDof.TranslationY });
+            model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[15], DOF = StructuralDof.TranslationY });
 
             //ground horizontal loads
-            model.Loads.Add(new Load() { Amount = -2130, Node = model.NodesDictionary[28], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = -11490, Node = model.NodesDictionary[26], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = -20990, Node = model.NodesDictionary[24], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = -30790, Node = model.NodesDictionary[22], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = -40600, Node = model.NodesDictionary[22], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = -25800, Node = model.NodesDictionary[20], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = -50390, Node = model.NodesDictionary[18], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = -28460, Node = model.NodesDictionary[15], DOF = DOFType.X });
+            model.Loads.Add(new Load() { Amount = -2130, Node = model.NodesDictionary[28], DOF = StructuralDof.TranslationX });
+            model.Loads.Add(new Load() { Amount = -11490, Node = model.NodesDictionary[26], DOF = StructuralDof.TranslationX });
+            model.Loads.Add(new Load() { Amount = -20990, Node = model.NodesDictionary[24], DOF = StructuralDof.TranslationX });
+            model.Loads.Add(new Load() { Amount = -30790, Node = model.NodesDictionary[22], DOF = StructuralDof.TranslationX });
+            model.Loads.Add(new Load() { Amount = -40600, Node = model.NodesDictionary[22], DOF = StructuralDof.TranslationX });
+            model.Loads.Add(new Load() { Amount = -25800, Node = model.NodesDictionary[20], DOF = StructuralDof.TranslationX });
+            model.Loads.Add(new Load() { Amount = -50390, Node = model.NodesDictionary[18], DOF = StructuralDof.TranslationX });
+            model.Loads.Add(new Load() { Amount = -28460, Node = model.NodesDictionary[15], DOF = StructuralDof.TranslationX });
 
-            model.MassAccelerationHistoryLoads.Add(new MassAccelerationHistoryLoad("..\\..\\..\\elcentro_NS.dat", 1) { DOF = DOFType.X });
+            model.MassAccelerationHistoryLoads.Add(new MassAccelerationHistoryLoad("..\\..\\..\\elcentro_NS.dat", 1) { DOF = StructuralDof.TranslationX });
             #endregion
 
             #endregion
@@ -752,15 +752,15 @@ namespace ISAAR.MSolve.SamplesConsole
             Node[] constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol).ToArray();
             for (int i = 0; i < constrainedNodes.Length; i++)
             {
-                constrainedNodes[i].Constraints.Add(new Constraint { DOF = DOFType.X });
-                constrainedNodes[i].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                constrainedNodes[i].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                constrainedNodes[i].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
             }
 
             // Loads
             Node[] loadedNodes = nodes.Where(
                 node => (Math.Abs(node.Y - height) <= tol) && ((Math.Abs(node.X) <= tol))).ToArray();
             if (loadedNodes.Length != 1) throw new Exception("Only 1 node was expected at the top left corner");
-            model.Loads.Add(new Load() { Amount = maxLoad, Node = loadedNodes[0], DOF = DOFType.X });
+            model.Loads.Add(new Load() { Amount = maxLoad, Node = loadedNodes[0], DOF = StructuralDof.TranslationX });
 
 
             #endregion
@@ -849,15 +849,15 @@ namespace ISAAR.MSolve.SamplesConsole
             Node[] constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol).ToArray();
             for (int i = 0; i < constrainedNodes.Length; i++)
             {
-                constrainedNodes[i].Constraints.Add(new Constraint { DOF = DOFType.X });
-                constrainedNodes[i].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                constrainedNodes[i].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                constrainedNodes[i].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
             }
 
             // Loads
             Node[] loadedNodes = nodes.Where(
                 node => (Math.Abs(node.Y - height) <= tol) && ((Math.Abs(node.X) <= tol))).ToArray();
             if (loadedNodes.Length != 1) throw new Exception("Only 1 node was expected at the top left corner");
-            model.Loads.Add(new Load() { Amount = maxLoad, Node = loadedNodes[0], DOF = DOFType.X });
+            model.Loads.Add(new Load() { Amount = maxLoad, Node = loadedNodes[0], DOF = StructuralDof.TranslationX });
 
 
             #endregion
@@ -947,17 +947,17 @@ namespace ISAAR.MSolve.SamplesConsole
             Node[] constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol).ToArray();
             for (int i = 0; i < constrainedNodes.Length; i++)
             {
-                constrainedNodes[i].Constraints.Add(new Constraint { DOF = DOFType.X });
-                constrainedNodes[i].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                constrainedNodes[i].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                constrainedNodes[i].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
             }
 
             // Loads
             Node[] loadedNodes = nodes.Where(
                 node => (Math.Abs(node.Y - height) <= tol) && ((Math.Abs(node.X) <= tol))).ToArray();
             if (loadedNodes.Length != 1) throw new Exception("Only 1 node was expected at the top left corner");
-            model.Loads.Add(new Load() { Amount = maxLoad, Node = loadedNodes[0], DOF = DOFType.X });
+            model.Loads.Add(new Load() { Amount = maxLoad, Node = loadedNodes[0], DOF = StructuralDof.TranslationX });
 
-            model.MassAccelerationHistoryLoads.Add(new MassAccelerationHistoryLoad("..\\..\\..\\elcentro_NS.dat", 1) { DOF = DOFType.X });
+            model.MassAccelerationHistoryLoads.Add(new MassAccelerationHistoryLoad("..\\..\\..\\elcentro_NS.dat", 1) { DOF = StructuralDof.TranslationX });
 
 
             #endregion
@@ -1044,15 +1044,15 @@ namespace ISAAR.MSolve.SamplesConsole
             #endregion
 
             #region loads
-            var load0 = new Load { Amount = 50, DOF = DOFType.X, Node = node8 };
+            var load0 = new Load { Amount = 50, DOF = StructuralDof.TranslationX, Node = node8 };
             #endregion
 
             #region constraints
-            node0.Constraints.Add(new Constraint { DOF = DOFType.X });
-            node0.Constraints.Add(new Constraint { DOF = DOFType.Y });
+            node0.Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+            node0.Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
 
-            node2.Constraints.Add(new Constraint { DOF = DOFType.X });
-            node2.Constraints.Add(new Constraint { DOF = DOFType.Y });
+            node2.Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+            node2.Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
             #endregion
 
             #region subdomains

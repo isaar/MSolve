@@ -1,12 +1,12 @@
 ﻿using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 using Xunit;
@@ -107,20 +107,20 @@ namespace ISAAR.MSolve.Tests.FEM
             }
 
             // Dirichlet BC
-            model.NodesDictionary[0].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 100.0 });
-            model.NodesDictionary[1].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 100.0 });
-            model.NodesDictionary[2].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 100.0 });
-            model.NodesDictionary[9].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 100.0 });
-            model.NodesDictionary[10].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 100.0 });
-            model.NodesDictionary[11].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 100.0 });
-            model.NodesDictionary[18].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 100.0 });
-            model.NodesDictionary[19].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 100.0 });
-            model.NodesDictionary[20].Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 100.0 });
+            model.NodesDictionary[0].Constraints.Add(new Constraint() { DOF = ThermalDof.Temperature, Amount = 100.0 });
+            model.NodesDictionary[1].Constraints.Add(new Constraint() { DOF = ThermalDof.Temperature, Amount = 100.0 });
+            model.NodesDictionary[2].Constraints.Add(new Constraint() { DOF = ThermalDof.Temperature, Amount = 100.0 });
+            model.NodesDictionary[9].Constraints.Add(new Constraint() { DOF = ThermalDof.Temperature, Amount = 100.0 });
+            model.NodesDictionary[10].Constraints.Add(new Constraint() { DOF = ThermalDof.Temperature, Amount = 100.0 });
+            model.NodesDictionary[11].Constraints.Add(new Constraint() { DOF = ThermalDof.Temperature, Amount = 100.0 });
+            model.NodesDictionary[18].Constraints.Add(new Constraint() { DOF = ThermalDof.Temperature, Amount = 100.0 });
+            model.NodesDictionary[19].Constraints.Add(new Constraint() { DOF = ThermalDof.Temperature, Amount = 100.0 });
+            model.NodesDictionary[20].Constraints.Add(new Constraint() { DOF = ThermalDof.Temperature, Amount = 100.0 });
 
             // Neumann BC
             double q = 100;
-            model.Loads.Add(new Load() { Amount = q, Node = model.NodesDictionary[6], DOF = DOFType.Temperature });
-            model.Loads.Add(new Load() { Amount = q, Node = model.NodesDictionary[24], DOF = DOFType.Temperature });
+            model.Loads.Add(new Load() { Amount = q, Node = model.NodesDictionary[6], DOF = ThermalDof.Temperature });
+            model.Loads.Add(new Load() { Amount = q, Node = model.NodesDictionary[24], DOF = ThermalDof.Temperature });
 
             return model;
         }

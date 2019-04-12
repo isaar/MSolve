@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.Solvers
         /// A collection of loads applied to nodes along certain freedom degrees. These are usually defined by the pre-processor 
         /// or other entities of the analysis.
         /// </param>
-        Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, DOFType, double> globalNodalLoads);
+        Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, IDofType, double> globalNodalLoads);
 
         /// <summary>
         /// Initializes the state of this <see cref="ISolver"/> instance. This needs to be called only once, since it  

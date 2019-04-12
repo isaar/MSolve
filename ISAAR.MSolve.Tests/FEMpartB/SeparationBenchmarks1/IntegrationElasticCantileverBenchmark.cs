@@ -2,8 +2,8 @@
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.NonLinear;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
-using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Logging;
@@ -129,9 +129,9 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks1
             // constraint vashh opou z=-1
             for (int k = 1; k < 5; k++)
             {
-                model.NodesDictionary[k].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[k].Constraints.Add(new Constraint { DOF = DOFType.Y });
-                model.NodesDictionary[k].Constraints.Add(new Constraint { DOF = DOFType.Z });
+                model.NodesDictionary[k].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[k].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                model.NodesDictionary[k].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
             }
 
             // fortish korufhs
@@ -141,7 +141,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks1
                 load1 = new Load()
                 {
                     Node = model.NodesDictionary[k],
-                    DOF = DOFType.X,
+                    DOF = StructuralDof.TranslationX,
                     Amount = 1 * load_value
                 };
                 model.Loads.Add(load1);

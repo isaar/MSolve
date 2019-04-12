@@ -1,4 +1,4 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
+﻿using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using MGroup.Stochastic.Interfaces;
@@ -18,7 +18,7 @@ namespace MGroup.Stochastic.Structural
                 ID = 1,
                 ElementType = new EulerBeam3D(randomVariable.Realize(iteration, domainMapper, null), 0.3)
             });
-            m.Loads.Add(new Load() { Amount = 10, DOF = DOFType.X, Node = m.NodesDictionary[1] });
+            m.Loads.Add(new Load() { Amount = 10, DOF = StructuralDof.TranslationX, Node = m.NodesDictionary[1] });
 
             return m;
         }

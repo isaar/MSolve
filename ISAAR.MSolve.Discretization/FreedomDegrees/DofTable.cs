@@ -11,22 +11,22 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
     /// Authors: Serafeim Bakalakos
     /// </summary>
     /// <typeparam name="TDof">A freedom degree type.</typeparam>
-    public class DofTable: Table<INode, DOFType, int>
+    public class DofTable: Table<INode, IDofType, int>
     {
         public DofTable(): base()
         { }
 
-        private DofTable(Dictionary<INode, Dictionary<DOFType, int>> data): base(data)
+        private DofTable(Dictionary<INode, Dictionary<IDofType, int>> data): base(data)
         { }
 
         //TODO: this would be nice to have in Table too.
         public DofTable DeepCopy()
         {
-            var dataCopy = new Dictionary<INode, Dictionary<DOFType, int>>();
+            var dataCopy = new Dictionary<INode, Dictionary<IDofType, int>>();
             foreach (var wholeRow in this.data)
             {
                 // IDof and int are immutable, thus I can just copy the nested dictionary.
-                dataCopy.Add(wholeRow.Key, new Dictionary<DOFType, int>(wholeRow.Value));
+                dataCopy.Add(wholeRow.Key, new Dictionary<IDofType, int>(wholeRow.Value));
             }
             return new DofTable(dataCopy);
         }
@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
 
             foreach (var nodeRow in data.Values)
             {
-                var dofIDs = new List<KeyValuePair<DOFType, int>>(nodeRow);
+                var dofIDs = new List<KeyValuePair<IDofType, int>>(nodeRow);
                 foreach (var dofIDPair in dofIDs)
                 {
                     nodeRow[dofIDPair.Key] = permutationOldToNew[dofIDPair.Value];
@@ -72,11 +72,11 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             int dofIdx = -1;
             foreach (INode node in sortedNodes)
             {
-                bool isNodeContained = data.TryGetValue(node, out Dictionary<DOFType, int> dofsOfNode);
+                bool isNodeContained = data.TryGetValue(node, out Dictionary<IDofType, int> dofsOfNode);
                 if (isNodeContained)
                 {
                     // We cannot not update the dictionary during iterating it, thus we copy its Key collection to a list first.
-                    foreach (DOFType dofType in dofsOfNode.Keys.ToList()) dofsOfNode[dofType] = ++dofIdx;
+                    foreach (IDofType dofType in dofsOfNode.Keys.ToList()) dofsOfNode[dofType] = ++dofIdx;
                 }
             }
         }

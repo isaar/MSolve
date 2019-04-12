@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Embedding;
@@ -19,9 +20,9 @@ namespace ISAAR.MSolve.FEM.Elements
         protected static readonly int AXIS_COUNT = 3;
         protected static readonly int NODE_COUNT = 2;
 
-        protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.RotX, DOFType.RotY, DOFType.RotZ };
-        protected readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
-        private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
+        protected readonly static IDofType[] nodalDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ, StructuralDof.RotationX, StructuralDof.RotationY, StructuralDof.RotationZ };
+        protected readonly static IDofType[][] dofTypes = new IDofType[][] { nodalDOFTypes, nodalDOFTypes };
+        private static readonly IDofType[][] dofs = new IDofType[][] { nodalDOFTypes, nodalDOFTypes };
         //protected static final List<Set<FreedomDegreeType>> FREEDOM_DEGREE_TYPES =
         //        Collections.nCopies(NODE_COUNT, FreedomDegreeTypeSets.X_Y_Z_ROTX_ROTY_ROTZ);
         protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
@@ -486,7 +487,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return transformMatrix;
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
 
         public IMatrix StiffnessMatrix(IElement element)
         {
@@ -602,8 +603,8 @@ namespace ISAAR.MSolve.FEM.Elements
 
             int index = 0;
             foreach (MassAccelerationLoad load in loads)
-                foreach (DOFType[] nodalDOFTypes in dofs)
-                    foreach (DOFType dofType in nodalDOFTypes)
+                foreach (IDofType[] nodalDOFTypes in dofs)
+                    foreach (IDofType dofType in nodalDOFTypes)
                     {
                         if (dofType == load.DOF) accelerations[index] += load.Amount;
                         index++;
@@ -622,7 +623,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public void ClearMaterialStresses() => material.ClearStresses();
 
-        public Dictionary<DOFType, int> GetInternalNodalDOFs(Element element, Node node)
+        public Dictionary<IDofType, int> GetInternalNodalDOFs(Element element, Node node)
         {
             throw new NotImplementedException();
         }

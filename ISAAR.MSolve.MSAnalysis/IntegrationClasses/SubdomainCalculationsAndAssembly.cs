@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Entities;
@@ -101,7 +102,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
                 {
                     INode nodeRow = matrixAssemblyNodes[i];
                     int dofTypeRowToNumber = -1; //v2.6
-                    foreach (DOFType dofTypeRow in elementDOFTypes[i])
+                    foreach (IDofType dofTypeRow in elementDOFTypes[i])
                     {
                         dofTypeRowToNumber++;
                         bool isFree = subdomain.FreeDofOrdering.FreeDofs.TryGetValue(matrixAssemblyNodes[i], elementDOFTypes[i][dofTypeRowToNumber],

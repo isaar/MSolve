@@ -4,8 +4,8 @@ using System.Linq;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.NonLinear;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
-using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Embedding;
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // Variables
             int monitorNode = 10001;
-            DOFType monitorDof = DOFType.Z;
+            IDofType monitorDof = StructuralDof.TranslationZ;
 
             // Choose model
             EmbeddedModelBuilder.EmbeddedExample(model);
@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.SamplesConsole
             // Boundary Conditions - Left End [End-1]
             for (int iNode = 1; iNode <= 100; iNode++)
             {
-                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Z });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
             }
 
             // Boundary Conditions - Bottom End [End-3]
@@ -52,14 +52,14 @@ namespace ISAAR.MSolve.SamplesConsole
             {
                 for (int j = 0; j < 10; j++)
                 {
-                    model.NodesDictionary[iNode + j].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                    model.NodesDictionary[iNode + j].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
                 }
             }
 
             // Boundary Conditions - Right End [End-5]
             for (int iNode = 1; iNode <= 10091; iNode += 10)
             {
-                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.X });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
             }
 
             //// Boundary Conditions - Left End [End-6]
@@ -72,7 +72,7 @@ namespace ISAAR.MSolve.SamplesConsole
             double nodalLoad = -1.0; //0.40;
             for (int iNode = 10001; iNode <= 10100; iNode++) //[End-4]
             {
-                model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[iNode], DOF = DOFType.Z });
+                model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[iNode], DOF = StructuralDof.TranslationZ });
             }
 
             // Choose linear equation system solver
@@ -116,7 +116,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // Variables
             int monitorNode = 10001;
-            DOFType monitorDof = DOFType.Z;
+            IDofType monitorDof = StructuralDof.TranslationZ;
 
             // Choose model
             EmbeddedModelBuilder.EmbeddedExample(model);
@@ -124,7 +124,7 @@ namespace ISAAR.MSolve.SamplesConsole
             // Boundary Conditions - Left End [End-1]
             for (int iNode = 1; iNode <= 100; iNode++)
             {
-                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Z });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
             }
 
             // Boundary Conditions - Bottom End [End-3]
@@ -132,7 +132,7 @@ namespace ISAAR.MSolve.SamplesConsole
             {
                 for (int j = 0; j < 10; j++)
                 {
-                    model.NodesDictionary[iNode + j].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                    model.NodesDictionary[iNode + j].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
                 }
             }
 
@@ -140,7 +140,7 @@ namespace ISAAR.MSolve.SamplesConsole
             double nodalDisplacement = -2.0;
             for (int iNode = 10001; iNode <= 10100; iNode++)
             {
-                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Z, Amount = nodalDisplacement });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ, Amount = nodalDisplacement });
             }
 
             // Choose linear equation system solver

@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 
@@ -42,14 +42,14 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
         /// <param name="model"></param>
         public void DefineBooleanMatrices(IStructuralModel model, IDofSeparator dofSeparator)
         {
-            List<(INode node, DOFType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)> boundaryNodeData 
+            List<(INode node, IDofType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)> boundaryNodeData 
                 = DefineBoundaryDofConstraints(dofSeparator);
 
             InitializeBooleanMatrices(model);
 
             // Fill the boolean matrices: node major, subdomain medium, dof minor. TODO: not sure about this order.
             int lag = 0; // Lagrange multiplier index
-            foreach ((INode node, DOFType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)
+            foreach ((INode node, IDofType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)
                 in boundaryNodeData)
             {
                 int numSubdomainCombos = subdomainsPlus.Length;
@@ -58,10 +58,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
                     //TODO: each subdomain appears in many combinations. It would be faster to cache its indices for the specific dofs.
                     SignedBooleanMatrix booleanPlus = BooleanMatrices[subdomainsPlus[c].ID];
                     SignedBooleanMatrix booleanMinus = BooleanMatrices[subdomainsMinus[c].ID];
-                    IReadOnlyDictionary<DOFType, int> dofsPlus = subdomainsPlus[c].FreeDofOrdering.FreeDofs.GetDataOfRow(node);
-                    IReadOnlyDictionary<DOFType, int> dofsMinus = subdomainsMinus[c].FreeDofOrdering.FreeDofs.GetDataOfRow(node);
+                    IReadOnlyDictionary<IDofType, int> dofsPlus = subdomainsPlus[c].FreeDofOrdering.FreeDofs.GetDataOfRow(node);
+                    IReadOnlyDictionary<IDofType, int> dofsMinus = subdomainsMinus[c].FreeDofOrdering.FreeDofs.GetDataOfRow(node);
 
-                    foreach (DOFType dof in dofs)
+                    foreach (IDofType dof in dofs)
                     {
                         booleanPlus.AddEntry(lag, dofsPlus[dof], true);
                         booleanMinus.AddEntry(lag, dofsMinus[dof], false);
@@ -77,7 +77,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
         /// <param name="model"></param>
         public void DefineLagrangesAndBooleanMatrices(IStructuralModel model, IDofSeparator dofSeparator)
         {
-            List<(INode node, DOFType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)> boundaryNodeData
+            List<(INode node, IDofType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)> boundaryNodeData
                 = DefineBoundaryDofConstraints(dofSeparator);
 
             InitializeBooleanMatrices(model);
@@ -85,7 +85,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
 
             // Fill the boolean matrices and lagrange multiplier data: node major, subdomain medium, dof minor. TODO: not sure about this order.
             int lag = 0; // Lagrange multiplier index
-            foreach ((INode node, DOFType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)
+            foreach ((INode node, IDofType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)
                 in boundaryNodeData)
             {
                 int numSubdomainCombos = subdomainsPlus.Length;
@@ -96,10 +96,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
                     SignedBooleanMatrix booleanMinus = BooleanMatrices[subdomainsMinus[c].ID];
 
                     //TODO: The dof indices have already been accessed. Reuse it if possible.
-                    IReadOnlyDictionary<DOFType, int> dofsPlus = subdomainsPlus[c].FreeDofOrdering.FreeDofs.GetDataOfRow(node);
-                    IReadOnlyDictionary<DOFType, int> dofsMinus = subdomainsMinus[c].FreeDofOrdering.FreeDofs.GetDataOfRow(node);
+                    IReadOnlyDictionary<IDofType, int> dofsPlus = subdomainsPlus[c].FreeDofOrdering.FreeDofs.GetDataOfRow(node);
+                    IReadOnlyDictionary<IDofType, int> dofsMinus = subdomainsMinus[c].FreeDofOrdering.FreeDofs.GetDataOfRow(node);
 
-                    foreach (DOFType dof in dofs)
+                    foreach (IDofType dof in dofs)
                     {
                         booleanPlus.AddEntry(lag, dofsPlus[dof], true);
                         booleanMinus.AddEntry(lag, dofsMinus[dof], false);
@@ -111,11 +111,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
         }
         
         //TODO: Perhaps this should return the number of lagranges, instead of setting it. It is unexpected.
-        private List<(INode node, DOFType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)> 
+        private List<(INode node, IDofType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)> 
             DefineBoundaryDofConstraints(IDofSeparator dofSeparator)
         {
             // Find boundary nodes and dofs
-            var boundaryNodeData = new List<(INode node, DOFType[] dofs, ISubdomain[] subdomainsPlus, 
+            var boundaryNodeData = new List<(INode node, IDofType[] dofs, ISubdomain[] subdomainsPlus, 
                 ISubdomain[] subdomainsMinus)>(dofSeparator.GlobalBoundaryDofs.Count);
 
             // Find continuity equations.
@@ -123,7 +123,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
             foreach (var nodeDofsPair in dofSeparator.GlobalBoundaryDofs)
             {
                 INode node = nodeDofsPair.Key;
-                DOFType[] dofsOfNode = nodeDofsPair.Value;
+                IDofType[] dofsOfNode = nodeDofsPair.Value;
                 IEnumerable <ISubdomain> nodeSubdomains = node.SubdomainsDictionary.Values;
                 (ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus) =
                     crosspointStrategy.FindSubdomainCombinations(nodeSubdomains.Count(), nodeSubdomains);

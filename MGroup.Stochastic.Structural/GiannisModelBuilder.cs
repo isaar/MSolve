@@ -1,5 +1,5 @@
 ﻿using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using MGroup.Stochastic.Interfaces;
@@ -57,14 +57,14 @@ namespace MGroup.Stochastic.Structural
                 m.SubdomainsDictionary[0].Elements.Add(e);
             }
 
-            m.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.X, Amount = 0 });
-            m.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.Y, Amount = 0 });
-            m.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.Z, Amount = 0 });
-            m.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.RotX, Amount = 0 });
-            m.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.RotY, Amount = 0 });
-            m.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.RotZ, Amount = 0 });
+            m.NodesDictionary[0].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX, Amount = 0 });
+            m.NodesDictionary[0].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY, Amount = 0 });
+            m.NodesDictionary[0].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ, Amount = 0 });
+            m.NodesDictionary[0].Constraints.Add(new Constraint { DOF = StructuralDof.RotationX, Amount = 0 });
+            m.NodesDictionary[0].Constraints.Add(new Constraint { DOF = StructuralDof.RotationY, Amount = 0 });
+            m.NodesDictionary[0].Constraints.Add(new Constraint { DOF = StructuralDof.RotationZ, Amount = 0 });
 
-            m.Loads.Add(new Load() { Amount = 10, Node = m.NodesDictionary[10], DOF = DOFType.Z });
+            m.Loads.Add(new Load() { Amount = 10, Node = m.NodesDictionary[10], DOF = StructuralDof.TranslationZ });
 
             //m.ConnectDataStructures();
 

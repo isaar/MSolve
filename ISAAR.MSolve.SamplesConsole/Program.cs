@@ -1,7 +1,7 @@
 ﻿using System;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.Dynamic;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Problems;
@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.SamplesConsole
             model.SubdomainsDictionary.Add(subdomainID, new Subdomain(subdomainID));
             BeamBuildingBuilder.MakeBeamBuilding(model, 20, 20, 20, 5, 4, model.NodesDictionary.Count + 1,
                 model.ElementsDictionary.Count + 1, subdomainID, 4, false, false);
-            model.Loads.Add(new Load() { Amount = -100, Node = model.Nodes[21], DOF = DOFType.X });
+            model.Loads.Add(new Load() { Amount = -100, Node = model.Nodes[21], DOF = StructuralDof.TranslationX });
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();

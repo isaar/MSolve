@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
@@ -20,35 +21,35 @@ namespace ISAAR.MSolve.FEM.Providers
         {
             IPorousFiniteElement elementType = (IPorousFiniteElement)element.ElementType;
             int dofs = 0;
-            foreach (IList<DOFType> dofTypes in elementType.DofEnumerator.GetDOFTypes(element))
-                foreach (DOFType dofType in dofTypes) dofs++;
+            foreach (IList<IDofType> dofTypes in elementType.DofEnumerator.GetDOFTypes(element))
+                foreach (IDofType dofType in dofTypes) dofs++;
             var poreMass = SymmetricMatrix.CreateZero(dofs);
 
             IMatrix mass = solidMassProvider.Matrix(element);
 
             int matrixRow = 0;
             int solidRow = 0;
-            foreach (IList<DOFType> dofTypesRow in elementType.DofEnumerator.GetDOFTypes(element))
-                foreach (DOFType dofTypeRow in dofTypesRow)
+            foreach (IList<IDofType> dofTypesRow in elementType.DofEnumerator.GetDOFTypes(element))
+                foreach (IDofType dofTypeRow in dofTypesRow)
                 {
                     int matrixCol = 0;
                     int solidCol = 0;
-                    foreach (IList<DOFType> dofTypesCol in elementType.DofEnumerator.GetDOFTypes(element))
-                        foreach (DOFType dofTypeCol in dofTypesCol)
+                    foreach (IList<IDofType> dofTypesCol in elementType.DofEnumerator.GetDOFTypes(element))
+                        foreach (IDofType dofTypeCol in dofTypesCol)
                         {
-                            if (dofTypeCol == DOFType.Pore)
+                            if (dofTypeCol == PorousMediaDof.Pressure)
                             {
                             }
                             else
                             {
-                                if (dofTypeRow != DOFType.Pore)
+                                if (dofTypeRow != PorousMediaDof.Pressure)
                                     poreMass[matrixRow, matrixCol] = mass[solidRow, solidCol] * massCoefficient;
                                 solidCol++;
                             }
                             matrixCol++;
                         }
 
-                    if (dofTypeRow != DOFType.Pore) solidRow++;
+                    if (dofTypeRow != PorousMediaDof.Pressure) solidRow++;
                     matrixRow++;
                 }
 

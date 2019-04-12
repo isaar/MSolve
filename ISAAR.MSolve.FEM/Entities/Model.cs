@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public IList<ITimeDependentNodalLoad> TimeDependentNodalLoads { get; private set; } = new List<ITimeDependentNodalLoad>();
 
-        public Table<INode, DOFType, double> Constraints { get; private set; } = new Table<INode, DOFType, double>();//TODOMaria: maybe it's useless in model class
+        public Table<INode, IDofType, double> Constraints { get; private set; } = new Table<INode, IDofType, double>();//TODOMaria: maybe it's useless in model class
 
         public IGlobalFreeDofOrdering GlobalDofOrdering { get; set; }
 
@@ -93,7 +93,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public void AssignNodalLoads(NodalLoadsToSubdomainsDistributor distributeNodalLoads)
         {
-            var globalNodalLoads = new Table<INode, DOFType, double>();
+            var globalNodalLoads = new Table<INode, IDofType, double>();
             foreach (Load load in Loads) globalNodalLoads.TryAdd(load.Node, load.DOF, load.Amount);
 
             Dictionary<int, SparseVector> subdomainNodalLoads = distributeNodalLoads(globalNodalLoads);
@@ -105,7 +105,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public void AssignTimeDependentNodalLoads(int timeStep, NodalLoadsToSubdomainsDistributor distributeNodalLoads)
         {
-            var globalNodalLoads = new Table<INode, DOFType, double>();
+            var globalNodalLoads = new Table<INode, IDofType, double>();
             foreach (ITimeDependentNodalLoad load in TimeDependentNodalLoads)
             {
                 globalNodalLoads.TryAdd(load.Node, load.DOF, load.GetLoadAmount(timeStep));

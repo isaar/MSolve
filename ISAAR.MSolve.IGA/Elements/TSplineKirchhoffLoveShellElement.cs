@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
@@ -18,8 +19,8 @@ namespace ISAAR.MSolve.IGA.Elements
 	    public Matrix ExtractionOperator { get; set; } 
 		public int DegreeKsi { get; set; }
 		public int DegreeHeta { get; set; }
-		protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
-		protected DOFType[][] dofTypes;
+		protected readonly static IDofType[] controlPointDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ };
+		protected IDofType[][] dofTypes;
 		protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
 
 		public IElementDofEnumerator DofEnumerator
@@ -90,10 +91,10 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
+		public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
 		{
 			var nurbsElement = (TSplineKirchhoffLoveShellElement)element;
-			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
+			dofTypes = new IDofType[nurbsElement.ControlPoints.Count][];
 			for (int i = 0; i < nurbsElement.ControlPoints.Count; i++)
 			{
 				dofTypes[i] = controlPointDOFTypes;

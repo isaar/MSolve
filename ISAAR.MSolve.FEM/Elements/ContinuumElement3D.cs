@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
@@ -21,8 +22,8 @@ namespace ISAAR.MSolve.FEM.Elements
     /// </summary>
     public class ContinuumElement3D : IStructuralFiniteElement
     {
-        private readonly static DOFType[] nodalDOFTypes = new DOFType[] {DOFType.X, DOFType.Y, DOFType.Z};
-        private readonly DOFType[][] dofTypes;
+        private readonly static IDofType[] nodalDOFTypes = new IDofType[] {StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ};
+        private readonly IDofType[][] dofTypes;
         private DynamicMaterial dynamicProperties;
         private readonly IReadOnlyList<ElasticMaterial3D> materialsAtGaussPoints;
 
@@ -39,9 +40,9 @@ namespace ISAAR.MSolve.FEM.Elements
             this.QuadratureForConsistentMass = quadratureForMass;
             this.QuadratureForStiffness = quadratureForStiffness;
 
-            dofTypes= new DOFType[nodes.Count][];
+            dofTypes= new IDofType[nodes.Count][];
             for (int i = 0; i < interpolation.NumFunctions; i++)
-                dofTypes[i]=new DOFType[]{DOFType.X, DOFType.Y,DOFType.Z};
+                dofTypes[i]=new IDofType[]{StructuralDof.TranslationX, StructuralDof.TranslationY,StructuralDof.TranslationZ};
         }
 
         public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
@@ -180,7 +181,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public IElementDofEnumerator DofEnumerator { get; set; } = new GenericDofEnumerator();
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
 
         public IMatrix MassMatrix(IElement element)
         {

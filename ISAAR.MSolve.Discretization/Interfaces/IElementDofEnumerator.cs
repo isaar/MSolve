@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
+﻿using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using System.Collections.Generic;
 
 namespace ISAAR.MSolve.Discretization.Interfaces
@@ -8,13 +9,13 @@ namespace ISAAR.MSolve.Discretization.Interfaces
         /// <summary>
         /// These are the dofs of the nodes returned by <see cref="GetNodesForMatrixAssembly"/>
         /// </summary>
-		IList<IList<DOFType>> GetDOFTypes(IElement element); //TODO: rename GetDofTypesForMatrixAssembly()
+		IList<IList<IDofType>> GetDOFTypes(IElement element); //TODO: rename GetDofTypesForMatrixAssembly()
 
         /// <summary>
         /// The returned outer list will include nested lists for all <see cref="IElement.Nodes"/>. When using embedding, the
         /// nested lists, that correspond to embedded nodes, will be empty.
         /// </summary>
-		IList<IList<DOFType>> GetDOFTypesForDOFEnumeration(IElement element);
+		IList<IList<IDofType>> GetDOFTypesForDOFEnumeration(IElement element);
 
         /// <summary>
         /// When using embedding, these are the nodes of the superelement: nodes that have not been embedded and (right now all) 

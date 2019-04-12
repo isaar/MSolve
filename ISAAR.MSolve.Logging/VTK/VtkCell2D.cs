@@ -1,8 +1,5 @@
-﻿using ISAAR.MSolve.FEM.Interpolation;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Geometry.Shapes;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ISAAR.MSolve.Logging.VTK
 {

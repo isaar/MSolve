@@ -2,14 +2,14 @@
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.NonLinear;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
-using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
@@ -216,17 +216,17 @@ namespace ISAAR.MSolve.Tests.FEM
                 model.NodesDictionary[k].Constraints.Add(new Constraint()
                 {
                     Amount = 0,
-                    DOF = DOFType.X
+                    DOF = StructuralDof.TranslationX
                 });
                 model.NodesDictionary[k].Constraints.Add(new Constraint()
                 {
                     Amount = 0,
-                    DOF = DOFType.Y
+                    DOF = StructuralDof.TranslationY
                 });
                 model.NodesDictionary[k].Constraints.Add(new Constraint()
                 {
                     Amount = 0,
-                    DOF = DOFType.Z
+                    DOF = StructuralDof.TranslationZ
                 });
             }
 
@@ -237,7 +237,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 load1 = new Load()
                 {
                     Node = model.NodesDictionary[k],
-                    DOF = DOFType.X,
+                    DOF = StructuralDof.TranslationX,
                     Amount = 1 * load_value
                 };
                 model.Loads.Add(load1);

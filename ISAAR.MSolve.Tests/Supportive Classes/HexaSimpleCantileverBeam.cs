@@ -1,5 +1,5 @@
 ﻿using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Materials;
@@ -25,9 +25,9 @@ namespace ISAAR.MSolve.Tests
                 {
                     model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX, Y = startY, Z = startZ + 0.25 * (j / 2) });
                 }
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
-                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
 
                 nodeID++;
             }

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
 using ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses;
@@ -70,7 +70,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             return new Tuple<Model, Dictionary<int, Node>,double>(model, boundaryNodes,volume);
         }
 
-        public Dictionary<Node, IList<DOFType>> GetModelRigidBodyNodeConstraints(Model model)
+        public Dictionary<Node, IList<IDofType>> GetModelRigidBodyNodeConstraints(Model model)
         {
             return FEMMeshBuilder.GetConstraintsOfDegenerateRVEForNonSingularStiffnessMatrix_withRenumbering(model, mp.hexa1, mp.hexa2, mp.hexa3, renumbering_vector_path);
             //TODO:  Pithanws na epistrefetai apo GetModelAndBoundaryNodes ... AndConstraints.

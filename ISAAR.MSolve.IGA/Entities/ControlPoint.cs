@@ -1,10 +1,8 @@
-﻿using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
@@ -57,21 +55,10 @@ namespace ISAAR.MSolve.IGA.Entities
             foreach (var c in constraints)
             {
                 string con = string.Empty;
-                switch (c.DOF)
-                {
-                    case DOFType.Unknown:
-                        con = "?";
-                        break;
-                    case DOFType.X:
-                        con = "X";
-                        break;
-                    case DOFType.Y:
-                        con = "Y";
-                        break;
-                    case DOFType.Z:
-                        con = "Z";
-                        break;
-                }
+                if (c.DOF == StructuralDof.TranslationX) con = "X";
+                if (c.DOF == StructuralDof.TranslationY) con = "Y";
+                if (c.DOF == StructuralDof.TranslationZ) con = "Z";
+                else con = "?";
                 constrainsDescription += c.ToString() + ", ";
             }
             constrainsDescription = constrainsDescription.Length>1? constrainsDescription.Substring(0, constrainsDescription.Length - 2) : constrainsDescription;

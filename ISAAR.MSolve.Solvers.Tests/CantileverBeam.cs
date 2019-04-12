@@ -83,7 +83,7 @@ namespace ISAAR.MSolve.Solvers.Tests
             int dofsCount = 0;
             foreach (var node in endNodes)
             {
-                bool exists = subdomainDofs.TryGetValue(node, DOFType.Y, out int dofIdx);
+                bool exists = subdomainDofs.TryGetValue(node, StructuralDof.TranslationY, out int dofIdx);
                 if (exists)
                 {
                     ++dofsCount;
@@ -146,15 +146,15 @@ namespace ISAAR.MSolve.Solvers.Tests
                 double tol = 1E-10; //TODO: this should be chosen w.r.t. the element size along X
                 foreach (var node in model.Nodes.Where(node => Math.Abs(node.X) <= tol))
                 {
-                    node.Constraints.Add(new Constraint() { DOF = DOFType.X, Amount = 0.0 });
-                    node.Constraints.Add(new Constraint() { DOF = DOFType.Y, Amount = 0.0 });
+                    node.Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationX, Amount = 0.0 });
+                    node.Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationY, Amount = 0.0 });
                 }
 
                 // Apply concentrated load at the other end
                 Node[] loadedNodes = model.Nodes.Where(node => Math.Abs(node.X - Length) <= tol).ToArray();
                 foreach (var node in loadedNodes)
                 {
-                    model.Loads.Add(new Load() { Amount = EndPointLoad / loadedNodes.Length, Node = node, DOF = DOFType.Y });
+                    model.Loads.Add(new Load() { Amount = EndPointLoad / loadedNodes.Length, Node = node, DOF = StructuralDof.TranslationY });
                 }
 
                 return new CantileverBeam(Length, Height, Width, EndPointLoad, YoungModulus, model, loadedNodes);

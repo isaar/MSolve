@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.IGA.Elements;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Postprocessing;
@@ -393,26 +393,26 @@ namespace ISAAR.MSolve.IGA.Tests
 			{
 				Amount = -1,
 				ControlPoint = model.ControlPoints[9],
-				DOF = DOFType.Z
+				DOF = StructuralDof.TranslationZ
 			});
 			model.Loads.Add(new Load()
 			{
 				Amount = -1,
 				ControlPoint = model.ControlPoints[10],
-				DOF = DOFType.Z
+				DOF = StructuralDof.TranslationZ
 			});
 			model.Loads.Add(new Load()
 			{
 				Amount = -1,
 				ControlPoint = model.ControlPoints[11],
-				DOF = DOFType.Z
+				DOF = StructuralDof.TranslationZ
 			});
 
 			for (int i = 0; i < 6; i++)
 			{
-				model.ControlPointsDictionary[i].Constrains.Add(new Constraint() {DOF = DOFType.X});
-				model.ControlPointsDictionary[i].Constrains.Add(new Constraint() {DOF = DOFType.Y});
-				model.ControlPointsDictionary[i].Constrains.Add(new Constraint() {DOF = DOFType.Z});
+				model.ControlPointsDictionary[i].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationX});
+				model.ControlPointsDictionary[i].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationY});
+				model.ControlPointsDictionary[i].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationZ});
 			}
 
 			// Solvers
@@ -461,19 +461,19 @@ namespace ISAAR.MSolve.IGA.Tests
 				{
 					Amount = loadVector.At(0, i),
 					ControlPoint = model.ControlPoints[indexCP],
-					DOF = DOFType.X
+					DOF = StructuralDof.TranslationX
 				});
 				model.Loads.Add(new Load()
 				{
 					Amount = loadVector.At(0, i + 1),
 					ControlPoint = model.ControlPoints[indexCP],
-					DOF = DOFType.Y
+					DOF = StructuralDof.TranslationY
 				});
 				model.Loads.Add(new Load()
 				{
 					Amount = loadVector.At(0, i + 2),
 					ControlPoint = model.ControlPoints[indexCP],
-					DOF = DOFType.Z
+					DOF = StructuralDof.TranslationZ
 				});
 			}
 
@@ -481,9 +481,9 @@ namespace ISAAR.MSolve.IGA.Tests
 			{
 				foreach (var controlPoint in edge.ControlPointsDictionary.Values)
 				{
-					model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = DOFType.X});
-					model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = DOFType.Y});
-					model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = DOFType.Z});
+					model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationX});
+					model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationY});
+					model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationZ});
 				}
 			}
 

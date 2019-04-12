@@ -1,16 +1,14 @@
-﻿using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.Preprocessor.Meshes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Discretization;
 
 namespace ISAAR.MSolve.Preprocessor.UI
 {
@@ -169,7 +167,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="node"></param>
         /// <param name="freedomDegree">The axis of the prescribed displacement.</param>
         /// <param name="signedMagnitude">The magnitude of the prescribed displacement with its sign.</param>
-        public void ApplyPrescribedDisplacement(Node node, DOFType freedomDegree, double signedMagnitude)
+        public void ApplyPrescribedDisplacement(Node node, IDofType freedomDegree, double signedMagnitude)
         {
             if (signedMagnitude == 0.0)
             {
@@ -184,7 +182,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="nodes"></param>
         /// <param name="freedomDegree">The axis of the prescribed displacement.</param>
         /// <param name="signedMagnitude">The magnitude of the prescribed displacement with its sign.</param>
-        public void ApplyPrescribedDisplacements(IEnumerable<Node> nodes, DOFType freedomDegree, double signedMagnitude)
+        public void ApplyPrescribedDisplacements(IEnumerable<Node> nodes, IDofType freedomDegree, double signedMagnitude)
         {
             foreach (Node node in nodes) ApplyPrescribedDisplacement(node, freedomDegree, signedMagnitude);
         }
@@ -195,7 +193,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="nodeSelector">A method that returns true for the nodes to be selected and false for the rest.</param>
         /// <param name="freedomDegree">The axis of the prescribed displacement.</param>
         /// <param name="signedMagnitude">The magnitude of the prescribed displacement with its sign.</param>
-        public void ApplyPrescribedDisplacements(Func<Node, bool> nodeSelector, DOFType freedomDegree, double signedMagnitude)
+        public void ApplyPrescribedDisplacements(Func<Node, bool> nodeSelector, IDofType freedomDegree, double signedMagnitude)
         {
             ApplyPrescribedDisplacements(model.Nodes.Where(nodeSelector), freedomDegree, signedMagnitude);
         }
@@ -206,7 +204,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="node"></param>
         /// <param name="freedomDegree">The axis of the nodal load.</param>
         /// <param name="signedMagnitude">The magnitude of the nodal load with its sign.</param>
-        public void ApplyNodalLoad(Node node, DOFType freedomDegree, double signedMagnitude)
+        public void ApplyNodalLoad(Node node, IDofType freedomDegree, double signedMagnitude)
         {
             model.Loads.Add(new Load() { Amount = signedMagnitude, Node = node, DOF = freedomDegree });
         }
@@ -217,7 +215,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="nodes"></param>
         /// <param name="freedomDegree">The axis of the nodal load.</param>
         /// <param name="signedMagnitudeIndividual">The magnitude of the nodal load with its sign.</param>
-        public void ApplyNodalLoads(IEnumerable<Node> nodes, DOFType freedomDegree, double signedMagnitudeIndividual)
+        public void ApplyNodalLoads(IEnumerable<Node> nodes, IDofType freedomDegree, double signedMagnitudeIndividual)
         {
             foreach (Node node in nodes) ApplyNodalLoad(node, freedomDegree, signedMagnitudeIndividual);
         }
@@ -228,7 +226,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="nodes">A method that returns true for the nodes to be selected and false for the rest.</param>
         /// <param name="freedomDegree">The axis of the nodal load.</param>
         /// <param name="signedMagnitudeIndividual">The magnitude of the nodal load with its sign.</param>
-        public void ApplyNodalLoads(Func<Node, bool> nodeSelector, DOFType freedomDegree, double signedMagnitudeIndividual)
+        public void ApplyNodalLoads(Func<Node, bool> nodeSelector, IDofType freedomDegree, double signedMagnitudeIndividual)
         {
             ApplyNodalLoads(model.Nodes.Where(nodeSelector), freedomDegree, signedMagnitudeIndividual);
         }
@@ -239,7 +237,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="nodes"></param>
         /// <param name="freedomDegree">The axis of the nodal load.</param>
         /// <param name="signedMagnitudeTotal">The magnitude of the nodal load with its sign.</param>
-        public void DistributeNodalLoadEvenly(IEnumerable<Node> nodes, DOFType freedomDegree, double signedMagnitudeTotal)
+        public void DistributeNodalLoadEvenly(IEnumerable<Node> nodes, IDofType freedomDegree, double signedMagnitudeTotal)
         {
             int numNodes = nodes.Count();
             double individualLoad = signedMagnitudeTotal / numNodes;
@@ -252,7 +250,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="nodes">A method that returns true for the nodes to be selected and false for the rest.</param>
         /// <param name="freedomDegree">The axis of the nodal load.</param>
         /// <param name="signedMagnitudeTotal">The magnitude of the nodal load with its sign.</param>
-        public void DistributeNodalLoadEvenly(Func<Node, bool> nodeSelector, DOFType freedomDegree, double signedMagnitudeTotal)
+        public void DistributeNodalLoadEvenly(Func<Node, bool> nodeSelector, IDofType freedomDegree, double signedMagnitudeTotal)
         {
             DistributeNodalLoadEvenly(model.Nodes.Where(nodeSelector), freedomDegree, signedMagnitudeTotal);
         }
@@ -270,7 +268,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         ///     <paramref name="accelerogramPath"/>.</param>
         /// <param name="TotalDuration">The total duration of the ground motion.</param>
         /// <param name="magnificationFactor"></param>
-        public void SetGroundMotion(string accelerogramPath, Dictionary<DOFType, double> magnificationFactors, double timeStep,
+        public void SetGroundMotion(string accelerogramPath, Dictionary<IDofType, double> magnificationFactors, double timeStep,
             double TotalDuration)
         {
             this.TimeStep = timeStep;

@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Globalization;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Entities
@@ -13,7 +8,7 @@ namespace ISAAR.MSolve.FEM.Entities
     {
         private readonly double period, magnitude, timeStep, timeLength;
         private readonly int timeSteps;
-        public virtual DOFType DOF { get; set; }
+        public virtual IDofType DOF { get; set; }
 
         public virtual double this[int currentTimeStep]
         {

@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.LinearSystems;
@@ -19,7 +20,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
         }
 
         public override Dictionary<int, SparseVector> DistributeNodalLoads(
-            IReadOnlyDictionary<int, ILinearSystem> linearSystems, Table<INode, DOFType, double> globalNodalLoads)
+            IReadOnlyDictionary<int, ILinearSystem> linearSystems, Table<INode, IDofType, double> globalNodalLoads)
         {
             //TODO: This should be done using Dictionary<int, double[]> relativeBoundaryStiffnesses, instead of recreating that data.
             //TODO: Should I implement this as fb(s) = Lpb(s) * fb, Lpb(s) = Db(s)*Lb(s) * inv(Lb^T*Db*Lb)?
@@ -28,7 +29,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
             var subdomainLoads = new Dictionary<int, SortedDictionary<int, double>>();
             foreach (var subdomainID in linearSystems.Keys) subdomainLoads[subdomainID] = new SortedDictionary<int, double>();
 
-            foreach ((INode node, DOFType dofType, double amount) in globalNodalLoads)
+            foreach ((INode node, IDofType dofType, double amount) in globalNodalLoads)
             {
                 if (node.SubdomainsDictionary.Count == 1) // optimization for internal dof
                 {

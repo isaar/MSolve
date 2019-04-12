@@ -13,9 +13,9 @@ namespace ISAAR.MSolve.Solvers.Ordering
     /// </summary>
     public class UniformDofOrderingStrategy : IFreeDofOrderingStrategy
     {
-        private readonly IReadOnlyList<DOFType> dofsPerNode;
+        private readonly IReadOnlyList<IDofType> dofsPerNode;
 
-        public UniformDofOrderingStrategy(IReadOnlyList<DOFType> dofsPerNode)
+        public UniformDofOrderingStrategy(IReadOnlyList<IDofType> dofsPerNode)
         {
             this.dofsPerNode = dofsPerNode;
         }
@@ -29,15 +29,15 @@ namespace ISAAR.MSolve.Solvers.Ordering
 
 
         private (int numFreeDofs, DofTable freeDofs) OrderFreeDofsOfNodeSet(IEnumerable<INode> sortedNodes,
-            Table<INode, DOFType, double> constraints)
+            Table<INode, IDofType, double> constraints)
         {
             var freeDofs = new DofTable();
             int dofCounter = 0;
             foreach (INode node in sortedNodes)
             {
                 bool isNodeConstrained = constraints.TryGetDataOfRow(node,
-                    out IReadOnlyDictionary<DOFType, double> constraintsOfNode);
-                foreach (DOFType dof in dofsPerNode)
+                    out IReadOnlyDictionary<IDofType, double> constraintsOfNode);
+                foreach (IDofType dof in dofsPerNode)
                 {
                     bool isDofConstrained = isNodeConstrained ? constraintsOfNode.ContainsKey(dof) : false;
                     if (!isDofConstrained) freeDofs[node, dof] = dofCounter++;

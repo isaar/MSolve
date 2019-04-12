@@ -5,7 +5,7 @@ using System.Linq;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.NonLinear;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Entities;
@@ -92,16 +92,16 @@ namespace ISAAR.MSolve.SamplesConsole
             for (int i = 0; i < 9; i++)
             {
                 int iNode = constraintsNodes[i].ID;
-                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Y });
-                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Z });
-                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.RotX });
-                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.RotY });
-                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = StructuralDof.RotationX });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = StructuralDof.RotationY });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = StructuralDof.RotationZ });
             }
 
             // Applied displacement
-            model.NodesDictionary[monitorNode_2].Constraints.Add(new Constraint { DOF = DOFType.Y, Amount = nodalDisplacement });
+            model.NodesDictionary[monitorNode_2].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY, Amount = nodalDisplacement });
 
             // Create new Beam3D section and element
             var beamSection = new BeamSection3D(area, inertiaY, inertiaZ, torsionalInertia, effectiveAreaY, effectiveAreaZ);
@@ -260,12 +260,12 @@ namespace ISAAR.MSolve.SamplesConsole
             for (int i = 0; i < 9; i++)
             {
                 int iNode = constraintsNodes[i].ID;
-                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Y });
-                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Z });
-                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.RotX });
-                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.RotY });
-                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = StructuralDof.RotationX });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = StructuralDof.RotationY });
+                model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = StructuralDof.RotationZ });
             }
 
             // Create new Beam3D section and element
@@ -323,7 +323,7 @@ namespace ISAAR.MSolve.SamplesConsole
             }
 
             // Add nodal load values at the top nodes of the model
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode_2], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode_2], DOF = StructuralDof.TranslationY });
 
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();

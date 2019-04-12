@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.Structural.Elements;
@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.IGA.Entities
 
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
 
-        private readonly Dictionary< int , Dictionary<DOFType,int>> controlPointsDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
+        private readonly Dictionary< int , Dictionary<IDofType,int>> controlPointsDOFsDictionary = new Dictionary<int, Dictionary<IDofType, int>>();
 
         private readonly List<IBoundaryCondition> boundaryConditions = new List<IBoundaryCondition>();
         
@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.IGA.Entities
             get { return elementsDictionary; }
         }
 
-        public Dictionary<int, Dictionary<DOFType, int>> ControlPointDOFsDictionary
+        public Dictionary<int, Dictionary<IDofType, int>> ControlPointDOFsDictionary
         {
             get { return controlPointsDOFsDictionary; }
         }

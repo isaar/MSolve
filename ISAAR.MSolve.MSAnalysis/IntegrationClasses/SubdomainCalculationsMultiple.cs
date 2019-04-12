@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Entities;
@@ -47,7 +48,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
 
         public static Dictionary<int, double[]> CalculateFppReactionsVectorSubdomains(Model model, IElementMatrixProvider elementProvider,
             IScaleTransitions scaleTransitions, Dictionary<int, Node> boundaryNodes, Dictionary<int, IVector> solution, Dictionary<int, IVector> dSolution,
-            Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements,
+            Dictionary<int, Dictionary<IDofType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<IDofType, double>> totalBoundaryDisplacements,
             int nIncrement, int totalIncrements)
         {
             Dictionary<int, double[]> FppReactionVectorSubdomains = new Dictionary<int, double[]>();

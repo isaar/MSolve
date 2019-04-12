@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Interfaces;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Embedding
 {
@@ -16,11 +13,11 @@ namespace ISAAR.MSolve.FEM.Embedding
         private const int hostDofsPerNode = 3;
         private const int hostShapeFunctionLength = 8;
         private const int shapeFunctionOffset = hostShapeFunctionLength * (commonDofsPerNode + 1);
-        private readonly DOFType[] translationAndRotationDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.RotX, DOFType.RotY, DOFType.RotZ };
+        private readonly IDofType[] translationAndRotationDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ, StructuralDof.RotationX, StructuralDof.RotationY, StructuralDof.RotationZ };
 
-        public IList<DOFType> GetDependentDOFTypes { get { return translationAndRotationDOFTypes; } }
+        public IList<IDofType> GetDependentDOFTypes { get { return translationAndRotationDOFTypes; } }
 
-        public IList<IList<DOFType>> GetDOFTypesOfHost(EmbeddedNode node)
+        public IList<IList<IDofType>> GetDOFTypesOfHost(EmbeddedNode node)
         {
             return node.EmbeddedInElement.ElementType.GetElementDOFTypes(node.EmbeddedInElement);
         }

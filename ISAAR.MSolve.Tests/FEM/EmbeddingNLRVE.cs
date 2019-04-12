@@ -4,14 +4,14 @@ using System.Linq;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.NonLinear;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
-using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
@@ -1125,7 +1125,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 load_i = new Load()
                 {
                     Node = model.NodesDictionary[renumbering.GetNewNodeNumbering(komvos)],
-                    DOF = DOFType.X,
+                    DOF = StructuralDof.TranslationX,
                     Amount = Fxk_p_komvoi_rve[3 * (j) + 0]
                 };
                 model.Loads.Add(load_i);
@@ -1133,7 +1133,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 load_i = new Load()
                 {
                     Node = model.NodesDictionary[renumbering.GetNewNodeNumbering(komvos)],
-                    DOF = DOFType.Y,
+                    DOF = StructuralDof.TranslationY,
                     Amount = Fxk_p_komvoi_rve[3 * (j) + 1]
                 };
                 model.Loads.Add(load_i);
@@ -1141,7 +1141,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 load_i = new Load()
                 {
                     Node = model.NodesDictionary[renumbering.GetNewNodeNumbering(komvos)],
-                    DOF = DOFType.Z,
+                    DOF = StructuralDof.TranslationZ,
                     Amount = Fxk_p_komvoi_rve[3 * (j) + 2]
                 };
                 model.Loads.Add(load_i);
@@ -1219,21 +1219,21 @@ namespace ISAAR.MSolve.Tests.FEM
             int nodeID;
 
             nodeID = renumbering.GetNewNodeNumbering(Topol_rve(1, 1, 1, hexa1, hexa2, hexa3, kuvos, endiam_plaka, katw_plaka));
-            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
-            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
-            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
+            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
 
             nodeID = renumbering.GetNewNodeNumbering(Topol_rve(hexa1 + 1, 1, 1, hexa1, hexa2, hexa3, kuvos, endiam_plaka, katw_plaka));
-            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
-            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
+            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
 
             nodeID = renumbering.GetNewNodeNumbering(Topol_rve(1, hexa2 + 1, 1, hexa1, hexa2, hexa3, kuvos, endiam_plaka, katw_plaka));
-            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
-            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
+            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
 
             nodeID = renumbering.GetNewNodeNumbering(Topol_rve(1, 1, hexa3 + 1, hexa1, hexa2, hexa3, kuvos, endiam_plaka, katw_plaka));
-            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
-            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
+            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+            model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
 
         }
 

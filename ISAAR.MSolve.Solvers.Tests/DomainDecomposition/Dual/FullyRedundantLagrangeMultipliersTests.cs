@@ -43,32 +43,32 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual
             // 0 ----- 1         1 ----- 2
             //         (0,1)     (0,1)   (2)
 
-            lagrangesExpected[0] = new LagrangeMultiplier(nodes[1], DOFType.X, subdomains[0], subdomains[1]);
-            lagrangesExpected[1] = new LagrangeMultiplier(nodes[1], DOFType.Y, subdomains[0], subdomains[1]);
+            lagrangesExpected[0] = new LagrangeMultiplier(nodes[1], StructuralDof.TranslationX, subdomains[0], subdomains[1]);
+            lagrangesExpected[1] = new LagrangeMultiplier(nodes[1], StructuralDof.TranslationY, subdomains[0], subdomains[1]);
 
-            lagrangesExpected[2] = new LagrangeMultiplier(nodes[3], DOFType.X, subdomains[0], subdomains[2]);
-            lagrangesExpected[3] = new LagrangeMultiplier(nodes[3], DOFType.Y, subdomains[0], subdomains[2]);
+            lagrangesExpected[2] = new LagrangeMultiplier(nodes[3], StructuralDof.TranslationX, subdomains[0], subdomains[2]);
+            lagrangesExpected[3] = new LagrangeMultiplier(nodes[3], StructuralDof.TranslationY, subdomains[0], subdomains[2]);
 
-            lagrangesExpected[4] = new LagrangeMultiplier(nodes[4], DOFType.X, subdomains[0], subdomains[1]);
-            lagrangesExpected[5] = new LagrangeMultiplier(nodes[4], DOFType.Y, subdomains[0], subdomains[1]);
-            lagrangesExpected[6] = new LagrangeMultiplier(nodes[4], DOFType.X, subdomains[0], subdomains[2]);
-            lagrangesExpected[7] = new LagrangeMultiplier(nodes[4], DOFType.Y, subdomains[0], subdomains[2]);
-            lagrangesExpected[8] = new LagrangeMultiplier(nodes[4], DOFType.X, subdomains[0], subdomains[3]);
-            lagrangesExpected[9] = new LagrangeMultiplier(nodes[4], DOFType.Y, subdomains[0], subdomains[3]);
+            lagrangesExpected[4] = new LagrangeMultiplier(nodes[4], StructuralDof.TranslationX, subdomains[0], subdomains[1]);
+            lagrangesExpected[5] = new LagrangeMultiplier(nodes[4], StructuralDof.TranslationY, subdomains[0], subdomains[1]);
+            lagrangesExpected[6] = new LagrangeMultiplier(nodes[4], StructuralDof.TranslationX, subdomains[0], subdomains[2]);
+            lagrangesExpected[7] = new LagrangeMultiplier(nodes[4], StructuralDof.TranslationY, subdomains[0], subdomains[2]);
+            lagrangesExpected[8] = new LagrangeMultiplier(nodes[4], StructuralDof.TranslationX, subdomains[0], subdomains[3]);
+            lagrangesExpected[9] = new LagrangeMultiplier(nodes[4], StructuralDof.TranslationY, subdomains[0], subdomains[3]);
 
-            lagrangesExpected[10] = new LagrangeMultiplier(nodes[4], DOFType.X, subdomains[1], subdomains[2]);
-            lagrangesExpected[11] = new LagrangeMultiplier(nodes[4], DOFType.Y, subdomains[1], subdomains[2]);
-            lagrangesExpected[12] = new LagrangeMultiplier(nodes[4], DOFType.X, subdomains[1], subdomains[3]);
-            lagrangesExpected[13] = new LagrangeMultiplier(nodes[4], DOFType.Y, subdomains[1], subdomains[3]);
+            lagrangesExpected[10] = new LagrangeMultiplier(nodes[4], StructuralDof.TranslationX, subdomains[1], subdomains[2]);
+            lagrangesExpected[11] = new LagrangeMultiplier(nodes[4], StructuralDof.TranslationY, subdomains[1], subdomains[2]);
+            lagrangesExpected[12] = new LagrangeMultiplier(nodes[4], StructuralDof.TranslationX, subdomains[1], subdomains[3]);
+            lagrangesExpected[13] = new LagrangeMultiplier(nodes[4], StructuralDof.TranslationY, subdomains[1], subdomains[3]);
 
-            lagrangesExpected[14] = new LagrangeMultiplier(nodes[4], DOFType.X, subdomains[2], subdomains[3]);
-            lagrangesExpected[15] = new LagrangeMultiplier(nodes[4], DOFType.Y, subdomains[2], subdomains[3]);
+            lagrangesExpected[14] = new LagrangeMultiplier(nodes[4], StructuralDof.TranslationX, subdomains[2], subdomains[3]);
+            lagrangesExpected[15] = new LagrangeMultiplier(nodes[4], StructuralDof.TranslationY, subdomains[2], subdomains[3]);
 
-            lagrangesExpected[16] = new LagrangeMultiplier(nodes[5], DOFType.X, subdomains[1], subdomains[3]);
-            lagrangesExpected[17] = new LagrangeMultiplier(nodes[5], DOFType.Y, subdomains[1], subdomains[3]);
+            lagrangesExpected[16] = new LagrangeMultiplier(nodes[5], StructuralDof.TranslationX, subdomains[1], subdomains[3]);
+            lagrangesExpected[17] = new LagrangeMultiplier(nodes[5], StructuralDof.TranslationY, subdomains[1], subdomains[3]);
 
-            lagrangesExpected[18] = new LagrangeMultiplier(nodes[7], DOFType.X, subdomains[2], subdomains[3]);
-            lagrangesExpected[19] = new LagrangeMultiplier(nodes[7], DOFType.Y, subdomains[2], subdomains[3]);
+            lagrangesExpected[18] = new LagrangeMultiplier(nodes[7], StructuralDof.TranslationX, subdomains[2], subdomains[3]);
+            lagrangesExpected[19] = new LagrangeMultiplier(nodes[7], StructuralDof.TranslationY, subdomains[2], subdomains[3]);
 
             for (int lag = 0; lag < numLagranges; ++lag)
             {
@@ -272,9 +272,9 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual
             builder.NumTotalElementsX = 2;
             builder.NumTotalElementsY = 2;
             builder.YoungModulus = 2.1E7;
-            builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerLeftCorner, DOFType.X, 0.0);            
-            builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerLeftCorner, DOFType.Y, 0.0);
-            builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerRightCorner, DOFType.Y, 0.0);
+            builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerLeftCorner, StructuralDof.TranslationX, 0.0);            
+            builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerLeftCorner, StructuralDof.TranslationY, 0.0);
+            builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerRightCorner, StructuralDof.TranslationY, 0.0);
 
             return builder.BuildModel();
         }

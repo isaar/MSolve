@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Geometry.Shapes;
@@ -95,15 +95,15 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             Node[] constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol).ToArray();
             for (int i = 0; i < constrainedNodes.Length; i++)
             {
-                constrainedNodes[i].Constraints.Add(new Constraint { DOF = DOFType.X });
-                constrainedNodes[i].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                constrainedNodes[i].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                constrainedNodes[i].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
             }
 
             // Loads
             Node[] loadedNodes = nodes.Where(
                 node => (Math.Abs(node.Y - height) <= tol) && ((Math.Abs(node.X) <= tol))).ToArray();
             if (loadedNodes.Length != 1) throw new Exception("Only 1 node was expected at the top left corner");
-            model.Loads.Add(new Load() { Amount = maxLoad, Node = loadedNodes[0], DOF = DOFType.X });
+            model.Loads.Add(new Load() { Amount = maxLoad, Node = loadedNodes[0], DOF = StructuralDof.TranslationX });
 
             return model;
         }

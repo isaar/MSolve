@@ -1,4 +1,7 @@
-﻿using ISAAR.MSolve.Discretization;
+﻿using System;
+using System.Collections.Generic;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Embedding;
@@ -11,15 +14,13 @@ using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
-using System;
-using System.Collections.Generic;
 
 //TODO: Is there any point in having different material properties per Gauss point?
 namespace ISAAR.MSolve.FEM.Elements
 {
     public class ThermalElement2D : IFiniteElement, IEmbeddedHostElement
     {
-        private readonly DOFType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
+        private readonly IDofType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
         private readonly ThermalMaterial material;
         //private readonly Dictionary<GaussPoint2D, ThermalMaterial> materialsAtGaussPoints;
 
@@ -37,8 +38,8 @@ namespace ISAAR.MSolve.FEM.Elements
             this.QuadratureForStiffness = quadratureForStiffness;
             this.Thickness = thickness;
 
-            dofTypes = new DOFType[nodes.Count][];
-            for (int i = 0; i < interpolation.NumFunctions; ++i) dofTypes[i] = new DOFType[] { DOFType.Temperature };
+            dofTypes = new IDofType[nodes.Count][];
+            for (int i = 0; i < interpolation.NumFunctions; ++i) dofTypes[i] = new IDofType[] { ThermalDof.Temperature };
         }
 
         public ElementDimensions ElementDimensions => ElementDimensions.TwoD;
@@ -154,7 +155,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return Matrix.CreateFromArray(shapeFunctions, 1, shapeFunctions.Length);
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
 
         public void ResetMaterialModified()
         {

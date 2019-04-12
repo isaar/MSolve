@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 
 //TODO: Needs a proper name. This probably cannot be incorporated in the ISubdomainDofOrdering, as the intent is different and
@@ -12,8 +12,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
     {
         //TODO: BoundaryDofConnectivities is useful only for heterogeneous problems and its creation might be costly.
         //      Needs benchmarking and possibly a way to avoid it in homogeneous problems
-        public Dictionary<INode, DOFType[]> GlobalBoundaryDofs { get; private set; }
-        internal Dictionary<int, (INode node, DOFType dofType)[]> BoundaryDofConnectivities { get; private set; }
+        public Dictionary<INode, IDofType[]> GlobalBoundaryDofs { get; private set; }
+        internal Dictionary<int, (INode node, IDofType dofType)[]> BoundaryDofConnectivities { get; private set; }
         internal Dictionary<int, int[]> BoundaryDofIndices { get; private set; }
         internal Dictionary<int, int[]> BoundaryDofMultiplicities { get; private set; }
         internal Dictionary<int, int[]> InternalDofIndices { get; private set; }
@@ -28,12 +28,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         {
             BoundaryDofIndices = new Dictionary<int, int[]>();
             BoundaryDofMultiplicities = new Dictionary<int, int[]>();
-            BoundaryDofConnectivities = new Dictionary<int, (INode node, DOFType dofType)[]>();
+            BoundaryDofConnectivities = new Dictionary<int, (INode node, IDofType dofType)[]>();
             InternalDofIndices = new Dictionary<int, int[]>();
             foreach (ISubdomain subdomain in model.Subdomains)
             {
                 var boundaryMultiplicitiesOfSubdomain = new SortedDictionary<int, int>(); // key = dofIdx, value = multiplicity
-                var boundaryConnectivitiesOfSubdomain = new SortedDictionary<int, (INode node, DOFType dofType)>(); 
+                var boundaryConnectivitiesOfSubdomain = new SortedDictionary<int, (INode node, IDofType dofType)>(); 
                 var internalDofsOfSubdomain = new SortedSet<int>();
                 foreach (INode node in subdomain.Nodes)
                 {
@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                     if (nodeMultiplicity > 1) // boundary node
                     {
                         bool isNodeFree = subdomain.FreeDofOrdering.FreeDofs.TryGetDataOfRow(node, 
-                            out IReadOnlyDictionary<DOFType, int> dofTypesIndices); // This avoids embedded and constrained dofs
+                            out IReadOnlyDictionary<IDofType, int> dofTypesIndices); // This avoids embedded and constrained dofs
                         if (isNodeFree)
                         {
                             foreach (var dofTypeIdxPair in dofTypesIndices)
@@ -72,7 +72,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 
         private void GatherGlobalBoundaryDofs(IStructuralModel model)
         {
-            GlobalBoundaryDofs = new Dictionary<INode, DOFType[]>();
+            GlobalBoundaryDofs = new Dictionary<INode, IDofType[]>();
 
             //TODO: model.Nodes probably doesn't work if there are embedded nodes. It is time to isolate the embedded nodes. Or I could use the GlobalDofOrdering.
             foreach (INode node in model.Nodes) 
@@ -81,7 +81,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 if (nodeMultiplicity > 1)
                 {
                     // Access the free dofs only. Does this also filter out embedded dofs?
-                    DOFType[] dofsOfNode = model.GlobalDofOrdering.GlobalFreeDofs.GetColumnsOfRow(node).ToArray(); //TODO: interacting with the table can be optimized.
+                    IDofType[] dofsOfNode = model.GlobalDofOrdering.GlobalFreeDofs.GetColumnsOfRow(node).ToArray(); //TODO: interacting with the table can be optimized.
 
                     // If all dofs of this node are constrained, then it is not considered boundary.
                     if (dofsOfNode.Length == 0) continue;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
@@ -22,9 +23,9 @@ namespace ISAAR.MSolve.FEM.Elements
     /// </summary>
     public class CohesiveShell8ToHexa20 : IStructuralFiniteElement, IEmbeddedElement
     {
-        protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
-        protected readonly static DOFType[] nodalDOFTypes2 = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.RotX, DOFType.RotY };
-        protected readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes2, nodalDOFTypes2, nodalDOFTypes2,
+        protected readonly static IDofType[] nodalDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ };
+        protected readonly static IDofType[] nodalDOFTypes2 = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ, StructuralDof.RotationX, StructuralDof.RotationY };
+        protected readonly static IDofType[][] dofTypes = new IDofType[][] { nodalDOFTypes2, nodalDOFTypes2, nodalDOFTypes2,
             nodalDOFTypes2, nodalDOFTypes2, nodalDOFTypes2, nodalDOFTypes2, nodalDOFTypes2,nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes };
         protected readonly ICohesiveZoneMaterial3D[] materialsAtGaussPoints;
@@ -723,7 +724,7 @@ namespace ISAAR.MSolve.FEM.Elements
             }
         }
 
-        public virtual IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public virtual IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
 
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {
@@ -742,7 +743,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         #region EMBEDDED
 
-        public Dictionary<DOFType, int> GetInternalNodalDOFs(Element element, Node node)//
+        public Dictionary<IDofType, int> GetInternalNodalDOFs(Element element, Node node)//
         {
             int index = 0;
             foreach (var elementNode in element.Nodes)
@@ -757,12 +758,12 @@ namespace ISAAR.MSolve.FEM.Elements
             if (index >= 8)
             {
                 int index2 = index - 8;
-                return new Dictionary<DOFType, int>() { { DOFType.X, 39+3*index2+1 }, { DOFType.Y, 39 + 3 * index2 + 2 }, { DOFType.Z, 39 + 3 * index2 + 3 } };
+                return new Dictionary<IDofType, int>() { { StructuralDof.TranslationX, 39+3*index2+1 }, { StructuralDof.TranslationY, 39 + 3 * index2 + 2 }, { StructuralDof.TranslationZ, 39 + 3 * index2 + 3 } };
             }
             else
             {
-                return new Dictionary<DOFType, int>() { { DOFType.X, + 5 * index + 0 }, { DOFType.Y, + 5 * index + 1 }, { DOFType.Z, + 5 * index + 2 },
-                                                        { DOFType.RotX, + 5 * index + 3 }, { DOFType.RotY, + 5 * index + 4 }};
+                return new Dictionary<IDofType, int>() { { StructuralDof.TranslationX, + 5 * index + 0 }, { StructuralDof.TranslationY, + 5 * index + 1 }, { StructuralDof.TranslationZ, + 5 * index + 2 },
+                                                        { StructuralDof.RotationX, + 5 * index + 3 }, { StructuralDof.RotationY, + 5 * index + 4 }};
             }          
         }
 

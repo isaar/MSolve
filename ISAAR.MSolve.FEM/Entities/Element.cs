@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
 
@@ -19,12 +20,12 @@ namespace ISAAR.MSolve.FEM.Entities
     public class Element: IElement
 	{
         private readonly Dictionary<int, Node> nodesDictionary = new Dictionary<int, Node>();
-        private readonly Dictionary<DOFType, AbsorptionType> absorptions = new Dictionary<DOFType, AbsorptionType>();
+        private readonly Dictionary<IDofType, AbsorptionType> absorptions = new Dictionary<IDofType, AbsorptionType>();
         private readonly IList<Node> embeddedNodes = new List<Node>();
 
         public Dictionary<int, Node> NodesDictionary => nodesDictionary;
 
-        public Dictionary<DOFType, AbsorptionType> Absorptions => absorptions;
+        public Dictionary<IDofType, AbsorptionType> Absorptions => absorptions;
 
         IList<INode> IElement.Nodes => nodesDictionary.Values.ToList<INode>();
         public IList<Node> Nodes => nodesDictionary.Values.ToList<Node>();

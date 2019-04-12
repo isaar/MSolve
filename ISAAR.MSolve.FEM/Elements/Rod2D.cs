@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
@@ -11,8 +12,8 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
 {
     public class Rod2D : IStructuralFiniteElement
     {
-        private static readonly DOFType[] nodalDOFTypes = new DOFType[2] { DOFType.X, DOFType.Y };
-        private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
+        private static readonly IDofType[] nodalDOFTypes = new IDofType[2] { StructuralDof.TranslationX, StructuralDof.TranslationY };
+        private static readonly IDofType[][] dofs = new IDofType[][] { nodalDOFTypes, nodalDOFTypes };
         private readonly double youngModulus;
         private IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
 
@@ -77,7 +78,7 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
 
         public ElementDimensions ElementDimensions => ElementDimensions.TwoD;
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofs;
+        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofs;
 
         public IList<Node> GetNodesForMatrixAssembly(Element element) => element.Nodes;
 
@@ -149,8 +150,8 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
 
             int index = 0;
             foreach (MassAccelerationLoad load in loads)
-                foreach (DOFType[] nodalDOFTypes in dofs)
-                    foreach (DOFType dofType in nodalDOFTypes)
+                foreach (IDofType[] nodalDOFTypes in dofs)
+                    foreach (IDofType dofType in nodalDOFTypes)
                     {
                         if (dofType == load.DOF) accelerations[index] += load.Amount;
                         index++;

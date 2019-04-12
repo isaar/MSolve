@@ -8,7 +8,7 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 {
     public interface ISubdomain
     {
-        Table<INode, DOFType, double> Constraints { get; }
+        Table<INode, IDofType, double> Constraints { get; }
 
         ISubdomainConstrainedDofOrdering ConstrainedDofOrdering { get; set; }
 

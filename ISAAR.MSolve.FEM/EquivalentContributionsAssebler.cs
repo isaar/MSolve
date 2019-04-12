@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
@@ -29,7 +30,7 @@ namespace ISAAR.MSolve.FEM
         }
 
         public Vector CalculateKfreeprescribedUpMultiplicationForSubdRHSContribution(Dictionary<int, Node> boundaryNodes,
-            Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements,
+            Dictionary<int, Dictionary<IDofType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<IDofType, double>> totalBoundaryDisplacements,
             int nIncrement, int totalIncrements)
         {
             var dofOrdering = subdomain.FreeDofOrdering; //.1
@@ -58,7 +59,7 @@ namespace ISAAR.MSolve.FEM
                 {
                     INode nodeRow = matrixAssemblyNodes[i];
                     int dofTypeRowToNumber = -1;
-                    foreach (DOFType dofTypeRow in elementDOFTypes[i])
+                    foreach (IDofType dofTypeRow in elementDOFTypes[i])
                     {
                         dofTypeRowToNumber++;
                         bool isFree = FreeDofs.TryGetValue(matrixAssemblyNodes[i], elementDOFTypes[i][dofTypeRowToNumber],
@@ -96,12 +97,12 @@ namespace ISAAR.MSolve.FEM
                                     }
 
 
-                                    Dictionary<DOFType, double> nodalConvergedDisplacements = initialConvergedBoundaryDisplacements[nodeColumn.ID];
-                                    Dictionary<DOFType, double> nodalTotalDisplacements = totalBoundaryDisplacements[nodeColumn.ID];
+                                    Dictionary<IDofType, double> nodalConvergedDisplacements = initialConvergedBoundaryDisplacements[nodeColumn.ID];
+                                    Dictionary<IDofType, double> nodalTotalDisplacements = totalBoundaryDisplacements[nodeColumn.ID];
                                     double[] uStep_values_orZero_for_free = new double[nodalDofsNumber];
 
                                     int positionOfDof = 0;
-                                    foreach (DOFType doftype1 in elementDOFTypes[j])
+                                    foreach (IDofType doftype1 in elementDOFTypes[j])
                                     {
                                         if (nodalConvergedDisplacements.ContainsKey(doftype1))
                                         {

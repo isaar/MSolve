@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Problems.Structural.Elements;
 using ISAAR.MSolve.Logging;
@@ -49,10 +49,10 @@ namespace ISAAR.MSolve.SamplesConsole
                 model.NodesDictionary.Add(i + 1, nodes[i]);
             }
 
-            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.X });
-            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.Y });
-            model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = DOFType.X });
-            model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = DOFType.Y });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+            model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+            model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
 
 
             var element1 = new Element()
@@ -79,8 +79,8 @@ namespace ISAAR.MSolve.SamplesConsole
             model.SubdomainsDictionary[subdomainID].Elements.Add(element1);
             model.SubdomainsDictionary[subdomainID].Elements.Add(element2);
 
-            model.Loads.Add(new Load() { Amount = loadX, Node = model.NodesDictionary[3], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = loadY, Node = model.NodesDictionary[3], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = loadX, Node = model.NodesDictionary[3], DOF = StructuralDof.TranslationX });
+            model.Loads.Add(new Load() { Amount = loadY, Node = model.NodesDictionary[3], DOF = StructuralDof.TranslationY });
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
@@ -95,8 +95,8 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // Output requests
             var logFactory = new TotalDisplacementsLog.Factory(model.SubdomainsDictionary[subdomainID]);
-            logFactory.WatchDof(model.NodesDictionary[3], DOFType.X);
-            logFactory.WatchDof(model.NodesDictionary[3], DOFType.Y);
+            logFactory.WatchDof(model.NodesDictionary[3], StructuralDof.TranslationX);
+            logFactory.WatchDof(model.NodesDictionary[3], StructuralDof.TranslationY);
             childAnalyzer.LogFactories[subdomainID] = logFactory;
 
             // Run the analysis
@@ -105,8 +105,8 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // Print output
             var logger = (TotalDisplacementsLog)(childAnalyzer.Logs[subdomainID][0]); //There is a list of logs for each subdomain and we want the first one
-            double ux = logger.GetDisplacementAt(model.NodesDictionary[3], DOFType.X);
-            double uy = logger.GetDisplacementAt(model.NodesDictionary[3], DOFType.Y);
+            double ux = logger.GetDisplacementAt(model.NodesDictionary[3], StructuralDof.TranslationX);
+            double uy = logger.GetDisplacementAt(model.NodesDictionary[3], StructuralDof.TranslationY);
             Console.WriteLine($"Displacements of Node 3: Ux = {ux}, Uy = {uy}");
         }
     }

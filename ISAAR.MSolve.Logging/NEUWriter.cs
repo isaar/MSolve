@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.Solvers.LinearSystems;
@@ -25,14 +25,14 @@ namespace ISAAR.MSolve.Logging
         private readonly int id;
         private readonly string title;
         private readonly string componentVector;
-        private readonly DOFType dofType;
+        private readonly IDofType dofType;
 
         public int ID { get { return id; } }
         public string Title { get { return title; } }
         public string ComponentVector { get { return componentVector; } }
-        public DOFType DOFType { get { return dofType; } }
+        public IDofType DOFType { get { return dofType; } }
 
-        public NEUOutputVectorProperties(int id, string title, string componentVector, DOFType dofType)
+        public NEUOutputVectorProperties(int id, string title, string componentVector, IDofType dofType)
         {
             this.id = id;
             this.title = title;
@@ -47,12 +47,12 @@ namespace ISAAR.MSolve.Logging
         private const string BlockMarker = "   -1";
         private readonly Dictionary<NEUOutputVector, NEUOutputVectorProperties> vectorTitles = new Dictionary<NEUOutputVector, NEUOutputVectorProperties>()
         {
-            { NEUOutputVector.TranslationX, new NEUOutputVectorProperties(2, "X Translation", "2,0,0", DOFType.X) },
-            { NEUOutputVector.TranslationY, new NEUOutputVectorProperties(3, "Y Translation", "0,3,0", DOFType.Y) },
-            { NEUOutputVector.TranslationZ, new NEUOutputVectorProperties(4, "Z Translation", "0,0,4", DOFType.Z) },
-            { NEUOutputVector.RotationX, new NEUOutputVectorProperties(6, "X Rotation", "6,0,0", DOFType.RotX) },
-            { NEUOutputVector.RotationY, new NEUOutputVectorProperties(7, "Y Rotation", "0,7,0", DOFType.RotY) },
-            { NEUOutputVector.RotationZ, new NEUOutputVectorProperties(8, "Z Rotation", "0,0,8", DOFType.RotZ) }
+            { NEUOutputVector.TranslationX, new NEUOutputVectorProperties(2, "X Translation", "2,0,0", StructuralDof.TranslationX) },
+            { NEUOutputVector.TranslationY, new NEUOutputVectorProperties(3, "Y Translation", "0,3,0", StructuralDof.TranslationY) },
+            { NEUOutputVector.TranslationZ, new NEUOutputVectorProperties(4, "Z Translation", "0,0,4", StructuralDof.TranslationZ) },
+            { NEUOutputVector.RotationX, new NEUOutputVectorProperties(6, "X Rotation", "6,0,0", StructuralDof.RotationX) },
+            { NEUOutputVector.RotationY, new NEUOutputVectorProperties(7, "Y Rotation", "0,7,0", StructuralDof.RotationY) },
+            { NEUOutputVector.RotationZ, new NEUOutputVectorProperties(8, "Z Rotation", "0,0,8", StructuralDof.RotationZ) }
         };
 
         private readonly ILinearSystem subdomain;
@@ -95,13 +95,13 @@ namespace ISAAR.MSolve.Logging
             var embeddedNodeValues = CalculateEmbeddedNodeValues();
             foreach (var node in model.Nodes)
             {
-                var key = new Tuple<int, DOFType>(node.ID, vectorProperties.DOFType);
+                var key = new Tuple<int, IDofType>(node.ID, vectorProperties.DOFType);
                 if (embeddedNodeValues.ContainsKey(key))
                     lines.Add(String.Format(CultureInfo.InvariantCulture, "{0},{1},", node.ID, embeddedNodeValues[key]));
                 else
                 {
                     bool nodeExists = model.GlobalDofOrdering.GlobalFreeDofs.TryGetDataOfRow(node,
-                        out IReadOnlyDictionary<DOFType, int> dofTypesIndices);
+                        out IReadOnlyDictionary<IDofType, int> dofTypesIndices);
                     if (nodeExists)
                     {
                         if (!dofTypesIndices.ContainsKey(vectorProperties.DOFType)) continue;
@@ -117,9 +117,9 @@ namespace ISAAR.MSolve.Logging
             return lines;
         }
 
-        private Dictionary<Tuple<int, DOFType>, double> CalculateEmbeddedNodeValues()
+        private Dictionary<Tuple<int, IDofType>, double> CalculateEmbeddedNodeValues()
         {
-            var embeddedNodeValues = new Dictionary<Tuple<int, DOFType>, double>();
+            var embeddedNodeValues = new Dictionary<Tuple<int, IDofType>, double>();
 
             foreach (var element in model.Elements)
             {
@@ -146,7 +146,7 @@ namespace ISAAR.MSolve.Logging
                 for (int i = 0; i < elementDOFs.Count; i++)
                     for (int j = 0; j < elementDOFs[i].Count; j++)
                     {
-                        var key = new Tuple<int, DOFType>(element.Nodes[i].ID, elementDOFs[i][j]);
+                        var key = new Tuple<int, IDofType>(element.Nodes[i].ID, elementDOFs[i][j]);
                         //int dof = model.NodalDOFsDictionary[element.Nodes[i].ID][elementDOFs[i][j]];
 
                         if (!embeddedNodeValues.ContainsKey(key))
@@ -206,11 +206,11 @@ namespace ISAAR.MSolve.Logging
             {
                 double translation = 0;
                 bool nodeExists = model.GlobalDofOrdering.GlobalFreeDofs.TryGetDataOfRow(node, 
-                    out IReadOnlyDictionary<DOFType, int> dofTypesIndices);
+                    out IReadOnlyDictionary<IDofType, int> dofTypesIndices);
                 if (nodeExists)
                 {
                     foreach (var dof in dofTypesIndices.Where(
-                        x => x.Key == DOFType.X || x.Key == DOFType.Y || x.Key == DOFType.Z).Select(x => x.Value))
+                        x => x.Key == StructuralDof.TranslationX || x.Key == StructuralDof.TranslationY || x.Key == StructuralDof.TranslationZ).Select(x => x.Value))
                     {
                         translation += Math.Pow(subdomain.Solution[dof], 2);
                     }
@@ -231,11 +231,11 @@ namespace ISAAR.MSolve.Logging
             {
                 double translation = 0;
                 bool nodeExists = model.GlobalDofOrdering.GlobalFreeDofs.TryGetDataOfRow(node, 
-                    out IReadOnlyDictionary<DOFType, int> dofTypesIndices);
+                    out IReadOnlyDictionary<IDofType, int> dofTypesIndices);
                 if (nodeExists)
                 {
                     foreach (var dof in dofTypesIndices.Where(
-                        x => x.Key == DOFType.RotX || x.Key == DOFType.RotY || x.Key == DOFType.RotZ).Select(x => x.Value))
+                        x => x.Key == StructuralDof.RotationX || x.Key == StructuralDof.RotationY || x.Key == StructuralDof.RotationZ).Select(x => x.Value))
                     {
                         translation += Math.Pow(subdomain.Solution[dof], 2);
                     }

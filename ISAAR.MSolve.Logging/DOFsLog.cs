@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.Logging.Interfaces;
 using System.Diagnostics;
+using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Logging.Interfaces;
 
 namespace ISAAR.MSolve.Logging
 {

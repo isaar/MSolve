@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Embedding;
@@ -21,8 +22,8 @@ namespace ISAAR.MSolve.FEM.Elements
     /// </summary>
     public class Hexa8NonLinear : IStructuralFiniteElement, IEmbeddedHostElement
     {
-        protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
-        protected readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
+        protected readonly static IDofType[] nodalDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ };
+        protected readonly static IDofType[][] dofTypes = new IDofType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes };
         protected readonly IContinuumMaterial3D[] materialsAtGaussPoints;
         protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
@@ -651,7 +652,7 @@ namespace ISAAR.MSolve.FEM.Elements
             foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.ClearStresses();
         }
 
-        public virtual IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public virtual IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
 
         #region not implemented
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)

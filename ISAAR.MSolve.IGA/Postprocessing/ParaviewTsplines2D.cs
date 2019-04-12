@@ -1,5 +1,5 @@
 ﻿using System.IO;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.IGA.Elements;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.Solvers.LinearSystems;
@@ -48,8 +48,8 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 					//var dofX = _model.ControlPointDOFsDictionary[controlPoint.ID][DOFType.X];
 					//var dofY = _model.ControlPointDOFsDictionary[controlPoint.ID][DOFType.Y];
 
-					var dofX = _model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, DOFType.X];
-					var dofY = _model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, DOFType.Y];
+					var dofX = _model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, StructuralDof.TranslationX];
+					var dofY = _model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, StructuralDof.TranslationY];
 
 					localDisplacements[counterCP, 0] = (dofX == -1) ? 0.0 : _linearSystem.Solution[dofX];
 					localDisplacements[counterCP++, 1] = (dofY == -1) ? 0.0 : _linearSystem.Solution[dofY];

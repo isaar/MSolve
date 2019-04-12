@@ -1,13 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
-using ISAAR.MSolve.Solvers.DomainDecomposition;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning;
@@ -57,10 +55,10 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             builder.NumTotalElementsX = numElementsX;
             builder.NumTotalElementsY = numElementsY;
             builder.YoungModulus = 2.1E7;
-            builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerLeftCorner, DOFType.X, 0.0);
-            builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerLeftCorner, DOFType.Y, 0.0);
-            builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerRightCorner, DOFType.Y, 0.0);
-            builder.PrescribeDistributedLoad(Uniform2DModelBuilder.BoundaryRegion.RightSide, DOFType.X, 100.0);
+            builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerLeftCorner, StructuralDof.TranslationX, 0.0);
+            builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerLeftCorner, StructuralDof.TranslationY, 0.0);
+            builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerRightCorner, StructuralDof.TranslationY, 0.0);
+            builder.PrescribeDistributedLoad(Uniform2DModelBuilder.BoundaryRegion.RightSide, StructuralDof.TranslationX, 100.0);
 
             return builder.BuildModel();
         }
