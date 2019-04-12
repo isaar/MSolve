@@ -766,16 +766,16 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 
 		private static Matrix KroneckerProduct(Matrix A, Matrix B)
 	    {
-			Matrix C=Matrix.CreateZero(A.Rows*B.Rows,A.Columns*B.Columns);
-		    for (int rowAIndex = 0; rowAIndex < A.Rows; rowAIndex++)
+			Matrix C = Matrix.CreateZero(A.NumRows*B.NumRows,A.NumColumns*B.NumColumns);
+		    for (int rowAIndex = 0; rowAIndex < A.NumRows; rowAIndex++)
 		    {
-			    for (int rowBIndex = 0; rowBIndex < B.Rows; rowBIndex++)
+			    for (int rowBIndex = 0; rowBIndex < B.NumRows; rowBIndex++)
 			    {
-				    for (int columnAIndex = 0; columnAIndex < A.Columns; columnAIndex++)
+				    for (int columnAIndex = 0; columnAIndex < A.NumColumns; columnAIndex++)
 				    {
-					    for (int columnBIndex = 0; columnBIndex < B.Columns; columnBIndex++)
+					    for (int columnBIndex = 0; columnBIndex < B.NumColumns; columnBIndex++)
 					    {
-							C[rowAIndex*B.Rows + rowBIndex, columnAIndex*B.Columns + columnBIndex] =
+							C[rowAIndex*B.NumRows + rowBIndex, columnAIndex*B.NumColumns + columnBIndex] =
 							    A[rowAIndex, columnAIndex] * B[rowBIndex, columnBIndex];
 					    }
 				    }

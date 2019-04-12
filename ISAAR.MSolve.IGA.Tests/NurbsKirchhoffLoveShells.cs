@@ -1,31 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Elements;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Postprocessing;
-using ISAAR.MSolve.IGA.Problems.Structural.Elements;
 using ISAAR.MSolve.IGA.Readers;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Ordering;
-using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using MathNet.Numerics.Data.Matlab;
 using MathNet.Numerics.LinearAlgebra;
 using Xunit;
-using VectorExtensions = ISAAR.MSolve.Numerical.LinearAlgebra.VectorExtensions;
 
 namespace ISAAR.MSolve.IGA.Tests
 {
-	public class NurbsKirchhoffLoveShells
+    public class NurbsKirchhoffLoveShells
 	{
 		private List<ControlPoint> ElementControlPoints()
 		{
@@ -59,7 +52,7 @@ namespace ISAAR.MSolve.IGA.Tests
 
 		private Vector KnotValueVectorKsi()
 		{
-			return new Vector(new double[8]
+			return Vector.CreateFromArray(new double[8]
 			{
 				0, 0, 0, 0, 1, 1, 1, 1
 			});
@@ -67,7 +60,7 @@ namespace ISAAR.MSolve.IGA.Tests
 
 		private Vector KnotValueVectorHeta()
 		{
-			return new Vector(new double[6]
+			return Vector.CreateFromArray(new double[6]
 			{
 				0, 0, 0, 1, 1, 1
 			});
@@ -99,7 +92,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			}
 		}
 
-		private readonly Matrix2D _expectedStiffnessMatrix = new Matrix2D(new double[36, 36]
+		private readonly Matrix _expectedStiffnessMatrix = Matrix.CreateFromArray(new double[36, 36]
 		{
 			{
 				476.9104762300273, 12.500000000000012, 0.0, -237.7352381150549, 8.333333333333337, 0.0,
@@ -391,7 +384,6 @@ namespace ISAAR.MSolve.IGA.Tests
 		[Fact]
 		public void IsogeometricCantileverShell()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			string filename = "..\\..\\..\\InputFiles\\CantileverShell.txt";
 			IsogeometricShellReader modelReader = new IsogeometricShellReader(model, filename);
@@ -451,7 +443,6 @@ namespace ISAAR.MSolve.IGA.Tests
 		[Fact]
 		public void IsogeometricSquareShell()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			var filename = "SquareShell";
 			string filepath = $"..\\..\\..\\InputFiles\\{filename}.txt";

@@ -1,5 +1,5 @@
-﻿using ISAAR.MSolve.FEM.Materials;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
+﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.MultiscaleAnalysis;
 using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
 using ISAAR.MSolve.Numerical.LinearAlgebra;
@@ -15,19 +15,19 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             //modifications: tha xrhsimopoithei h nea microstructure me obje kapoia subdomainCalculations
 
             double E_disp = 3.5; /*Gpa*/ double ni_disp = 0.4; // stather Poisson
-            ElasticMaterial3D material1 = new ElasticMaterial3D()
+            var material1 = new ElasticMaterial3D_v2()
             { YoungModulus = E_disp, PoissonRatio = ni_disp, };
             double[,] DGtr = new double[3, 3] { { 1.10, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
             double[] GLVec = Transform_DGtr_to_GLvec(DGtr);
-            material1.UpdateMaterial(new StressStrainVectorContinuum3D(GLVec));
+            material1.UpdateMaterial(GLVec);
             //double[] stressesCheck1 = material1.Stresses;
             double[] stressesCheck1 = new double[6] {material1.Stresses[0], material1.Stresses[1], material1.Stresses[2],
                 material1.Stresses[3],material1.Stresses[4],material1.Stresses[5] };
             DGtr = new double[3, 3] { { 1.20, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
             GLVec = Transform_DGtr_to_GLvec(DGtr);
-            material1.UpdateMaterial(new StressStrainVectorContinuum3D(GLVec));
+            material1.UpdateMaterial(GLVec);
             material1.SaveState();
-            double[] stressesCheck2 = material1.Stresses.Data;
+            double[] stressesCheck2 = material1.Stresses;
 
             //VectorExtensions.AssignTotalAffinityCount();
             IRVEbuilder_v2 homogeneousRveBuilder1 = new HomogeneousRVEBuilderNonLinear();
@@ -63,19 +63,19 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             //PROSOXH gia na elegxei kai h defterh iteration u_sunol_micro_2 prepei na valoume ston graphenebuilder Addgraphenesheet xwris to bondslip.
 
             double E_disp = 3.5; /*Gpa*/ double ni_disp = 0.4; // stather Poisson
-            ElasticMaterial3D material1 = new ElasticMaterial3D()
+            var material1 = new ElasticMaterial3D_v2()
             { YoungModulus = E_disp, PoissonRatio = ni_disp, };
             double[,] DGtr = new double[3, 3] { { 1.10, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
             double[] GLVec = Transform_DGtr_to_GLvec(DGtr);
-            material1.UpdateMaterial(new StressStrainVectorContinuum3D(GLVec));
+            material1.UpdateMaterial(GLVec);
             //double[] stressesCheck1 = material1.Stresses;
             double[] stressesCheck1 = new double[6] {material1.Stresses[0], material1.Stresses[1], material1.Stresses[2],
                 material1.Stresses[3],material1.Stresses[4],material1.Stresses[5] };
             DGtr = new double[3, 3] { { 1.20, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
             GLVec = Transform_DGtr_to_GLvec(DGtr);
-            material1.UpdateMaterial(new StressStrainVectorContinuum3D(GLVec));
+            material1.UpdateMaterial(GLVec);
             material1.SaveState();
-            double[] stressesCheck2 = material1.Stresses.Data;
+            double[] stressesCheck2 = material1.Stresses;
 
             //VectorExtensions.AssignTotalAffinityCount();
             IRVEbuilder_v2 homogeneousRveBuilder1 = new RveGrShOne(1);

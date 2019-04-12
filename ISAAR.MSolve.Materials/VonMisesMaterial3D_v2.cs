@@ -12,7 +12,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials.Interfaces;
 
 
-namespace ISAAR.MSolve.FEM.Materials
+namespace ISAAR.MSolve.Materials
 {
     /// <summary>
     ///   Class for 3D Von Mises materials.

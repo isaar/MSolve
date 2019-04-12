@@ -6,8 +6,6 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Interfaces;
-using IVector = ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces.IVector;
-using Vector = ISAAR.MSolve.Numerical.LinearAlgebra.Vector;
 
 namespace ISAAR.MSolve.IGA.Postprocessing
 {
@@ -155,7 +153,7 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 			var pointFunctionsHeta = ParaviewNurbs2D.BasisFunctions(spanHeta, hetaCoordinate, degreeHeta, knotValueVectorHeta);
 			var pointFunctionsZeta = ParaviewNurbs2D.BasisFunctions(spanZeta, zetaCoordinate, degreeZeta, knotValueVectorZeta);
 
-			var cartesianPoint = new Vector(4);
+			var cartesianPoint = Vector.CreateZero(4);
 			var indexKsi = spanKsi - degreeKsi;
 
 			for (int k = 0; k <= degreeZeta; k++)
@@ -169,7 +167,7 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 						var cpIndex = (indexKsi + i) * (numberOfCPHeta + 1) * (numberOfCPZeta + 1) +
 						              indexHeta * (numberOfCPZeta + 1) + indexZeta;
 
-						var cpCoordinates = new Vector(new double[]
+						var cpCoordinates = Vector.CreateFromArray(new double[]
 						{
 							projectiveControlPointCoordinates[cpIndex, 0],
 							projectiveControlPointCoordinates[cpIndex, 1],
@@ -179,7 +177,7 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 						cpCoordinates.Scale(pointFunctionsKsi[i]);
 						cpCoordinates.Scale(pointFunctionsHeta[j]);
 						cpCoordinates.Scale(pointFunctionsZeta[k]);
-						cartesianPoint= new Vector(cartesianPoint+cpCoordinates);
+						cartesianPoint = cartesianPoint+cpCoordinates;
 					}
 				}
 			}

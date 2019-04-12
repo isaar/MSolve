@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Elements;
@@ -13,7 +12,7 @@ using ISAAR.MSolve.Numerical.Commons;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-	public class Patch: ISubdomain_v2
+    public class Patch: ISubdomain_v2
 	{
 		private readonly Dictionary<int, Edge> edgesDictionary = new Dictionary<int, Edge>();
 		private readonly Dictionary<int, Face> facesDictionary = new Dictionary<int, Face>();
@@ -176,9 +175,9 @@ namespace ISAAR.MSolve.IGA.Entities
 		public int DegreeHeta { get; set; }
 		public int DegreeZeta { get; set; }
 
-		public Numerical.LinearAlgebra.Interfaces.IVector KnotValueVectorKsi { get; set; }
-		public Numerical.LinearAlgebra.Interfaces.IVector KnotValueVectorHeta { get; set; }
-		public Numerical.LinearAlgebra.Interfaces.IVector KnotValueVectorZeta { get; set; }
+		public Vector KnotValueVectorKsi { get; set; }
+		public Vector KnotValueVectorHeta { get; set; }
+		public Vector KnotValueVectorZeta { get; set; }
 		#endregion
 
 
@@ -203,8 +202,8 @@ namespace ISAAR.MSolve.IGA.Entities
 		private void CreateNURBSElements2D()
 		{
 			#region Knots
-			Numerical.LinearAlgebra.Vector singleKnotValuesKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
-			Numerical.LinearAlgebra.Vector singleKnotValuesHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
+			Vector singleKnotValuesKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
+			Vector singleKnotValuesHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
 
 			List<Knot> knots = new List<Knot>();
 
@@ -220,8 +219,8 @@ namespace ISAAR.MSolve.IGA.Entities
 			#endregion
 
 			#region Elements
-			Numerical.LinearAlgebra.Vector multiplicityKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[1];
-			Numerical.LinearAlgebra.Vector multiplicityHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[1];
+			Vector multiplicityKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[1];
+			Vector multiplicityHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[1];
 
 			int numberOfElementsKsi = singleKnotValuesKsi.Length - 1;
 			int numberOfElementsHeta = singleKnotValuesHeta.Length - 1;
@@ -285,8 +284,8 @@ namespace ISAAR.MSolve.IGA.Entities
 		private void CreateNURBSShells()
 		{
 			#region Knots
-			Numerical.LinearAlgebra.Vector singleKnotValuesKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
-			Numerical.LinearAlgebra.Vector singleKnotValuesHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
+			Vector singleKnotValuesKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
+			Vector singleKnotValuesHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
 
 			List<Knot> knots = new List<Knot>();
 
@@ -302,8 +301,8 @@ namespace ISAAR.MSolve.IGA.Entities
 			#endregion
 
 			#region Elements
-			Numerical.LinearAlgebra.Vector multiplicityKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[1];
-			Numerical.LinearAlgebra.Vector multiplicityHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[1];
+			Vector multiplicityKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[1];
+			Vector multiplicityHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[1];
 
 			int numberOfElementsKsi = singleKnotValuesKsi.Length - 1;
 			int numberOfElementsHeta = singleKnotValuesHeta.Length - 1;
@@ -374,9 +373,9 @@ namespace ISAAR.MSolve.IGA.Entities
 		private void CreateNURBSElements3D()
 		{
 			#region Knots
-			Numerical.LinearAlgebra.Vector singleKnotValuesKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
-			Numerical.LinearAlgebra.Vector singleKnotValuesHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
-			Numerical.LinearAlgebra.Vector singleKnotValuesZeta = KnotValueVectorZeta.RemoveDuplicatesFindMultiplicity()[0];
+			Vector singleKnotValuesKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
+			Vector singleKnotValuesHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
+			Vector singleKnotValuesZeta = KnotValueVectorZeta.RemoveDuplicatesFindMultiplicity()[0];
 
 			List<Knot> knots = new List<Knot>();
 
@@ -396,12 +395,12 @@ namespace ISAAR.MSolve.IGA.Entities
 			#endregion
 
 			#region Elements
-			Numerical.LinearAlgebra.Vector singlesKnotValuesKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
-			Numerical.LinearAlgebra.Vector multiplicityKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[1];
-			Numerical.LinearAlgebra.Vector singlesKnotValuesHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
-			Numerical.LinearAlgebra.Vector multiplicityHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[1];
-			Numerical.LinearAlgebra.Vector singlesKnotValuesZeta = KnotValueVectorZeta.RemoveDuplicatesFindMultiplicity()[0];
-			Numerical.LinearAlgebra.Vector multiplicityZeta = KnotValueVectorZeta.RemoveDuplicatesFindMultiplicity()[1];
+			Vector singlesKnotValuesKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
+			Vector multiplicityKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[1];
+			Vector singlesKnotValuesHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
+			Vector multiplicityHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[1];
+			Vector singlesKnotValuesZeta = KnotValueVectorZeta.RemoveDuplicatesFindMultiplicity()[0];
+			Vector multiplicityZeta = KnotValueVectorZeta.RemoveDuplicatesFindMultiplicity()[1];
 
 			int numberOfElementsKsi = singlesKnotValuesKsi.Length - 1;
 			int numberOfElementsHeta = singlesKnotValuesHeta.Length - 1;

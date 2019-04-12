@@ -1,15 +1,13 @@
-﻿using ISAAR.MSolve.IGA.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
-using ISAAR.MSolve.FEM.Materials;
+using ISAAR.MSolve.IGA.Entities;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.IGA.Readers
 {
-	public class IsogeometricShellReader
+    public class IsogeometricShellReader
 	{
 		public Model Model { get; }
 		public string Filename { get; private set; }
@@ -75,7 +73,7 @@ namespace ISAAR.MSolve.IGA.Readers
 						//Model.NumberOfPatches = Int32.Parse(line[1]);
 						break;
 					case IsogeometricShellReader.Attributes.material:
-						Model.PatchesDictionary[patchID].Material = new ElasticMaterial2D(StressState2D.PlaneStrain) { YoungModulus = Double.Parse(line[2], CultureInfo.InvariantCulture), PoissonRatio = Double.Parse(line[3], CultureInfo.InvariantCulture) };
+						Model.PatchesDictionary[patchID].Material = new ElasticMaterial2D_v2(StressState2D.PlaneStrain) { YoungModulus = Double.Parse(line[2], CultureInfo.InvariantCulture), PoissonRatio = Double.Parse(line[3], CultureInfo.InvariantCulture) };
 						break;
 					case IsogeometricShellReader.Attributes.patchid:
 						patchID = Int32.Parse(line[1]);
@@ -110,7 +108,7 @@ namespace ISAAR.MSolve.IGA.Readers
 						double[] KnotValueVectorKsi = new double[numberOfValues];
 						for (int j = 0; j < numberOfValues; j++)
 							KnotValueVectorKsi[j] = Double.Parse(line[j + 1], CultureInfo.InvariantCulture);
-						Model.PatchesDictionary[patchID].KnotValueVectorKsi= new Vector(KnotValueVectorKsi);
+						Model.PatchesDictionary[patchID].KnotValueVectorKsi = Vector.CreateFromArray(KnotValueVectorKsi);
 						break;
 					case IsogeometricShellReader.Attributes.knotvaluevectorheta:
 						if (patchID == -1)
@@ -121,7 +119,7 @@ namespace ISAAR.MSolve.IGA.Readers
 						double[] KnotValueVectorHeta = new double[numberOfValues];
 						for (int j = 0; j < numberOfValues; j++)
 							KnotValueVectorHeta[j] = Double.Parse(line[j + 1], CultureInfo.InvariantCulture);
-						Model.PatchesDictionary[patchID].KnotValueVectorHeta=new Vector(KnotValueVectorHeta);
+						Model.PatchesDictionary[patchID].KnotValueVectorHeta = Vector.CreateFromArray(KnotValueVectorHeta);
 						break;
 					case IsogeometricShellReader.Attributes.patchcpid:
 						if (patchID == -1)

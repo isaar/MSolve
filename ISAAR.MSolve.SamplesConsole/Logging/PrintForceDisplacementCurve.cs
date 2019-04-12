@@ -6,8 +6,8 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 
@@ -50,7 +50,7 @@ namespace ISAAR.MSolve.SamplesConsole.Logging
             int nElems = 2;
 
             // Create new 2D material
-            ElasticMaterial material = new ElasticMaterial
+            var material = new ElasticMaterial
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,

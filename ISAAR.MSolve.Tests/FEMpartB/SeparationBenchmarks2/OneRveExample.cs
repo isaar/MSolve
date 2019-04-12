@@ -1,5 +1,5 @@
-﻿using ISAAR.MSolve.FEM.Materials;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
+﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.MultiscaleAnalysis;
 using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks2
 
             //mporoun na ginoun delete:
             double E_disp = 3.5; /*Gpa*/ double ni_disp = 0.4; // stather Poisson
-            ElasticMaterial3D_v2 material1 = new ElasticMaterial3D_v2()
+            var material1 = new ElasticMaterial3D_v2()
             { YoungModulus = E_disp, PoissonRatio = ni_disp, };
             double[,] DGtr = new double[3, 3] { { 1.10, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
             double[] GLVec = Transform_DGtr_to_GLvec(DGtr);

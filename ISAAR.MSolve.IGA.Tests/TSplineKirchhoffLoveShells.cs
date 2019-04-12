@@ -1,31 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Postprocessing;
 using ISAAR.MSolve.IGA.Readers;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
-using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using Xunit;
 
 namespace ISAAR.MSolve.IGA.Tests
 {
-	public class TSplineKirchhoffLoveShells
+    public class TSplineKirchhoffLoveShells
 	{
 		[Fact]
 		public void CantileverShellBenchmark()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			var filename = "CantileverShell";
 			string filepath = $"..\\..\\..\\InputFiles\\{filename}.iga";
@@ -75,7 +70,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			//var paraview = new ParaviewTsplineShells(model, solver.LinearSystems[0].Solution, filename);
 			//paraview.CreateParaviewFile();
 
-			var expectedSolutionVector = new Vector(new double[]
+			var expectedSolutionVector = Vector.CreateFromArray(new double[]
 			{
 				0, 0, -306.122431, 0, 0, -1552.478121, 0, 0, -3454.810388, 0, 0, -5881.924153, 0, 0, -8702.62361, 0, 0,
 				-11785.71439, 0, 0, -13928.57064, 0, 0, -15000.0008, 0, 0, -306.1224369, 0, 0, -1552.47811, 0, 0,
@@ -100,7 +95,6 @@ namespace ISAAR.MSolve.IGA.Tests
 		[Fact]
 		public void CantileverShellMaterialBenchmark()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			string filename = "..\\..\\..\\InputFiles\\CantileverShell.iga";
 			IGAFileReader modelReader = new IGAFileReader(model, filename);
@@ -143,7 +137,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
 
-			var expectedSolutionVector = new Vector(new double[]
+			var expectedSolutionVector = Vector.CreateFromArray(new double[]
 			{
 				0, 0, -306.122431, 0, 0, -1552.478121, 0, 0, -3454.810388, 0, 0, -5881.924153, 0, 0, -8702.62361, 0, 0,
 				-11785.71439, 0, 0, -13928.57064, 0, 0, -15000.0008, 0, 0, -306.1224369, 0, 0, -1552.47811, 0, 0,
@@ -167,7 +161,6 @@ namespace ISAAR.MSolve.IGA.Tests
 		[Fact]
 		public void CantileverShellMaterialBenchmark_v2()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			string filename = "..\\..\\..\\InputFiles\\CantileverShell.iga";
 			IGAFileReader modelReader = new IGAFileReader(model, filename);
@@ -211,7 +204,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			parentAnalyzer.Solve();
 
 
-			var expectedSolutionVector = new Vector(new double[]
+			var expectedSolutionVector = Vector.CreateFromArray(new double[]
 			{
 				0, 0, -306.122431, 0, 0, -1552.478121, 0, 0, -3454.810388, 0, 0, -5881.924153, 0, 0, -8702.62361, 0, 0,
 				-11785.71439, 0, 0, -13928.57064, 0, 0, -15000.0008, 0, 0, -306.1224369, 0, 0, -1552.47811, 0, 0,
@@ -235,7 +228,6 @@ namespace ISAAR.MSolve.IGA.Tests
 		//[Fact]
 		public void SimpleHoodBenchmark()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			var filename = "attempt2";
 			string filepath = $"..\\..\\..\\InputFiles\\{filename}.iga";
@@ -297,7 +289,6 @@ namespace ISAAR.MSolve.IGA.Tests
 		//[Fact]
 		public void SimpleHoodBenchmarkMKL()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			var filename = "attempt2";
 			string filepath = $"..\\..\\..\\InputFiles\\{filename}.iga";

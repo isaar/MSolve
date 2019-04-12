@@ -5,8 +5,8 @@ using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.SamplesConsole
             double nodalLoad = 25.0;
 
             // Create a new elastic 3D material
-            ElasticMaterial material = new ElasticMaterial()
+            var material = new ElasticMaterial()
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,

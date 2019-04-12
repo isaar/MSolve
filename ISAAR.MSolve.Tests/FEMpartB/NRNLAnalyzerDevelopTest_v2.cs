@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.Multiscale;
 using ISAAR.MSolve.Analyzers.NonLinear;
 using ISAAR.MSolve.Discretization;
@@ -9,9 +8,9 @@ using ISAAR.MSolve.Discretization.Providers;
 using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
@@ -163,7 +162,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB
 
         public static bool HexaCantileverBuilderDispControl(Model_v2 model, double load_value)
         {
-            ElasticMaterial3D_v2 material1 = new ElasticMaterial3D_v2()
+            var material1 = new ElasticMaterial3D_v2()
             {
                 YoungModulus = 1353000,
                 PoissonRatio = 0.3,

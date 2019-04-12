@@ -8,8 +8,8 @@ using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Postprocessing;
 using ISAAR.MSolve.IGA.Readers;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
@@ -19,7 +19,6 @@ using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using MathNet.Numerics.Data.Matlab;
 using MathNet.Numerics.LinearAlgebra;
 using Xunit;
-using VectorExtensions = ISAAR.MSolve.Numerical.LinearAlgebra.VectorExtensions;
 
 namespace ISAAR.MSolve.IGA.Tests
 {
@@ -29,7 +28,6 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void IsogeometricQuadraticCantilever2D()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\Cantilever2D.txt";
@@ -119,7 +117,6 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void IsogeometricQuadraticCantilever2DWithDistributedLoad()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			var filename = "Cantilever2D";
@@ -214,7 +211,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void IsogeometricPlateTension()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\PlateTension.txt";
@@ -315,7 +312,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void IsogeometricPlaneStrainMixedBC()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\SquareMixedBC.txt";
@@ -906,7 +903,7 @@ namespace ISAAR.MSolve.IGA.Tests
 
 		private Vector KnotValueVectorKsi()
 		{
-			return new Vector(new double[8]
+			return Vector.CreateFromArray(new double[8]
 			{
 				0, 0, 0, 0, 1, 1, 1, 1
 			});
@@ -914,7 +911,7 @@ namespace ISAAR.MSolve.IGA.Tests
 
 		private Vector KnotValueVectorHeta()
 		{
-			return new Vector(new double[6]
+			return Vector.CreateFromArray(new double[6]
 			{
 				0, 0, 0, 1, 1, 1
 			});
@@ -951,7 +948,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		//[Fact]
 		public void IsogeometricHorseshoe3D()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\Horseshoe.txt";
@@ -1016,7 +1013,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		//[Fact]
 		public void IsogeometricPlaneStrainRing()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\SquareMixedBC.txt";
@@ -1577,7 +1574,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void IsogeometricPlateWithHole()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\IGA\\InputFiles\\PlateTension.txt";
@@ -1637,7 +1634,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void IsogeometricCurvedBeamBenchmark()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\CurvedBeam.txt";
@@ -1691,7 +1688,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		//[Fact]
 		public void IsogeometricBeam3D()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "Beam3D";
@@ -1752,7 +1749,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		//[Fact]
 		public void TSplinesShellsBenchmark()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			string filename = "..\\..\\..\\InputFiles\\surface.iga";
 			IGAFileReader modelReader = new IGAFileReader(model, filename);

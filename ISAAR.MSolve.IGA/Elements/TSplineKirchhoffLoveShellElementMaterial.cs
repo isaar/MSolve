@@ -15,7 +15,7 @@ using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Elements
 {
-	public class TSplineKirchhoffLoveShellElementMaterial : Element, IStructuralIsogeometricElement
+    public class TSplineKirchhoffLoveShellElementMaterial : Element, IStructuralIsogeometricElement
 	{
 		public Matrix ExtractionOperator { get; set; }
 		public int DegreeKsi { get; set; }

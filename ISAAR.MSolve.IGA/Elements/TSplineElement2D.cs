@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Entities;
@@ -15,7 +14,7 @@ using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Elements
 {
-	public class TSplineElement2D : Element, IStructuralIsogeometricElement
+    public class TSplineElement2D : Element, IStructuralIsogeometricElement
 	{
 		protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X, DOFType.Y };
 		protected DOFType[][] dofTypes;

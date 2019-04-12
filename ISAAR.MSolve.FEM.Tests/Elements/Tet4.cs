@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
@@ -11,11 +8,11 @@ using Xunit;
 
 namespace ISAAR.MSolve.FEM.Tests.Elements
 {
-	/// <summary>
-	/// Tests 4-noded tetrahedral instances of <see cref="Tet4"/> against the notes of the
-	/// University of Colorado at Boulder FEM course.
-	/// </summary>
-	public class Tet4
+    /// <summary>
+    /// Tests 4-noded tetrahedral instances of <see cref="Tet4"/> against the notes of the
+    /// University of Colorado at Boulder FEM course.
+    /// </summary>
+    public class Tet4
 	{
 		private static readonly ElasticMaterial3D_v2 Material0 = new ElasticMaterial3D_v2()
 		{

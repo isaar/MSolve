@@ -23,9 +23,7 @@ namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
             {
                 parametricGaussPointKsi[i] = gaussPoints[i].Ksi;
             }
-            BSPLines1D bsplinesKsi = new BSPLines1D(element.Patch.DegreeKsi, 
-                Vector.CreateFromArray(((Numerical.LinearAlgebra.Vector)element.Patch.KnotValueVectorKsi).Data), 
-                parametricGaussPointKsi);
+            var bsplinesKsi = new BSPLines1D(element.Patch.DegreeKsi, element.Patch.KnotValueVectorKsi, parametricGaussPointKsi);
             bsplinesKsi.calculateBSPLinesAndDerivatives();
 
             int supportKsi = element.Patch.DegreeKsi + 1;
@@ -65,9 +63,7 @@ namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
             {
                 parametricGaussPointKsi[i] = gaussPoints[i].Ksi;
             }
-            BSPLines1D bsplinesKsi = new BSPLines1D(edge.Degree, 
-                Vector.CreateFromArray(((Numerical.LinearAlgebra.Vector)edge.KnotValueVector).Data),
-                parametricGaussPointKsi);
+            var bsplinesKsi = new BSPLines1D(edge.Degree, edge.KnotValueVector, parametricGaussPointKsi);
             bsplinesKsi.calculateBSPLinesAndDerivatives();
 
             int supportKsi = edge.Degree + 1;

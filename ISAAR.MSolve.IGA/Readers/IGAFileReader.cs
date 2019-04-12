@@ -4,9 +4,9 @@ using System.Globalization;
 using System.Text;
 using ISAAR.MSolve.IGA.Elements;
 using ISAAR.MSolve.IGA.Entities;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.IGA.Readers
 {
@@ -106,7 +106,7 @@ namespace ISAAR.MSolve.IGA.Readers
 						for (int j = 0; j < numberOfElementNodes; j++)
 							connectivity[j] = Int32.Parse(line[j]);
 
-						Matrix2D extractionOperator = new Matrix2D(numberOfElementNodes,
+						var extractionOperator = Matrix.CreateZero(numberOfElementNodes,
 							(elementDegreeKsi + 1) * (elementDegreeHeta + 1));
 						for (int j = 0; j < numberOfElementNodes; j++)
 						{
@@ -159,7 +159,7 @@ namespace ISAAR.MSolve.IGA.Readers
 			var a = 0;
 		}
 
-		private void CreateLinearShell(int elementDegreeKsi, int elementDegreeHeta, Matrix2D extractionOperator,
+		private void CreateLinearShell(int elementDegreeKsi, int elementDegreeHeta, Matrix extractionOperator,
 			int[] connectivity)
 		{
 			Element element = new TSplineKirchhoffLoveShellElement()
@@ -180,7 +180,7 @@ namespace ISAAR.MSolve.IGA.Readers
 			Model.PatchesDictionary[0].Elements.Add(element);
 		}
 
-		private void CreateSectionMaterialShell(int elementDegreeKsi, int elementDegreeHeta, Matrix2D extractionOperator,
+		private void CreateSectionMaterialShell(int elementDegreeKsi, int elementDegreeHeta, Matrix extractionOperator,
 			int[] connectivity)
 		{
 			//TODO: Create constructor to fill section material at gauss points
@@ -202,7 +202,7 @@ namespace ISAAR.MSolve.IGA.Readers
 			Model.PatchesDictionary[0].Elements.Add(element);
 		}
 
-		private void CreateThicknessShell(int elementDegreeKsi, int elementDegreeHeta, Matrix2D extractionOperator,
+		private void CreateThicknessShell(int elementDegreeKsi, int elementDegreeHeta, Matrix extractionOperator,
 			int[] connectivity, ShellElasticMaterial2D shellMaterial, double thickness)
 		{
 			//TODO: Create constructor to fill section material at gauss points

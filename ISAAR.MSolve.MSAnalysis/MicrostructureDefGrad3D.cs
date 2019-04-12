@@ -1,33 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Materials.Interfaces; //using ISAAR.MSolve.PreProcessor.Interfaces;
-using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Logging;
-using ISAAR.MSolve.PreProcessor;
-using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.LinearAlgebra;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.FEM;
-using ISAAR.MSolve.FEM.Elements;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Materials;
-using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
-using ISAAR.MSolve.FEM.Interfaces;
-using ISAAR.MSolve.FEM.Providers;
-using ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses;
+using ISAAR.MSolve.Analyzers.Multiscale;
+using ISAAR.MSolve.Analyzers.NonLinear;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Discretization.Providers;
-using ISAAR.MSolve.Solvers.Ordering;
-using ISAAR.MSolve.Solvers.Ordering.Reordering;
+using ISAAR.MSolve.FEM;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Materials.Interfaces; //using ISAAR.MSolve.PreProcessor.Interfaces;
+using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
+using ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses;
+using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.LinearSystems;
-using ISAAR.MSolve.Analyzers.NonLinear;
-using ISAAR.MSolve.Analyzers.Multiscale;
 
 namespace ISAAR.MSolve.MultiscaleAnalysis
 {

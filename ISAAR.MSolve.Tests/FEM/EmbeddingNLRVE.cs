@@ -9,7 +9,6 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Numerical.Commons;
@@ -834,7 +833,7 @@ namespace ISAAR.MSolve.Tests.FEM
             //    YoungModulus = E_shell,
             //    PoissonRatio = ni_shell,
             //};
-            var material2 = new ShellElasticMaterial_v2()
+            var material2 = new ShellElasticMaterial3D()
             {
                 YoungModulus = E_shell,
                 PoissonRatio = ni_shell,

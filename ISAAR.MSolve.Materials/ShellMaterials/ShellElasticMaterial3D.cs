@@ -56,12 +56,13 @@ namespace ISAAR.MSolve.Materials
             return false;
         }
 
-        public double[] Stresses // opws xrhsimopoeitai sto mohrcoulomb kai hexa8
+        // as used in mohrcoulomb and hexa8
+        public double[] Stresses
         {
             get { return SPKvec; }
         }
 
-        public IMatrixView  ConstitutiveMatrix
+        public IMatrixView ConstitutiveMatrix
         {
             get
             {
@@ -86,17 +87,11 @@ namespace ISAAR.MSolve.Materials
             get { throw new NotImplementedException(); }
         }
 
-        public void ClearState() // pithanws TODO 
-        {
-        }
-        public void ClearStresses()
-        {
-
-        }
+        public void ClearState() {}
+        public void ClearStresses() {}
 
         public double[] Coordinates
         {
-
             get { throw new NotImplementedException();  }
             set { throw new InvalidOperationException(); }
         }
@@ -111,7 +106,6 @@ namespace ISAAR.MSolve.Materials
             double[] V2 = new double[3];
 
 
-
             for (int k = 0; k < 2; k++) { Cons[k, k] = E / (1 - Math.Pow(ni, 2)); }
             Cons[0, 1] = ni * E / (1 - Math.Pow(ni, 2));
             Cons[1, 0] = ni * E / (1 - Math.Pow(ni, 2));
@@ -121,6 +115,7 @@ namespace ISAAR.MSolve.Materials
             //for (int k = 0; k < 2; k++)
             //{ Cons[4 + k, 4 + k] = (5 / 6) * (1 - ni) * (0.5) * E / (1 - Math.Pow(ni, 2)); }
 
+            //TODO: Use the cross product of Vector instead of this
             V2[0] = V3[1] * V1[2] - V3[2] * V1[1];
             V2[1] = V3[2] * V1[0] - V3[0] * V1[2];
             V2[2] = V3[0] * V1[1] - V3[1] * V1[0];
@@ -159,7 +154,7 @@ namespace ISAAR.MSolve.Materials
 
             // multiplication [Te']*[cons]*[Te];
 
-            for (int i = 0; i < 6; i++) //TODO use if LinearAlgebra
+            for (int i = 0; i < 6; i++) //TODO use LinearAlgebra operations
             {
                 for (int k = 0; k < 6; k++)
                 {

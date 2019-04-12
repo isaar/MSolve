@@ -1,5 +1,4 @@
-﻿using ISAAR.MSolve.FEM.Materials;
-using ISAAR.MSolve.LinearAlgebra.Commons;
+﻿using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;

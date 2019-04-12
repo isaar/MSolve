@@ -13,7 +13,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials.Interfaces;
 
 //TODO: Use the Matrix and Vector operations instead of implementing them again for double[,] and double[] here
-namespace ISAAR.MSolve.FEM.Materials
+namespace ISAAR.MSolve.Materials
 {
     public class MohrCoulombMaterial_v2 : IIsotropicContinuumMaterial3D_v2
     {

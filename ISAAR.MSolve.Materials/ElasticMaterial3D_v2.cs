@@ -3,7 +3,7 @@ using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials.Interfaces;
 
-namespace ISAAR.MSolve.FEM.Materials
+namespace ISAAR.MSolve.Materials
 {
     public class ElasticMaterial3D_v2 : IIsotropicContinuumMaterial3D_v2
     {
