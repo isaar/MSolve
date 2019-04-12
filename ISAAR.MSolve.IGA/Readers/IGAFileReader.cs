@@ -41,7 +41,8 @@ namespace ISAAR.MSolve.IGA.Readers
 		private int controlPointIDcounter = 0;
 		private int elementIDCounter = 0;
 		private int numberOfDimensions;
-		public void CreateTSplineShellsModelFromFile(TSplineShellTypes shellType = TSplineShellTypes.LinearMaterial, ShellElasticMaterial2D shellMaterial = null, double thickness = 1)
+
+        public void CreateTSplineShellsModelFromFile(TSplineShellTypes shellType = TSplineShellTypes.LinearMaterial, ShellElasticMaterial2D shellMaterial = null, double thickness = 1)
 		{
 			char[] delimeters = { ' ', '=', '\t' };
 			Attributes? name = null;

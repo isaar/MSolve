@@ -74,8 +74,8 @@ namespace ISAAR.MSolve.Materials
 					0.5*(1-PoissonRatio)*inverse[0,0]*inverse[1,1]+(1+PoissonRatio)*inverse[1,0]*inverse[1,0]
 				},
 			});
-			constitutiveMatrix.Scale(YoungModulus/(1-Math.Pow(PoissonRatio,2)));
-			CartesianConstitutiveMatrix= constitutiveMatrix;
+			constitutiveMatrix.ScaleIntoThis(YoungModulus/(1-Math.Pow(PoissonRatio,2)));
+			CartesianConstitutiveMatrix = constitutiveMatrix;
 		}
 
 		private bool CheckIfConstitutiveMatrixChanged()

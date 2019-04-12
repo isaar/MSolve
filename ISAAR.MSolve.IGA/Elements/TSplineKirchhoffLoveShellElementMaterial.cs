@@ -8,6 +8,7 @@ using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.IGA.SupportiveClasses;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
@@ -564,7 +565,7 @@ namespace ISAAR.MSolve.IGA.Elements
 
 				#region BI2
 
-				Vector BI2 = s3.CrossProduct(s3);
+				IVector BI2 = s3.CrossProduct(s3);
 				BI2.ScaleIntoThis(tsplines.TSplineDerivativeValuesHeta[column / 3, j]);
 				auxVector = s2.CrossProduct(s3);
 				auxVector.ScaleIntoThis(tsplines.TSplineDerivativeValuesKsi[column / 3, j]);
