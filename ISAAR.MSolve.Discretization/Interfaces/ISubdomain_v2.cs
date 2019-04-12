@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Numerical.Commons;
 
 //TODO: tidy up the methods that concern material state
 namespace ISAAR.MSolve.Discretization.Interfaces

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ISAAR.MSolve.Numerical.Commons
+namespace ISAAR.MSolve.Discretization.Commons
 {
     /// <summary>
     /// Interface for table data structures, which associate ordered pairs (row, column) with values. Contrary to matrices, not 

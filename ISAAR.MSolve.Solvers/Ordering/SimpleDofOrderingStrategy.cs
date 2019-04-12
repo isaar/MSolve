@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Numerical.Commons;
 
 //TODO: This is dramatically slower than NodeMajorDofOrderingStrategy. It must be made faster. Also this + NodeMajorReordering() 
 //      must be at least as fast as NodeMajorDofOrderingStrategy. Then the solvers should have simple + reordering as defaults.

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ISAAR.MSolve.Numerical.Commons
+namespace ISAAR.MSolve.Discretization.Commons
 {
     /// <summary>
     /// Interface for table data structures, which associate ordered triplets (key1, key2, key3) with values. Not all triplets

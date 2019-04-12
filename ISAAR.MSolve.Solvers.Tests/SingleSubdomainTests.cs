@@ -2,7 +2,7 @@
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Tests;
-using ISAAR.MSolve.Numerical.Commons;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;

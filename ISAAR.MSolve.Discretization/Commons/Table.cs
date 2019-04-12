@@ -11,7 +11,7 @@ using System.Text;
 //TODO: Many of the methods will be called multiple times with the same row. Provide accessors for a TableRow object to let the
 //      client avoid looking up the row all the time.
 //TODO: cache the last row looked up (and its Dictionary<TColumn, TValue>) to improve performance for consecutive look ups 
-namespace ISAAR.MSolve.Numerical.Commons
+namespace ISAAR.MSolve.Discretization.Commons
 {
     /// <summary>
     /// Basic table data structure, which associates ordered pairs (row, column) with values. Contrary to matrices, not 

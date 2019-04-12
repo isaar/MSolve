@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ISAAR.MSolve.Numerical.Commons
+namespace ISAAR.MSolve.Discretization.Commons
 {
     public class ValueComparer
     {

@@ -6,7 +6,7 @@
 //using ISAAR.MSolve.Discretization.FreedomDegrees;
 //using ISAAR.MSolve.FEM.Elements;
 //using ISAAR.MSolve.LinearAlgebra.Vectors;
-//using ISAAR.MSolve.Numerical.Commons;
+//using ISAAR.MSolve.Discretization.Commons;
 
 ////TODO: remove duplicate code between this class and FreeDofOrderer.
 //namespace ISAAR.MSolve.Solvers.Ordering
