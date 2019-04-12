@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
@@ -20,27 +19,28 @@ namespace ISAAR.MSolve.FEM.Elements
         protected static readonly int AXIS_COUNT = 1;
         protected static readonly int NODE_COUNT = 2;
 
-        protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.RotZ };
-        protected readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
-        private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
+        protected readonly static IDofType[] nodalDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.RotationZ };
+        protected readonly static IDofType[][] dofTypes = new IDofType[][] { nodalDOFTypes, nodalDOFTypes };
+        private static readonly IDofType[][] dofs = new IDofType[][] { nodalDOFTypes, nodalDOFTypes };
 
-        protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
         protected readonly IFiniteElementMaterial material;
         protected readonly IList<Node> nodes;
         protected readonly double density;
         protected BeamSection2D beamSection;
         protected readonly double initialLength;
         protected double currentLength;
-        protected Matrix2D currentRotationMatrix;
-        protected Vector naturalDeformations;
-        protected Vector beamAxisX;
-        protected Vector beamAxisY;
-        protected Vector beamAxisZ;
+        protected Matrix currentRotationMatrix;
+        protected double[] naturalDeformations;
+        protected double[] beamAxisX;
+        protected double[] beamAxisY;
+        protected double[] beamAxisZ;
 
         public double RayleighAlpha { get; set; }
         public double RayleighBeta { get; set; }
 
-        protected Beam2DCorotationalAbstract(IList<Node> nodes, IFiniteElementMaterial material, double density, BeamSection2D beamSection)
+        protected Beam2DCorotationalAbstract(IList<Node> nodes, IFiniteElementMaterial material, double density, 
+            BeamSection2D beamSection)
         {
             this.nodes = nodes;
             this.material = material;
@@ -48,16 +48,16 @@ namespace ISAAR.MSolve.FEM.Elements
             this.beamSection = beamSection;
             this.initialLength = Math.Sqrt(Math.Pow(nodes[0].X - nodes[1].X, 2) + Math.Pow(nodes[0].Y - nodes[1].Y, 2));
             this.currentLength = this.initialLength;
-            this.currentRotationMatrix = new Matrix2D(AXIS_COUNT, AXIS_COUNT);
-            this.naturalDeformations = new Vector(NATURAL_DEFORMATION_COUNT);
-            this.beamAxisX = new Vector(AXIS_COUNT);
-            this.beamAxisY = new Vector(AXIS_COUNT);
+            this.currentRotationMatrix = Matrix.CreateZero(AXIS_COUNT, AXIS_COUNT);
+            this.naturalDeformations = new double[NATURAL_DEFORMATION_COUNT];
+            this.beamAxisX = new double[AXIS_COUNT];
+            this.beamAxisY = new double[AXIS_COUNT];
         }
 
-        public int ID { get { return 100; } }
-        public ElementDimensions ElementDimensions { get { return ElementDimensions.ThreeD; } }
-        public bool MaterialModified { get { return material.Modified; } }
-        public IElementDOFEnumerator DOFEnumerator
+        public int ID => 100;
+        public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
+        public bool MaterialModified => material.Modified;
+        public IElementDofEnumerator DofEnumerator
         {
             get { return dofEnumerator; }
             set { dofEnumerator = value; }
@@ -66,9 +66,9 @@ namespace ISAAR.MSolve.FEM.Elements
         public abstract void SaveGeometryState();
         public abstract void UpdateState(double[] incrementalNodeDisplacements);
 
-        private Matrix2D CalculateBlockRotationMatrix()
+        private Matrix CalculateBlockRotationMatrix()
         {
-            Matrix2D blockRotationMatrix = new Matrix2D(FREEDOM_DEGREE_COUNT, FREEDOM_DEGREE_COUNT);
+            var blockRotationMatrix = Matrix.CreateZero(FREEDOM_DEGREE_COUNT, FREEDOM_DEGREE_COUNT);
             int totalBlocks = 2;
             int blockSize = 3;
             double R11 = this.currentRotationMatrix[0, 0];
@@ -101,9 +101,9 @@ namespace ISAAR.MSolve.FEM.Elements
             return blockRotationMatrix;
         }
 
-        private SymmetricMatrix2D CalculateConstitutiveStiffness()
+        private Matrix CalculateConstitutiveStiffness()
         {
-            var constitutiveStiffness = new SymmetricMatrix2D(FREEDOM_DEGREE_COUNT);
+            var constitutiveStiffness = SymmetricMatrix.CreateZero(FREEDOM_DEGREE_COUNT);
             double E = this.material.YoungModulus;
             double G = E / (2d * (1d + this.material.PoissonRatio));
             double I = this.beamSection.Inertia;
@@ -135,24 +135,22 @@ namespace ISAAR.MSolve.FEM.Elements
 
             constitutiveStiffness[5, 5] = (3.0 * psi + 1.0) * EIOverL;
 
-            return constitutiveStiffness;
+            return constitutiveStiffness.CopyToFullMatrix();
         }
 
-        private Vector CalculateForcesInGlobalSystem()
+        private double[] CalculateForcesInGlobalSystem()
         {
-            var forcesNatural = this.CalculateForcesInNaturalSystem();
-            var transformationMatrix = this.CalculateNaturalToLocalTranformMatrix();
-            double[] forcesLocal = new double[FREEDOM_DEGREE_COUNT];            
-            transformationMatrix.Multiply(forcesNatural, forcesLocal);
-            double[] forcesGlobal = new double[FREEDOM_DEGREE_COUNT];
-            var blockRotationMatrix = this.CalculateBlockRotationMatrix();
-            blockRotationMatrix.Multiply(forcesLocal, forcesGlobal);
-            return new Vector(forcesGlobal);
+            double[] forcesNatural = this.CalculateForcesInNaturalSystem();
+            Matrix transformationMatrix = this.CalculateNaturalToLocalTranformMatrix();
+            double[] forcesLocal = transformationMatrix.Multiply(forcesNatural);            
+            Matrix blockRotationMatrix = this.CalculateBlockRotationMatrix();
+            double[] forcesGlobal = blockRotationMatrix.Multiply(forcesLocal);
+            return forcesGlobal;
         }
 
-        private Vector CalculateForcesInNaturalSystem()
+        private double[] CalculateForcesInNaturalSystem()
         {
-            var forcesNatural = new Vector(NATURAL_DEFORMATION_COUNT);
+            var forcesNatural = new double[NATURAL_DEFORMATION_COUNT];
             double E = this.material.YoungModulus;
             double G = E / (2d * (1d + this.material.PoissonRatio));
             double I = this.beamSection.Inertia;
@@ -176,10 +174,10 @@ namespace ISAAR.MSolve.FEM.Elements
             return forcesNatural;
         }
 
-        private SymmetricMatrix2D CalculateGeometricStiffness()
+        private Matrix CalculateGeometricStiffness()
         {
             double L = this.currentLength;
-            var geometricStiffness = new SymmetricMatrix2D(FREEDOM_DEGREE_COUNT);
+            var geometricStiffness = SymmetricMatrix.CreateZero(FREEDOM_DEGREE_COUNT);
             var forcesInNaturalSystem = this.CalculateForcesInNaturalSystem();
             double axialForce = forcesInNaturalSystem[NaturalDeformationMode2D.EXTENSION];
             double shearForce = -2.0*forcesInNaturalSystem[2] / L;
@@ -202,20 +200,20 @@ namespace ISAAR.MSolve.FEM.Elements
             geometricStiffness[4, 5] = -axialForce / 10.0;
             geometricStiffness[5, 5] = 2.0 * axialForce * L / 15.0;
             
-            return geometricStiffness;
+            return geometricStiffness.CopyToFullMatrix();
         }
 
-        private SymmetricMatrix2D CalculateLocalStiffnessMatrix()
+        private Matrix CalculateLocalStiffnessMatrix()
         {
-            var constitutivePart = this.CalculateConstitutiveStiffness();
-            var geometricPart = this.CalculateGeometricStiffness();
-            constitutivePart.LinearCombination(new[] { 1d, 1d }, new List<SymmetricMatrix2D> { constitutivePart, geometricPart });
+            Matrix constitutivePart = this.CalculateConstitutiveStiffness();
+            Matrix geometricPart = this.CalculateGeometricStiffness();
+            constitutivePart.AddIntoThis(geometricPart);
             return constitutivePart;
         }
 
-        private Matrix2D CalculateNaturalToLocalTranformMatrix()
+        private Matrix CalculateNaturalToLocalTranformMatrix()
         {
-            var transformMatrix = new Matrix2D(FREEDOM_DEGREE_COUNT, NATURAL_DEFORMATION_COUNT);
+            var transformMatrix = Matrix.CreateZero(FREEDOM_DEGREE_COUNT, NATURAL_DEFORMATION_COUNT);
             double L = this.currentLength;
 
             transformMatrix[0, 0] = -1.0;
@@ -230,25 +228,22 @@ namespace ISAAR.MSolve.FEM.Elements
             return transformMatrix;
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
+        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
+
+        public IMatrix StiffnessMatrix(IElement element)
         {
-            return dofTypes;
+            Matrix rotationMatrixBlock = this.CalculateBlockRotationMatrix();
+            Matrix localStiffnessMatrix = this.CalculateLocalStiffnessMatrix();
+            Matrix s = rotationMatrixBlock.MultiplyRight(localStiffnessMatrix).MultiplyRight(rotationMatrixBlock, false, true);
+            return s;
         }
 
-        public IMatrix2D StiffnessMatrix(IElement element)
-        {
-            var rotationMatrixBlock = this.CalculateBlockRotationMatrix();
-            var localStiffnessMatrix = this.CalculateLocalStiffnessMatrix();
-            var s = rotationMatrixBlock * localStiffnessMatrix.ToMatrix2D() * rotationMatrixBlock.Transpose();
-            return new SymmetricMatrix2D(s);
-        }
-
-        public IMatrix2D MassMatrix(IElement element)
+        public IMatrix MassMatrix(IElement element)
         {
             throw new NotImplementedException();
         }
 
-        public IMatrix2D DampingMatrix(IElement element)
+        public IMatrix DampingMatrix(IElement element)
         {
             throw new NotImplementedException();
             //var m = MassMatrix(element);
@@ -257,10 +252,7 @@ namespace ISAAR.MSolve.FEM.Elements
             //return m;
         }
 
-        public void ResetMaterialModified()
-        {
-            this.material.ResetModified();
-        }
+        public void ResetMaterialModified() => this.material.ResetModified();
 
         public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
         {
@@ -271,7 +263,7 @@ namespace ISAAR.MSolve.FEM.Elements
         public double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements)
         {
             var internalForces = this.CalculateForcesInGlobalSystem();
-            return internalForces.Data;
+            return internalForces;
         }
 
         public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
@@ -281,21 +273,19 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {
-            Vector accelerations = new Vector(6);
-            IMatrix2D massMatrix = MassMatrix(element);
+            var accelerations = new double[6];
+            IMatrix massMatrix = MassMatrix(element);
 
             int index = 0;
             foreach (MassAccelerationLoad load in loads)
-                foreach (DOFType[] nodalDOFTypes in dofs)
-                    foreach (DOFType dofType in nodalDOFTypes)
+                foreach (IDofType[] nodalDOFTypes in dofs)
+                    foreach (IDofType dofType in nodalDOFTypes)
                     {
                         if (dofType == load.DOF) accelerations[index] += load.Amount;
                         index++;
                     }
 
-            double[] forces = new double[6];
-            massMatrix.Multiply(accelerations, forces);
-            return forces;
+            return massMatrix.Multiply(accelerations);
         }
 
         public void SaveMaterialState()
@@ -304,14 +294,8 @@ namespace ISAAR.MSolve.FEM.Elements
             material.SaveState();
         }
 
-        public void ClearMaterialState()
-        {
-            material.ClearState();
-        }
+        public void ClearMaterialState() => material.ClearState();
 
-        public void ClearMaterialStresses()
-        {
-            material.ClearStresses();
-        }
+        public void ClearMaterialStresses() => material.ClearStresses();
     }
 }

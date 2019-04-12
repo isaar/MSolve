@@ -16,20 +16,21 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis
 {
     public class LinearFemAnalysis2DGeneral : ILinearFemAnalysis
     {
-        private readonly Model_v2 model;
-        private readonly Subdomain_v2 subdomain;
-        private readonly ISolver_v2 solver;
+        private readonly Model model;
+        private readonly Subdomain subdomain;
+        private readonly ISolver solver;
         private readonly ContinuumElement2D[] elementTypes;
-        private readonly IElement_v2[] elementWrappers;
+        private readonly IElement[] elementWrappers;
         private readonly ScalingDofEnumerator[] penalizers;
-        private readonly IElementMatrixProvider_v2 problemMatrixProvider = new ElementStructuralStiffnessProvider_v2();
-        private ProblemStructural_v2 problem;
-        private LinearAnalyzer_v2 linearAnalyzer;
-        private StaticAnalyzer_v2 staticAnalyzer;
+        private readonly IElementMatrixProvider problemMatrixProvider = new ElementStructuralStiffnessProvider();
+        private bool isFirstAnalysis = true;
+        private ProblemStructural problem;
+        private LinearAnalyzer linearAnalyzer;
+        private StaticAnalyzer staticAnalyzer;
         private Vector elementVolumes;
         private IVectorView globalDisplacements;
 
-        public LinearFemAnalysis2DGeneral(Model_v2 model, ISolver_v2 solver)
+        public LinearFemAnalysis2DGeneral(Model model, ISolver solver)
         {
             if (model.SubdomainsDictionary.Count != 1) throw new NotImplementedException(
                 "Cannot perform topology optimization with multiple subdomains yet.");
@@ -38,10 +39,10 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis
             this.solver = solver;
 
             // Elements
-            IList<Element_v2> modelElements = model.Elements;
+            IList<Element> modelElements = model.Elements;
             NumElements = modelElements.Count;
             elementTypes = new ContinuumElement2D[NumElements];
-            elementWrappers = new IElement_v2[NumElements];
+            elementWrappers = new IElement[NumElements];
             penalizers = new ScalingDofEnumerator[NumElements];
             for (int e = 0; e < NumElements; ++e)
             {
@@ -61,7 +62,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis
         public double CalculateTotalVolume(IVectorView densities) => elementVolumes.DotProduct(densities);
 
         public Vector GetElementDisplacements(int elementIdx, int loadCaseIdx)
-            => Vector.CreateFromArray(subdomain.DofOrdering.ExtractVectorElementFromSubdomain(
+            => Vector.CreateFromArray(subdomain.FreeDofOrdering.ExtractVectorElementFromSubdomain(
                 elementWrappers[elementIdx], globalDisplacements));
 
         public IMatrixView GetElementStiffnessForCurrentMaterial(int elementIdx)
@@ -87,10 +88,10 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis
                 elementTypes[e].DofEnumerator = penalizers[e];
             }
 
-            problem = new ProblemStructural_v2(model, solver);
-            linearAnalyzer = new LinearAnalyzer_v2(solver);
-            staticAnalyzer = new StaticAnalyzer_v2(model, solver, problem, linearAnalyzer);
-            staticAnalyzer.Initialize(true);
+            problem = new ProblemStructural(model, solver);
+            linearAnalyzer = new LinearAnalyzer(model, solver, problem);
+            staticAnalyzer = new StaticAnalyzer(model, solver, problem, linearAnalyzer);
+            
         }
 
         public void UpdateModelAndAnalyze(IVectorView youngModuli)
@@ -103,6 +104,12 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis
             //TODO: I could avoid this, if the analyzer decided when the matrix will be rebuilt, instead of the problem provider. 
             problem.Reset();
 
+            if (isFirstAnalysis)
+            {
+                staticAnalyzer.Initialize(true);
+                isFirstAnalysis = false;
+            }
+            else staticAnalyzer.Initialize(false);
             staticAnalyzer.Solve();
             globalDisplacements = solver.LinearSystems[0].Solution;
         }

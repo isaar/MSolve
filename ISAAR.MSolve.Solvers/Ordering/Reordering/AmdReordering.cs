@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.Solvers.Ordering.Reordering
         public static AmdReordering CreateWithSuiteSparseAmd() => new AmdReordering(new OrderingAmdSuiteSparse());
         public static AmdReordering CreateWithCSparseAmd() => new AmdReordering(new OrderingAmdCSparseNet());
 
-        public void ReorderDofs(ISubdomain_v2 subdomain, ISubdomainFreeDofOrdering originalOrdering)
+        public void ReorderDofs(ISubdomain subdomain, ISubdomainFreeDofOrdering originalOrdering)
         {
             originalOrdering.Reorder(amd, subdomain);
 

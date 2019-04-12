@@ -30,13 +30,13 @@ namespace ISAAR.MSolve.FEM.Elements
         private static readonly IReadOnlyDictionary<CellType, IQuadrature2D> integrationsForMass;
         private static readonly IReadOnlyDictionary<CellType, IIsoparametricInterpolation2D> interpolations;
 
-        private ElasticMaterial2D_v2 commonMaterial;
+        private ElasticMaterial2D commonMaterial;
         private DynamicMaterial commonDynamicProperties;
         private double commonThickness;
 
         static ContinuumElement2DFactory()
         {
-            // Mass integrations require as many Gauss points as there are nodes, in order for the consisntent mass matrix to be
+            // Mass integrations require as many Gauss points as there are nodes, in order for the consistent mass matrix to be
             // of full rank (and symmetric positive definite)
 
             // Collections' declarations
@@ -83,7 +83,7 @@ namespace ISAAR.MSolve.FEM.Elements
             ContinuumElement2DFactory.extrapolations = extrapolations;
         }
 
-        public ContinuumElement2DFactory(double commonThickness, ElasticMaterial2D_v2 commonMaterial, 
+        public ContinuumElement2DFactory(double commonThickness, ElasticMaterial2D commonMaterial, 
             DynamicMaterial commonDynamicProperties)
         {
             this.commonThickness = commonThickness;
@@ -91,22 +91,22 @@ namespace ISAAR.MSolve.FEM.Elements
             this.commonDynamicProperties = commonDynamicProperties;
         }
 
-        public ContinuumElement2D CreateElement(CellType cellType, IReadOnlyList<Node_v2> nodes)
+        public ContinuumElement2D CreateElement(CellType cellType, IReadOnlyList<Node> nodes)
         {
             return CreateElement(cellType, nodes, commonThickness, commonMaterial, commonDynamicProperties);
         }
 
-        public ContinuumElement2D CreateElement(CellType cellType, IReadOnlyList<Node_v2> nodes, double thickness,
-            ElasticMaterial2D_v2 material, DynamicMaterial dynamicProperties)
+        public ContinuumElement2D CreateElement(CellType cellType, IReadOnlyList<Node> nodes, double thickness,
+            ElasticMaterial2D material, DynamicMaterial dynamicProperties)
         {
             int numGPs = integrationsForStiffness[cellType].IntegrationPoints.Count;
-            var materialsAtGaussPoints = new ElasticMaterial2D_v2[numGPs];
+            var materialsAtGaussPoints = new ElasticMaterial2D[numGPs];
             for (int gp = 0; gp < numGPs; ++gp) materialsAtGaussPoints[gp] = material.Clone();
             return CreateElement(cellType, nodes, thickness, materialsAtGaussPoints, dynamicProperties);
         }
 
-        public ContinuumElement2D CreateElement(CellType cellType, IReadOnlyList<Node_v2> nodes, double thickness,
-            IReadOnlyList<ElasticMaterial2D_v2> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
+        public ContinuumElement2D CreateElement(CellType cellType, IReadOnlyList<Node> nodes, double thickness,
+            IReadOnlyList<ElasticMaterial2D> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
         {
             //TODO: check if nodes - interpolation and Gauss points - materials match
             return new ContinuumElement2D(thickness, nodes, interpolations[cellType],

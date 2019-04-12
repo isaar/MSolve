@@ -111,22 +111,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="Matrix"/> that contains the entries of <paramref name="original"/>.
-        /// </summary>
-        /// <param name="original">The original matrix that will be copied.</param>
-        public static Matrix CreateFromMatrix(IIndexable2D original)
-        {
-            int m = original.NumRows;
-            int n = original.NumColumns;
-            var clone = new double[m * n];
-            for (int j = 0; j < n; ++j)
-            {
-                for (int i = 0; i < m; ++i) clone[j * m + i] = original[i, j];
-            }
-            return new Matrix(clone, m, n);
-        }
-
-        /// <summary>
         /// Initializes a new instance of <see cref="Matrix"/> that is equal to the identity matrix, namely a square matrix with 
         /// non-diagonal entries being equal to 0 and diagonal entries being equal to 1.
         /// </summary>
@@ -388,8 +372,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return Conversions.FullColMajorToArray2D(data, NumRows, NumColumns);
         }
 
+        /// See <see cref="IMatrixView.CopyToFullMatrix()"/>
+        /// </summary>
+        public Matrix CopyToFullMatrix() => Copy();
+
         /// <summary>
-        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoEntrywise(TMatrixIn, Func{double, double, double})"/>.
+        /// <summary>
+        /// See <see cref="IMatrixView.DoEntrywise(IMatrixView, Func{double, double, double})"/>.
         /// </summary>
         public IMatrix DoEntrywise(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
@@ -512,10 +501,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// that A = L * Q. Q is an orthogonal n-by-n matrix and L is a lower trapezoidal m-by-n matrix. Requires extra available  
         /// memory form * n + min(m, n) entries.
         /// </summary>
+        /// <param name="inPlace">
+        /// False, to copy the internal array before factorization. True, to overwrite it with the factorized data, thus saving 
+        /// memory and time. However, that will make this object unusable, so you MUST NOT call any other members afterwards.
+        /// </param>
         /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
-        public LQFactorization FactorLQ()
+        public LQFactorization FactorLQ(bool inPlace = false)
         {
-            return LQFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
+            if (inPlace)
+            {
+                var factor = LQFactorization.Factorize(NumRows, NumColumns, data);
+                // Set the internal array to null to force NullReferenceException if it is accessed again.
+                // TODO: perhaps there is a better way to handle this.
+                data = null;
+                return factor;
+            }
+            else return LQFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
         }
 
         /// <summary>
@@ -523,14 +524,24 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// that A = P * L * U. L is a lower triangular n-by-n matrix. U is an upper triangular n-by-n matrix. P is an n-by-n
         /// permutation matrix. Requires extra available memory n^2 + n entries. 
         /// </summary>
+        /// <param name="inPlace">
+        /// False, to copy the internal array before factorization. True, to overwrite it with the factorized data, thus saving 
+        /// memory and time. However, that will make this object unusable, so you MUST NOT call any other members afterwards.
+        /// </param>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
         /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
-        public LUFactorization FactorLU()
+        public LUFactorization FactorLU(bool inPlace = false)
         {
             Preconditions.CheckSquare(this);
-            // Copy matrix. This may exceed available memory and needs an extra O(n^2) space. 
-            // To avoid these, set "inPlace=true".
-            return LUFactorization.Factorize(NumColumns, CopyInternalData());
+            if (inPlace)
+            {
+                var factor = LUFactorization.Factorize(NumColumns, data);
+                // Set the internal array to null to force NullReferenceException if it is accessed again.
+                // TODO: perhaps there is a better way to handle this.
+                data = null;
+                return factor;
+            }
+            else return LUFactorization.Factorize(NumColumns, CopyInternalData());
         }
 
         /// <summary>
@@ -538,10 +549,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// that A = Q * R. Q is an orthogonal m-by-m matrix and R is an upper trapezoidal m-by-n matrix. Requires extra 
         /// available memory for m * n + min(m, n) entries. 
         /// </summary>
+        /// <param name="inPlace">
+        /// False, to copy the internal array before factorization. True, to overwrite it with the factorized data, thus saving 
+        /// memory and time. However, that will make this object unusable, so you MUST NOT call any other members afterwards.
+        /// </param>
         /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
-        public QRFactorization FactorQR()
+        public QRFactorization FactorQR(bool inPlace = false)
         {
-            return QRFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
+            if (inPlace)
+            {
+                var factor = QRFactorization.Factorize(NumRows, NumColumns, data);
+                // Set the internal array to null to force NullReferenceException if it is accessed again.
+                // TODO: perhaps there is a better way to handle this.
+                data = null;
+                return factor;
+            }
+            else return QRFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
         }
 
         /// <summary>
@@ -549,9 +572,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public Vector GetColumn(int colIndex)
         {
-            double[] result = new double[NumRows];
-            Array.Copy(data, colIndex * NumRows, result, 0, NumRows);
-            return Vector.CreateFromArray(result, false);
+            Preconditions.CheckIndexCol(this, colIndex);
+            double[] columnVector = new double[NumRows];
+            Array.Copy(data, colIndex * NumRows, columnVector, 0, NumRows);
+            return Vector.CreateFromArray(columnVector, false);
         }
 
         /// <summary>
@@ -577,12 +601,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public Vector GetRow(int rowIndex)
         {
-            double[] result = new double[NumColumns];
-            for (int j = 0; j < NumColumns; ++j)
-            {
-                result[j] = data[j * NumRows + rowIndex];
-            }
-            return Vector.CreateFromArray(result, false);
+            Preconditions.CheckIndexRow(this, rowIndex);
+            double[] rowVector = new double[NumColumns];
+            for (int j = 0; j < NumColumns; ++j) rowVector[j] = data[j * NumRows + rowIndex];
+            return Vector.CreateFromArray(rowVector, false);
         }
 
         /// <summary>
@@ -594,10 +616,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             int idxCounter = -1;
             foreach (var j in colIndices)
             {
-                foreach (var i in rowIndices)
-                {
-                    submatrix[++idxCounter] = data[j * NumRows + i];
-                }
+                foreach (var i in rowIndices) submatrix[++idxCounter] = data[j * NumRows + i];
             }
             return new Matrix(submatrix, rowIndices.Length, colIndices.Length);
         }
@@ -607,9 +626,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
         {
-            int newNumRows = rowEndExclusive - rowStartInclusive;
-            int newNumCols = colEndExclusive - colStartInclusive;
-            double[] submatrix = new double[newNumCols * newNumRows];
+            int numNewRows = rowEndExclusive - rowStartInclusive;
+            int numNewCols = colEndExclusive - colStartInclusive;
+            double[] submatrix = new double[numNewCols * numNewRows];
             int idxCounter = -1;
             for (int j = colStartInclusive; j < colEndExclusive; ++j)
             {
@@ -618,7 +637,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                     submatrix[++idxCounter] = data[j * NumRows + i];
                 }
             }
-            return new Matrix(submatrix, newNumRows, newNumCols);
+            return new Matrix(submatrix, numNewRows, numNewCols);
         }
 
         /// <summary>
@@ -642,6 +661,33 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 return new Matrix(inverse, 3, 3);
             }
             else return FactorLU().Invert(true);
+        }
+
+        /// <summary>
+        /// Calculates the inverse matrix and writes it over the entries of this object, in order to conserve memory 
+        /// and possibly time.
+        /// </summary>
+        /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
+        /// <exception cref="SingularMatrixException">Thrown if the matrix is not invertible.</exception>
+        /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
+        public void InvertInPlace()
+        {
+            //TODO: implement efficient 2x2 and 3x3 inplace operations to avoid copying. 
+            if ((NumRows == 2) && (NumColumns == 2))
+            {
+                (double[] inverse, double det) = AnalyticFormulas.Matrix2x2ColMajorInvert(data);
+                Array.Copy(inverse, data, 4);
+            }
+            else if ((NumRows == 3) && (NumColumns == 3))
+            {
+                (double[] inverse, double det) = AnalyticFormulas.Matrix3x3ColMajorInvert(data);
+                Array.Copy(inverse, data, 9);
+            }
+            else
+            {
+                // The next will update the entries of this matrix, but we do not need the intermediate objects
+                LUFactorization.Factorize(NumColumns, data).Invert(true); 
+            }
         }
 
         /// <summary>
@@ -782,7 +828,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public Matrix MultiplyRight(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
         {
-            if (other is Matrix) return MultiplyRight((Matrix)other, transposeThis);
+            if (other is Matrix dense) return MultiplyRight(dense, transposeThis, transposeOther);
             else return other.MultiplyLeft(this, transposeOther, transposeThis);
         }
 

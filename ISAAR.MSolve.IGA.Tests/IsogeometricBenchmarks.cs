@@ -1,30 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.IGA.Elements;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
+using ISAAR.MSolve.IGA.Postprocessing;
 using ISAAR.MSolve.IGA.Readers;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Skyline;
+using ISAAR.MSolve.Solvers;
+using ISAAR.MSolve.Solvers.Direct;
+using ISAAR.MSolve.Solvers.Ordering;
+using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using MathNet.Numerics.Data.Matlab;
 using MathNet.Numerics.LinearAlgebra;
 using Xunit;
-using VectorExtensions = ISAAR.MSolve.Numerical.LinearAlgebra.VectorExtensions;
 
 namespace ISAAR.MSolve.IGA.Tests
 {
-	public class IsogeometricBenchmarks
+    public class IsogeometricBenchmarks
 	{
 		[Fact]
 		public void IsogeometricQuadraticCantilever2D()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\Cantilever2D.txt";
@@ -38,28 +39,30 @@ namespace ISAAR.MSolve.IGA.Tests
 				{
 					Amount = -100,
 					ControlPoint = model.ControlPoints[controlPoint.ID],
-					DOF = DOFType.Y
+					DOF = StructuralDof.TranslationY
 				});
 
 			// Boundary Conditions - Dirichlet
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[0].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationX});
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
 			}
 
-			model.ConnectDataStructures();
+			var solverBuilder = new DenseMatrixSolver.Builder();
+			solverBuilder.DofOrderer = new DofOrderer(
+				new NodeMajorDofOrderingStrategy(), new NullReordering());
+			ISolver solver = solverBuilder.BuildSolver(model);
 
-			// Solvers
-			var linearSystems = new Dictionary<int, ILinearSystem>(); //I think this should be done automatically
-			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
-			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-			ProblemStructural provider = new ProblemStructural(model, linearSystems);
-			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+			// Structural problem provider
+			var provider = new ProblemStructural(model, solver);
 
-			parentAnalyzer.BuildMatrices();
+			// Linear static analysis
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
+
+			// Run the analysis
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
 
@@ -105,18 +108,18 @@ namespace ISAAR.MSolve.IGA.Tests
 			};
 
 			for (int i = 0; i < displacementVectorExpected.Length; i++)
-				Assert.Equal(displacementVectorExpected[i], linearSystems[0].Solution[i], 6);
+				Assert.Equal(displacementVectorExpected[i], solver.LinearSystems[0].Solution[i], 6);
 		}
 
 		[Fact]
 		public void IsogeometricQuadraticCantilever2DWithDistributedLoad()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
-			string filename = "..\\..\\..\\InputFiles\\Cantilever2D.txt";
-			IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filename);
+			var filename = "Cantilever2D";
+			string filepath =$"..\\..\\..\\InputFiles\\{filename}.txt";
+			IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filepath);
 			modelReader.CreateModelFromFile();
 
 			// Forces and Boundary Conditions
@@ -131,23 +134,26 @@ namespace ISAAR.MSolve.IGA.Tests
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[0].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationX});
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
 			}
 
-			model.ConnectDataStructures();
+			var solverBuilder = new SkylineSolver.Builder();
+			ISolver solver = solverBuilder.BuildSolver(model);
 
-			// Solvers
-			var linearSystems = new Dictionary<int, ILinearSystem>();
-			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
-			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-			ProblemStructural provider = new ProblemStructural(model, linearSystems);
-			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+			// Structural problem provider
+			var provider = new ProblemStructural(model, solver);
 
-			parentAnalyzer.BuildMatrices();
+			// Linear static analysis
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
+
+			// Run the analysis
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
+
+			var paraviewOutput = new ParaviewNurbs2D(model,solver.LinearSystems[0].Solution, filename);
+			paraviewOutput.CreateParaview2DFile();
 
 
 			//Test for Load Vector
@@ -196,14 +202,14 @@ namespace ISAAR.MSolve.IGA.Tests
 				-2.66710696029277
 			};
 			for (int i = 0; i < displacementVectorExpected.Length; i++)
-				Assert.Equal(displacementVectorExpected[i], linearSystems[0].Solution[i], 6);
+				Assert.Equal(displacementVectorExpected[i], solver.LinearSystems[0].Solution[i], 6);
 		}
 
 		[Fact]
 		public void IsogeometricPlateTension()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\PlateTension.txt";
@@ -222,22 +228,24 @@ namespace ISAAR.MSolve.IGA.Tests
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[0].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationX});
 			}
 
-			model.ControlPointsDictionary[0].Constrains.Add(DOFType.Y);
+			model.ControlPointsDictionary[0].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
 
-			model.ConnectDataStructures();
+			var solverBuilder = new DenseMatrixSolver.Builder();
+			solverBuilder.DofOrderer = new DofOrderer(
+				new NodeMajorDofOrderingStrategy(), new NullReordering());
+			ISolver solver = solverBuilder.BuildSolver(model);
 
-			// Solvers
-			var linearSystems = new Dictionary<int, ILinearSystem>();
-			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
-			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-			ProblemStructural provider = new ProblemStructural(model, linearSystems);
-			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+			// Structural problem provider
+			var provider = new ProblemStructural(model, solver);
 
-			parentAnalyzer.BuildMatrices();
+			// Linear static analysis
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
+
+			// Run the analysis
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
 
@@ -293,7 +301,7 @@ namespace ISAAR.MSolve.IGA.Tests
 				0.009112171, -0.003906529
 			};
 			for (int i = 0; i < displacementVectorExpected.Length; i++)
-				Assert.Equal(displacementVectorExpected[i], linearSystems[0].Solution[i], 4);
+				Assert.Equal(displacementVectorExpected[i], solver.LinearSystems[0].Solution[i], 4);
 
 			#endregion
 		}
@@ -302,7 +310,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void IsogeometricPlaneStrainMixedBC()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\SquareMixedBC.txt";
@@ -330,28 +338,30 @@ namespace ISAAR.MSolve.IGA.Tests
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[0].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationX});
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
 			}
 
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[2].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationX });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
 			}
-
-			model.ConnectDataStructures();
+		
 
 			// Solvers
-			var linearSystems = new Dictionary<int, ILinearSystem>();
-			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
-			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-			ProblemStructural provider = new ProblemStructural(model, linearSystems);
-			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+			var solverBuilder = new SkylineSolver.Builder();
+			ISolver solver = solverBuilder.BuildSolver(model);
 
-			parentAnalyzer.BuildMatrices();
+			// Structural problem provider
+			var provider = new ProblemStructural(model, solver);
+
+			// Linear static analysis
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
+
+			// Run the analysis
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
 
@@ -853,7 +863,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			};
 
 			for (int i = 0; i < displacementVectorExpected.Length; i++)
-				Assert.Equal(displacementVectorExpected[i], linearSystems[0].Solution[i], 7);
+				Assert.Equal(displacementVectorExpected[i], solver.LinearSystems[0].Solution[i], 7);
 
 			#endregion
 		}
@@ -891,7 +901,7 @@ namespace ISAAR.MSolve.IGA.Tests
 
 		private Vector KnotValueVectorKsi()
 		{
-			return new Vector(new double[8]
+			return Vector.CreateFromArray(new double[8]
 			{
 				0, 0, 0, 0, 1, 1, 1, 1
 			});
@@ -899,7 +909,7 @@ namespace ISAAR.MSolve.IGA.Tests
 
 		private Vector KnotValueVectorHeta()
 		{
-			return new Vector(new double[6]
+			return Vector.CreateFromArray(new double[6]
 			{
 				0, 0, 0, 1, 1, 1
 			});
@@ -910,7 +920,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			get
 			{
 				var element = new NURBSKirchhoffLoveShellElement();
-				var patch = new Patch(){ID = 0};
+				var patch = new Patch();
 				patch.Material = new ElasticMaterial2D(StressState2D.PlaneStrain)
 				{
 					YoungModulus = 100,
@@ -932,72 +942,11 @@ namespace ISAAR.MSolve.IGA.Tests
 			}
 		}
 		#endregion
-
-
-		//[Fact]
-		public void IsogeometricCantileverShell()
-		{
-			VectorExtensions.AssignTotalAffinityCount();
-			Model model = new Model();
-			model.PatchesDictionary.Add(0,Element.Patch);
-			ElementControlPoints().ForEach(e=>model.ControlPointsDictionary.Add(e.ID,e));
-			model.ElementsDictionary.Add(Element.ID,Element);
-			model.PatchesDictionary[0].ElementsDictionary.Add(Element.ID,Element);
-			ElementControlPoints().ForEach(e => model.PatchesDictionary[0].ControlPointsDictionary.Add(e.ID, e));
-
-			model.Loads.Add(new Load()
-			{
-				Amount = -1,
-				ControlPoint = model.ControlPoints[9],
-				DOF = DOFType.Z
-			});
-			model.Loads.Add(new Load()
-			{
-				Amount = -1,
-				ControlPoint = model.ControlPoints[10],
-				DOF = DOFType.Z
-			});
-			model.Loads.Add(new Load()
-			{
-				Amount = -1,
-				ControlPoint = model.ControlPoints[11],
-				DOF = DOFType.Z
-			});
-
-			for (int i = 0; i < 6; i++)
-			{
-				model.ControlPointsDictionary[i].Constrains.Add(DOFType.X);
-				model.ControlPointsDictionary[i].Constrains.Add(DOFType.Y);
-				model.ControlPointsDictionary[i].Constrains.Add(DOFType.Z);
-			}
-
-			model.ConnectDataStructures();
-
-			// Solvers
-			var linearSystems = new Dictionary<int, ILinearSystem>();
-			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
-			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-			ProblemStructural provider = new ProblemStructural(model, linearSystems);
-			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
-
-			parentAnalyzer.BuildMatrices();
-			parentAnalyzer.Initialize();
-			parentAnalyzer.Solve();
-
-			var expectedSolution = new double[18]
-			{
-				0.0, 0.0, -7499.999986865148, 0.0, 0.0, -7499.99998660616, 0.0, 0.0, -7499.999986347174, 0.0, 0.0,
-				-14999.999980230163, 0.0, 0.0, -14999.999980050825, 0.0, 0.0, -14999.999979871487
-			};
-			for (int i = 0; i < expectedSolution.Length; i++)
-				Assert.Equal(expectedSolution[i], linearSystems[0].Solution[i], 7);
-		}
-
+		
 		//[Fact]
 		public void IsogeometricHorseshoe3D()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\Horseshoe.txt";
@@ -1019,30 +968,31 @@ namespace ISAAR.MSolve.IGA.Tests
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].FacesDictionary[2].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Z);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationX});
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationZ });
 			}
 
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].FacesDictionary[3].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Z);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationX });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationZ });
 			}
 
-			model.ConnectDataStructures();
-
 			// Solvers
-			var linearSystems = new Dictionary<int, ILinearSystem>();
-			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
-			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-			ProblemStructural provider = new ProblemStructural(model, linearSystems);
-			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+			var solverBuilder = new SkylineSolver.Builder();
+			ISolver solver = solverBuilder.BuildSolver(model);
 
-			parentAnalyzer.BuildMatrices();
+			// Structural problem provider
+			var provider = new ProblemStructural(model, solver);
+
+			// Linear static analysis
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
+
+			// Run the analysis
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
 
@@ -1054,14 +1004,14 @@ namespace ISAAR.MSolve.IGA.Tests
 			Matrix<double> displacementVectorExpected = MatlabReader.Read<double>("..\\..\\..\\InputFiles\\Horseshoe.mat", "displacementVector");
 
 			for (int i = 0; i < displacementVectorExpected.RowCount; i++)
-				Assert.Equal(displacementVectorExpected.At(i, 0), linearSystems[0].Solution[i], 7);
+				Assert.Equal(displacementVectorExpected.At(i, 0), solver.LinearSystems[0].Solution[i], 7);
 
 		}
 		
 		//[Fact]
 		public void IsogeometricPlaneStrainRing()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\SquareMixedBC.txt";
@@ -1089,28 +1039,29 @@ namespace ISAAR.MSolve.IGA.Tests
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[0].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationX});
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
 			}
 
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[2].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationX });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
 			}
 
-			model.ConnectDataStructures();
-
 			// Solvers
-			var linearSystems = new Dictionary<int, ILinearSystem>();
-			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
-			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-			ProblemStructural provider = new ProblemStructural(model, linearSystems);
-			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+			var solverBuilder = new SkylineSolver.Builder();
+			ISolver solver = solverBuilder.BuildSolver(model);
 
-			parentAnalyzer.BuildMatrices();
+			// Structural problem provider
+			var provider = new ProblemStructural(model, solver);
+
+			// Linear static analysis
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
+
+			// Run the analysis
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
 
@@ -1612,7 +1563,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			};
 
 			for (int i = 0; i < displacementVectorExpected.Length; i++)
-				Assert.Equal(displacementVectorExpected[i], linearSystems[0].Solution[i], 7);
+				Assert.Equal(displacementVectorExpected[i], solver.LinearSystems[0].Solution[i], 7);
 
 			#endregion
 		}
@@ -1621,7 +1572,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void IsogeometricPlateWithHole()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\IGA\\InputFiles\\PlateTension.txt";
@@ -1640,22 +1591,23 @@ namespace ISAAR.MSolve.IGA.Tests
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[0].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
 			}
 
-			model.ControlPointsDictionary[0].Constrains.Add(DOFType.Y);
-
-			model.ConnectDataStructures();
-
+			model.ControlPointsDictionary[0].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationY});
+			
 			// Solvers
-			var linearSystems = new Dictionary<int, ILinearSystem>();
-			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
-			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-			ProblemStructural provider = new ProblemStructural(model, linearSystems);
-			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+			var solverBuilder = new SkylineSolver.Builder();
+			ISolver solver = solverBuilder.BuildSolver(model);
 
-			parentAnalyzer.BuildMatrices();
+			// Structural problem provider
+			var provider = new ProblemStructural(model, solver);
+
+			// Linear static analysis
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
+
+			// Run the analysis
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
 
@@ -1671,7 +1623,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			{
 			};
 			for (int i = 0; i < displacementVectorExpected.Length; i++)
-				Assert.Equal(displacementVectorExpected[i], linearSystems[0].Solution[i], 4);
+				Assert.Equal(displacementVectorExpected[i], solver.LinearSystems[0].Solution[i], 4);
 
 			#endregion
 		}
@@ -1680,7 +1632,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void IsogeometricCurvedBeamBenchmark()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\CurvedBeam.txt";
@@ -1695,26 +1647,27 @@ namespace ISAAR.MSolve.IGA.Tests
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[0].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
 			}
 
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[1].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationX });
 			}
 
-			model.ConnectDataStructures();
-
 			// Solvers
-			var linearSystems = new Dictionary<int, ILinearSystem>();
-			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
-			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-			ProblemStructural provider = new ProblemStructural(model, linearSystems);
-			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+			var solverBuilder = new SkylineSolver.Builder();
+			ISolver solver = solverBuilder.BuildSolver(model);
 
-			parentAnalyzer.BuildMatrices();
+			// Structural problem provider
+			var provider = new ProblemStructural(model, solver);
+
+			// Linear static analysis
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
+
+			// Run the analysis
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
 
@@ -1726,18 +1679,19 @@ namespace ISAAR.MSolve.IGA.Tests
 			Matrix<double> displacementVectorExpected = MatlabReader.Read<double>("CurvedBeam.mat", "forceVector");
 
 			for (int i = 0; i < displacementVectorExpected.RowCount; i++)
-				Assert.Equal(displacementVectorExpected.At(i,0), linearSystems[0].Solution[i], 7);
+				Assert.Equal(displacementVectorExpected.At(i,0), solver.LinearSystems[0].Solution[i], 7);
 		}
 
 		
 		//[Fact]
 		public void IsogeometricBeam3D()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
-			string filename = "..\\..\\..\\InputFiles\\Beam3D.txt";
-			IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filename);
+			string filename = "Beam3D";
+			string filepath= $"..\\..\\..\\InputFiles\\{filename}.txt";
+			IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filepath);
 			modelReader.CreateModelFromFile();
 
 			// Forces and Boundary Conditions
@@ -1748,7 +1702,7 @@ namespace ISAAR.MSolve.IGA.Tests
 				{
 					Amount = -100,
 					ControlPoint = model.ControlPoints[controlPoint.ID],
-					DOF = DOFType.Z
+					DOF = StructuralDof.TranslationZ
 				});
 			}
 
@@ -1757,43 +1711,45 @@ namespace ISAAR.MSolve.IGA.Tests
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].FacesDictionary[0].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.X);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Y);
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(DOFType.Z);
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationX});
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationZ });
 			}
 
-			model.ConnectDataStructures();
-
 			// Solvers
-			var linearSystems = new Dictionary<int, ILinearSystem>();
-			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
-			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-			ProblemStructural provider = new ProblemStructural(model, linearSystems);
-			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+			var solverBuilder = new SkylineSolver.Builder();
+			ISolver solver = solverBuilder.BuildSolver(model);
 
-			parentAnalyzer.BuildMatrices();
+			// Structural problem provider
+			var provider = new ProblemStructural(model, solver);
+
+			// Linear static analysis
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
+
+			// Run the analysis
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
 
+			var paraview= new ParaviewNurbs3D(model, solver.LinearSystems[0].Solution, filename);
+			paraview.CreateParaviewFile();
+			//Matrix<double> forceVectorExpected = MatlabReader.Read<double>("..\\..\\..\\InputFiles\\Beam3D.mat", "forceVector");
 
-			Matrix<double> forceVectorExpected = MatlabReader.Read<double>("..\\..\\..\\InputFiles\\Beam3D.mat", "forceVector");
+			//for (int i = 0; i < forceVectorExpected.RowCount; i++)
+			//	Assert.True(Utilities.AreValuesEqual(forceVectorExpected.At(i, 0), model.PatchesDictionary[0].Forces[i], 1e-2));
 
-			for (int i = 0; i < forceVectorExpected.RowCount; i++)
-				Assert.True(Utilities.AreValuesEqual(forceVectorExpected.At(i, 0), model.PatchesDictionary[0].Forces[i], 1e-2));
+			//Matrix<double> displacementVectorExpected = MatlabReader.Read<double>("..\\..\\..\\InputFiles\\Beam3D.mat", "displacementVector");
 
-			Matrix<double> displacementVectorExpected = MatlabReader.Read<double>("..\\..\\..\\InputFiles\\Beam3D.mat", "displacementVector");
-
-			for (int i = 0; i < displacementVectorExpected.RowCount; i++)
-				Assert.True(Utilities.AreValuesEqual(displacementVectorExpected.At(i, 0), linearSystems[0].Solution[i], 1e-2));
+			//for (int i = 0; i < displacementVectorExpected.RowCount; i++)
+			//	Assert.True(Utilities.AreValuesEqual(displacementVectorExpected.At(i, 0), linearSystems[0].Solution[i], 1e-2));
 		}
 
 		//[Fact]
 		public void TSplinesShellsBenchmark()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
-			string filename = "..\\..\\..\\IGA\\InputFiles\\tspline.iga";
+			string filename = "..\\..\\..\\InputFiles\\surface.iga";
 			IGAFileReader modelReader = new IGAFileReader(model, filename);
 			modelReader.CreateTSplineShellsModelFromFile();
 
@@ -1806,9 +1762,9 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			for (int i = 0; i < 100; i++)
 			{
-				model.ControlPointsDictionary[i].Constrains.Add(DOFType.X);
-				model.ControlPointsDictionary[i].Constrains.Add(DOFType.Y);
-				model.ControlPointsDictionary[i].Constrains.Add(DOFType.Z);
+				model.ControlPointsDictionary[i].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationX });
+				model.ControlPointsDictionary[i].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
+				model.ControlPointsDictionary[i].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationZ });
 			}
 
 			for (int i = 0; i < model.ControlPoints.Count - 100; i++)
@@ -1817,22 +1773,23 @@ namespace ISAAR.MSolve.IGA.Tests
 				{
 					Amount = -1000,
 					ControlPoint = model.ControlPointsDictionary[i],
-					DOF = DOFType.Y
+					DOF = StructuralDof.TranslationY
 				});
 			}
 
 
-			//model.Loads.Add(new Load() { Amount = -10000, ControlPoint = model.ControlPointsDictionary[2], DOF = DOFType.Y });
-			model.ConnectDataStructures();
+			// Solvers
+			var solverBuilder = new SkylineSolver.Builder();
+			ISolver solver = solverBuilder.BuildSolver(model);
 
-			var linearSystems = new Dictionary<int, ILinearSystem>();
-			linearSystems[0] = new SkylineLinearSystem(0, model.PatchesDictionary[0].Forces);
-			SolverSkyline solver = new SolverSkyline(linearSystems[0]);
-			ProblemStructural provider = new ProblemStructural(model, linearSystems);
-			LinearAnalyzer analyzer = new LinearAnalyzer(solver, linearSystems);
-			StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, analyzer, linearSystems);
+			// Structural problem provider
+			var provider = new ProblemStructural(model, solver);
 
-			parentAnalyzer.BuildMatrices();
+			// Linear static analysis
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
+
+			// Run the analysis
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
 		}

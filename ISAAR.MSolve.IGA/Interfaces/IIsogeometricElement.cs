@@ -1,12 +1,8 @@
-﻿using ISAAR.MSolve.IGA.Entities;
-using ISAAR.MSolve.IGA.Entities.Loads;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.IGA.Entities;
+using ISAAR.MSolve.IGA.Entities.Loads;
 
 namespace ISAAR.MSolve.IGA.Interfaces
 {
@@ -15,7 +11,7 @@ namespace ISAAR.MSolve.IGA.Interfaces
 	{
         int ID { get; }
         ElementDimensions ElementDimensions { get; }
-	    IElementDOFEnumerator DOFEnumerator { get; set; }
+        IElementDofEnumerator DofEnumerator { get; set; }
         //IList<IList<DOFType>> GetElementDOFTypes(IElement element);
         bool MaterialModified { get; }
         //IMatrix2D StiffnessMatrix(Element element);
@@ -29,6 +25,7 @@ namespace ISAAR.MSolve.IGA.Interfaces
         Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements);
         double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements);
         double[] CalculateForcesForLogging(Element element, double[] localDisplacements);
+		double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements);
         //double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads);
         //void SaveMaterialState();
         void ClearMaterialState();

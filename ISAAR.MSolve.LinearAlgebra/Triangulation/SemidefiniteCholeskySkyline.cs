@@ -96,7 +96,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         }
 
         /// <summary>
-        /// Performs the operation: <paramref name="result"/> = generalized_inverse(A) * <paramref name="vector"/>
+        /// Performs the operation: <paramref name="result"/> = generalized_inverse(A) * <paramref name="vector"/>. 
+        /// The resulting vector overwrites <paramref name="result"/>.
         /// </summary>
         /// <param name="vector">The vector that will be multiplied. Its <see cref="IIndexable1D.Length"/> must be equal to 
         /// <see cref="IIndexable2D.NumRows"/> of the original matrix A.
@@ -108,17 +109,33 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         /// <exception cref="NonMatchingDimensionsException">
         /// Thrown if <paramref name="vector"/> or <paramref name="result"/> violate the described constraints.
         /// </exception>
-        /// <exception cref="IndefiniteMatrixException">
-        /// Thrown if the original skyline matrix turns out to not be symmetric positive semi-definite.
-        /// </exception>
         public void MultiplyGeneralizedInverseMatrixTimesVector(Vector vector, Vector result)
         {
             Preconditions.CheckSystemSolutionDimensions(Order, vector.Length);
             Preconditions.CheckMultiplicationDimensions(Order, result.Length);
 
+            // A^+ * b = [ Aii^-1 * bi; 0], where i are the independent rows/columns
             // TODO: Is this correct?
             CholeskySkyline.SubstituteForward(Order, values, diagOffsets, vector.RawData, result.RawData);
             CholeskySkyline.SubstituteBack(Order, values, diagOffsets, result.RawData);
+            foreach (int row in DependentColumns) result[row] = 0.0;
+        }
+
+        /// <summary>
+        /// Performs the operation: result = generalized_inverse(A) * <paramref name="vector"/>. The resul is written to a new
+        /// vector and returned.
+        /// </summary>
+        /// <param name="vector">The vector that will be multiplied. Its <see cref="IIndexable1D.Length"/> must be equal to 
+        /// <see cref="IIndexable2D.NumRows"/> of the original matrix A.
+        /// </param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if <paramref name="vector"/> violates the described constraint.
+        /// </exception>
+        public Vector MultiplyGeneralizedInverseMatrixTimesVector(Vector vector)
+        {
+            var result = Vector.CreateZero(Order);
+            MultiplyGeneralizedInverseMatrixTimesVector(vector, result);
+            return result;
         }
 
         internal static (List<int> dependentColumns, List<double[]> nullSpaceBasis) FactorizeInternal(int order, double[] values, 

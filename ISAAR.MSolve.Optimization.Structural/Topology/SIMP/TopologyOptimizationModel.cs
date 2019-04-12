@@ -7,7 +7,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP
 {
     // Convert from Model to this one
     public class TopologyOptimizationModel<TElement>
-        where TElement : IElementType_v2
+        where TElement : IElementType
     {
     }
 }

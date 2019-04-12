@@ -6,7 +6,7 @@
 //using ISAAR.MSolve.Discretization.FreedomDegrees;
 //using ISAAR.MSolve.FEM.Elements;
 //using ISAAR.MSolve.LinearAlgebra.Vectors;
-//using ISAAR.MSolve.Numerical.Commons;
+//using ISAAR.MSolve.Discretization.Commons;
 
 ////TODO: remove duplicate code between this class and FreeDofOrderer.
 //namespace ISAAR.MSolve.Solvers.Ordering
@@ -19,7 +19,7 @@
 //    /// </summary>
 //    public class AllDofOrderer
 //    {
-//        private AllDofOrderer(int numFreeDofs, DofTable_v2<IDof> freeDofs, int numConstrainedDofs, DofTable_v2<IDof> constrainedDofs)
+//        private AllDofOrderer(int numFreeDofs, DofTable<IDof> freeDofs, int numConstrainedDofs, DofTable<IDof> constrainedDofs)
 //        {
 //            this.NumFreeDofs = numFreeDofs;
 //            this.FreeDofs = freeDofs;
@@ -27,8 +27,8 @@
 //            this.ConstrainedDofs = constrainedDofs;
 //        }
 
-//        public DofTable_v2<IDof> ConstrainedDofs { get; }
-//        public DofTable_v2<IDof> FreeDofs { get; }
+//        public DofTable<IDof> ConstrainedDofs { get; }
+//        public DofTable<IDof> FreeDofs { get; }
 //        public int NumConstrainedDofs { get; }
 //        public int NumFreeDofs { get; }
 
@@ -39,7 +39,7 @@
 //        public static AllDofOrderer CreateWithElementMajorFreeDofOrder(IEnumerable<ContinuumElement2D> elements,
 //            ITable<IDiscretePoint, IDof, double> constraints)
 //        {
-//            var freeDofs = new DofTable_v2<IDof>();
+//            var freeDofs = new DofTable<IDof>();
 //            int dofCounter = 0;
 //            foreach (var element in elements)
 //            {
@@ -65,7 +65,7 @@
 //                //}
 //            }
 
-//            (int numConstrainedDofs, DofTable_v2<IDof> constrainedDofs) = OrderConstrainedDofsNodeMajor(constraints);
+//            (int numConstrainedDofs, DofTable<IDof> constrainedDofs) = OrderConstrainedDofsNodeMajor(constraints);
 //            return new AllDofOrderer(dofCounter, freeDofs, numConstrainedDofs, constrainedDofs);
 //        }
 
@@ -86,7 +86,7 @@
 //        public static AllDofOrderer CreateWithNodeMajorUniformFreeDofOrder(IReadOnlyList<IDiscretePoint> sortedNodes,
 //            IReadOnlyList<IDof> dofsPerNode, ITable<IDiscretePoint, IDof, double> constraints)
 //        {
-//            var freeDofs = new DofTable_v2<IDof>();
+//            var freeDofs = new DofTable<IDof>();
 //            int dofCounter = 0;
 //            foreach (var node in sortedNodes)
 //            {
@@ -96,7 +96,7 @@
 //                }
 //            }
 
-//            (int numConstrainedDofs, DofTable_v2<IDof> constrainedDofs) = OrderConstrainedDofsNodeMajor(constraints);
+//            (int numConstrainedDofs, DofTable<IDof> constrainedDofs) = OrderConstrainedDofsNodeMajor(constraints);
 //            return new AllDofOrderer(dofCounter, freeDofs, numConstrainedDofs, constrainedDofs);
 //        }
 
@@ -171,10 +171,10 @@
 //            return (freeDofMap, constrainedDofMap);
 //        }
 
-//        private static (int numConstrainedDofs, DofTable_v2<IDof> constrainedDofs) OrderConstrainedDofsNodeMajor(
+//        private static (int numConstrainedDofs, DofTable<IDof> constrainedDofs) OrderConstrainedDofsNodeMajor(
 //            ITable<IDiscretePoint, IDof, double> constraints)
 //        {
-//            var constrainedDofs = new DofTable_v2<IDof>();
+//            var constrainedDofs = new DofTable<IDof>();
 //            int dofCounter = 0;
 //            foreach ((IDiscretePoint node, IDof dofType, double displacement) in constraints)
 //            {
@@ -183,7 +183,7 @@
 //            return (dofCounter, constrainedDofs);
 //        }
 
-//        private static void ReorderFreeDofsNodeMajor(DofTable_v2<IDof> freeDofs, IReadOnlyList<IDiscretePoint> sortedNodes)
+//        private static void ReorderFreeDofsNodeMajor(DofTable<IDof> freeDofs, IReadOnlyList<IDiscretePoint> sortedNodes)
 //        {
 //            int dofCounter = 0;
 //            foreach (var node in sortedNodes)

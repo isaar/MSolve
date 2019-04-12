@@ -29,12 +29,12 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Filtering
         /// <param name="filterAreaRadius">
         /// Typically 10% of the smaller dimension of the design domain. If 0, the unfiltered sensitivities are retained. 
         /// </param>
-        public ProximityDensityFilter2D(Model_v2 model, double filterAreaRadius)
+        public ProximityDensityFilter2D(Model model, double filterAreaRadius)
         {
             this.filterAreaRadius = filterAreaRadius;
 
             // Cast the continuum elements. //TODO: this process is already performed in LinearFemAnalysis2DGeneral.
-            IList<Element_v2> modelElements = model.Elements;
+            IList<Element> modelElements = model.Elements;
             numElements = modelElements.Count;
             elements = new ContinuumElement2D[numElements];
             for (int e = 0; e < numElements; ++e)

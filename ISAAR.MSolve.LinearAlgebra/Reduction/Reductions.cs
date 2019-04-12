@@ -36,11 +36,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Reduction
         /// <param name="reducible">A matrix, vector or similar collection.</param>
         public static double MaxAbsolute(this IReducible reducible)
         {
-            return reducible.Reduce(
-                double.MinValue, 
-                (x, max) => Math.Abs(x) > max ? Math.Abs(x) : max,
-                (nz, max) => 0.0 > max ? 0.0 : max, 
-                max => max);
+            return reducible.Reduce(double.MinValue, (x, max) =>
+            {
+                double abs = Math.Abs(x);
+                return abs > max ? abs : max;
+            },
+            (nz, max) => 0.0 > max ? 0.0 : max, max => max);
         }
 
         /// <summary>
@@ -59,11 +60,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Reduction
         /// <param name="reducible">A matrix, vector or similar collection.</param>
         public static double MinAbsolute(this IReducible reducible)
         {
-            return reducible.Reduce(
-                double.MinValue,
-                (x, min) => Math.Abs(x) < min ? Math.Abs(x) : min,
-                (nz, min) => 0.0 < min ? 0.0 : min,
-                max => max);
+            return reducible.Reduce(double.MaxValue, (x, min) =>
+            {
+                double abs = Math.Abs(x);
+                return abs < min ? abs : min;
+            },
+            (nz, min) => 0.0 < min ? 0.0 : min, min => min);
         }
 
         /// <summary>

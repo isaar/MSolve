@@ -1,253 +1,242 @@
-﻿using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.IGA.Problems.Structural.Elements;
-using ISAAR.MSolve.IGA.Interfaces;
-using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
+//TODO: find what is going on with the dynamic loads and refactor them. That 564000000 in AssignMassAccelerationHistoryLoads()
+//      cannot be correct.
 namespace ISAAR.MSolve.IGA.Entities
 {
-    public class Model:IStructuralModel
-    {
-        private int totalDOFs = 0;
-        private int numberOfPatches=0;
-        private int numberOfInterfaces=0;
-        
-        private readonly Dictionary<int, ControlPoint> controlPointsDictionary = new Dictionary<int, ControlPoint>();
-        private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
-        private readonly Dictionary<int, Patch> patchesDictionary = new Dictionary<int, Patch>();
+    public class Model : IStructuralModel
+	{
+		private int numberOfPatches = 0;
+		private int numberOfInterfaces = 0;
 
-        private readonly Dictionary< int , Dictionary<DOFType,int>> controlPointsDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
-        private readonly IList<Load> loads = new List<Load>();
-	    private readonly IList<IMassAccelerationHistoryLoad> massAccelerationHistoryLoads = new List<IMassAccelerationHistoryLoad>();
-		//private readonly IList<ΙBoundaryCondition> boundaryConditions = new List<ΙBoundaryCondition>();
+		private readonly Dictionary<int, ControlPoint> controlPointsDictionary = new Dictionary<int, ControlPoint>();
+		private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
+		private readonly Dictionary<int, Patch> patchesDictionary = new Dictionary<int, Patch>();
 
-		#region Properties
+		private readonly IList<Load> loads = new List<Load>();
+
+		private readonly IList<IMassAccelerationHistoryLoad> massAccelerationHistoryLoads =
+			new List<IMassAccelerationHistoryLoad>();
+
+		private IGlobalFreeDofOrdering globalDofOrdering;
+
+		//public IList<EmbeddedNode> EmbeddedNodes { get; } = new List<EmbeddedNode>();
+
+		public IList<Cluster> Clusters => ClustersDictionary.Values.ToList();
+		public Dictionary<int, Cluster> ClustersDictionary { get; } = new Dictionary<int, Cluster>();
+
+		IReadOnlyList<IElement> IStructuralModel.Elements => ElementsDictionary.Values.ToList();
+		public IList<Element> Elements => ElementsDictionary.Values.ToList();
+		public Dictionary<int, Element> ElementsDictionary => elementsDictionary;
+
+		public IList<Load> Loads { get; private set; } = new List<Load>();
+
+		public IList<IMassAccelerationHistoryLoad> MassAccelerationHistoryLoads { get; } =
+			new List<IMassAccelerationHistoryLoad>();
+
+		public IList<ControlPoint> ControlPoints => controlPointsDictionary.Values.ToList();
+		IReadOnlyList<INode> IStructuralModel.Nodes => controlPointsDictionary.Values.ToList();
 
 		public Dictionary<int, ControlPoint> ControlPointsDictionary
-        {
-            get { return controlPointsDictionary; }
-        }
-
-        public Dictionary<int, Element> ElementsDictionary
-        {
-            get { return elementsDictionary; }
-        }
-
-        public Dictionary<int, Patch> PatchesDictionary
-        {
-            get { return patchesDictionary; }
-        }
-
-	    public Dictionary<int, ISubdomain> ISubdomainsDictionary
-	    {
-		    get
-		    {
-			    var a = new Dictionary<int, ISubdomain>();
-			    foreach (var subdomain in patchesDictionary.Values)
-				    a.Add(subdomain.ID, subdomain);
-			    return a;
-		    }
-	    }
-
-		public IList<ControlPoint> ControlPoints
-        {
-            get { return controlPointsDictionary.Values.ToList<ControlPoint>(); }
-        }
-
-        public IList<Element> Elements
-        {
-            get { return elementsDictionary.Values.ToList<Element>(); }
-        }
-
-        public IList<Patch> Patches
-        {
-            get { return patchesDictionary.Values.ToList<Patch>(); }
-        }
-
-        public IList<Load> Loads
-        {
-            get { return loads; }
-        }
-
-        //public IList<BoundaryCondition> BoundaryConditions
-        //{
-        //    get { return boundaryConditions; }
-        //}
-
-        public Dictionary<int, Dictionary<DOFType,int>> ControlPointDOFsDictionary
-        {
-            get { return controlPointsDOFsDictionary; }
-        }
-
-        public int TotalDOFs
-        {
-            get { return totalDOFs; }
-        }
-
-        public int NumberOfPatches
-        {
-            get { return numberOfPatches; }
-            set { numberOfPatches = value; }
-        }
-        public int NumberOfInterfaces
-        {
-            get { return numberOfInterfaces; }
-            set { numberOfInterfaces = value; }
-        }
-
-	    public IList<IMassAccelerationHistoryLoad> MassAccelerationHistoryLoads
-	    {
-		    get { return massAccelerationHistoryLoads; }
+		{
+			get => controlPointsDictionary;
 		}
-		#endregion
 
-		#region Data Interconnection routines
+		public int NumberOfPatches
+		{
+			get { return numberOfPatches; }
+			set { numberOfPatches = value; }
+		}
 
-		private void BuildElementDictionaryOfEachControlPoint()
-        {
-            foreach (Element element in elementsDictionary.Values)
-                foreach (ControlPoint controlPoint in element.ControlPoints)
-                    controlPoint.ElementsDictionary.Add(element.ID, element);
-        }
+		public int NumberOfInterfaces
+		{
+			get { return numberOfInterfaces; }
+			set { numberOfInterfaces = value; }
+		}
 
-        private void BuildPatchOfEachElement()
-        {
-            foreach (Patch patch in patchesDictionary.Values)
-                foreach (Element element in patch.ElementsDictionary.Values)
-                    element.Patch = patch;
-        }
+		IReadOnlyList<ISubdomain> IStructuralModel.Subdomains => patchesDictionary.Values.ToList();
+		public IList<Patch> Patches => patchesDictionary.Values.ToList();
 
-        private void BuildInterconnectionData()
-        {
-            BuildPatchOfEachElement();
-            BuildElementDictionaryOfEachControlPoint();
-            foreach (ControlPoint controlPoint in controlPointsDictionary.Values)
-                controlPoint.BuildPatchesDictionary();
+		public Dictionary<int, Patch> PatchesDictionary
+		{
+			get => patchesDictionary;
+		}
 
-            foreach (Patch patch in PatchesDictionary.Values)
-            {
-                patch.BuildControlPointsDictionary();
-                //patch.BuildEdgesDictionary();
-                //patch.BuildFacesDictionary();
-            }                
-        }
+		public Table<INode, IDofType, double> Constraints { get; private set; } =
+			new Table<INode, IDofType, double>(); //TODOMaria: maybe it's useless in model class
 
-        private void EnumerateGlobalDOFs()
-        {
-            totalDOFs = 0;
-            Dictionary<int, List<DOFType>> controlPointDOFTypesDictionary = new Dictionary<int, List<DOFType>>();
-            foreach (Element element in elementsDictionary.Values)
-            {
-                for (int i = 0; i < element.ControlPoints.Count; i++)
-                {
-                    if (!controlPointDOFTypesDictionary.ContainsKey(element.ControlPoints[i].ID))
-                        controlPointDOFTypesDictionary.Add(element.ControlPoints[i].ID, new List<DOFType>());
-                    controlPointDOFTypesDictionary[element.ControlPoints[i].ID].AddRange(element.ElementType.DOFEnumerator.GetDOFTypesForDOFEnumeration(element)[i]);
-                }
-            }
+		public IGlobalFreeDofOrdering GlobalDofOrdering
+		{
+			get => globalDofOrdering;
+			set
+			{
+				globalDofOrdering = value;
+				foreach (Patch patch in Patches)
+				{
+					patch.FreeDofOrdering = GlobalDofOrdering.SubdomainDofOrderings[patch];
+					patch.Forces = Vector.CreateZero(patch.FreeDofOrdering.NumFreeDofs);
+				}
 
-            foreach (ControlPoint controlPoint in controlPointsDictionary.Values)
-            {
-                Dictionary<DOFType, int> dofsDictionary = new Dictionary<DOFType, int>();
-                foreach (DOFType dofType in controlPointDOFTypesDictionary[controlPoint.ID].Distinct<DOFType>())
-                {
-                    int dofID = 0;
-                    foreach (DOFType constraint in controlPoint.Constrains)
-                    {
-                        if (constraint == dofType)
-                        {
-                            dofID = -1;
-                            break;
-                        }
-                    }
+				//EnumerateSubdomainLagranges();
+				//EnumerateDOFMultiplicity();
+			}
+		}
 
-                    if (dofID == 0)
-                    {
-                        dofID = totalDOFs;
-                        totalDOFs++;
-                    }
-                    dofsDictionary.Add(dofType, dofID);
-                }
-                ControlPointDOFsDictionary.Add(controlPoint.ID, dofsDictionary);
-            }
-        }
-
-        private void EnumerateDOFs()
-        {
-            EnumerateGlobalDOFs();
-            foreach (Patch patch in patchesDictionary.Values)
-            {
-                patch.EnumerateDOFs();
-                patch.AssignGlobalControlPointDOFsFromModel(controlPointsDOFsDictionary);
-            }
-        }
-
-        public void AssignLoads()
-        {
-            AssignControlPointLoads();
-            AssignBoundaryLoads();
-        }
-
-        private void AssignBoundaryLoads()
-        {
-            foreach (Patch patch in patchesDictionary.Values)
-            {
-                foreach (Edge edge in patch.EdgesDictionary.Values)
-                {
-                    Dictionary<int, double> edgeLoadDictionary =edge.CalculateLoads();
-                    foreach (int dof in edgeLoadDictionary.Keys)
-                        if (dof!=-1) patch.Forces[dof] += edgeLoadDictionary[dof];
-                }
-                foreach (Face face in patch.FacesDictionary.Values)
-                {
-                    Dictionary<int, double> faceLoadDictionary = face.CalculateLoads();
-                    foreach (int dof in faceLoadDictionary.Keys)
-                        if (dof!=-1) patch.Forces[dof] += faceLoadDictionary[dof];
-                }
-            }
-        }
-
-        private void AssignControlPointLoads()
-        {
-            foreach (Patch patch in patchesDictionary.Values)
-                Array.Clear(patch.Forces, 0, patch.Forces.Length);
-            foreach (Load load in loads)
-                foreach (Patch patch in load.ControlPoint.PatchesDictionary.Values)
-                {
-                    int dof = patch.ControlPointDOFsDictionary[load.ControlPoint.ID][load.DOF];
-                    if (dof >= 0)
-                        patch.Forces[dof] = load.Amount / load.ControlPoint.PatchesDictionary.Count;
-                }
-        }
-
-        public void ConnectDataStructures()
-        {
-            BuildInterconnectionData();
-            EnumerateDOFs();
-            AssignLoads();
-        }
-
-        #endregion
-
-        public void Clear()
-        {
-            loads.Clear();
-            patchesDictionary.Clear();
-            elementsDictionary.Clear();
-            controlPointsDictionary.Clear();
-            controlPointsDOFsDictionary.Clear();
-        }
+		public void AssignLoads(NodalLoadsToSubdomainsDistributor distributeNodalLoads)
+		{
+			foreach (Patch patch in PatchesDictionary.Values) patch.Forces.Clear();
+			AssignControlPointLoads(distributeNodalLoads);
+			AssignBoundaryLoads();
+		}
 
 		public void AssignMassAccelerationHistoryLoads(int timeStep)
 		{
 			throw new NotImplementedException();
 		}
-	}
+
+		private void AssignBoundaryLoads()
+		{
+			foreach (Patch patch in patchesDictionary.Values)
+			{
+				foreach (Edge edge in patch.EdgesDictionary.Values)
+				{
+					Dictionary<int, double> edgeLoadDictionary = edge.CalculateLoads();
+					foreach (int dof in edgeLoadDictionary.Keys)
+						if (dof != -1)
+							patch.Forces[dof] += edgeLoadDictionary[dof];
+				}
+
+				foreach (Face face in patch.FacesDictionary.Values)
+				{
+					Dictionary<int, double> faceLoadDictionary = face.CalculateLoads();
+					foreach (int dof in faceLoadDictionary.Keys)
+						if (dof != -1)
+							patch.Forces[dof] += faceLoadDictionary[dof];
+				}
+			}
+		}
+
+		private void AssignControlPointLoads(NodalLoadsToSubdomainsDistributor distributeControlPointLoads)
+		{
+            var globalPointLoads = new Table<INode, IDofType, double>();
+            foreach (Load load in Loads) globalPointLoads.TryAdd(load.ControlPoint, load.DOF, load.Amount);
+
+            Dictionary<int, SparseVector> patchPointLoads = distributeControlPointLoads(globalPointLoads);
+            foreach (var idPatchLoads in patchPointLoads)
+            {
+                PatchesDictionary[idPatchLoads.Key].Forces.AddIntoThis(idPatchLoads.Value);
+            }
+      
+
+            // Old code. It should probably be deleted.
+            //foreach (Patch patch in PatchesDictionary.Values)
+			//{
+			//	patch.ControlPointLoads = new Table<ControlPoint, DOFType, double>();
+			//}
+
+			//foreach (Load load in Loads)
+			//{
+			//	var cp = ((ControlPoint) load.ControlPoint);
+			//	double amountPerPatch = load.Amount / cp.PatchesDictionary.Count;
+			//	foreach (Patch patch in cp.PatchesDictionary.Values)
+			//	{
+			//		bool wasNotContained = patch.ControlPointLoads.TryAdd(cp, load.DOF, amountPerPatch);
+			//	}
+			//}
+
+			////TODO: this should be done by the subdomain when the analyzer decides.
+			//foreach (Patch patch in PatchesDictionary.Values)
+			//{
+			//	foreach ((ControlPoint node, DOFType dofType, double amount) in patch.ControlPointLoads)
+			//	{
+			//		if (!patch.DofOrdering.FreeDofs.Contains(node, dofType)) continue;
+			//		int patchDofIdx = patch.DofOrdering.FreeDofs[node, dofType];
+			//		patch.Forces[patchDofIdx] = amount;
+			//	}
+			//}
+		}
+
+
+		//What is the purpose of this method? If someone wanted to clear the Model, they could just create a new one.
+		public void Clear()
+		{
+			Loads.Clear();
+			ClustersDictionary.Clear();
+			PatchesDictionary.Clear();
+			ElementsDictionary.Clear();
+			ControlPointsDictionary.Clear();
+			globalDofOrdering = null;
+			Constraints.Clear();
+			MassAccelerationHistoryLoads.Clear();
+		}
+
+		public void ConnectDataStructures()
+		{
+			BuildInterconnectionData();
+			AssignConstraints();
+            RemoveInactiveNodalLoads();
+        }
+
+		//TODO: constraints should not be saved inside the nodes. As it is right now (22/11/2018) the same constraint 
+		//      is saved in the node, the model constraints table and the subdomain constraints table. Furthermore,
+		//      displacement control analyzer updates the subdomain constraints table only (another bad design decision).  
+		//      It is too easy to access the wrong instance of the constraint. 
+		private void AssignConstraints()
+		{
+			foreach (ControlPoint controlPoint in ControlPointsDictionary.Values)
+			{
+				if (controlPoint.Constraints == null) continue;
+				foreach (Constraint constraint in controlPoint.Constraints)
+					Constraints[controlPoint, constraint.DOF] = constraint.Amount;
+			}
+
+			foreach (Patch patch in PatchesDictionary.Values) patch.ExtractConstraintsFromGlobal(Constraints);
+		}
+
+		private void BuildElementDictionaryOfEachControlPoint()
+		{
+			foreach (Element element in elementsDictionary.Values)
+			foreach (ControlPoint controlPoint in element.ControlPoints)
+				controlPoint.ElementsDictionary.Add(element.ID, element);
+		}
+
+		private void
+			BuildInterconnectionData() //TODOMaria: maybe I have to generate the constraints dictionary for each subdomain here
+		{
+			BuildPatchOfEachElement();
+			BuildElementDictionaryOfEachControlPoint();
+			foreach (ControlPoint controlPoint in ControlPointsDictionary.Values) controlPoint.BuildPatchesDictionary();
+
+			//foreach (Patch patch in PatchesDictionary.Values) patch.DefineControlPointsFromElements();
+		}
+
+		private void BuildPatchOfEachElement()
+		{
+			foreach (Patch patch in patchesDictionary.Values)
+			foreach (Element element in patch.Elements)
+			{
+				element.Patch = patch;
+				element.Model = this;
+			}
+		}
+
+        private void RemoveInactiveNodalLoads()
+        {
+            var activeLoads = new List<Load>(Loads.Count);
+            foreach (Load load in Loads)
+            {
+                bool isConstrained = Constraints.Contains(load.ControlPoint, load.DOF);
+                if (!isConstrained) activeLoads.Add(load);
+            }
+            Loads = activeLoads;
+        }
+    }
 }

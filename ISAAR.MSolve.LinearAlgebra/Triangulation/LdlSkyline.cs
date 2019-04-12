@@ -117,9 +117,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
             Preconditions.CheckMultiplicationDimensions(this.NumColumns, solutionVectors.NumRows);
             Preconditions.CheckSameColDimension(rhsVectors, solutionVectors);
 
-            for (int j = 0; j < NumColumns; ++j)
+            for (int j = 0; j < rhsVectors.NumColumns; ++j)
             {
-                int offset = j * NumColumns;
+                int offset = j * NumRows;
                 SolveWithOffsets(NumColumns, values, diagOffsets, rhsVectors.RawData, offset, solutionVectors.RawData, offset);
             }
         }

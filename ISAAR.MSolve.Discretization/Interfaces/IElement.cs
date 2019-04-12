@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace ISAAR.MSolve.Discretization.Interfaces
 {
     public interface IElement
     {
-	    int ID { get; set; }
-		IElementType IElementType { get; }
-	    IList<INode> INodes { get; }
+        int ID { get; set; }
+        IElementType ElementType { get; }
+        IList<INode> Nodes { get; }
+        ISubdomain Subdomain { get; }
     }
 }

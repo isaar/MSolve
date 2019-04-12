@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
+﻿using ISAAR.MSolve.LinearAlgebra.Commons;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -33,6 +34,30 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
             var matrix = SymmetricMatrix.CreateFromArray(SymmPosDef10by10.Matrix);
             matrix.Clear();
             comparer.AssertEqual(zero, matrix);
+        }
+
+        [Fact]
+        private static void TestGetColumn()
+        {
+            var matrix = SymmetricMatrix.CreateFromArray(SymmPosDef10by10.Matrix);
+            for (int j = 0; j < SymmPosDef10by10.Order; ++j)
+            {
+                Vector colExpected = DenseStrategies.GetColumn(matrix, j);
+                Vector colComputed = matrix.GetColumn(j);
+                comparer.AssertEqual(colExpected, colComputed);
+            }
+        }
+
+        [Fact]
+        private static void TestGetRow()
+        {
+            var matrix = SymmetricMatrix.CreateFromArray(SymmPosDef10by10.Matrix);
+            for (int i = 0; i < SymmPosDef10by10.Order; ++i)
+            {
+                Vector rowExpected = DenseStrategies.GetRow(matrix, i);
+                Vector rowComputed = matrix.GetRow(i);
+                comparer.AssertEqual(rowExpected, rowComputed);
+            }
         }
 
         [Theory]

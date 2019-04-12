@@ -7,6 +7,8 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: this should not be in the same folder with the actual matrices and their interfaces
 //TODO: Split this into many classes: IMatrixExtensions, MatrixExtensions, CsrMatrixExtensions (or collectively 
 //      SparseMatrixExtensions, etc).
+//TODO: The GetColumn, GetDiagonal, GetRow should be implemented as default interface methods and overwritten by concrete matrix  
+//      classes when possible.
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
@@ -28,7 +30,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="matrix1"/> and <paramref name="matrix2"/>
         ///     have a different number of <see cref="IIndexable2D.NumRows"/> or 
         ///     <see cref="IIndexable2D.NumColumns"/>.</exception>
-        public static IMatrixView Add(this IMatrixView matrix1, IMatrixView matrix2) => matrix1.Axpy(matrix2, 1.0);
+        public static IMatrix Add(this IMatrixView matrix1, IMatrixView matrix2) => matrix1.Axpy(matrix2, 1.0);
 
         /// <summary>
         /// Performs the operation: 
@@ -191,7 +193,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             double pivotTolerance)
         {
             // Ported from octave's built-in implementation: https://searchcode.com/codesearch/view/9591940/.
-            var rref = Matrix.CreateFromMatrix(matrix);
+            var rref = matrix.CopyToFullMatrix();
             int numRows = rref.NumRows;
             int numCols = rref.NumColumns;
 
@@ -349,7 +351,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="matrix1"/> and <paramref name="matrix2"/>
         ///     have a different number of <see cref="IIndexable2D.NumRows"/> or 
         ///     <see cref="IIndexable2D.NumColumns"/>.</exception>
-        public static IMatrixView Subtract(this IMatrixView matrix1, IMatrixView matrix2) => matrix1.Axpy(matrix2, -1.0);
+        public static IMatrix Subtract(this IMatrixView matrix1, IMatrixView matrix2) => matrix1.Axpy(matrix2, -1.0);
 
         /// <summary>
         /// Performs the operation: 

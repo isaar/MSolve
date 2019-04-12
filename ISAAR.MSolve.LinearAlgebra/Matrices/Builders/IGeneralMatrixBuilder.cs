@@ -24,6 +24,31 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             IReadOnlyDictionary<int, int> subRowsToGlobalRows, IReadOnlyDictionary<int, int> subColsToGlobalCols);
 
         /// <summary>
+        /// Adds the entries of <paramref name="subMatrix"/> to the corresponding entries of this matrix. The mapping between 
+        /// the rows and columns of the two matrices is given by (<paramref name="subMatrixRows"/>, 
+        /// <paramref name="globalMatrixRows"/>) and (<paramref name="subMatrixCols"/>, <paramref name="globalMatrixCols"/>).
+        /// </summary>
+        /// <param name="subMatrix">The matrix to add to this <see cref="IGeneralMatrixBuilder"/>.</param>
+        /// <param name="subMatrixRows">
+        /// The row indices of the entries of <paramref name="subMatrix"/> that will be added to the global matrix. 
+        /// <paramref name="subMatrixRows"/>[i] corresponds to <paramref name="globalMatrixRows"/>[i].
+        /// </param>
+        /// <param name="globalMatrixRows">
+        /// The row indices of the entries of the gobal matrix that will be modified.
+        /// <paramref name="globalMatrixRows"/>[i] corresponds to <paramref name="subMatrixRows"/>[i]. 
+        /// </param>
+        /// <param name="subMatrixCols">
+        /// The column indices of the entries of <paramref name="subMatrix"/> that will be added to the global matrix. 
+        /// <paramref name="subMatrixCols"/>[i] corresponds to <paramref name="globalMatrixCols"/>[i].
+        /// </param>
+        /// <param name="globalMatrixCols">
+        /// The column indices of the entries of the gobal matrix that will be modified.
+        /// <paramref name="globalMatrixCols"/>[i] corresponds to <paramref name="subMatrixCols"/>[i]. 
+        /// </param>
+        void AddSubmatrix(IIndexable2D subMatrix, int[] subMatrixRows, int[] globalMatrixRows,
+             int[] subMatrixCols, int[] globalMatrixCols);
+
+        /// <summary>
         /// Adds the entries of <paramref name="subMatrix"/> to the corresponding entries of this matrix. Both matrices must be
         /// symmetric. The mapping between the rows and columns of the two matrices is given by 
         /// <paramref name="subIndicesToGlobalIndices"/> and the resulting "global" row/column indices must be symmetrically  

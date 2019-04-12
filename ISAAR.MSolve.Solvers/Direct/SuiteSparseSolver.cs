@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
@@ -23,7 +25,7 @@ namespace ISAAR.MSolve.Solvers.Direct
         private bool mustFactorize = true;
         private CholeskySuiteSparse factorization;
 
-        private SuiteSparseSolver(IStructuralModel_v2 model, double factorizationPivotTolerance, IDofOrderer dofOrderer):
+        private SuiteSparseSolver(IStructuralModel model, double factorizationPivotTolerance, IDofOrderer dofOrderer):
             base(model, dofOrderer, new SymmetricCscAssembler(), "SkylineSolver")
         {
             this.factorizationPivotTolerance = factorizationPivotTolerance;
@@ -40,8 +42,6 @@ namespace ISAAR.MSolve.Solvers.Direct
             GC.SuppressFinalize(this);
         }
 
-        public override void Initialize() { }
-
         public override void HandleMatrixWillBeSet()
         {
             mustFactorize = true;
@@ -52,6 +52,8 @@ namespace ISAAR.MSolve.Solvers.Direct
             }
             //TODO: make sure the native memory allocated has been cleared. We need all the available memory we can get.
         }
+
+        public override void Initialize() { }
 
         public override void PreventFromOverwrittingSystemMatrices()
         {
@@ -75,6 +77,46 @@ namespace ISAAR.MSolve.Solvers.Direct
             factorization.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
         }
 
+        protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)
+        {
+            // Factorization
+            if (mustFactorize)
+            {
+                factorization = CholeskySuiteSparse.Factorize(linearSystem.Matrix, useSuperNodalFactorization);
+                mustFactorize = false;
+            }
+
+            if (otherMatrix is Matrix otherDense) return factorization.SolveLinearSystems(otherDense);
+            else
+            {
+                try
+                {
+                    // If there is enough memory, copy the RHS matrix to a dense one, to speed up computations. 
+                    //TODO: must be benchmarked, if it is actually more efficient than solving column by column.
+                    Matrix rhsVectors = otherMatrix.CopyToFullMatrix();
+                    return factorization.SolveLinearSystems(rhsVectors);
+                }
+                catch (InsufficientMemoryException) //TODO: what about OutOfMemoryException?
+                {
+                    // Solution vectors
+                    int systemOrder = linearSystem.Matrix.NumColumns;
+                    int numRhs = otherMatrix.NumColumns;
+                    var solutionVectors = Matrix.CreateZero(systemOrder, numRhs);
+                    Vector solutionVector = linearSystem.CreateZeroVector();
+
+                    // Solve each linear system separately, to avoid copying the RHS matrix to a dense one.
+                    for (int j = 0; j < numRhs; ++j)
+                    {
+                        if (j != 0) solutionVector.Clear();
+                        Vector rhsVector = otherMatrix.GetColumn(j);
+                        factorization.SolveLinearSystem(rhsVector, solutionVector);
+                        solutionVectors.SetSubcolumn(j, solutionVector);
+                    }
+                    return solutionVectors;
+                }
+            }
+        }
+
         private void ReleaseResources()
         {
             if (factorization != null)
@@ -93,9 +135,9 @@ namespace ISAAR.MSolve.Solvers.Direct
 
             public double FactorizationPivotTolerance { get; set; } = 1E-15;
 
-            ISolver_v2 ISolverBuilder.BuildSolver(IStructuralModel_v2 model) => BuildSolver(model);
+            ISolver ISolverBuilder.BuildSolver(IStructuralModel model) => BuildSolver(model);
 
-            public SuiteSparseSolver BuildSolver(IStructuralModel_v2 model)
+            public SuiteSparseSolver BuildSolver(IStructuralModel model)
                 => new SuiteSparseSolver(model, FactorizationPivotTolerance, DofOrderer);
         }
     }

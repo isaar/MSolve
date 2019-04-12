@@ -1,11 +1,14 @@
-﻿using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Materials.Interfaces;
 using System;
 
 namespace ISAAR.MSolve.Materials
 {
-    public class BenzeggaghKenaneCohesiveMaterial : ICohesiveZoneMaterial3D 
+    /// <summary>
+    /// Benzeggagh-Kenane Mixed mode damage propagation criterion. Bilinear traction separation law. 
+    /// Authors Gerasimos Sotiropoulos
+    /// </summary>
+    public class BenzeggaghKenaneCohesiveMaterial : ICohesiveZoneMaterial3D
     {
         private bool modified;
 
@@ -51,7 +54,7 @@ namespace ISAAR.MSolve.Materials
         private double D_o_old;
         private double d;
 
-        private double[,] D_tan;
+        private Matrix D_tan;
         private double[,] D_tan_prev;
         private double[] T_int;
         private double[,] D_tan_f;
@@ -62,15 +65,13 @@ namespace ISAAR.MSolve.Materials
         private bool matrices_not_initialized = true;
         public void InitializeMatrices()
         {
-            D_tan = new double[3, 3];
+            D_tan = Matrix.CreateZero(3, 3);
             D_tan_prev = new double[3, 3];
             T_int = new double[3];
             D_tan_f = new double[3, 3];
             matrices_not_initialized = false;
             tol = Math.Pow(10, -19);
         }
-
-
 
         public void UpdateMaterial(double[] Delta)
         {
@@ -202,12 +203,12 @@ namespace ISAAR.MSolve.Materials
             get { return T_int; }
         }
 
-        public IMatrix2D ConstitutiveMatrix
+        public IMatrixView ConstitutiveMatrix
         {
             get
             {
                 if (D_tan == null) UpdateMaterial(new double[3]);
-                return new Matrix2D(D_tan);
+                return D_tan;
             }
         }
 

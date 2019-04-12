@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// around or allow acceess to it, consider using this interface instead of <see cref="Matrix"/> for extra safety.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public interface IMatrixView: IIndexable2D, IReducible, IEntrywiseOperableView2D<IMatrixView, IMatrix>
+    public interface IMatrixView: IIndexable2D, IReducible, IEntrywiseOperableView2D<IMatrixView, IMatrix>, ISliceable2D
     {
         /// <summary>
         /// Performs the following operation for all (i, j):
@@ -38,7 +38,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </param>
         IMatrix Copy(bool copyIndexingData = false);
 
-        /// <summary>
+        /// Copies this <see cref="IMatrixView"/> object. The new matrix will have all its entries explicitly stored.
+        /// </summary>
+        Matrix CopyToFullMatrix();
+
         /// Performs the following operation for all (i, j):
         /// result[i, j] = <paramref name="thisCoefficient"/> * this[i, j] + <paramref name="otherCoefficient"/> * 
         /// <paramref name="otherMatrix"/>[i, j]. 

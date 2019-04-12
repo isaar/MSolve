@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
@@ -50,22 +51,22 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
         {
             // Define the materials
             double thickness = 1.0;
-            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
+            var material = new ElasticMaterial2D(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus, PoissonRatio = 0.3
             };
             var dynamicProperties = new DynamicMaterial(1.0, 0.0, 0.0);
 
             // Model with 1 subdomain
-            var model = new Model_v2();
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
+            var model = new Model();
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain(subdomainID));
 
             // Generate mesh
             int numElementsX = 32, numElementsY = 20;
             double lengthX = numElementsX;
             double depthY = numElementsY;
-            var mesher = new UniformMeshGenerator2D_v2(0, 0, lengthX, depthY, numElementsX, numElementsY);
-            (IReadOnlyList<Node_v2> nodes, IReadOnlyList<CellConnectivity_v2> connectivity) = mesher.CreateMesh();
+            var mesher = new UniformMeshGenerator2D(0, 0, lengthX, depthY, numElementsX, numElementsY);
+            (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity> connectivity) = mesher.CreateMesh();
 
             // Add nodes to the model
             for (int n = 0; n < nodes.Count; ++n) model.NodesDictionary.Add(n, nodes[n]);
@@ -75,8 +76,8 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
             for (int e = 0; e < connectivity.Count; ++e)
             {
                 ContinuumElement2D element = factory.CreateElement(connectivity[e].CellType, connectivity[e].Vertices);
-                var elementWrapper = new Element_v2() { ID = e, ElementType = element };
-                foreach (Node_v2 node in element.Nodes) elementWrapper.AddNode(node);
+                var elementWrapper = new Element() { ID = e, ElementType = element };
+                foreach (Node node in element.Nodes) elementWrapper.AddNode(node);
                 model.ElementsDictionary.Add(e, elementWrapper);
                 model.SubdomainsDictionary[subdomainID].Elements.Add(elementWrapper);
             }
@@ -85,8 +86,8 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
             double tol = 1E-10; //TODO: this should be chosen w.r.t. the element size along X
             foreach (var node in model.Nodes.Where(node => Math.Abs(node.X) <= tol))
             {
-                node.Constraints.Add(new Constraint() { DOF = DOFType.X, Amount = 0.0 });
-                node.Constraints.Add(new Constraint() { DOF = DOFType.Y, Amount = 0.0 });
+                node.Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationX, Amount = 0.0 });
+                node.Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationY, Amount = 0.0 });
             }
 
             // Apply concentrated load at the bottom right corner
@@ -94,7 +95,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
             var cornerNode = model.Nodes.Where(
                 node => (Math.Abs(node.X - lengthX) <= tol) && (Math.Abs(node.Y - depthY) <= tol));
             Assert.True(cornerNode.Count() == 1);
-            model.Loads.Add(new Load_v2() { Amount = load, Node = cornerNode.First(), DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = load, Node = cornerNode.First(), DOF = StructuralDof.TranslationY });
 
             // Define the solver
             SkylineSolver solver = (new SkylineSolver.Builder()).BuildSolver(model);
@@ -195,22 +196,22 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
         {
             // Material
             double thickness = 1.0;
-            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
+            var material = new ElasticMaterial2D(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus, PoissonRatio = 0.3
             };
             var dynamicProperties = new DynamicMaterial(1.0, 0.0, 0.0);
 
             // Model with 1 subdomain
-            var model = new Model_v2();
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
+            var model = new Model();
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain(subdomainID));
 
             // Generate mesh
             int numElementsX = 60, numElementsY = 20;
             double lengthX = numElementsX;
             double depthY = numElementsY;
-            var mesher = new UniformMeshGenerator2D_v2(0, 0, lengthX, depthY, numElementsX, numElementsY);
-            (IReadOnlyList<Node_v2> nodes, IReadOnlyList<CellConnectivity_v2> connectivity) = mesher.CreateMesh();
+            var mesher = new UniformMeshGenerator2D(0, 0, lengthX, depthY, numElementsX, numElementsY);
+            (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity> connectivity) = mesher.CreateMesh();
 
             // Add nodes to the model
             for (int n = 0; n < nodes.Count; ++n) model.NodesDictionary.Add(n, nodes[n]);
@@ -220,8 +221,8 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
             for (int e = 0; e < connectivity.Count; ++e)
             {
                 ContinuumElement2D element = factory.CreateElement(connectivity[e].CellType, connectivity[e].Vertices);
-                var elementWrapper = new Element_v2() { ID = e, ElementType = element };
-                foreach (Node_v2 node in element.Nodes) elementWrapper.AddNode(node);
+                var elementWrapper = new Element() { ID = e, ElementType = element };
+                foreach (Node node in element.Nodes) elementWrapper.AddNode(node);
                 model.ElementsDictionary.Add(e, elementWrapper);
                 model.SubdomainsDictionary[subdomainID].Elements.Add(elementWrapper);
             }
@@ -230,21 +231,21 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
             double tol = 1E-10; //TODO: this should be chosen w.r.t. the element size along X
             foreach (var node in model.Nodes.Where(node => Math.Abs(node.X) <= tol))
             {
-                node.Constraints.Add(new Constraint() { DOF = DOFType.X, Amount = 0.0 });
+                node.Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationX, Amount = 0.0 });
             }
 
             // Roller boundary condition at bottom right corner
             var bottomRightNode = model.Nodes.Where(
                 node => (Math.Abs(node.X - lengthX) <= tol) && (Math.Abs(node.Y - depthY) <= tol));
             Assert.True(bottomRightNode.Count() == 1);
-            bottomRightNode.First().Constraints.Add(new Constraint() { DOF = DOFType.Y, Amount = 0.0 });
+            bottomRightNode.First().Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationY, Amount = 0.0 });
 
             // Apply concentrated load at top left corner
             double load = 1.0;
             var topLeftNode = model.Nodes.Where(
                 node => (Math.Abs(node.X) <= tol) && (Math.Abs(node.Y) <= tol));
             Assert.True(topLeftNode.Count() == 1);
-            model.Loads.Add(new Load_v2() { Amount = load, Node = topLeftNode.First(), DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = load, Node = topLeftNode.First(), DOF = StructuralDof.TranslationY });
 
             // Define the solver
             SkylineSolver solver = (new SkylineSolver.Builder()).BuildSolver(model);

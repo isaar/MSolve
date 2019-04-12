@@ -40,7 +40,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 		/// <param name="interpolation">Defines the natural coordinates of the finite element's nodes.</param>
 		/// <returns></returns>
 		IReadOnlyList<double> ExtrapolateScalarFromGaussPointsToNodes(IReadOnlyList<double> scalarAtGaussPoints,
-		    IIsoparametricInterpolation3D_OLD interpolation);
+		    IIsoparametricInterpolation3D interpolation);
 
 		/// <summary>
 		/// Calculates a tensor quantity at a given point by extrapolating (or interpolating) its known values at 
@@ -63,7 +63,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 		/// <param name="interpolation">Defines the natural coordinates of the finite element's nodes.</param>
 		/// <returns></returns>
 		IReadOnlyList<double[]> ExtrapolateTensorFromGaussPointsToNodes(IReadOnlyList<double[]> tensorsAtGaussPoints,
-		    IIsoparametricInterpolation3D_OLD interpolation);
+		    IIsoparametricInterpolation3D interpolation);
 
 		/// <summary>
 		/// Calculates a vector quantity at a given point by extrapolating (or interpolating) its known values at 
@@ -86,6 +86,6 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 		/// <param name="interpolation">Defines the natural coordinates of the finite element's nodes.</param>
 		/// <returns></returns>
 		IReadOnlyList<double[]> ExtrapolateVectorFromGaussPointsToNodes(IReadOnlyList<double[]> vectorsAtGaussPoints,
-		    IIsoparametricInterpolation3D_OLD interpolation);
+		    IIsoparametricInterpolation3D interpolation);
     }
 }

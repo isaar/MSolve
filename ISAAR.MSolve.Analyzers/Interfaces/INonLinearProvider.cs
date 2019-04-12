@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Solvers.Interfaces;
+﻿using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Analyzers.Interfaces
 {
     public interface INonLinearProvider : IAnalyzerProvider
     {
-        double RHSNorm(double[] rhs);
-        void ProcessInternalRHS(ILinearSystem subdomain, double[] rhs, double[] solution);
+        double CalculateRhsNorm(IVectorView rhs);
+
+        //TODO: Very generic name. There is also a similar method in IImplictIntegrationProvider.
+        void ProcessInternalRhs(ISubdomain subdomain, IVectorView solution, IVector rhs);
     }
 }

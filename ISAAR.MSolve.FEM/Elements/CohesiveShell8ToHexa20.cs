@@ -1,4 +1,7 @@
-﻿using ISAAR.MSolve.Discretization;
+﻿using System;
+using System.Collections.Generic;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
@@ -6,28 +9,29 @@ using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Interpolation;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System;
-using System.Collections.Generic;
-using IEmbeddedElement = ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
 
 //TODO: current nodal coordinates should be managed by the analyzer, instead of each element calculting and storing them independently. The same applies for direction vectors of shells. 
 //TODO: direction vectors creation and update could be handled by a dedicated class that will be composed into this element. Which element would update them then?
 //TODO: perhaps separate the cases fot when the shell is over or under the cohesive element ibto 2 subclasses
 namespace ISAAR.MSolve.FEM.Elements
 {
+    /// <summary>
+    /// Cohesive element for modeling of delamination and debonding effects between parts modeled with shell and hexa20 elements.
+    /// Authors: Gerasimos Sotiropoulos
+    /// </summary>
     public class CohesiveShell8ToHexa20 : IStructuralFiniteElement, IEmbeddedElement
     {
-        protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
-        protected readonly static DOFType[] nodalDOFTypes2 = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.RotX, DOFType.RotY };
-        protected readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes2, nodalDOFTypes2, nodalDOFTypes2,
+        protected readonly static IDofType[] nodalDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ };
+        protected readonly static IDofType[] nodalDOFTypes2 = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ, StructuralDof.RotationX, StructuralDof.RotationY };
+        protected readonly static IDofType[][] dofTypes = new IDofType[][] { nodalDOFTypes2, nodalDOFTypes2, nodalDOFTypes2,
             nodalDOFTypes2, nodalDOFTypes2, nodalDOFTypes2, nodalDOFTypes2, nodalDOFTypes2,nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes };
         protected readonly ICohesiveZoneMaterial3D[] materialsAtGaussPoints;
         private readonly InterpolationShell8Cohesive interpolation = InterpolationShell8Cohesive.UniqueInstance;
-        protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        private readonly List<EmbeddedNode> embeddedNodes = new List<EmbeddedNode>();
+        protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
 
         private int nGaussPoints;
         public double[][] oVn_i { get; set; }
@@ -63,11 +67,6 @@ namespace ISAAR.MSolve.FEM.Elements
         private double[] bk_total = new double[8];
         public bool MatrixIsNotInitialized = true;
 
-
-        protected CohesiveShell8ToHexa20()
-        {
-        }
-
         public CohesiveShell8ToHexa20(ICohesiveZoneMaterial3D material, IQuadrature2D quadratureForStiffness)
         {
             this.QuadratureForStiffness = quadratureForStiffness;
@@ -76,14 +75,26 @@ namespace ISAAR.MSolve.FEM.Elements
             for (int i = 0; i < nGaussPoints; i++) materialsAtGaussPoints[i] = material.Clone();
         }
 
-        public IQuadrature2D QuadratureForStiffness { get;  }
+        public int ID => 13;
+
+        public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
+
+        public IElementDofEnumerator DofEnumerator
+        {
+            get { return dofEnumerator; }
+            set { dofEnumerator = value; }
+        }
+
+        public IList<EmbeddedNode> EmbeddedNodes => embeddedNodes;
+
+        public IQuadrature2D QuadratureForStiffness { get; }
         
         private void GetInitialGeometricDataForMidsurface(IElement element)
         {
             ox_i_shell_midsurface = new double[8][];
             for (int j = 0; j < 8; j++)
             {
-                ox_i_shell_midsurface[j] = new double[] { element.INodes[j].X, element.INodes[j].Y, element.INodes[j].Z, };                               
+                ox_i_shell_midsurface[j] = new double[] { element.Nodes[j].X, element.Nodes[j].Y, element.Nodes[j].Z, };                               
             }
         }
 
@@ -127,12 +138,12 @@ namespace ISAAR.MSolve.FEM.Elements
                 { ox_i[j] = new double[] { ox_i_shell_midsurface[j][0]-0.5* tk[j] * tU[j][3], ox_i_shell_midsurface[j][1] - 0.5 * tk[j] * tU[j][4],
                                              ox_i_shell_midsurface[j][2]-0.5* tk[j] * tU[j][5], };}
                 for (int j = 8; j < 16; j++)
-                {ox_i[j] = new double[] { element.INodes[j].X, element.INodes[j].Y, element.INodes[j].Z, };}
+                {ox_i[j] = new double[] { element.Nodes[j].X, element.Nodes[j].Y, element.Nodes[j].Z, };}
             }
             else
             {
                 for (int j = 0; j < 8; j++)
-                {ox_i[j] = new double[] { element.INodes[j + 8].X, element.INodes[j + 8].Y, element.INodes[j + 8].Z, };}
+                {ox_i[j] = new double[] { element.Nodes[j + 8].X, element.Nodes[j + 8].Y, element.Nodes[j + 8].Z, };}
                 for (int j = 8; j < 16; j++)
                 {ox_i[j] = new double[] { ox_i_shell_midsurface[j-8][0]+0.5* tk[j-8] * tU[j-8][3], ox_i_shell_midsurface[j-8][1] + 0.5 * tk[j-8] * tU[j-8][4],
                                              ox_i_shell_midsurface[j-8][2]+0.5* tk[j-8] * tU[j-8][5], };}
@@ -143,9 +154,9 @@ namespace ISAAR.MSolve.FEM.Elements
 
         private double[][] UpdateCoordinateDataAndCalculateDisplacementVector(double[] localdisplacements)
         {
-            IReadOnlyList<Matrix2D> shapeFunctionDerivatives = interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
-            IReadOnlyList<Vector> N1 = interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
-            IReadOnlyList<Matrix2D> N3 = interpolation.EvaluateN3ShapeFunctionsReorganized(QuadratureForStiffness);
+            IReadOnlyList<Matrix> shapeFunctionDerivatives = interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
+            IReadOnlyList<double[]> N1 = interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
+            IReadOnlyList<Matrix> N3 = interpolation.EvaluateN3ShapeFunctionsReorganized(QuadratureForStiffness);
 
             double[,] u_prok = new double[3, 8];
             double[,] x_bar = new double[3, 8];
@@ -273,14 +284,14 @@ namespace ISAAR.MSolve.FEM.Elements
             return Delta;
         }
 
-        private Tuple<Matrix2D[], double[]> CalculateNecessaryMatricesForStiffnessMatrixAndForcesVectorCalculations()
+        private Tuple<Matrix[], double[]> CalculateNecessaryMatricesForStiffnessMatrixAndForcesVectorCalculations()
         {
-            IReadOnlyList<Vector> N1 = interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
-            IReadOnlyList<Matrix2D> N3 = interpolation.EvaluateN3ShapeFunctionsReorganized(QuadratureForStiffness);
-            IReadOnlyList<Matrix2D> shapeFunctionDerivatives = interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
+            IReadOnlyList<double[]> N1 = interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
+            IReadOnlyList<Matrix> N3 = interpolation.EvaluateN3ShapeFunctionsReorganized(QuadratureForStiffness);
+            IReadOnlyList<Matrix> shapeFunctionDerivatives = interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
             
             double[] integrationsCoeffs = new double[nGaussPoints];
-            Matrix2D []  RtN3 = new Matrix2D [nGaussPoints];
+            Matrix []  RtN3 = new Matrix [nGaussPoints];
             double[,] x_bar = new double[3, 8];
             
             double[] e_1 = new double[3];
@@ -296,9 +307,9 @@ namespace ISAAR.MSolve.FEM.Elements
                 c_1[j] = new double[3];
             }
 
-            Matrix2D[] R = new Matrix2D [nGaussPoints]; //TODO: perhaps cache matrices in InitializeMatrices() where RtN3 is calculated
+            Matrix[] R = new Matrix [nGaussPoints]; //TODO: perhaps cache matrices in InitializeMatrices() where RtN3 is calculated
             for (int j = 0; j < nGaussPoints; j++)
-            { R[j] = new Matrix2D( 3, 3); }
+            { R[j] = Matrix.CreateZero( 3, 3); }
             
             for (int j = 0; j < 8; j++)
             {
@@ -347,7 +358,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 // Calculate RtN3 here instead of in InitializeRN3() and then in UpdateForces()
                 RtN3[npoint1] = R[npoint1].Transpose() * N3[npoint1];
             }
-            return new Tuple<Matrix2D[], double[]>(RtN3, integrationsCoeffs);
+            return new Tuple<Matrix[], double[]>(RtN3, integrationsCoeffs);
         }
 
         private void Cross(double[] A, double[] B, double[] C) //TODO: replace with linear algebra method
@@ -564,7 +575,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return k_element_coh2;
         }
 
-        private double[] UpdateForces(Element element, Matrix2D[] RtN3, double[] integrationCoeffs)
+        private double[] UpdateForces(Element element, Matrix[] RtN3, double[] integrationCoeffs)
         {
             double [] fxk2_coh = new double[64];
             double [] fxk1_coh = new double[48]; // TODO: must be 24 in cohesive 8 node
@@ -594,7 +605,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return fxk2_coh;
         }
 
-        private double [,] UpdateKmatrices(IElement element, Matrix2D[] RtN3, double[] integrationCoeffs)
+        private double [,] UpdateKmatrices(IElement element, Matrix[] RtN3, double[] integrationCoeffs)
         {
             double [,] k_element_coh2 = new double[64, 64];
             double [,] k_stoixeiou_coh = new double[48, 48];
@@ -602,7 +613,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
             for (int npoint1 = 0; npoint1 < nGaussPoints; npoint1++)
             {
-                Matrix2D D_tan_sunt_ol = new Matrix2D (3, 3);
+                Matrix D_tan_sunt_ol = Matrix.CreateZero(3, 3);
                 for (int l = 0; l < 3; l++)
                 {
                     for (int m = 0; m < 3; m++)
@@ -611,8 +622,8 @@ namespace ISAAR.MSolve.FEM.Elements
                     }
                 }
 
-                Matrix2D  D_RtN3_sunt_ol = D_tan_sunt_ol*RtN3[npoint1];
-                Matrix2D M = RtN3[npoint1].Transpose() * D_RtN3_sunt_ol;
+                Matrix  D_RtN3_sunt_ol = D_tan_sunt_ol*RtN3[npoint1];
+                Matrix M = RtN3[npoint1].Transpose() * D_RtN3_sunt_ol;
 
                 for (int l = 0; l < 24; l++)
                 {
@@ -647,9 +658,9 @@ namespace ISAAR.MSolve.FEM.Elements
         public double[] CalculateForces(Element element, double[] localTotalDisplacementsSuperElement, double[] localdDisplacementsSuperelement)
         {
             double[] fxk2_coh = new double[64];
-            Tuple<Matrix2D[], double[]> RtN3AndIntegrationCoeffs;
+            Tuple<Matrix[], double[]> RtN3AndIntegrationCoeffs;
             RtN3AndIntegrationCoeffs = CalculateNecessaryMatricesForStiffnessMatrixAndForcesVectorCalculations();
-            Matrix2D[] RtN3;
+            Matrix[] RtN3;
             RtN3 = RtN3AndIntegrationCoeffs.Item1;
             double[] integrationCoeffs; 
             integrationCoeffs = RtN3AndIntegrationCoeffs.Item2;
@@ -658,12 +669,10 @@ namespace ISAAR.MSolve.FEM.Elements
             return dofEnumerator.GetTransformedForcesVector(fxk2_coh);// embedding
         }
 
-        public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
-        {
-            return CalculateForces(element, localDisplacements, new double[localDisplacements.Length]);
-        }
+        public double[] CalculateForcesForLogging(Element element, double[] localDisplacements) 
+            => CalculateForces(element, localDisplacements, new double[localDisplacements.Length]);
 
-        public virtual IMatrix2D StiffnessMatrix(IElement element) 
+        public virtual IMatrix StiffnessMatrix(IElement element) 
         {
             double [,] k_stoixeiou_coh2 = new double[64, 64];
             if (MatrixIsNotInitialized)
@@ -673,27 +682,16 @@ namespace ISAAR.MSolve.FEM.Elements
                 MatrixIsNotInitialized = false;
             } 
 
-            Tuple<Matrix2D[], double[]> RtN3AndIntegrationCoeffs;
+            Tuple<Matrix[], double[]> RtN3AndIntegrationCoeffs;
             RtN3AndIntegrationCoeffs = CalculateNecessaryMatricesForStiffnessMatrixAndForcesVectorCalculations();
-            Matrix2D[] RtN3;
+            Matrix[] RtN3;
             RtN3 = RtN3AndIntegrationCoeffs.Item1;
             double[] integrationCoeffs;
             integrationCoeffs = RtN3AndIntegrationCoeffs.Item2;
 
             k_stoixeiou_coh2 =this.UpdateKmatrices(element, RtN3, integrationCoeffs);
-            IMatrix2D element_stiffnessMatrix = new Matrix2D(k_stoixeiou_coh2); 
+            IMatrix element_stiffnessMatrix = Matrix.CreateFromArray(k_stoixeiou_coh2); 
             return dofEnumerator.GetTransformedMatrix(element_stiffnessMatrix); // embedding
-        }
-
-
-        public bool MaterialModified
-        {
-            get
-            {
-                foreach (ICohesiveZoneMaterial3D material in materialsAtGaussPoints)
-                    if (material.Modified) return true;
-                return false;
-            }
         }
 
         public void ResetMaterialModified()
@@ -716,47 +714,36 @@ namespace ISAAR.MSolve.FEM.Elements
             foreach (ICohesiveZoneMaterial3D m in materialsAtGaussPoints) m.ClearTractions();
         }
 
-        public int ID
+        public bool MaterialModified
         {
-            get { return 13; }
-        }
-        public ElementDimensions ElementDimensions
-        {
-            get { return ElementDimensions.ThreeD; }
-        }
-
-        public IElementDOFEnumerator DOFEnumerator
-        {
-            get { return dofEnumerator; }
-            set { dofEnumerator = value; }
+            get
+            {
+                foreach (ICohesiveZoneMaterial3D material in materialsAtGaussPoints)
+                    if (material.Modified) return true;
+                return false;
+            }
         }
 
-        public virtual IList<IList<DOFType>> GetElementDOFTypes(IElement element)
-        {
-            return dofTypes;
-        }
+        public virtual IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
 
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {
             return new double[64];
         }
 
-        public virtual IMatrix2D MassMatrix(IElement element)
+        public virtual IMatrix MassMatrix(IElement element)
         {
-            return new Matrix2D(64, 64);
+            return Matrix.CreateZero(64, 64);
         }
 
-        public virtual IMatrix2D DampingMatrix(IElement element)
+        public virtual IMatrix DampingMatrix(IElement element)
         {
-
-            return new Matrix2D(64, 64);
+            return Matrix.CreateZero(64, 64);
         }
 
         #region EMBEDDED
-        private readonly List<EmbeddedNode> embeddedNodes = new List<EmbeddedNode>(); 
-        public IList<EmbeddedNode> EmbeddedNodes { get { return embeddedNodes; } } 
 
-        public Dictionary<DOFType, int> GetInternalNodalDOFs(Element element, Node node)//
+        public Dictionary<IDofType, int> GetInternalNodalDOFs(Element element, Node node)//
         {
             int index = 0;
             foreach (var elementNode in element.Nodes)
@@ -771,12 +758,12 @@ namespace ISAAR.MSolve.FEM.Elements
             if (index >= 8)
             {
                 int index2 = index - 8;
-                return new Dictionary<DOFType, int>() { { DOFType.X, 39+3*index2+1 }, { DOFType.Y, 39 + 3 * index2 + 2 }, { DOFType.Z, 39 + 3 * index2 + 3 } };
+                return new Dictionary<IDofType, int>() { { StructuralDof.TranslationX, 39+3*index2+1 }, { StructuralDof.TranslationY, 39 + 3 * index2 + 2 }, { StructuralDof.TranslationZ, 39 + 3 * index2 + 3 } };
             }
             else
             {
-                return new Dictionary<DOFType, int>() { { DOFType.X, + 5 * index + 0 }, { DOFType.Y, + 5 * index + 1 }, { DOFType.Z, + 5 * index + 2 },
-                                                        { DOFType.RotX, + 5 * index + 3 }, { DOFType.RotY, + 5 * index + 4 }};
+                return new Dictionary<IDofType, int>() { { StructuralDof.TranslationX, + 5 * index + 0 }, { StructuralDof.TranslationY, + 5 * index + 1 }, { StructuralDof.TranslationZ, + 5 * index + 2 },
+                                                        { StructuralDof.RotationX, + 5 * index + 3 }, { StructuralDof.RotationY, + 5 * index + 4 }};
             }          
         }
 
@@ -791,7 +778,7 @@ namespace ISAAR.MSolve.FEM.Elements
             //    throw new ArgumentException("Requested host element is not inside host element list.");
 
             //double[] values = new double[transformation.Columns];
-            //int multiplier = hostElement.ElementType.DOFEnumerator.GetDOFTypes(hostElement).SelectMany(d => d).Count();
+            //int multiplier = hostElement.ElementType.DofEnumerator.GetDOFTypes(hostElement).SelectMany(d => d).Count();
             //int vectorIndex = 0;
             //for (int i = 0; i < index; i++)
             //    vectorIndex += isNodeEmbedded[i] ? 3 : multiplier;

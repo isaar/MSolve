@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
@@ -10,7 +11,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 //      does not implement IElementDofEnumerator is better suited.
 namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis
 {
-    public class ScalingDofEnumerator : IElementDofEnumerator_v2
+    public class ScalingDofEnumerator : IElementDofEnumerator
     {
         public ScalingDofEnumerator(double scaleFactor = 1.0)
         {
@@ -19,13 +20,13 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis
 
         public double ScaleFactor { get; set; }
 
-        public IList<IList<DOFType>> GetDOFTypes(IElement_v2 element)
+        public IList<IList<IDofType>> GetDOFTypes(IElement element)
                     => element.ElementType.GetElementDOFTypes(element);
 
-        public IList<IList<DOFType>> GetDOFTypesForDOFEnumeration(IElement_v2 element)
+        public IList<IList<IDofType>> GetDOFTypesForDOFEnumeration(IElement element)
             => element.ElementType.GetElementDOFTypes(element);
 
-        public IList<INode> GetNodesForMatrixAssembly(IElement_v2 element) => element.Nodes;
+        public IList<INode> GetNodesForMatrixAssembly(IElement element) => element.Nodes;
 
         public IMatrix GetTransformedMatrix(IMatrix matrix)
         {

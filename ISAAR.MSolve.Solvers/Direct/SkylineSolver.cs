@@ -1,6 +1,9 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
+﻿using System;
+using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
@@ -20,19 +23,19 @@ namespace ISAAR.MSolve.Solvers.Direct
         private bool mustFactorize = true;
         private LdlSkyline factorizedMatrix;
 
-        private SkylineSolver(IStructuralModel_v2 model, double factorizationPivotTolerance, IDofOrderer dofOrderer):
+        private SkylineSolver(IStructuralModel model, double factorizationPivotTolerance, IDofOrderer dofOrderer):
             base(model, dofOrderer, new SkylineAssembler(), "SkylineSolver")
         {
             this.factorizationPivotTolerance = factorizationPivotTolerance;
         }
-
-        public override void Initialize() { }
 
         public override void HandleMatrixWillBeSet()
         {
             mustFactorize = true;
             factorizedMatrix = null;
         }
+
+        public override void Initialize() { }
 
         public override void PreventFromOverwrittingSystemMatrices() => factorizeInPlace = false;
 
@@ -53,6 +56,51 @@ namespace ISAAR.MSolve.Solvers.Direct
             factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
         }
 
+        protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)
+        {
+            // Factorization
+            if (mustFactorize)
+            {
+                factorizedMatrix = linearSystem.Matrix.FactorLdl(factorizeInPlace, factorizationPivotTolerance);
+                mustFactorize = false;
+            }
+
+            // Solution vectors
+            int systemOrder = linearSystem.Matrix.NumColumns;
+            int numRhs = otherMatrix.NumColumns;
+            var solutionVectors = Matrix.CreateZero(systemOrder, numRhs);
+
+            if (otherMatrix is Matrix otherDense)
+            {
+                factorizedMatrix.SolveLinearSystems(otherDense, solutionVectors);
+                return solutionVectors;
+            }
+            else
+            {
+                try
+                {
+                    // If there is enough memory, copy the RHS matrix to a dense one, to speed up computations. 
+                    //TODO: must be benchmarked, if it is actually more efficient than solving column by column.
+                    Matrix rhsVectors = otherMatrix.CopyToFullMatrix();
+                    factorizedMatrix.SolveLinearSystems(rhsVectors, solutionVectors);
+                    return solutionVectors;
+                }
+                catch (InsufficientMemoryException) //TODO: what about OutOfMemoryException?
+                {
+                    // Solve each linear system separately, to avoid copying the RHS matrix to a dense one.
+                    Vector solutionVector = linearSystem.CreateZeroVector();
+                    for (int j = 0; j < numRhs; ++j)
+                    {
+                        if (j != 0) solutionVector.Clear();
+                        Vector rhsVector = otherMatrix.GetColumn(j);
+                        factorizedMatrix.SolveLinearSystem(rhsVector, solutionVector);
+                        solutionVectors.SetSubcolumn(j, solutionVector);
+                    }
+                    return solutionVectors;
+                }
+            }
+        }
+
         public class Builder : ISolverBuilder
         {
             public Builder() { }
@@ -62,9 +110,9 @@ namespace ISAAR.MSolve.Solvers.Direct
 
             public double FactorizationPivotTolerance { get; set; } = 1E-15;
 
-            ISolver_v2 ISolverBuilder.BuildSolver(IStructuralModel_v2 model) => BuildSolver(model);
+            ISolver ISolverBuilder.BuildSolver(IStructuralModel model) => BuildSolver(model);
 
-            public SkylineSolver BuildSolver(IStructuralModel_v2 model)
+            public SkylineSolver BuildSolver(IStructuralModel model)
             {
                 return new SkylineSolver(model, FactorizationPivotTolerance, DofOrderer);
             }

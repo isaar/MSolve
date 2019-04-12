@@ -1,5 +1,6 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Iterative;
 using ISAAR.MSolve.LinearAlgebra.Iterative.ConjugateGradient;
+using ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
@@ -11,7 +12,7 @@ using Xunit;
 namespace ISAAR.MSolve.LinearAlgebra.Tests.Iterative
 {
     /// <summary>
-    /// Tests for <see cref="CGAlgorithm"/>.
+    /// Tests for <see cref="PcgAlgorithm"/>.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public static class PcgTests
@@ -34,7 +35,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Iterative
                 var pcg = builder.Build();
                 var M = new JacobiPreconditioner(A.GetDiagonalAsArray());
                 Vector xComputed = Vector.CreateZero(A.NumRows);
-                CGStatistics stats = pcg.Solve(A, M, b, xComputed, true, () => Vector.CreateZero(b.Length));
+                IterativeStatistics stats = pcg.Solve(A, M, b, xComputed, true, () => Vector.CreateZero(b.Length));
                 comparer.AssertEqual(xExpected, xComputed);
             });
         }
@@ -55,7 +56,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Iterative
                 var pcg = builder.Build();
                 var M = new JacobiPreconditioner(A.GetDiagonalAsArray());
                 Vector xComputed = Vector.CreateZero(A.NumRows);
-                CGStatistics stats = pcg.Solve(A, M, b, xComputed, true, () => Vector.CreateZero(b.Length));
+                IterativeStatistics stats = pcg.Solve(A, M, b, xComputed, true, () => Vector.CreateZero(b.Length));
                 comparer.AssertEqual(xExpected, xComputed);
             });
         }
@@ -72,7 +73,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Iterative
                 builder.MaxIterationsProvider = new PercentageMaxIterationsProvider(1.0);
                 var cg = builder.Build();
                 Vector xComputed = Vector.CreateZero(A.NumRows);
-                CGStatistics stats = cg.Solve(A, b, xComputed, true);
+                IterativeStatistics stats = cg.Solve(A, b, xComputed, true);
                 Assert.False(comparer.AreEqual(xExpected, xComputed));
             });
         }
