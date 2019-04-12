@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using ISAAR.MSolve.FEM.Entities;
+﻿using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Problems.Structural.Elements;
-using ISAAR.MSolve.Solvers.Skyline;
-using ISAAR.MSolve.Solvers.Interfaces;
+using ISAAR.MSolve.Solvers.LinearSystems;
 
 namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
 {
@@ -23,8 +17,8 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
 
         public double AxialRod2DStress(Element element)
         {
-            double[] localDisplacements = subdomain.GetLocalVectorFromGlobal(element, linearSystem.Solution);
-            Rod2D rod = (Rod2D)element.ElementType;
+            double[] localDisplacements = subdomain.FreeDofOrdering.ExtractVectorElementFromSubdomain(element, linearSystem.Solution);
+            var rod = (Rod2D)element.ElementType;
             return  rod.CalculateAxialStress(element, localDisplacements, null);
         }
     }

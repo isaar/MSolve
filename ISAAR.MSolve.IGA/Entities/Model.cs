@@ -1,20 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
-using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Numerical.Commons;
 
 //TODO: find what is going on with the dynamic loads and refactor them. That 564000000 in AssignMassAccelerationHistoryLoads()
 //      cannot be correct.
 namespace ISAAR.MSolve.IGA.Entities
 {
-	public class Model : IStructuralModel_v2
+    public class Model : IStructuralModel
 	{
 		private int numberOfPatches = 0;
 		private int numberOfInterfaces = 0;
@@ -35,7 +33,7 @@ namespace ISAAR.MSolve.IGA.Entities
 		public IList<Cluster> Clusters => ClustersDictionary.Values.ToList();
 		public Dictionary<int, Cluster> ClustersDictionary { get; } = new Dictionary<int, Cluster>();
 
-		IReadOnlyList<IElement_v2> IStructuralModel_v2.Elements => ElementsDictionary.Values.ToList();
+		IReadOnlyList<IElement> IStructuralModel.Elements => ElementsDictionary.Values.ToList();
 		public IList<Element> Elements => ElementsDictionary.Values.ToList();
 		public Dictionary<int, Element> ElementsDictionary => elementsDictionary;
 
@@ -45,7 +43,7 @@ namespace ISAAR.MSolve.IGA.Entities
 			new List<IMassAccelerationHistoryLoad>();
 
 		public IList<ControlPoint> ControlPoints => controlPointsDictionary.Values.ToList();
-		IReadOnlyList<INode> IStructuralModel_v2.Nodes => controlPointsDictionary.Values.ToList();
+		IReadOnlyList<INode> IStructuralModel.Nodes => controlPointsDictionary.Values.ToList();
 
 		public Dictionary<int, ControlPoint> ControlPointsDictionary
 		{
@@ -64,7 +62,7 @@ namespace ISAAR.MSolve.IGA.Entities
 			set { numberOfInterfaces = value; }
 		}
 
-		IReadOnlyList<ISubdomain_v2> IStructuralModel_v2.Subdomains => patchesDictionary.Values.ToList();
+		IReadOnlyList<ISubdomain> IStructuralModel.Subdomains => patchesDictionary.Values.ToList();
 		public IList<Patch> Patches => patchesDictionary.Values.ToList();
 
 		public Dictionary<int, Patch> PatchesDictionary

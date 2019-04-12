@@ -8,7 +8,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
 {
     internal class LagrangeMultiplier
     {
-        internal LagrangeMultiplier(INode node, DOFType dof, ISubdomain_v2 subdomainPlus, ISubdomain_v2 subdomainMinus)
+        internal LagrangeMultiplier(INode node, DOFType dof, ISubdomain subdomainPlus, ISubdomain subdomainMinus)
         {
             this.Node = node;
             this.DofType = dof;
@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
 
         internal DOFType DofType { get; }
         internal INode Node { get; }
-        internal ISubdomain_v2 SubdomainMinus { get; }
-        internal ISubdomain_v2 SubdomainPlus { get; }
+        internal ISubdomain SubdomainMinus { get; }
+        internal ISubdomain SubdomainPlus { get; }
     }
 }

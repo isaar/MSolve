@@ -1,23 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.Analyzers;
+﻿using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Discretization.Providers;
-using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.Commons;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Skyline;
 using Xunit;
 
 namespace ISAAR.MSolve.Tests.FEM
@@ -29,8 +20,8 @@ namespace ISAAR.MSolve.Tests.FEM
         [Fact]
         private static void RunTest()
         {
-            Model_v2 Model_v2 = CreateModel_v2();
-            IVectorView solution = SolveModel_v2(Model_v2);
+            Model Model = CreateModel();
+            IVectorView solution = SolveModel(Model);
             Assert.True(CompareResults(solution));
         }
 
@@ -49,12 +40,12 @@ namespace ISAAR.MSolve.Tests.FEM
             return true;
         }
 
-        private static Model_v2 CreateModel_v2()
+        private static Model CreateModel()
         {
-            var model = new Model_v2();
+            var model = new Model();
 
             // Subdomains
-            model.SubdomainsDictionary.Add(0, new Subdomain_v2(subdomainID));
+            model.SubdomainsDictionary.Add(0, new Subdomain(subdomainID));
 
             // Material
             double density = 1.0;
@@ -63,16 +54,16 @@ namespace ISAAR.MSolve.Tests.FEM
 
             // Nodes
             int numNodes = 9;
-            var nodes = new Node_v2[numNodes];
-            nodes[0] = new Node_v2 { ID = 0, X = 0.0, Y = 0.0 };
-            nodes[1] = new Node_v2 { ID = 1, X = 1.0, Y = 0.0 };
-            nodes[2] = new Node_v2 { ID = 2, X = 2.0, Y = 0.0 };
-            nodes[3] = new Node_v2 { ID = 3, X = 0.0, Y = 1.0 };
-            nodes[4] = new Node_v2 { ID = 4, X = 1.0, Y = 1.0 };
-            nodes[5] = new Node_v2 { ID = 5, X = 2.0, Y = 1.0 };
-            nodes[6] = new Node_v2 { ID = 6, X = 0.0, Y = 2.0 };
-            nodes[7] = new Node_v2 { ID = 7, X = 1.0, Y = 2.0 };
-            nodes[8] = new Node_v2 { ID = 8, X = 2.0, Y = 2.0 };
+            var nodes = new Node[numNodes];
+            nodes[0] = new Node { ID = 0, X = 0.0, Y = 0.0 };
+            nodes[1] = new Node { ID = 1, X = 1.0, Y = 0.0 };
+            nodes[2] = new Node { ID = 2, X = 2.0, Y = 0.0 };
+            nodes[3] = new Node { ID = 3, X = 0.0, Y = 1.0 };
+            nodes[4] = new Node { ID = 4, X = 1.0, Y = 1.0 };
+            nodes[5] = new Node { ID = 5, X = 2.0, Y = 1.0 };
+            nodes[6] = new Node { ID = 6, X = 0.0, Y = 2.0 };
+            nodes[7] = new Node { ID = 7, X = 1.0, Y = 2.0 };
+            nodes[8] = new Node { ID = 8, X = 2.0, Y = 2.0 };
 
             for (int i = 0; i < numNodes; ++i) model.NodesDictionary[i] = nodes[i];
 
@@ -80,14 +71,14 @@ namespace ISAAR.MSolve.Tests.FEM
             int numElements = 4;
             var elementFactory = new ThermalElement2DFactory(1.0, new ThermalMaterial(density, c, k));
             var elements = new ThermalElement2D[4];
-            elements[0] = elementFactory.CreateElement(CellType.Quad4, new Node_v2[] { nodes[0], nodes[1], nodes[4], nodes[3] });
-            elements[1] = elementFactory.CreateElement(CellType.Quad4, new Node_v2[] { nodes[1], nodes[2], nodes[5], nodes[4] });
-            elements[2] = elementFactory.CreateElement(CellType.Quad4, new Node_v2[] { nodes[3], nodes[4], nodes[7], nodes[6] });
-            elements[3] = elementFactory.CreateElement(CellType.Quad4, new Node_v2[] { nodes[4], nodes[5], nodes[8], nodes[7] });
+            elements[0] = elementFactory.CreateElement(CellType.Quad4, new Node[] { nodes[0], nodes[1], nodes[4], nodes[3] });
+            elements[1] = elementFactory.CreateElement(CellType.Quad4, new Node[] { nodes[1], nodes[2], nodes[5], nodes[4] });
+            elements[2] = elementFactory.CreateElement(CellType.Quad4, new Node[] { nodes[3], nodes[4], nodes[7], nodes[6] });
+            elements[3] = elementFactory.CreateElement(CellType.Quad4, new Node[] { nodes[4], nodes[5], nodes[8], nodes[7] });
 
             for (int i = 0; i < numElements; ++i)
             {
-                var elementWrapper = new Element_v2() { ID = i, ElementType = elements[i] };
+                var elementWrapper = new Element() { ID = i, ElementType = elements[i] };
                 foreach (var node in elements[i].Nodes) elementWrapper.AddNode(node);
                 model.ElementsDictionary[i] = elementWrapper;
                 model.SubdomainsDictionary[subdomainID].Elements.Add(elementWrapper);
@@ -100,20 +91,20 @@ namespace ISAAR.MSolve.Tests.FEM
 
             // Neumann BC
             double q = 50.0;
-            model.Loads.Add(new Load_v2() { Amount = q / 2.0, Node = model.NodesDictionary[2], DOF = DOFType.Temperature });
-            model.Loads.Add(new Load_v2() { Amount = q, Node = model.NodesDictionary[5], DOF = DOFType.Temperature });
-            model.Loads.Add(new Load_v2() { Amount = q / 2.0, Node = model.NodesDictionary[8], DOF = DOFType.Temperature });
+            model.Loads.Add(new Load() { Amount = q / 2.0, Node = model.NodesDictionary[2], DOF = DOFType.Temperature });
+            model.Loads.Add(new Load() { Amount = q, Node = model.NodesDictionary[5], DOF = DOFType.Temperature });
+            model.Loads.Add(new Load() { Amount = q / 2.0, Node = model.NodesDictionary[8], DOF = DOFType.Temperature });
 
             return model;
         }
 
-        private static IVectorView SolveModel_v2(Model_v2 model)
+        private static IVectorView SolveModel(Model model)
         {
             SkylineSolver solver = (new SkylineSolver.Builder()).BuildSolver(model);
-            var provider = new ProblemThermal_v2(model, solver);
+            var provider = new ProblemThermal(model, solver);
 
-            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+            var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();

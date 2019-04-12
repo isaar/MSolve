@@ -1,32 +1,24 @@
-﻿using ISAAR.MSolve.FEM.Materials;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
+﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Materials.Interfaces; //using ISAAR.MSolve.PreProcessor.Interfaces;
+using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.MultiscaleAnalysis;
 using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
-using ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses;
-using ISAAR.MSolve.MultiscaleAnalysisMerge;
-using ISAAR.MSolve.Numerical.LinearAlgebra; //using ISAAR.MSolve.Matrices;
 using ISAAR.MSolve.Solvers.Direct;
-using ISAAR.MSolve.Solvers.Skyline;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks2
 {
     class OneRveExample // palio: "SeparateCodeCheckingClass4 "
     {
-        public static (double[], double[], double[,], IVector, IVector) Check_Graphene_rve_serial() //palio "Check_Graphene_rve_Obje_v2_Integration()"
+        public static (double[], double[], double[,], IVector, IVector) Check_Graphene_rve_serial() //palio "Check_Graphene_rve_Obje_Integration()"
         {
-            //Origin: SeparateCodeCheckingClass4.Check_Graphene_rve_Obje_v2_Integration apo to branch: example/ms_development_nl_elements_merge
-            //modifications: update kai tha xrhsimopoithei o GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_v2 
-            //o opoios exei kai antistoixo ddm: GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostDataDdm_v2 pou tha trexei akrivws apo katw
+            //Origin: SeparateCodeCheckingClass4.Check_Graphene_rve_Obje_Integration apo to branch: example/ms_development_nl_elements_merge
+            //modifications: update kai tha xrhsimopoithei o GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData 
+            //o opoios exei kai antistoixo ddm: GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostDataDdm pou tha trexei akrivws apo katw
             //PROSOXH gia na elegxei kai h defterh iteration u_sunol_micro_2 prepei na valoume ston graphenebuilder Addgraphenesheet xwris to bondslip.
 
             //mporoun na ginoun delete:
             double E_disp = 3.5; /*Gpa*/ double ni_disp = 0.4; // stather Poisson
-            ElasticMaterial3D_v2 material1 = new ElasticMaterial3D_v2()
+            var material1 = new ElasticMaterial3D()
             { YoungModulus = E_disp, PoissonRatio = ni_disp, };
             double[,] DGtr = new double[3, 3] { { 1.10, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
             double[] GLVec = Transform_DGtr_to_GLvec(DGtr);
@@ -41,7 +33,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks2
             double[] stressesCheck2 = material1.Stresses;
 
             // den xreiazetai poia VectorExtensions.AssignTotalAffinityCount();
-            IRVEbuilder_v2 homogeneousRveBuilder1 = new RveGrShMultiple(1);
+            IRVEbuilder homogeneousRveBuilder1 = new RveGrShMultiple(1);
             //IRVEbuilder homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheckEnaHexa();
 
             var microstructure3 = new MicrostructureDefGrad3D(homogeneousRveBuilder1, 
@@ -68,17 +60,17 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks2
             return (stressesCheck3, stressesCheck4, consCheck1, uInitialFreeDOFs_state1, uInitialFreeDOFs_state2);
         }
 
-        public static (int[], int[], int[]) Check_Graphene_rve_parallel() //palio "Check_Graphene_rve_Obje_v2_Integration()"
+        public static (int[], int[], int[]) Check_Graphene_rve_parallel() //palio "Check_Graphene_rve_Obje_Integration()"
         {
             //Origin h methodos Check_Graphene_rve_serial() tou parontos
-            //Origin: SeparateCodeCheckingClass4.Check_Graphene_rve_Obje_v2_Integration apo to branch: example/ms_development_nl_elements_merge
-            //modifications: update kai tha xrhsimopoithei o GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_v2 
-            //o opoios exei kai antistoixo ddm: GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostDataDdm_v2 pou tha trexei akrivws apo katw
+            //Origin: SeparateCodeCheckingClass4.Check_Graphene_rve_Obje_Integration apo to branch: example/ms_development_nl_elements_merge
+            //modifications: update kai tha xrhsimopoithei o GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData 
+            //o opoios exei kai antistoixo ddm: GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostDataDdm pou tha trexei akrivws apo katw
             //PROSOXH gia na elegxei kai h defterh iteration u_sunol_micro_2 prepei na valoume ston graphenebuilder Addgraphenesheet xwris to bondslip.
 
             //mporoun na ginoun delete:
             double E_disp = 3.5; /*Gpa*/ double ni_disp = 0.4; // stather Poisson
-            ElasticMaterial3D_v2 material1 = new ElasticMaterial3D_v2()
+            ElasticMaterial3D material1 = new ElasticMaterial3D()
             { YoungModulus = E_disp, PoissonRatio = ni_disp, };
             double[,] DGtr = new double[3, 3] { { 1.10, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
             double[] GLVec = Transform_DGtr_to_GLvec(DGtr);
@@ -103,7 +95,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks2
             int[] shellPrint = grapheneRveBuilder1.shellPrint;
             return (hexaPrint, cohePrint, shellPrint);
 
-            IContinuumMaterial3DDefGrad_v2 microstructure3 = new MicrostructureDefGrad3D(grapheneRveBuilder1,
+            IContinuumMaterial3DDefGrad microstructure3 = new MicrostructureDefGrad3D(grapheneRveBuilder1,
                 model => (new SkylineSolver.Builder()).BuildSolver(model), false, 1);
             //IContinuumMaterial3DDefGrad microstructure3copyConsCheck = new Microstructure3copyConsCheckEna(homogeneousRveBuilder1);
             double[,] consCheck1 = new double[6, 6];
@@ -198,7 +190,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks2
         //    double[] stressesCheck4 = microstructure3.Stresses.Data;
         //}
 
-        //public static void Check05bStressIntegrationObje_v2_Integration()
+        //public static void Check05bStressIntegrationObje_Integration()
         //{
         //    //Origin: SeparateCodeCheckingClass.Check05bStressIntegration
         //    //modifications: tha xrhsimopoithei h nea microstructure me obje kapoia subdomainCalculations
@@ -219,10 +211,10 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks2
         //    double[] stressesCheck2 = material1.Stresses.Data;
 
         //    VectorExtensions.AssignTotalAffinityCount();
-        //    IRVEbuilder_v2 homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheck27Hexa_v2();
+        //    IRVEbuilder homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheck27Hexa();
         //    //IRVEbuilder homogeneousRveBuilder1 = new HomogeneousRVEBuilderCheckEnaHexa();
 
-        //    IContinuumMaterial3DDefGrad microstructure3 = new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj_v2(homogeneousRveBuilder1, new SkylineSolver.Builder(), false, 1);
+        //    IContinuumMaterial3DDefGrad microstructure3 = new Microstructure3DevelopMultipleSubdomainsUseBaseSimuRandObj(homogeneousRveBuilder1, new SkylineSolver.Builder(), false, 1);
         //    //IContinuumMaterial3DDefGrad microstructure3copyConsCheck = new Microstructure3copyConsCheckEna(homogeneousRveBuilder1);
         //    double[,] consCheck1 = new double[6, 6];
         //    for (int i1 = 0; i1 < 6; i1++) { for (int i2 = 0; i2 < 6; i2++) { consCheck1[i1, i2] = microstructure3.ConstitutiveMatrix[i1, i2]; } }

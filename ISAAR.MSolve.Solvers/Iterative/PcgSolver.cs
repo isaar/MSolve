@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.Solvers.Iterative
         private bool mustUpdatePreconditioner = true;
         private IPreconditioner preconditioner;
 
-        private PcgSolver(IStructuralModel_v2 model, PcgAlgorithm pcgAlgorithm, IPreconditionerFactory preconditionerFactory, 
+        private PcgSolver(IStructuralModel model, PcgAlgorithm pcgAlgorithm, IPreconditionerFactory preconditionerFactory, 
             IDofOrderer dofOrderer):
             base(model, dofOrderer, new CsrAssembler(true), "PcgSolver")
         {
@@ -115,9 +115,9 @@ namespace ISAAR.MSolve.Solvers.Iterative
 
             public IPreconditionerFactory PreconditionerFactory { get; set; } = new JacobiPreconditioner.Factory();
 
-            ISolver_v2 ISolverBuilder.BuildSolver(IStructuralModel_v2 model) => BuildSolver(model);
+            ISolver ISolverBuilder.BuildSolver(IStructuralModel model) => BuildSolver(model);
 
-            public PcgSolver BuildSolver(IStructuralModel_v2 model) 
+            public PcgSolver BuildSolver(IStructuralModel model) 
                 => new PcgSolver(model, PcgAlgorithm, PreconditionerFactory, DofOrderer);
         }
     }

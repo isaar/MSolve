@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem;
@@ -23,7 +22,7 @@ using ISAAR.MSolve.Solvers.Ordering.Reordering;
 //TODO: Rigid body modes do not have to be computed each time the stiffness matrix changes. 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 {
-    public class Feti1Solver : ISolver_v2
+    public class Feti1Solver : ISolver
     {
         internal const string name = "FETI Level-1 Solver"; // for error messages
         private readonly Dictionary<int, SkylineAssembler> assemblers;
@@ -35,14 +34,14 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         private readonly bool problemIsHomogeneous;
         private readonly bool projectionMatrixQIsIdentity;
         private readonly Dictionary<int, SingleSubdomainSystem<SkylineMatrix>> linearSystems;
-        private readonly IStructuralModel_v2 model;
+        private readonly IStructuralModel model;
         //private readonly PdeOrder pde; // Instead the user explicitly sets Q.
         private readonly IFetiPreconditionerFactory preconditionerFactory;
 
         //TODO: fix the mess of Dictionary<int, ISubdomain>, List<ISubdomain>, Dictionary<int, Subdomain>, List<Subdomain>
         //      The concrete are useful for the preprocessor mostly, while analyzers, solvers need the interface versions.
         //      Lists are better in analyzers and solvers. Dictionaries may be better in the preprocessors.
-        private readonly Dictionary<int, ISubdomain_v2> subdomains;
+        private readonly Dictionary<int, ISubdomain> subdomains;
 
         private Feti1DofSeparator dofSeparator;
         private bool factorizeInPlace = true;
@@ -54,7 +53,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         private Feti1Projection projection;
         private IFeti1StiffnessDistribution stiffnessDistribution;
 
-        private Feti1Solver(IStructuralModel_v2 model, IDofOrderer dofOrderer, double factorizationPivotTolerance,
+        private Feti1Solver(IStructuralModel model, IDofOrderer dofOrderer, double factorizationPivotTolerance,
             IFetiPreconditionerFactory preconditionerFactory, IFeti1InterfaceProblemSolver interfaceProblemSolver,
             bool problemIsHomogeneous, bool projectionMatrixQIsIdentity)
         {
@@ -64,14 +63,14 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             this.model = model;
 
             // Subdomains
-            subdomains = new Dictionary<int, ISubdomain_v2>();
-            foreach (Subdomain_v2 subdomain in model.Subdomains) subdomains[subdomain.ID] = subdomain;
+            subdomains = new Dictionary<int, ISubdomain>();
+            foreach (Subdomain subdomain in model.Subdomains) subdomains[subdomain.ID] = subdomain;
 
             // Linear systems
             linearSystems = new Dictionary<int, SingleSubdomainSystem<SkylineMatrix>>();
-            var tempLinearSystems = new Dictionary<int, ILinearSystem_v2>();
+            var tempLinearSystems = new Dictionary<int, ILinearSystem>();
             assemblers = new Dictionary<int, SkylineAssembler>();
-            foreach (Subdomain_v2 subdomain in model.Subdomains)
+            foreach (Subdomain subdomain in model.Subdomains)
             {
                 int id = subdomain.ID;
                 var linearSystem = new SingleSubdomainSystem<SkylineMatrix>(subdomain);
@@ -96,14 +95,14 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             this.projectionMatrixQIsIdentity = projectionMatrixQIsIdentity;
         }
 
-        public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
+        public IReadOnlyDictionary<int, ILinearSystem> LinearSystems { get; }
         public DualSolverLogger Logger { get; } = new DualSolverLogger();
 
-        public Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider_v2 elementMatrixProvider)
+        public Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider elementMatrixProvider)
         {
             var matricesInternal = new Dictionary<int, IMatrixView>();
             var matricesResult = new Dictionary<int, IMatrix>();
-            foreach (ISubdomain_v2 subdomain in model.Subdomains) //TODO: this must be done in parallel
+            foreach (ISubdomain subdomain in model.Subdomains) //TODO: this must be done in parallel
             {
                 SkylineMatrix matrix = assemblers[subdomain.ID].BuildGlobalMatrix(subdomain.FreeDofOrdering,
                     subdomain.Elements, elementMatrixProvider);
@@ -119,11 +118,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         }
 
         public Dictionary<int, (IMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
-            IMatrixView matrixConstrConstr)> BuildGlobalSubmatrices(IElementMatrixProvider_v2 elementMatrixProvider)
+            IMatrixView matrixConstrConstr)> BuildGlobalSubmatrices(IElementMatrixProvider elementMatrixProvider)
         {
             var matricesResult = new Dictionary<int, (IMatrix Aff, IMatrixView Afc, IMatrixView Acf, IMatrixView Acc)>();
             var matricesInternal = new Dictionary<int, IMatrixView>();
-            foreach (ISubdomain_v2 subdomain in model.Subdomains) //TODO: this must be done in parallel
+            foreach (ISubdomain subdomain in model.Subdomains) //TODO: this must be done in parallel
             {
                 if (subdomain.ConstrainedDofOrdering == null)
                 {
@@ -176,7 +175,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             // Order dofs
             IGlobalFreeDofOrdering globalOrdering = dofOrderer.OrderFreeDofs(model);
             model.GlobalDofOrdering = globalOrdering;
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
+            foreach (ISubdomain subdomain in model.Subdomains)
             {
                 assemblers[subdomain.ID].HandleDofOrderingWillBeModified();
                 subdomain.FreeDofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
@@ -325,7 +324,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             // Create the preconditioner. 
             //TODO: this should be done simultaneously with the factorizations to avoid duplicate factorizations.
             var stiffnessMatrices = new Dictionary<int, IMatrixView>();
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 stiffnessMatrices.Add(linearSystem.Subdomain.ID, linearSystem.Matrix);
             }
@@ -413,7 +412,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             public bool ProjectionMatrixQIsIdentity { get; set; } = true;
             //public PdeOrder PdeOrder { get; set; } = PdeOrder.Second; // Instead the user explicitly sets Q.
 
-            public Feti1Solver BuildSolver(Model_v2 model)
+            public Feti1Solver BuildSolver(Model model)
                 => new Feti1Solver(model, DofOrderer, factorizationPivotTolerance, PreconditionerFactory,
                      InterfaceProblemSolver, ProblemIsHomogeneous, ProjectionMatrixQIsIdentity);
         }

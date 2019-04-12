@@ -1,16 +1,14 @@
-﻿using ISAAR.MSolve.Discretization.Integration.Quadratures;
+﻿using System;
+using System.Collections.Generic;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 //TODO: rename IsoparametricInterpolation3DBase. It works for shells as well.
 namespace ISAAR.MSolve.FEM.Interpolation
 {
-    public class InterpolationShell8 : IsoparametricInterpolation3DBase_OLD
+    public class InterpolationShell8 : IsoparametricInterpolation3DBase
     {
         private static readonly InterpolationShell8 uniqueInstance = new InterpolationShell8();
 
@@ -34,7 +32,8 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
         public static InterpolationShell8 UniqueInstance => uniqueInstance;
 
-        public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> nodes) => throw new NotImplementedException();
+        public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> nodes) 
+            => throw new NotImplementedException();
 
         protected override double[] EvaluateAt(double xi, double eta, double zeta)
         {
@@ -50,9 +49,9 @@ namespace ISAAR.MSolve.FEM.Interpolation
             return shapeFunctions;
         }
 
-        protected override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
+        protected override Matrix EvaluateGradientsAt(double xi, double eta, double zeta)
         {
-            var naturalDerivatives = new double[8, 2];
+            var naturalDerivatives = Matrix.CreateZero(8, 2);
 
             // Derivatives with respect to Xi
             naturalDerivatives[4, 0] = (-xi) * (1 + eta);

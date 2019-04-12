@@ -1,17 +1,8 @@
-﻿using ISAAR.MSolve.PreProcessor;
-using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Solvers.Skyline;
-using ISAAR.MSolve.FEM;
-using ISAAR.MSolve.FEM.Elements;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
-using ISAAR.MSolve.FEM.Interfaces;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
 
 namespace ISAAR.MSolve.MultiscaleAnalysis
 {
@@ -19,12 +10,12 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     /// Micro to macro transitions for (3D degenerate to) 2D plane stress problems
     /// Authors: Gerasimos Sotiropoulos
     /// </summary>
-    public class SmallStrain3Dto2DplaneStressScaleTransition : IScaleTransitions_v2
+    public class SmallStrain3Dto2DplaneStressScaleTransition : IScaleTransitions
     {
         public SmallStrain3Dto2DplaneStressScaleTransition()
         { }
 
-        public double[] MacroToMicroTransition(Node_v2 boundaryNode, double[] MacroScaleVariable)
+        public double[] MacroToMicroTransition(Node boundaryNode, double[] MacroScaleVariable)
         {
             double[,] Dq_nodal = new double[3,2]; // Prosoxh: pithanes diorthoseis eis triploun
             Dq_nodal[0, +0] = boundaryNode.X;
@@ -77,7 +68,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             return 3;
         }
 
-        public void ModifyMicrostructureTotalPrescribedBoundaryDisplacementsVectorForMacroStrainVariable(Node_v2 boundaryNode,
+        public void ModifyMicrostructureTotalPrescribedBoundaryDisplacementsVectorForMacroStrainVariable(Node boundaryNode,
             double[] smallStrain2Dmacro, Dictionary<int, Dictionary<DOFType, double>> totalPrescribedBoundaryDisplacements)
         {
             //double[,] Dq_nodal = new double[9, 3];
@@ -112,7 +103,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             totalPrescribedBoundaryDisplacements.Add(boundaryNode.ID, totalBoundaryNodalDisplacements);
         }
 
-        public void ImposeAppropriateAndRigidBodyConstraintsPerBoundaryNode(Model_v2 model, Node_v2 boundaryNode, Dictionary<Node_v2, IList<DOFType>> RigidBodyNodeConstraints)
+        public void ImposeAppropriateAndRigidBodyConstraintsPerBoundaryNode(Model model, Node boundaryNode, Dictionary<Node, IList<DOFType>> RigidBodyNodeConstraints)
         {
             if (RigidBodyNodeConstraints.ContainsKey(boundaryNode))
             {
@@ -128,7 +119,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             }
         }
 
-        public void ImposeAppropriateConstraintsPerBoundaryNode(Model_v2 model, Node_v2 boundaryNode)
+        public void ImposeAppropriateConstraintsPerBoundaryNode(Model model, Node boundaryNode)
         {
             throw new System.NotSupportedException();
         }

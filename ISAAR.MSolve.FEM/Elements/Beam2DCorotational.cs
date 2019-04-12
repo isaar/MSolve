@@ -1,42 +1,41 @@
-﻿using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Interfaces;
-using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.Matrices;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.Geometry;
+using ISAAR.MSolve.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
     public class Beam2DCorotational : Beam2DCorotationalAbstract
     {
-        private readonly Vector lastDisplacements;
-        private readonly Vector currentDisplacements;
-        private readonly Vector displacementsOfCurrentIncrement;
+        private readonly double[] lastDisplacements;
+        private readonly double[] currentDisplacements;
+        private readonly double[] displacementsOfCurrentIncrement;
 
-        public Beam2DCorotational(IList<Node> nodes, IFiniteElementMaterial material, double density, BeamSection2D beamSection)
+        public Beam2DCorotational(IList<Node> nodes, IFiniteElementMaterial material, double density, 
+            BeamSection2D beamSection)
             : base(nodes, material, density, beamSection)
         {
-            this.displacementsOfCurrentIncrement = new Vector(FREEDOM_DEGREE_COUNT);
-            this.lastDisplacements = new Vector(FREEDOM_DEGREE_COUNT);
-            this.currentDisplacements = new Vector(FREEDOM_DEGREE_COUNT);
+            this.displacementsOfCurrentIncrement = new double[FREEDOM_DEGREE_COUNT];
+            this.lastDisplacements = new double[FREEDOM_DEGREE_COUNT];
+            this.currentDisplacements = new double[FREEDOM_DEGREE_COUNT];
             this.InitializeElementAxes();
         }
 
         public override void SaveGeometryState()
         {
             displacementsOfCurrentIncrement.Scale(0d);
-            currentDisplacements.CopyTo(lastDisplacements.Data, 0);
+            lastDisplacements.CopyFrom(currentDisplacements);
         }
 
         public override void UpdateState(double[] incrementalNodeDisplacements)
         {
-            lastDisplacements.CopyTo(currentDisplacements.Data, 0);
-            currentDisplacements.Add(new Vector(incrementalNodeDisplacements));
-            new Vector(incrementalNodeDisplacements).CopyTo(displacementsOfCurrentIncrement.Data, 0);
+            currentDisplacements.CopyFrom(lastDisplacements);
+            currentDisplacements.AddIntoThis(incrementalNodeDisplacements);
+            displacementsOfCurrentIncrement.CopyFrom(incrementalNodeDisplacements);
 
             double currentDisplacementX_A = currentDisplacements[0];
             double currentlDisplacementY_A = currentDisplacements[1];

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.Solvers.LinearSystems;
 
 //TODO: Also abstract DistributeNodalLoads as much as possible. Resuing the LumpedBoundaryStiffnesses of heterogeneous 
@@ -12,10 +12,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
 {
     internal abstract class Feti1SubdomainGlobalConversionBase : ISubdomainGlobalConversion
     {
-        protected readonly IStructuralModel_v2 model;
+        protected readonly IStructuralModel model;
         protected readonly Feti1DofSeparator dofSeparator;
 
-        protected Feti1SubdomainGlobalConversionBase(IStructuralModel_v2 model, Feti1DofSeparator dofSeparator)
+        protected Feti1SubdomainGlobalConversionBase(IStructuralModel model, Feti1DofSeparator dofSeparator)
         {
             this.model = model;
             this.dofSeparator = dofSeparator;
@@ -93,7 +93,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
             return globalForces;
         }
 
-        protected Dictionary<int, SparseVector> BuildForceVectors(IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems,
+        protected Dictionary<int, SparseVector> BuildForceVectors(IReadOnlyDictionary<int, ILinearSystem> linearSystems,
             Dictionary<int, SortedDictionary<int, double>> subdomainLoads)
         {
             var result = new Dictionary<int, SparseVector>();
@@ -106,8 +106,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
         }
 
         public abstract Dictionary<int, SparseVector> DistributeNodalLoads(
-            IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems, Table<INode, DOFType, double> globalNodalLoads);
-        protected abstract double[] CalcBoundaryDofMultipliers(ISubdomain_v2 subdomain);
+            IReadOnlyDictionary<int, ILinearSystem> linearSystems, Table<INode, DOFType, double> globalNodalLoads);
+        protected abstract double[] CalcBoundaryDofMultipliers(ISubdomain subdomain);
 
         #region incorrect implementation
         // This is version is more efficient, because it only transfers the sum (double) per subdomain, instead of a vector 
@@ -123,7 +123,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
             //TODO: Is this correct? For the residual, it would be wrong to find f-K*u for each subdomain and then call this.
 
             double globalSum = 0.0;
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
+            foreach (ISubdomain subdomain in model.Subdomains)
             {
                 int id = subdomain.ID;
                 double subdomainSum = 0.0;

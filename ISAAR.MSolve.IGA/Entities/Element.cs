@@ -1,15 +1,11 @@
-﻿using ISAAR.MSolve.IGA.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.IGA.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-    public class Element: IElement_v2
+    public class Element: IElement
     {
         private readonly Dictionary<int, ControlPoint> controlPointDictionary =new Dictionary<int, ControlPoint>();
 
@@ -36,7 +32,7 @@ namespace ISAAR.MSolve.IGA.Entities
 		    }
 	    }
 
-        public ISubdomain_v2 Subdomain => this.Patch;
+        public ISubdomain Subdomain => this.Patch;
 	    public Patch Patch { get; set; }
 
 		public Dictionary<int, Knot> KnotsDictionary
@@ -55,7 +51,7 @@ namespace ISAAR.MSolve.IGA.Entities
 
         public IIsogeometricElement ElementType { get; set; }
 
-        IElementType_v2 IElement_v2.ElementType => ElementType;
+        IElementType IElement.ElementType => ElementType;
 
 		//public Patch Patch { get; set; }
 

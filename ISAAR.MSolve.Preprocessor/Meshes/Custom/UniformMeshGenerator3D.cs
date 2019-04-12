@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
     /// (bricks in particular).
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class UniformMeshGenerator3D : IMeshProvider2D<Node_v2, CellConnectivity_v2>
+    public class UniformMeshGenerator3D : IMeshProvider2D<Node, CellConnectivity>
     {
         private readonly double minX, minY, minZ;
         private readonly double dx, dy, dz;
@@ -46,16 +46,16 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
         /// Generates a uniform mesh with the dimensions and density defined in the constructor.
         /// </summary>
         /// <returns></returns>
-        public (IReadOnlyList<Node_v2> vertices, IReadOnlyList<CellConnectivity_v2> cells) CreateMesh()
+        public (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity> cells) CreateMesh()
         {
-            Node_v2[] vertices = CreateVertices();
-            CellConnectivity_v2[] cells = CreateCells(vertices);
+            Node[] vertices = CreateVertices();
+            CellConnectivity[] cells = CreateCells(vertices);
             return (vertices, cells);
         }
 
-        private Node_v2[] CreateVertices()
+        private Node[] CreateVertices()
         {
-            var vertices = new Node_v2[verticesPerX * verticesPerY * verticesPerZ];
+            var vertices = new Node[verticesPerX * verticesPerY * verticesPerZ];
             int id = 0;
             int start = StartIDsAt0 ? 0 : 1;
             for (int k = 0; k < verticesPerZ; ++k)
@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
                 {
                     for (int i = 0; i < verticesPerX; ++i)
                     {
-                        vertices[id] = new Node_v2 { ID = start + id, X = minX + i * dx, Y = minY + j * dy, Z = minZ + k * dz };
+                        vertices[id] = new Node { ID = start + id, X = minX + i * dx, Y = minY + j * dy, Z = minZ + k * dz };
                         ++id;
                     }
                 }
@@ -72,9 +72,9 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
             return vertices;
         }
 
-        private CellConnectivity_v2[] CreateCells(Node_v2[] allVertices)
+        private CellConnectivity[] CreateCells(Node[] allVertices)
         {
-            var cells = new CellConnectivity_v2[cellsPerX * cellsPerY * cellsPerZ];
+            var cells = new CellConnectivity[cellsPerX * cellsPerY * cellsPerZ];
             for (int k = 0; k < cellsPerZ; ++k)
             {
                 for (int j = 0; j < cellsPerY; ++j)
@@ -94,7 +94,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
                             firstVertex + verticesPerX * verticesPerY + verticesPerY + 1,   // ( 1,  1,  1)
                             firstVertex + verticesPerX * verticesPerY + verticesPerY        // (-1,  1,  1)
                         };
-                        cells[cell] = new CellConnectivity_v2(CellType.Hexa8, 
+                        cells[cell] = new CellConnectivity(CellType.Hexa8, 
                             verticesOfCell.Select(idx => allVertices[idx]).ToArray()); // row major
                     }
                 }

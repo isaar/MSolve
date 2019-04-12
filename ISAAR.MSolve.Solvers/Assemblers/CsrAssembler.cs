@@ -39,13 +39,13 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             this.sortColsOfEachRow = sortColsOfEachRow;
         }
 
-        public CsrMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement_v2> elements, 
-            IElementMatrixProvider_v2 matrixProvider)
+        public CsrMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement> elements, 
+            IElementMatrixProvider matrixProvider)
         {
             int numFreeDofs = dofOrdering.NumFreeDofs;
             var subdomainMatrix = DokRowMajor.CreateEmpty(numFreeDofs, numFreeDofs);
 
-            foreach (IElement_v2 element in elements)
+            foreach (IElement element in elements)
             {
                 (int[] elementDofIndices, int[] subdomainDofIndices) = dofOrdering.MapFreeDofsElementToSubdomain(element);
                 IMatrix elementMatrix = matrixProvider.Matrix(element);
@@ -70,7 +70,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         public (CsrMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
             IMatrixView matrixConstrConstr) BuildGlobalSubmatrices(
             ISubdomainFreeDofOrdering freeDofOrdering, ISubdomainConstrainedDofOrdering constrainedDofOrdering,
-            IEnumerable<IElement_v2> elements, IElementMatrixProvider_v2 matrixProvider)
+            IEnumerable<IElement> elements, IElementMatrixProvider matrixProvider)
         {
             int numFreeDofs = freeDofOrdering.NumFreeDofs;
             var subdomainMatrix = DokRowMajor.CreateEmpty(numFreeDofs, numFreeDofs);
@@ -79,7 +79,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             constrainedAssembler.InitializeNewMatrices(freeDofOrdering.NumFreeDofs, constrainedDofOrdering.NumConstrainedDofs);
 
             // Process the stiffness of each element
-            foreach (IElement_v2 element in elements)
+            foreach (IElement element in elements)
             {
                 (int[] elementDofsFree, int[] subdomainDofsFree) = freeDofOrdering.MapFreeDofsElementToSubdomain(element);
                 (int[] elementDofsConstrained, int[] subdomainDofsConstrained) =

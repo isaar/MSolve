@@ -14,10 +14,10 @@ namespace ISAAR.MSolve.FEM.Embedding
         private readonly IList<double> coordinates = new List<double>();
         private readonly IList<DOFType> dependentDOFs;
 
-        public Node Node { get { return node; } }
-        public Element EmbeddedInElement { get { return embeddedInElement; } }
-        public IList<DOFType> DependentDOFs { get { return dependentDOFs; } }
-        public IList<double> Coordinates { get { return coordinates; } }
+        public Node Node => node; 
+        public Element EmbeddedInElement => embeddedInElement;
+        public IList<DOFType> DependentDOFs => dependentDOFs;
+        public IList<double> Coordinates => coordinates;
 
         public EmbeddedNode(Node node, Element hostElement, IList<DOFType> dependentDOFs)
         {

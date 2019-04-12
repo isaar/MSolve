@@ -1,8 +1,5 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Xunit;
 
 namespace ISAAR.MSolve.Tests.FEMpartB
@@ -12,22 +9,22 @@ namespace ISAAR.MSolve.Tests.FEMpartB
         [Fact]
         public static void CheckElasticMicrostructure()
         {
-            (double[] stressesCheck1, double[] stressesCheck2, double[] stressesCheck3, double[] stressesCheck4, IVector uInitialFreeDOFs_state1, IVector uInitialFreeDOFs_state2) = SeparateCodeCheckingClass4.Check05bStressIntegrationObje_v2_Integration();
+            (double[] stressesCheck1, double[] stressesCheck2, double[] stressesCheck3, double[] stressesCheck4, IVector uInitialFreeDOFs_state1, IVector uInitialFreeDOFs_state2) = SeparateCodeCheckingClass4.Check05bStressIntegrationObje_Integration();
 
             string results_file1 = "..\\..\\..\\InputFiles\\MicroStructureAndIntegrationTestsA\\U_sunol_micro_1.txt";
             string results_file2 = "..\\..\\..\\InputFiles\\MicroStructureAndIntegrationTestsA\\U_sunol_micro_2.txt";
             double[] displacements1sIncrement = PrintUtilities.ReadVector(results_file1);
             double[] displacements2ndIncrement = PrintUtilities.ReadVector(results_file2);            
 
-            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(displacements1sIncrement, uInitialFreeDOFs_state1.CopyToArray()));
-            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(displacements2ndIncrement, uInitialFreeDOFs_state2.CopyToArray()));
+            Assert.True(NRNLAnalyzerDevelopTest.AreDisplacementsSame(displacements1sIncrement, uInitialFreeDOFs_state1.CopyToArray()));
+            Assert.True(NRNLAnalyzerDevelopTest.AreDisplacementsSame(displacements2ndIncrement, uInitialFreeDOFs_state2.CopyToArray()));
 
         }
 
         [Fact]
         public static void CheckGrapheneMicrostructure()
         {
-            (double[] stressesCheck3, double[] stressesCheck4, double[,] consCheck1, IVector uInitialFreeDOFs_state1, IVector uInitialFreeDOFs_state2)=SeparateCodeCheckingClass4.Check_Graphene_rve_Obje_v2_Integration();
+            (double[] stressesCheck3, double[] stressesCheck4, double[,] consCheck1, IVector uInitialFreeDOFs_state1, IVector uInitialFreeDOFs_state2)=SeparateCodeCheckingClass4.Check_Graphene_rve_Obje_Integration();
 
             string results_file1 = "..\\..\\..\\InputFiles\\MicroStructureAndIntegrationTestsB\\uInitialFreeDOFs_state1.txt";
             string results_file2 = "..\\..\\..\\InputFiles\\MicroStructureAndIntegrationTestsB\\uInitialFreeDOFs_state2.txt";
@@ -47,11 +44,11 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             double[] stressesCheck3Expected = PrintUtilities.ReadVector(results_file4);
             double[] stressesCheck4Expected = PrintUtilities.ReadVector(results_file5);
 
-            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(displacements1sIncrement, uInitialFreeDOFs_state1.CopyToArray()));
-            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(displacements2ndIncrement, uInitialFreeDOFs_state2.CopyToArray()));
-            Assert.True(BondSlipTest.AreDisplacementsSame_v2(consCheck1, consCheck1Expected));
-            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(stressesCheck3, stressesCheck3Expected));
-            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(stressesCheck4, stressesCheck4Expected));           
+            Assert.True(NRNLAnalyzerDevelopTest.AreDisplacementsSame(displacements1sIncrement, uInitialFreeDOFs_state1.CopyToArray()));
+            Assert.True(NRNLAnalyzerDevelopTest.AreDisplacementsSame(displacements2ndIncrement, uInitialFreeDOFs_state2.CopyToArray()));
+            Assert.True(BondSlipTest.AreDisplacementsSame(consCheck1, consCheck1Expected));
+            Assert.True(NRNLAnalyzerDevelopTest.AreDisplacementsSame(stressesCheck3, stressesCheck3Expected));
+            Assert.True(NRNLAnalyzerDevelopTest.AreDisplacementsSame(stressesCheck4, stressesCheck4Expected));           
 
         }
 

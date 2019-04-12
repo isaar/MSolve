@@ -11,7 +11,8 @@ namespace ISAAR.MSolve.Logging
         private List<IAnalyzerLog> logs = new List<IAnalyzerLog>();
         private readonly HashSet<Type> logTypes = new HashSet<Type>();
 
-        public List<IAnalyzerLog> Logs { get { return logs; } }
+        public List<IAnalyzerLog> Logs => logs;
+
         public void StoreResults(DateTime startTime, DateTime endTime, IAnalyzerLog log)
         {
             if (logTypes.Contains(log.GetType()) == false)

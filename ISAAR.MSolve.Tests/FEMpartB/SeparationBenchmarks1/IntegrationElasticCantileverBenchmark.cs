@@ -1,24 +1,18 @@
-﻿//using ISAAR.MSolve.PreProcessor.Elements;
-//using ISAAR.MSolve.PreProcessor.Materials;
-using System.Collections.Generic;
-// compa
-using ISAAR.MSolve.FEM.Entities;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Analyzers.NonLinear;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.MultiscaleAnalysis;
 using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
-using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Discretization.Integration.Quadratures;
-using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Logging;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Skyline;
-using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers;
-using ISAAR.MSolve.Analyzers.NonLinear;
+using ISAAR.MSolve.Solvers.Direct;
 
 namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks1
 {
@@ -28,11 +22,11 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks1
         
         //Origin opou htan checked branch example/ms_development_nl_elements_merge
         //modifications: egine v2
-        public static TotalDisplacementsPerIterationLog_v2 RunExample()
+        public static TotalDisplacementsPerIterationLog RunExample()
         {
             //VectorExtensions.AssignTotalAffinityCount();
-            Model_v2 model = new Model_v2();
-            int subdomainID = 1;  model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
+            Model model = new Model();
+            int subdomainID = 1;  model.SubdomainsDictionary.Add(subdomainID, new Subdomain(subdomainID));
             HexaCantileverBuilder_copyMS_222(model, 0.00219881744271988174427);
 
             //model.ConnectDataStructures();
@@ -42,10 +36,10 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks1
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
-            ISolver_v2 solver = solverBuilder.BuildSolver(model);
+            ISolver solver = solverBuilder.BuildSolver(model);
 
             // Problem type
-            var provider = new ProblemStructural_v2(model, solver);
+            var provider = new ProblemStructural(model, solver);
 
             //var solver = new SolverSkyline(linearSystems[subdomainID]);
             //var linearSystemsArray = new[] { linearSystems[subdomainID] };
@@ -54,15 +48,15 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks1
             //var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
 
             var increments = 2;
-            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
+            var childAnalyzerBuilder = new LoadControlAnalyzer.Builder(model, solver, provider, increments);
             childAnalyzerBuilder.MaxIterationsPerIncrement = 100;
             childAnalyzerBuilder.NumIterationsForMatrixRebuild = 1;
-            //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) }; // This is the default
-            LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
-            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+            //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.SubdomainsDictionary[subdomainID]) }; // This is the default
+            LoadControlAnalyzer childAnalyzer = childAnalyzerBuilder.Build();
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
             var watchDofs = new Dictionary<int, int[]>();
             watchDofs.Add(subdomainID, new int[5] { 0, 11, 23, 35, 47 });
-            var log1 = new TotalDisplacementsPerIterationLog_v2(watchDofs);
+            var log1 = new TotalDisplacementsPerIterationLog(watchDofs);
             childAnalyzer.TotalDisplacementsPerIterationLog = log1;
            
             parentAnalyzer.Initialize();
@@ -72,13 +66,13 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks1
             return log1;
         }
 
-        public static void HexaCantileverBuilder_copyMS_222(Model_v2 model, double load_value)
+        public static void HexaCantileverBuilder_copyMS_222(Model model, double load_value)
         {
             //Origin: ParadeigmataElegxwnBuilder.HexaCantileverBuilder_copyMS_222(Model model, double load_value)
 
-            IRVEbuilder_v2 homogeneousRveBuilder1 = new HomogeneousRVEBuilderNonLinear();
+            IRVEbuilder homogeneousRveBuilder1 = new HomogeneousRVEBuilderNonLinear();
 
-            IContinuumMaterial3DDefGrad_v2 material1 = new MicrostructureDefGrad3D(homogeneousRveBuilder1,
+            IContinuumMaterial3DDefGrad material1 = new MicrostructureDefGrad3D(homogeneousRveBuilder1,
                 m => (new SkylineSolver.Builder()).BuildSolver(m), false, 1);
 
             double[,] nodeData = new double[,] { {-0.250000,-0.250000,-1.000000},
@@ -110,19 +104,19 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks1
             // orismos shmeiwn
             for (int nNode = 0; nNode < nodeData.GetLength(0); nNode++)
             {
-                model.NodesDictionary.Add(nNode + 1, new Node_v2() { ID = nNode + 1, X = nodeData[nNode, 0], Y = nodeData[nNode, 1], Z = nodeData[nNode, 2] });
+                model.NodesDictionary.Add(nNode + 1, new Node() { ID = nNode + 1, X = nodeData[nNode, 0], Y = nodeData[nNode, 1], Z = nodeData[nNode, 2] });
 
             }
 
             // orismos elements 
-            Element_v2 e1;
+            Element e1;
             int subdomainID = 1;
             for (int nElement = 0; nElement < elementData.GetLength(0); nElement++)
             {
-                e1 = new Element_v2()
+                e1 = new Element()
                 {
                     ID = nElement + 1,
-                    ElementType = new Hexa8NonLinearDefGrad_v2(material1, GaussLegendre3D.GetQuadratureWithOrder(2, 2, 2)) // dixws to e. exoume sfalma enw sto beambuilding oxi//edw kaleitai me ena orisma to Hexa8
+                    ElementType = new Hexa8NonLinearDefGrad(material1, GaussLegendre3D.GetQuadratureWithOrder(2, 2, 2)) // dixws to e. exoume sfalma enw sto beambuilding oxi//edw kaleitai me ena orisma to Hexa8
                 };
                 for (int j = 0; j < 8; j++)
                 {
@@ -141,10 +135,10 @@ namespace ISAAR.MSolve.Tests.FEMpartB.SeparationBenchmarks1
             }
 
             // fortish korufhs
-            Load_v2 load1;
+            Load load1;
             for (int k = 17; k < 21; k++)
             {
-                load1 = new Load_v2()
+                load1 = new Load()
                 {
                     Node = model.NodesDictionary[k],
                     DOF = DOFType.X,

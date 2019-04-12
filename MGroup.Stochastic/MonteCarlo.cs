@@ -26,11 +26,10 @@ namespace MGroup.Stochastic
         public void Evaluate()
         {
             SystemRealizer.Realize(0);
-            int systemResponseDimension = SystemResponseEvaluator.Evaluate(0).Length;
-            var systemResponse = new double[systemResponseDimension];
+            double[] systemResponse = SystemResponseEvaluator.Evaluate(0);
+            int systemResponseDimension = systemResponse.Length;
             MeanValueResponse = new double[systemResponseDimension];
             StandardDeviationResponse = new double[systemResponseDimension];
-            systemResponse = SystemResponseEvaluator.Evaluate(0);
             for (int i = 0; i < systemResponse.Length; i++)
             {
                 MeanValueResponse[i] += systemResponse[i];

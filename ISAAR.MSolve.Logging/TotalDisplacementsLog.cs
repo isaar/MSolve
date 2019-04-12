@@ -8,13 +8,13 @@ using ISAAR.MSolve.Logging.Interfaces;
 //      passed the logger directly.
 namespace ISAAR.MSolve.Logging
 {
-    public class TotalDisplacementsLog : IAnalyzerLog_v2
+    public class TotalDisplacementsLog : IAnalyzerLog
     {
-        private readonly ISubdomain_v2 subdomain;
+        private readonly ISubdomain subdomain;
         private readonly DofTable watchedDofs;
         private double[] displacements;
 
-        public TotalDisplacementsLog(ISubdomain_v2 subdomain, int numWatchedDofs, DofTable watchedDofs)
+        public TotalDisplacementsLog(ISubdomain subdomain, int numWatchedDofs, DofTable watchedDofs)
         {
             this.subdomain = subdomain;
             this.watchedDofs = watchedDofs;
@@ -39,16 +39,16 @@ namespace ISAAR.MSolve.Logging
             }
         }
 
-        public class Factory : ILogFactory_v2
+        public class Factory : ILogFactory
         {
-            private readonly ISubdomain_v2 subdomain;
+            private readonly ISubdomain subdomain;
             private readonly DofTable watchedDofs = new DofTable();
             private int numWatchedDofs = 0;
 
-            public Factory(ISubdomain_v2 subdomain) => this.subdomain = subdomain;
+            public Factory(ISubdomain subdomain) => this.subdomain = subdomain;
 
-            public IAnalyzerLog_v2[] CreateLogs()
-                => new IAnalyzerLog_v2[] { new TotalDisplacementsLog(subdomain, numWatchedDofs, watchedDofs) };
+            public IAnalyzerLog[] CreateLogs()
+                => new IAnalyzerLog[] { new TotalDisplacementsLog(subdomain, numWatchedDofs, watchedDofs) };
 
             public void WatchDof(INode node, DOFType dofType)
             {

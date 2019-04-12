@@ -8,8 +8,8 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
 {
     public class SubdomainConstrainedDofOrderingCaching : ISubdomainConstrainedDofOrdering
     {
-        private readonly Dictionary<IElement_v2, (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices)> 
-            elementDofsCache = new Dictionary<IElement_v2, (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices)>();
+        private readonly Dictionary<IElement, (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices)> 
+            elementDofsCache = new Dictionary<IElement, (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices)>();
 
         public SubdomainConstrainedDofOrderingCaching(int numConstrainedDofs, DofTable subdomainConstrainedDofs)
         {
@@ -20,13 +20,13 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         public DofTable ConstrainedDofs { get; }
         public int NumConstrainedDofs { get; }
 
-        public (int[] elementDofIndices, int[] subdomainDofIndices) MapConstrainedDofsElementToSubdomain(IElement_v2 element)
+        public (int[] elementDofIndices, int[] subdomainDofIndices) MapConstrainedDofsElementToSubdomain(IElement element)
         {
             (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) = GetElementData(element);
             return (elementDofIndices, subdomainDofIndices);
         }
 
-        private (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) GetElementData(IElement_v2 element)
+        private (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) GetElementData(IElement element)
         {
             bool isStored = elementDofsCache.TryGetValue(element, out (int, int[], int[]) elementData);
             if (isStored) return elementData;
@@ -38,7 +38,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             }
         }
 
-        private (int numAllElementDofs, int[] elementDofIndices, int[] subdomainDofIndices) ProcessElement(IElement_v2 element)
+        private (int numAllElementDofs, int[] elementDofIndices, int[] subdomainDofIndices) ProcessElement(IElement element)
         {
             IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
             IList<IList<DOFType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);

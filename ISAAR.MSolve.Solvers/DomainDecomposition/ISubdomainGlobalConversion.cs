@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.Solvers.LinearSystems;
 
 //TODO: the operations described here are expressed as matrix-vector multiplications with the projection & scaling matrices 
@@ -19,7 +17,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition
     {
         double CalculateGlobalForcesNorm(Dictionary<int, IVectorView> subdomainForces);
 
-        Dictionary<int, SparseVector> DistributeNodalLoads(IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems,
+        Dictionary<int, SparseVector> DistributeNodalLoads(IReadOnlyDictionary<int, ILinearSystem> linearSystems,
             Table<INode, DOFType, double> globalNodalLoads);
 
         //TODO: arguments other than the displacements should be injected into the constructor.

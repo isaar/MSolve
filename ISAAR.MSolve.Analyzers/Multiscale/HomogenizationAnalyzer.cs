@@ -12,13 +12,13 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
 {
     public class HomogenizationAnalyzer
     {
-        private readonly IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
-        private readonly IStructuralModel_v2 model;
-        private readonly IStaticProvider_v2 provider;
+        private readonly IReadOnlyDictionary<int, ILinearSystem> linearSystems;
+        private readonly IStructuralModel model;
+        private readonly IStaticProvider provider;
         private readonly IReferenceVolumeElement rve;
-        private readonly ISolver_v2 solver;
+        private readonly ISolver solver;
 
-        public HomogenizationAnalyzer(IStructuralModel_v2 model, ISolver_v2 solver, IStaticProvider_v2 provider, 
+        public HomogenizationAnalyzer(IStructuralModel model, ISolver solver, IStaticProvider provider, 
             IReferenceVolumeElement rve)
         {
             this.model = model;
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
             rve.ApplyBoundaryConditions();
             model.ConnectDataStructures();
             solver.OrderDofs(true);
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 linearSystem.Reset(); // Necessary to define the linear system's size 
             }
@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
             var matricesConstrConstr = new Dictionary<int, IMatrixView>();
 
             // Build all matrices for free and constrained dofs.
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
                 (IMatrixView matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
             // Static condensation: Acond = Acc - Acf * inv(Aff) * Afc
             Dictionary<int, Matrix> invAffTimesAfc = solver.InverseSystemMatrixTimesOtherMatrix(matricesFreeConstr);
             var condensedMatrices = new Dictionary<int, IMatrix>();
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
                 IMatrix condensedMatrix = matricesConstrConstr[id].Subtract(
@@ -74,7 +74,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
 
             // Calculate effective elasticity/conductivity/whatever tensor: C = 1 / V * (D * Acond * D^T)
             EffectiveConstitutiveTensors = new Dictionary<int, IMatrix>();
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
                 IMatrixView kinematicRelationsMatrix = rve.CalculateKinematicRelationsMatrix(linearSystem.Subdomain);

@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         public DofTable ConstrainedDofs { get; }
         public int NumConstrainedDofs { get; }
         
-        public (int[] elementDofIndices, int[] subdomainDofIndices) MapConstrainedDofsElementToSubdomain(IElement_v2 element)
+        public (int[] elementDofIndices, int[] subdomainDofIndices) MapConstrainedDofsElementToSubdomain(IElement element)
         {
             IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
             IList<IList<DOFType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);

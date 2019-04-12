@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.Solvers.Ordering.Reordering
             this.reorderingStrategies = reorderingStrategies;
         }
 
-        public void ReorderDofs(ISubdomain_v2 subdomain, ISubdomainFreeDofOrdering originalOrdering)
+        public void ReorderDofs(ISubdomain subdomain, ISubdomainFreeDofOrdering originalOrdering)
         {
             foreach (var reordering in reorderingStrategies) reordering.ReorderDofs(subdomain, originalOrdering);
         }

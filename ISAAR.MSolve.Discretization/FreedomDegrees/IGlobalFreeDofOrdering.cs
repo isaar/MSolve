@@ -17,15 +17,15 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
 
         int NumGlobalFreeDofs { get; }
 
-        IReadOnlyDictionary<ISubdomain_v2, ISubdomainFreeDofOrdering> SubdomainDofOrderings { get; }
+        IReadOnlyDictionary<ISubdomain, ISubdomainFreeDofOrdering> SubdomainDofOrderings { get; }
 
-        void AddVectorSubdomainToGlobal(ISubdomain_v2 subdomain, IVectorView subdomainVector, IVector globalVector);
+        void AddVectorSubdomainToGlobal(ISubdomain subdomain, IVectorView subdomainVector, IVector globalVector);
 
-        void AddVectorSubdomainToGlobalMeanValue(ISubdomain_v2 subdomain, IVectorView subdomainVector, IVector globalVector);
+        void AddVectorSubdomainToGlobalMeanValue(ISubdomain subdomain, IVectorView subdomainVector, IVector globalVector);
 
-        void ExtractVectorSubdomainFromGlobal(ISubdomain_v2 subdomain, IVectorView globalVector, IVector subdomainVector);
+        void ExtractVectorSubdomainFromGlobal(ISubdomain subdomain, IVectorView globalVector, IVector subdomainVector);
 
         //TODO: the returned array should be readonly
-        int[] MapFreeDofsSubdomainToGlobal(ISubdomain_v2 subdomain);
+        int[] MapFreeDofsSubdomainToGlobal(ISubdomain subdomain);
     }
 }

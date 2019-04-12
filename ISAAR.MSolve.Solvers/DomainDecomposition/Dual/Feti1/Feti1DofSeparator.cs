@@ -18,19 +18,19 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         internal Dictionary<int, int[]> BoundaryDofMultiplicities { get; private set; }
         internal Dictionary<int, int[]> InternalDofIndices { get; private set; }
 
-        internal void SeparateBoundaryInternalDofs(IStructuralModel_v2 model)
+        internal void SeparateBoundaryInternalDofs(IStructuralModel model)
         {
             GatherGlobalBoundaryDofs(model);
             SeparateBoundaryInternalDofsOfSubdomains(model);
         }
 
-        private void SeparateBoundaryInternalDofsOfSubdomains(IStructuralModel_v2 model)
+        private void SeparateBoundaryInternalDofsOfSubdomains(IStructuralModel model)
         {
             BoundaryDofIndices = new Dictionary<int, int[]>();
             BoundaryDofMultiplicities = new Dictionary<int, int[]>();
             BoundaryDofConnectivities = new Dictionary<int, (INode node, DOFType dofType)[]>();
             InternalDofIndices = new Dictionary<int, int[]>();
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
+            foreach (ISubdomain subdomain in model.Subdomains)
             {
                 var boundaryMultiplicitiesOfSubdomain = new SortedDictionary<int, int>(); // key = dofIdx, value = multiplicity
                 var boundaryConnectivitiesOfSubdomain = new SortedDictionary<int, (INode node, DOFType dofType)>(); 
@@ -70,7 +70,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             }
         }
 
-        private void GatherGlobalBoundaryDofs(IStructuralModel_v2 model)
+        private void GatherGlobalBoundaryDofs(IStructuralModel model)
         {
             GlobalBoundaryDofs = new Dictionary<INode, DOFType[]>();
 

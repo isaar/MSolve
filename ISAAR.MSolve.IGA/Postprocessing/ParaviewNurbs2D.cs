@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Threading;
+﻿using System.IO;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Solvers.Interfaces;
-using IVector = ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces.IVector;
-using Vector = ISAAR.MSolve.Numerical.LinearAlgebra.Vector;
 
 namespace ISAAR.MSolve.IGA.Postprocessing
 {
-	public class ParaviewNurbs2D
+    public class ParaviewNurbs2D
 	{
 		private Model _model;
 		private IVectorView _solution;
@@ -240,9 +233,9 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 		/// <returns></returns>
 		public static Vector BasisFunctions(int spanId, double pointCoordinate, int degree, IVector knotValueVector)
 		{
-			var basisFunctions = new Vector(degree + 1);
-			var left = new Vector(degree + 1);
-			var right = new Vector(degree + 1);
+			var basisFunctions = Vector.CreateZero(degree + 1);
+			var left = Vector.CreateZero(degree + 1);
+			var right = Vector.CreateZero(degree + 1);
 			basisFunctions[0] = 1;
 			for (int j = 1; j <= degree; j++)
 			{
@@ -287,18 +280,18 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 			var pointFunctionsKsi = BasisFunctions(spanKsi, coordinateKsi, degreeKsi, knotValueVectorKsi);
 			var pointFunctionsHeta = BasisFunctions(spanHeta, coordinateHeta, degreeHeta, knotValueVectorHeta);
 
-			var cartesianPoint = new Vector(4);
+			var cartesianPoint = Vector.CreateZero(4);
 			var indexKsi = spanKsi - degreeKsi;
 
 			for (var j = 0; j <= degreeHeta; j++)
 			{
-				var temp = new Vector(4);
+				var temp = Vector.CreateZero(4);
 				var indexHeta = spanHeta - degreeHeta + j;
 
 				for (int i = 0; i <= degreeKsi; i++)
 				{
 					var cpIndex = (indexKsi+i)*(numberOfCPHeta+1)+indexHeta; 
-					var cpCoordinates = new Vector(new double[]
+					var cpCoordinates = Vector.CreateFromArray(new double[]
 					{
 						projectiveControlPointCoordinates[cpIndex, 0],
 						projectiveControlPointCoordinates[cpIndex, 1],
@@ -306,11 +299,11 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 						projectiveControlPointCoordinates[cpIndex, 3]
 					});
 					cpCoordinates.Scale(pointFunctionsKsi[i]);
-					temp = new Vector(temp + cpCoordinates);
+					temp = temp + cpCoordinates;
 				}
 
 				temp.Scale(pointFunctionsHeta[j]);
-				cartesianPoint = new Vector(cartesianPoint + temp);
+				cartesianPoint = cartesianPoint + temp;
 			}
 
 			return cartesianPoint;

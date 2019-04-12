@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Integration.Points;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
@@ -9,19 +8,18 @@ using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
 using ISAAR.MSolve.FEM.Interpolation.Jacobians;
-using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
-    public class ThermalElement3D : IFiniteElement_v2
+    public class ThermalElement3D : IFiniteElement
     {
         private readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.Temperature };
         private readonly DOFType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
         private readonly ThermalMaterial material;
 
-        public ThermalElement3D(IReadOnlyList<Node_v2> nodes, IIsoparametricInterpolation3D interpolation,
+        public ThermalElement3D(IReadOnlyList<Node> nodes, IIsoparametricInterpolation3D interpolation,
         IQuadrature3D quadratureForStiffness, IQuadrature3D quadratureForMass,
         IGaussPointExtrapolation3D gaussPointExtrapolation, ThermalMaterial material)
         {
@@ -42,15 +40,15 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public IGaussPointExtrapolation3D GaussPointExtrapolation { get; }
         public IIsoparametricInterpolation3D Interpolation { get; }
-        public IReadOnlyList<Node_v2> Nodes { get; }
+        public IReadOnlyList<Node> Nodes { get; }
         public IQuadrature3D QuadratureForConsistentMass { get; }
         public IQuadrature3D QuadratureForStiffness { get; }
 
         public bool MaterialModified => throw new NotImplementedException();
 
-        public IElementDofEnumerator_v2 DofEnumerator { get; set; } = new GenericDofEnumerator_v2();
+        public IElementDofEnumerator DofEnumerator { get; set; } = new GenericDofEnumerator();
 
-        public IMatrix MassMatrix(IElement_v2 element)
+        public IMatrix MassMatrix(IElement element)
         {
             return BuildCapacityMatrix();
         }
@@ -78,7 +76,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return capacity;
         }
 
-        public IMatrix StiffnessMatrix(IElement_v2 element)
+        public IMatrix StiffnessMatrix(IElement element)
         {
             return BuildConductivityMatrix();
         }
@@ -137,29 +135,29 @@ namespace ISAAR.MSolve.FEM.Elements
             return Matrix.CreateFromArray(shapeFunctions, 1, shapeFunctions.Length);
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element) => dofTypes;
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
 
         public void ResetMaterialModified()
         {
             throw new NotImplementedException();
         }
 
-        public Tuple<double[], double[]> CalculateStresses(Element_v2 element, double[] localDisplacements, double[] localdDisplacements)
+        public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
         {
             throw new NotImplementedException();
         }
 
-        public double[] CalculateForces(Element_v2 element, double[] localDisplacements, double[] localdDisplacements)
+        public double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements)
         {
             throw new NotImplementedException();
         }
 
-        public double[] CalculateForcesForLogging(Element_v2 element, double[] localDisplacements)
+        public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
         {
             throw new NotImplementedException();
         }
 
-        public double[] CalculateAccelerationForces(Element_v2 element, IList<MassAccelerationLoad> loads)
+        public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {
             throw new NotImplementedException();
         }
@@ -179,7 +177,7 @@ namespace ISAAR.MSolve.FEM.Elements
             throw new NotImplementedException();
         }
 
-        public IMatrix DampingMatrix(IElement_v2 element)
+        public IMatrix DampingMatrix(IElement element)
         {
             throw new NotImplementedException();
         }

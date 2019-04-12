@@ -84,14 +84,14 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual
 
         public class Factory : IFetiPcgConvergenceFactory
         {
-            private readonly Func<Model_v2, ISolver_v2, IStaticProvider_v2> createProblemProvider;
+            private readonly Func<Model, ISolver, IStaticProvider> createProblemProvider;
             private readonly double globalForcesNorm;
             private readonly IDofOrderer originalDofOrderer;
-            private readonly Model_v2 singleSubdomainModel;
-            private readonly Subdomain_v2 singleSubdomain;
+            private readonly Model singleSubdomainModel;
+            private readonly Subdomain singleSubdomain;
 
-            public Factory(Model_v2 singleSubdomainModel, IDofOrderer originalDofOrderer,
-                Func<Model_v2, ISolver_v2, IStaticProvider_v2> createProblemProvider)
+            public Factory(Model singleSubdomainModel, IDofOrderer originalDofOrderer,
+                Func<Model, ISolver, IStaticProvider> createProblemProvider)
             {
                 this.singleSubdomainModel = singleSubdomainModel;
                 this.singleSubdomain = singleSubdomainModel.Subdomains.First();
@@ -136,9 +136,9 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual
                 PcgSolver solver = solverBuilder.BuildSolver(singleSubdomainModel);
 
                 // Let MSolve follow the usual analysis routine, to create all necessary data structures. 
-                IStaticProvider_v2 problemProvider = createProblemProvider(singleSubdomainModel, solver);
-                var linearAnalyzer = new LinearAnalyzer_v2(singleSubdomainModel, solver, problemProvider);
-                var staticAnalyzer = new StaticAnalyzer_v2(singleSubdomainModel, solver, problemProvider, linearAnalyzer);
+                IStaticProvider problemProvider = createProblemProvider(singleSubdomainModel, solver);
+                var linearAnalyzer = new LinearAnalyzer(singleSubdomainModel, solver, problemProvider);
+                var staticAnalyzer = new StaticAnalyzer(singleSubdomainModel, solver, problemProvider, linearAnalyzer);
                 staticAnalyzer.Initialize();
                 try
                 {
@@ -148,7 +148,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual
                 { }
 
                 // Extract the global matrix and rhs
-                ILinearSystem_v2 linearSystem = solver.LinearSystems.First().Value;
+                ILinearSystem linearSystem = solver.LinearSystems.First().Value;
                 return (linearSystem.Matrix, linearSystem.RhsVector);
             }
         }

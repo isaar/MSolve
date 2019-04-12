@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
-using ISAAR.MSolve.Discretization.Integration.Points;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
-using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.Materials;
 
@@ -113,7 +111,7 @@ namespace ISAAR.MSolve.FEM.Elements
             this.commonMaterial = commonMaterial;
         }
 
-        public ThermalElement3D CreateElement(CellType cellType, IReadOnlyList<Node_v2> nodes)
+        public ThermalElement3D CreateElement(CellType cellType, IReadOnlyList<Node> nodes)
         {
             return new ThermalElement3D(nodes, interpolations[cellType],
                 integrationsForStiffness[cellType], integrationsForMass[cellType], extrapolations[cellType], commonMaterial);

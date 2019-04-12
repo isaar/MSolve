@@ -10,20 +10,20 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
     /// </summary>
     internal class FullyRedundantConstraints : ICrosspointStrategy
     {
-        public (ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus) FindSubdomainCombinations(int nodeMultiplicity,
-            IEnumerable<ISubdomain_v2> nodeSubdomains)
+        public (ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus) FindSubdomainCombinations(int nodeMultiplicity,
+            IEnumerable<ISubdomain> nodeSubdomains)
         {
             Debug.Assert(nodeMultiplicity > 1);
             int numNodeCombos = (nodeMultiplicity * (nodeMultiplicity - 1)) / 2; //TODO: not sure about this
-            var subdomainsPlus = new ISubdomain_v2[numNodeCombos];
-            var subdomainsMinus = new ISubdomain_v2[numNodeCombos];
+            var subdomainsPlus = new ISubdomain[numNodeCombos];
+            var subdomainsMinus = new ISubdomain[numNodeCombos];
 
-            var processedSubdomains = new HashSet<ISubdomain_v2>(nodeSubdomains);
+            var processedSubdomains = new HashSet<ISubdomain>(nodeSubdomains);
             int comboCounter = 0;
-            foreach (ISubdomain_v2 subdomain1 in nodeSubdomains)
+            foreach (ISubdomain subdomain1 in nodeSubdomains)
             {
                 processedSubdomains.Remove(subdomain1);
-                foreach (ISubdomain_v2 subdomain2 in processedSubdomains)
+                foreach (ISubdomain subdomain2 in processedSubdomains)
                 {
                     subdomainsPlus[comboCounter] = subdomain1;
                     subdomainsMinus[comboCounter] = subdomain2;

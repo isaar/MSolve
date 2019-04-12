@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
@@ -27,22 +26,22 @@ namespace ISAAR.MSolve.FEM.Elements
 
         protected readonly ElasticMaterial2D[] materialsAtGaussPoints;
 
-        protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
-        protected Quad4()
-        {
-        }
+        protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
+
+        protected Quad4() { }
+
         public Quad4(ElasticMaterial2D material)
         {
             materialsAtGaussPoints = new ElasticMaterial2D[iInt2];
             for (int i = 0; i < iInt2; i++)
                 materialsAtGaussPoints[i] = (ElasticMaterial2D)material.Clone();
         }
-        public Quad4(ElasticMaterial2D material, IElementDOFEnumerator dofEnumerator)
+        public Quad4(ElasticMaterial2D material, IElementDofEnumerator dofEnumerator)
             : this(material)
         {
             this.dofEnumerator = dofEnumerator;
         }
-        public IElementDOFEnumerator DOFEnumerator
+        public IElementDofEnumerator DofEnumerator
         {
             get { return dofEnumerator; }
             set { dofEnumerator = value; }
@@ -59,8 +58,8 @@ namespace ISAAR.MSolve.FEM.Elements
             double[,] faXY = new double[dofTypes.Length, 2];
             for (int i = 0; i < dofTypes.Length; i++)
             {
-                faXY[i, 0] = element.INodes[i].X;
-                faXY[i, 1] = element.INodes[i].Y;
+                faXY[i, 0] = element.Nodes[i].X;
+                faXY[i, 1] = element.Nodes[i].Y;
             }
             return faXY;
         }
@@ -77,26 +76,13 @@ namespace ISAAR.MSolve.FEM.Elements
 
         #region IElementType Members
 
-        public int ID
-        {
-            //Change Element ID to random 14? I am not sure why is this needed
-            get;
-            set;
-        }
+        public int ID => throw new NotImplementedException();
 
-        public ElementDimensions ElementDimensions
-        {
-            get { return ElementDimensions.TwoD; }
-        }
+        public ElementDimensions ElementDimensions => ElementDimensions.TwoD;
 
-        public virtual IList<IList<DOFType>> GetElementDOFTypes(IElement element)
-        {
-            return dofTypes;
-        }
-        public IList<Node> GetNodesForMatrixAssembly(Element element)
-        {
-            return element.Nodes;
-        }
+        public virtual IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
+
+        public IList<Node> GetNodesForMatrixAssembly(Element element) => element.Nodes;
 
         private double[] CalcQ4Shape(double fXi, double fEta)
         {
@@ -292,16 +278,16 @@ namespace ISAAR.MSolve.FEM.Elements
             return integrationPoints;
         }
 
-        public virtual IMatrix2D StiffnessMatrix(IElement element)
+        public virtual IMatrix StiffnessMatrix(IElement element)
         {
             double[,] coordinates = this.GetCoordinates(element);
             GaussLegendrePoint3D[] integrationPoints = this.CalculateGaussMatrices(coordinates);
-            SymmetricMatrix2D stiffnessMatrix = new SymmetricMatrix2D(8);
+            SymmetricMatrix stiffnessMatrix = SymmetricMatrix.CreateZero(8);
             int pointId = -1;
             foreach (GaussLegendrePoint3D intPoint in integrationPoints)
             {
                 pointId++;
-                IMatrix2D constitutiveMatrix = materialsAtGaussPoints[pointId].ConstitutiveMatrix;
+                IMatrixView constitutiveMatrix = materialsAtGaussPoints[pointId].ConstitutiveMatrix;
                 double[,] b = intPoint.DeformationMatrix;
                 for (int i = 0; i < 8; i++)
                 {
@@ -325,24 +311,21 @@ namespace ISAAR.MSolve.FEM.Elements
 
         #endregion
 
-        public virtual IMatrix2D MassMatrix(IElement element)
+        public virtual IMatrix MassMatrix(IElement element) => CalculateConsistentMass(element);
+
+        public virtual IMatrix DampingMatrix(IElement element)
         {
-            return CalculateConsistentMass(element);
+            IMatrix k = StiffnessMatrix(element);
+            IMatrix m = MassMatrix(element);
+            k.LinearCombinationIntoThis(RayleighBeta, m, RayleighAlpha);
+            return k;
         }
 
-        public virtual IMatrix2D DampingMatrix(IElement element)
-        {
-            var m = MassMatrix(element);
-            var lc = m as ILinearlyCombinable;
-            lc.LinearCombination(new double[] { RayleighAlpha, RayleighBeta }, new IMatrix2D[] { MassMatrix(element), StiffnessMatrix(element) });
-            return m;
-        }
-
-        public IMatrix2D CalculateConsistentMass(IElement element)
+        public IMatrix CalculateConsistentMass(IElement element)
         {
             double[,] coordinates = this.GetCoordinates(element);
             GaussLegendrePoint3D[] integrationPoints = this.CalculateGaussMatrices(coordinates);
-            SymmetricMatrix2D consistentMass = new SymmetricMatrix2D(8);
+            var consistentMass = SymmetricMatrix.CreateZero(8);
             foreach (GaussLegendrePoint3D gaussPoint in integrationPoints)
             {
                 double[] shapeFunctionValues = CalcQ4Shape(gaussPoint.Xi, gaussPoint.Eta);
@@ -387,10 +370,10 @@ namespace ISAAR.MSolve.FEM.Elements
             {
                 for (int j = 0; j < 6; j++) dStrains[j] = fadStrains[i, j];
                 for (int j = 0; j < 6; j++) strains[j] = faStrains[i, j];
-                materialsAtGaussPoints[i].UpdateMaterial(new StressStrainVectorContinuum2D(dStrains));
+                materialsAtGaussPoints[i].UpdateMaterial(dStrains);
             }
 
-            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses.Data);
+            return new Tuple<double[], double[]>(strains, materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);
         }
 
         public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
@@ -422,16 +405,13 @@ namespace ISAAR.MSolve.FEM.Elements
             //	CalcQ4GaussMatrices(ref iInt, faXYZ, faWeight, faS, faDS, faJ, faDetJ, faB);
             //	CalcQ4Forces(ref iInt, faB, faWeight, faStresses, faForces);
 
-            double[] localdForces = new double[localdDisplacements.Length];
-            StiffnessMatrix(element).Multiply(new Vector(localdDisplacements), localdForces);
-
             return faForces;
         }
 
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {
-            Vector accelerations = new Vector(8);
-            IMatrix2D massMatrix = MassMatrix(element);
+            var accelerations = new double[8];
+            IMatrix massMatrix = MassMatrix(element);
 
             foreach (MassAccelerationLoad load in loads)
             {
@@ -443,40 +423,18 @@ namespace ISAAR.MSolve.FEM.Elements
                         index++;
                     }
             }
-            double[] forces = new double[8];
-            massMatrix.Multiply(accelerations, forces);
-            return forces;
+
+            return massMatrix.Multiply(accelerations);
         }
 
-        public void ClearMaterialState()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SaveMaterialState()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ClearMaterialStresses()
-        {
-            throw new NotImplementedException();
-        }
+        public void ClearMaterialState() => throw new NotImplementedException();
+        public void SaveMaterialState() => throw new NotImplementedException();
+        public void ClearMaterialStresses() => throw new NotImplementedException();
 
         #region IStructuralFiniteElement Members
 
-        public bool MaterialModified
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public void ResetMaterialModified()
-        {
-            throw new NotImplementedException();
-        }
+        public bool MaterialModified => throw new NotImplementedException();
+        public void ResetMaterialModified() => throw new NotImplementedException();
 
         #endregion
 

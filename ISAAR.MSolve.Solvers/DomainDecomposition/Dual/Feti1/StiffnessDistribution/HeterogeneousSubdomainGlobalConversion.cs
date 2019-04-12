@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.Solvers.LinearSystems;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribution
@@ -14,14 +12,14 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
     {
         private readonly Dictionary<int, double[]> relativeBoundaryStiffnesses;
 
-        internal HeterogeneousSubdomainGlobalConversion(IStructuralModel_v2 model, Feti1DofSeparator dofSeparator,
+        internal HeterogeneousSubdomainGlobalConversion(IStructuralModel model, Feti1DofSeparator dofSeparator,
             Dictionary<int, double[]> relativeBoundaryStiffnesses) : base(model, dofSeparator)
         {
             this.relativeBoundaryStiffnesses = relativeBoundaryStiffnesses;
         }
 
         public override Dictionary<int, SparseVector> DistributeNodalLoads(
-            IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems, Table<INode, DOFType, double> globalNodalLoads)
+            IReadOnlyDictionary<int, ILinearSystem> linearSystems, Table<INode, DOFType, double> globalNodalLoads)
         {
             //TODO: This should be done using Dictionary<int, double[]> relativeBoundaryStiffnesses, instead of recreating that data.
             //TODO: Should I implement this as fb(s) = Lpb(s) * fb, Lpb(s) = Db(s)*Lb(s) * inv(Lb^T*Db*Lb)?
@@ -34,18 +32,18 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
             {
                 if (node.SubdomainsDictionary.Count == 1) // optimization for internal dof
                 {
-                    ISubdomain_v2 subdomain = node.SubdomainsDictionary.First().Value;
+                    ISubdomain subdomain = node.SubdomainsDictionary.First().Value;
                     int subdomainDofIdx = subdomain.FreeDofOrdering.FreeDofs[node, dofType];
                     subdomainLoads[subdomain.ID][subdomainDofIdx] = amount;
                 }
                 else // boundary dof: regularize with respect to the diagonal entries of the stiffness matrix at this dof
                 {
-                    ISubdomain_v2[] dofSubdomains = node.SubdomainsDictionary.Values.ToArray();
+                    ISubdomain[] dofSubdomains = node.SubdomainsDictionary.Values.ToArray();
                     var dofIndices = new int[dofSubdomains.Length];
                     var dofStiffnesses = new double[dofSubdomains.Length];
                     for (int s = 0; s < dofSubdomains.Length; ++s)
                     {
-                        ISubdomain_v2 subdomain = dofSubdomains[s];
+                        ISubdomain subdomain = dofSubdomains[s];
                         dofIndices[s] = subdomain.FreeDofOrdering.FreeDofs[node, dofType];
                         dofStiffnesses[s] = linearSystems[subdomain.ID].Matrix[dofIndices[s], dofIndices[s]]; //TODO: accessing diagonal entries should be optimized (and batched).
                         Debug.Assert(dofStiffnesses[s] > 0);
@@ -62,7 +60,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
             return BuildForceVectors(linearSystems, subdomainLoads);
         }
 
-        protected override double[] CalcBoundaryDofMultipliers(ISubdomain_v2 subdomain)
+        protected override double[] CalcBoundaryDofMultipliers(ISubdomain subdomain)
             => relativeBoundaryStiffnesses[subdomain.ID];
     }
 }

@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// </summary>
         public bool StressesVonMises { get; set; } = false;
 
-        internal ILogFactory_v2 CreateLogFactory(PreprocessorModel model)
+        internal ILogFactory CreateLogFactory(PreprocessorModel model)
         {
             var logFactory = new VtkLogFactory(model.CoreModel, outputDirectory)
             {

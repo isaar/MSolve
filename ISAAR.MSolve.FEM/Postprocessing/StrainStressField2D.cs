@@ -15,13 +15,13 @@ namespace ISAAR.MSolve.FEM.Postprocessing
     {
         private const int numTensorEntries = 3; //TODO: use a dedicated Tensor2D class
 
-        private readonly Dictionary<Node_v2, (double[] strains, double[] stresses)> data;
-        private readonly Model_v2 model;
+        private readonly Dictionary<Node, (double[] strains, double[] stresses)> data;
+        private readonly Model model;
 
-        public StrainStressField2D(Model_v2 model)
+        public StrainStressField2D(Model model)
         {
             this.model = model;
-            this.data = new Dictionary<Node_v2, (double[] strains, double[] stresses)>(model.Nodes.Count);
+            this.data = new Dictionary<Node, (double[] strains, double[] stresses)>(model.Nodes.Count);
             foreach (var node in model.Nodes)
             {
                 data.Add(node, (new double[numTensorEntries], new double[numTensorEntries]));
@@ -37,12 +37,12 @@ namespace ISAAR.MSolve.FEM.Postprocessing
         /// <returns></returns>
         public void CalculateNodalTensors(IVectorView freeDisplacements)
         {
-            var nodeMultiplicities = new Dictionary<Node_v2, int>();
-            foreach (Node_v2 node in model.Nodes) nodeMultiplicities.Add(node, 0); // how many elements each node belongs to
+            var nodeMultiplicities = new Dictionary<Node, int>();
+            foreach (Node node in model.Nodes) nodeMultiplicities.Add(node, 0); // how many elements each node belongs to
 
-            foreach (Subdomain_v2 subdomain in model.Subdomains)
+            foreach (Subdomain subdomain in model.Subdomains)
             {
-                foreach (Element_v2 element in subdomain.Elements)
+                foreach (Element element in subdomain.Elements)
                 {
                     ContinuumElement2D elementType = (ContinuumElement2D)(element.ElementType); //TODO: remove cast
 
@@ -61,7 +61,7 @@ namespace ISAAR.MSolve.FEM.Postprocessing
                     // Add them to the tensors stored so far in the dictionary
                     for (int i = 0; i < elementType.Nodes.Count; ++i)
                     {
-                        Node_v2 node = elementType.Nodes[i];
+                        Node node = elementType.Nodes[i];
                         AddToTensors(node, strainsAtNodes[i], stressesAtNodes[i]);
                         ++nodeMultiplicities[node];
                     }
@@ -69,7 +69,7 @@ namespace ISAAR.MSolve.FEM.Postprocessing
             }
 
             // Divide via the node multiplicity to find the average
-            foreach (Node_v2 node in model.Nodes)
+            foreach (Node node in model.Nodes)
             {
                 int multiplicity = nodeMultiplicities[node];
                 Debug.Assert(multiplicity > 0); 
@@ -77,10 +77,10 @@ namespace ISAAR.MSolve.FEM.Postprocessing
             }
         }
 
-        public double[] GetStrainsOfNode(Node_v2 node) => data[node].strains;
-        public double[] GetStressesOfNode(Node_v2 node) => data[node].stresses;
+        public double[] GetStrainsOfNode(Node node) => data[node].strains;
+        public double[] GetStressesOfNode(Node node) => data[node].stresses;
       
-        private void AddToTensors(Node_v2 node, double[] strains, double[] stresses)
+        private void AddToTensors(Node node, double[] strains, double[] stresses)
         {
             (double[] storedStrains, double[] storedStresses) = data[node];
             for (int i = 0; i < numTensorEntries; ++i)
@@ -90,7 +90,7 @@ namespace ISAAR.MSolve.FEM.Postprocessing
             }
         }
 
-        private void DivideTensors(Node_v2 node, double multiplicity)
+        private void DivideTensors(Node node, double multiplicity)
         {
             (double[] storedStrains, double[] storedStresses) = data[node];
             for (int i = 0; i < numTensorEntries; ++i)

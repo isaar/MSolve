@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.FEM;
-using MGroup.Stochastic.Structural.StochasticRealizers;
+﻿using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Materials;
 using MGroup.Stochastic.Interfaces;
 
 namespace MGroup.Stochastic.Structural
@@ -22,7 +17,7 @@ namespace MGroup.Stochastic.Structural
 
 
             var m = new Model();
-            m.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
+            m.SubdomainsDictionary.Add(0, new Subdomain(0));
 
             m.NodesDictionary.Add(0, new Node() { ID = 0, X = 0.0, Y = 0, Z = 0 });
             m.NodesDictionary.Add(1, new Node() { ID = 1, X = 0.1, Y = 0, Z = 0 });
@@ -59,7 +54,7 @@ namespace MGroup.Stochastic.Structural
                 e.AddNodes(new[] { m.NodesDictionary[i], m.NodesDictionary[i + 1] });
 
                 m.ElementsDictionary.Add(i, e);
-                m.SubdomainsDictionary[0].ElementsDictionary.Add(i, e);
+                m.SubdomainsDictionary[0].Elements.Add(e);
             }
 
             m.NodesDictionary[0].Constraints.Add(new Constraint { DOF = DOFType.X, Amount = 0 });
@@ -71,7 +66,7 @@ namespace MGroup.Stochastic.Structural
 
             m.Loads.Add(new Load() { Amount = 10, Node = m.NodesDictionary[10], DOF = DOFType.Z });
 
-            m.ConnectDataStructures();
+            //m.ConnectDataStructures();
 
             return m;
 

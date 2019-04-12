@@ -44,11 +44,11 @@ namespace ISAAR.MSolve.FEM
             for (int i = 0; i < NumberOfProcessors; i++)
             {
                 if (indexElement >= ElementsRenumbered.Count) break;
-                Model.SubdomainsDictionary.Add(i, new Subdomain() { ID = i });
+                Model.SubdomainsDictionary.Add(i, new Subdomain(i));
                 for (int j = 0; j < numberOfElementsPerSubdomain; j++)
                 {
                     if (indexElement >= ElementsRenumbered.Count) break;
-                    Model.SubdomainsDictionary[i].ElementsDictionary.Add(ElementsRenumbered[indexElement].ID, ElementsRenumbered[indexElement++]);
+                    Model.SubdomainsDictionary[i].Elements.Add(ElementsRenumbered[indexElement++]);
                 }
             }
 
@@ -59,7 +59,7 @@ namespace ISAAR.MSolve.FEM
         {
             foreach (Subdomain subdomain in Model.SubdomainsDictionary.Values)
             {
-                foreach (Element element in subdomain.ElementsDictionary.Values)
+                foreach (Element element in subdomain.Elements)
                     element.Subdomain = subdomain;
             }
 
@@ -71,8 +71,8 @@ namespace ISAAR.MSolve.FEM
 
             foreach (Subdomain subdomain in Model.SubdomainsDictionary.Values)
             {
-                subdomain.NodesDictionary.Clear();
-                subdomain.BuildNodesDictionary();
+                //subdomain.Nodes.Clear(); // This is done automatically by the next method
+                subdomain.DefineNodesFromElements();
             }
         }
 
@@ -208,7 +208,9 @@ namespace ISAAR.MSolve.FEM
                     } while (counterSubdomainElements < numberOfElementsPerSubdomain);
                     if (!flagStop) continue;
                 }
-                SubdomainInterfaceNodes.Add(counterSubdomain++,CalculateInterface(nodeWeight, isInteriorBoundaryNode, ElementsRenumbered, usedElementsCounter, counterSubdomainElements, counterSubdomain));
+                SubdomainInterfaceNodes.Add(counterSubdomain++, 
+                    CalculateInterface(nodeWeight, isInteriorBoundaryNode, ElementsRenumbered, usedElementsCounter, 
+                    counterSubdomainElements, counterSubdomain));
                 usedElementsCounter = usedElementsCounter + counterSubdomainElements;
                 mlabel = usedElementsCounter;
             } while (usedElementsCounter < Model.ElementsDictionary.Count);
@@ -216,7 +218,8 @@ namespace ISAAR.MSolve.FEM
         }
 
         //isInteriorBoundaryNode-> if node is on the interior interface
-        private List<Node>  CalculateInterface(Dictionary<Node,int> nodeWeight, bool[] isInteriorBoundaryNode, List<Element>  ElementsRenumbered, int usedElementsCounter, int counterSubdomainElements, int counterSubdomain)
+        private List<Node> CalculateInterface(Dictionary<Node, int> nodeWeight, bool[] isInteriorBoundaryNode, 
+            List<Element> ElementsRenumbered, int usedElementsCounter, int counterSubdomainElements, int counterSubdomain)
         {
             var locmask = new bool[Model.NodesDictionary.Count];
             List<Node> SubdomainInterfaceNodes = new List<Node>();            

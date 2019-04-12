@@ -1,8 +1,8 @@
 ﻿using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using Xunit;
 
 namespace ISAAR.MSolve.IGA.Tests
@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		{
 			get
 			{
-				var knotValueVector = new Vector(new double[]
+				var knotValueVector = Vector.CreateFromArray(new double[]
 				{
 					0, 0, 0, 0, 0.11111111111111111, 0.22222222222222222, 0.33333333333333333, 0.44444444444444444,
 					0.55555555555555555, 0.66666666666666666, 0.7777777777777777, 0.8888888888888888, 1, 1, 1, 1
@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		{
 			get
 			{
-				return new Vector(new double[]
+				return Vector.CreateFromArray(new double[]
 					{0.007714649348171322, 0.0366677197641736, 0.0744433912358264, 0.10339646165182867});
 			}
 		}

@@ -1,21 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.Solvers.LinearSystems;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribution
 {
     internal class HomogeneousSubdomainGlobalConversion : Feti1SubdomainGlobalConversionBase
     {
-        internal HomogeneousSubdomainGlobalConversion(IStructuralModel_v2 model, Feti1DofSeparator dofSeparator) :
+        internal HomogeneousSubdomainGlobalConversion(IStructuralModel model, Feti1DofSeparator dofSeparator) :
             base(model, dofSeparator)
         {
         }
 
         public override Dictionary<int, SparseVector> DistributeNodalLoads(
-            IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems, Table<INode, DOFType, double> globalNodalLoads)
+            IReadOnlyDictionary<int, ILinearSystem> linearSystems, Table<INode, DOFType, double> globalNodalLoads)
         {
             //TODO: Should I implemented this as fb(s) = Lpb(s) * fb, Lpb(s) = Lb(s) * inv(Mb)?
             //TODO: Internal loaded dofs should be handled differently as an optimization.
@@ -36,7 +35,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
             return BuildForceVectors(linearSystems, subdomainLoads);
         }
 
-        protected override double[] CalcBoundaryDofMultipliers(ISubdomain_v2 subdomain)
+        protected override double[] CalcBoundaryDofMultipliers(ISubdomain subdomain)
         {
             int[] multiplicites = dofSeparator.BoundaryDofMultiplicities[subdomain.ID];
             var inverseMultiplicites = new double[multiplicites.Length];

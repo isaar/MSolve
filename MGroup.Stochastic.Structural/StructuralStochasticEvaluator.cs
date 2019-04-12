@@ -1,14 +1,9 @@
-﻿using MGroup.Stochastic.Interfaces;
-using MGroup.Stochastic.Structural.StochasticRealizers;
-using System;
-using System.Collections.Generic;
-using Accord;
+﻿using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Skyline;
 using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Solvers.Direct;
+using MGroup.Stochastic.Interfaces;
+using MGroup.Stochastic.Structural.StochasticRealizers;
 
 namespace MGroup.Stochastic.Structural
 {
@@ -67,20 +62,18 @@ namespace MGroup.Stochastic.Structural
         /// <returns></returns>
         public double[] Evaluate(int iteration)
         {
-            var linearSystems = new Dictionary<int, ILinearSystem>
-            {
-                { 0, new SkylineLinearSystem(0, currentModel.SubdomainsDictionary[0].Forces) }
-            };
-            var solver = new SolverSkyline(linearSystems[0]);
-            var provider = new ProblemStructural(currentModel, linearSystems);
-            var childAnalyzer = new LinearAnalyzer(solver, linearSystems);
-            var parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
+            //TODO: Perhaps the analyzer, solver, etc should be reused throughout the MonteCarlo, to avoid recalculating 
+            //      connectivity and indexing structures.
 
-            parentAnalyzer.BuildMatrices();
-            parentAnalyzer.Initialize();
+            var solver = new SkylineSolver.Builder().BuildSolver(currentModel);
+            var provider = new ProblemStructural(currentModel, solver);
+            var childAnalyzer = new LinearAnalyzer(currentModel, solver, provider);
+            var parentAnalyzer = new StaticAnalyzer(currentModel, solver, provider, childAnalyzer);
+
+            parentAnalyzer.Initialize(); 
             parentAnalyzer.Solve();
             //return new[] { linearSystems[0].RHS[0] };
-            return new[] { linearSystems[0].Solution[56], linearSystems[0].Solution[58] };
+            return new[] { solver.LinearSystems[0].Solution[56], solver.LinearSystems[0].Solution[58] };
         }
 
     }

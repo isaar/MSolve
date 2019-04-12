@@ -20,8 +20,8 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         /// <param name="dofOrdering">The free freedom degree ordering of the subdomain.</param>
         /// <param name="elements">The (finite) elements of the subdomain.</param>
         /// <param name="matrixProvider">Determines the matrix calculated for each element (e.g. stiffness, mass, etc.)</param>
-        TMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement_v2> elements,
-            IElementMatrixProvider_v2 matrixProvider);
+        TMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement> elements,
+            IElementMatrixProvider matrixProvider);
 
         /// <summary>
         /// Builds the linear system matrices that correspond to the free and constrained freedom degrees of a subdomain.
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         (TMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree, IMatrixView matrixConstrConstr)
             BuildGlobalSubmatrices(
             ISubdomainFreeDofOrdering freeDofOrdering, ISubdomainConstrainedDofOrdering constrainedDofOrdering, 
-            IEnumerable<IElement_v2> elements, IElementMatrixProvider_v2 matrixProvider);
+            IEnumerable<IElement> elements, IElementMatrixProvider matrixProvider);
 
         /// <summary>
         /// Update internal state when the freedom degree ordering is changed (e.g. reordering, XFEM, adaptive FEM). It 

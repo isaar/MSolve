@@ -1,13 +1,11 @@
-﻿using ISAAR.MSolve.Logging.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Logging.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace ISAAR.MSolve.Logging
 {
-    public class TotalDisplacementsPerIterationLog: IAnalyzerLog
+    public class TotalDisplacementsPerIterationLog : IAnalyzerLog
     {
         private readonly Dictionary<int, int[]> watchDofs;
         private readonly List<Dictionary<int, Dictionary<int, double>>> dofDisplacementsPerIter;
@@ -46,7 +44,7 @@ namespace ISAAR.MSolve.Logging
         /// Stores the total displacements = u_converged + du, for a new iteration.
         /// </summary>
         /// <param name="totalDisplacements">The total displacements for each subdomain.</param>
-        public void StoreDisplacements_v2(Dictionary<int, LinearAlgebra.Vectors.IVector> totalDisplacements)
+        public void StoreDisplacements(Dictionary<int, IVector> totalDisplacements)
         {
             var currentIterDisplacements = new Dictionary<int, Dictionary<int, double>>();
             foreach (var subdomainDofsPair in watchDofs)
@@ -62,9 +60,10 @@ namespace ISAAR.MSolve.Logging
             dofDisplacementsPerIter.Add(currentIterDisplacements);
         }
 
-        public double GetTotalDisplacement(int iteration, int subdomainID, int dof) => dofDisplacementsPerIter[iteration][subdomainID][dof];
+        public double GetTotalDisplacement(int iteration, int subdomainID, int dof) 
+            => dofDisplacementsPerIter[iteration][subdomainID][dof];
 
-        public void StoreResults(DateTime startTime, DateTime endTime, IVector solution)
+        public void StoreResults(DateTime startTime, DateTime endTime, IVectorView solution)
         {
             throw new NotImplementedException();
         }

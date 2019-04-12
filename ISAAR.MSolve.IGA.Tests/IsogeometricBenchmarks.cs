@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -8,29 +7,25 @@ using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Postprocessing;
 using ISAAR.MSolve.IGA.Readers;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
-using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
-using ISAAR.MSolve.Solvers.Skyline;
 using MathNet.Numerics.Data.Matlab;
 using MathNet.Numerics.LinearAlgebra;
 using Xunit;
-using VectorExtensions = ISAAR.MSolve.Numerical.LinearAlgebra.VectorExtensions;
 
 namespace ISAAR.MSolve.IGA.Tests
 {
-	public class IsogeometricBenchmarks
+    public class IsogeometricBenchmarks
 	{
 		[Fact]
 		public void IsogeometricQuadraticCantilever2D()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\Cantilever2D.txt";
@@ -58,14 +53,14 @@ namespace ISAAR.MSolve.IGA.Tests
 			var solverBuilder = new DenseMatrixSolver.Builder();
 			solverBuilder.DofOrderer = new DofOrderer(
 				new NodeMajorDofOrderingStrategy(), new NullReordering());
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -120,7 +115,6 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void IsogeometricQuadraticCantilever2DWithDistributedLoad()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			var filename = "Cantilever2D";
@@ -145,14 +139,14 @@ namespace ISAAR.MSolve.IGA.Tests
 			}
 
 			var solverBuilder = new SkylineSolver.Builder();
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -215,7 +209,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void IsogeometricPlateTension()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\PlateTension.txt";
@@ -242,14 +236,14 @@ namespace ISAAR.MSolve.IGA.Tests
 			var solverBuilder = new DenseMatrixSolver.Builder();
 			solverBuilder.DofOrderer = new DofOrderer(
 				new NodeMajorDofOrderingStrategy(), new NullReordering());
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -316,7 +310,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void IsogeometricPlaneStrainMixedBC()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\SquareMixedBC.txt";
@@ -358,14 +352,14 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			// Solvers
 			var solverBuilder = new SkylineSolver.Builder();
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -907,7 +901,7 @@ namespace ISAAR.MSolve.IGA.Tests
 
 		private Vector KnotValueVectorKsi()
 		{
-			return new Vector(new double[8]
+			return Vector.CreateFromArray(new double[8]
 			{
 				0, 0, 0, 0, 1, 1, 1, 1
 			});
@@ -915,7 +909,7 @@ namespace ISAAR.MSolve.IGA.Tests
 
 		private Vector KnotValueVectorHeta()
 		{
-			return new Vector(new double[6]
+			return Vector.CreateFromArray(new double[6]
 			{
 				0, 0, 0, 1, 1, 1
 			});
@@ -952,7 +946,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		//[Fact]
 		public void IsogeometricHorseshoe3D()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\Horseshoe.txt";
@@ -989,14 +983,14 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			// Solvers
 			var solverBuilder = new SkylineSolver.Builder();
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -1017,7 +1011,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		//[Fact]
 		public void IsogeometricPlaneStrainRing()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\SquareMixedBC.txt";
@@ -1058,14 +1052,14 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			// Solvers
 			var solverBuilder = new SkylineSolver.Builder();
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -1578,7 +1572,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void IsogeometricPlateWithHole()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\IGA\\InputFiles\\PlateTension.txt";
@@ -1604,14 +1598,14 @@ namespace ISAAR.MSolve.IGA.Tests
 			
 			// Solvers
 			var solverBuilder = new SkylineSolver.Builder();
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -1638,7 +1632,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void IsogeometricCurvedBeamBenchmark()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\CurvedBeam.txt";
@@ -1664,14 +1658,14 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			// Solvers
 			var solverBuilder = new SkylineSolver.Builder();
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -1692,7 +1686,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		//[Fact]
 		public void IsogeometricBeam3D()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "Beam3D";
@@ -1724,14 +1718,14 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			// Solvers
 			var solverBuilder = new SkylineSolver.Builder();
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -1753,7 +1747,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		//[Fact]
 		public void TSplinesShellsBenchmark()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			string filename = "..\\..\\..\\InputFiles\\surface.iga";
 			IGAFileReader modelReader = new IGAFileReader(model, filename);
@@ -1786,14 +1780,14 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			// Solvers
 			var solverBuilder = new SkylineSolver.Builder();
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();

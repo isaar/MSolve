@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Interfaces
 {
@@ -10,12 +9,7 @@ namespace ISAAR.MSolve.FEM.Interfaces
     {
         int ID { get; }
         ElementDimensions ElementDimensions { get; }
-        //IElementDOFEnumerator DOFEnumerator { get; set; }
-        //IList<IList<DOFType>> GetElementDOFTypes(Element element);
         bool MaterialModified { get; }
-        //IMatrix2D StiffnessMatrix(Element element);
-        //IMatrix2D MassMatrix(Element element);
-        //IMatrix2D DampingMatrix(Element element);
         void ResetMaterialModified();
         Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements);
         double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements);

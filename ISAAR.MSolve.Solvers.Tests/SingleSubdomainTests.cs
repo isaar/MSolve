@@ -2,7 +2,7 @@
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Tests;
-using ISAAR.MSolve.Numerical.Commons;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
@@ -71,7 +71,7 @@ namespace ISAAR.MSolve.Solvers.Tests
 
             var solverBuilder = new SkylineSolver.Builder();
             //solverBuilder.DofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering()); // default
-            ISolver_v2 solver = solverBuilder.BuildSolver(benchmark.Model);
+            ISolver solver = solverBuilder.BuildSolver(benchmark.Model);
 
             RunAnalysisAndCheck(benchmark, solver);
         }
@@ -84,7 +84,7 @@ namespace ISAAR.MSolve.Solvers.Tests
             var solverBuilder = new SkylineSolver.Builder();
             solverBuilder.DofOrderer = new DofOrderer(
                 new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithCSparseAmd());
-            ISolver_v2 solver = solverBuilder.BuildSolver(benchmark.Model);
+            ISolver solver = solverBuilder.BuildSolver(benchmark.Model);
             RunAnalysisAndCheck(benchmark, solver);
 
         }
@@ -127,14 +127,14 @@ namespace ISAAR.MSolve.Solvers.Tests
             return benchmarkBuilder.BuildWithQuad4Elements(200, 10);
         }
 
-        private static void RunAnalysisAndCheck(CantileverBeam benchmark, ISolver_v2 solver)
+        private static void RunAnalysisAndCheck(CantileverBeam benchmark, ISolver solver)
         {
             // Structural problem provider
-            var provider = new ProblemStructural_v2(benchmark.Model, solver);
+            var provider = new ProblemStructural(benchmark.Model, solver);
 
             // Linear static analysis
-            var childAnalyzer = new LinearAnalyzer_v2(benchmark.Model, solver, provider);
-            var parentAnalyzer = new StaticAnalyzer_v2(benchmark.Model, solver, provider, childAnalyzer);
+            var childAnalyzer = new LinearAnalyzer(benchmark.Model, solver, provider);
+            var parentAnalyzer = new StaticAnalyzer(benchmark.Model, solver, provider, childAnalyzer);
 
             // Run the analysis
             parentAnalyzer.Initialize();

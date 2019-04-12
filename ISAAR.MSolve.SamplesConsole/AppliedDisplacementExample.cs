@@ -5,8 +5,8 @@ using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Materials;
 using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
@@ -17,11 +17,11 @@ namespace ISAAR.MSolve.SamplesConsole
     {
         private const int subdomainID = 0;
 
-        private static IList<Node_v2> CreateNodes()
+        private static IList<Node> CreateNodes()
         {
-            IList<Node_v2> nodes = new List<Node_v2>();
-            Node_v2 node1 = new Node_v2 { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
-            Node_v2 node2 = new Node_v2 { ID = 2, X = 1.0, Y = 0.0, Z = 0.0 };
+            IList<Node> nodes = new List<Node>();
+            Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
+            Node node2 = new Node { ID = 2, X = 1.0, Y = 0.0, Z = 0.0 };
             nodes.Add(node1);
             nodes.Add(node2);
             return nodes;
@@ -34,20 +34,20 @@ namespace ISAAR.MSolve.SamplesConsole
             double nodalLoad = 25.0;
 
             // Create a new elastic 3D material
-            ElasticMaterial material = new ElasticMaterial()
+            var material = new ElasticMaterial()
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,
             };
 
             // Node creation
-            IList<Node_v2> nodes = CreateNodes();
+            IList<Node> nodes = CreateNodes();
 
             // Model creation
-            Model_v2 model = new Model_v2();
+            Model model = new Model();
 
             // Add a single subdomain to the model
-            model.SubdomainsDictionary.Add(0, new Subdomain_v2(subdomainID));
+            model.SubdomainsDictionary.Add(0, new Subdomain(subdomainID));
 
             // Add nodes to the nodes dictonary of the model
             for (int i = 0; i < nodes.Count; ++i)
@@ -63,14 +63,14 @@ namespace ISAAR.MSolve.SamplesConsole
             model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = DOFType.Y, Amount = -4.16666666666667E-07 });
 
             //Create a new Beam2D element
-            var beam = new EulerBeam2D_v2(youngModulus)
+            var beam = new EulerBeam2D(youngModulus)
             {
                 SectionArea = 1,
                 MomentOfInertia = .1
             };
 
 
-            var element = new Element_v2()
+            var element = new Element()
             {
                 ID = 1,
                 ElementType = beam
@@ -91,14 +91,14 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
-            ISolver_v2 solver = solverBuilder.BuildSolver(model);
+            ISolver solver = solverBuilder.BuildSolver(model);
 
             // Structural problem provider
-            var provider = new ProblemStructural_v2(model, solver);
+            var provider = new ProblemStructural(model, solver);
 
             // Linear static analysis
-            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+            var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
             // Output requests
             var logFactory = new TotalDisplacementsLog.Factory(model.SubdomainsDictionary[subdomainID]);

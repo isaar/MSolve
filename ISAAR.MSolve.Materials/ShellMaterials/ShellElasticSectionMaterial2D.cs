@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using ISAAR.MSolve.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.Materials
 {
-	public class ShellElasticSectionMaterial2D:IShellSectionMaterial
+    public class ShellElasticSectionMaterial2D : IShellSectionMaterial
 	{
 		object ICloneable.Clone()
 		{
@@ -16,9 +14,9 @@ namespace ISAAR.MSolve.Materials
 
 		public double[] MembraneForces { get; }
 		public double[] Moments { get; }
-		public IMatrix2D MembraneConstitutiveMatrix { get; private set; }
-		public IMatrix2D BendingConstitutiveMatrix { get; private set; }
-		public IMatrix2D CouplingConstitutiveMatrix { get; private set; }
+		public IMatrixView MembraneConstitutiveMatrix { get; private set; }
+		public IMatrixView BendingConstitutiveMatrix { get; private set; }
+		public IMatrixView CouplingConstitutiveMatrix { get; private set; }
 		
 
 
@@ -31,17 +29,17 @@ namespace ISAAR.MSolve.Materials
 		{
 			if (MembraneConstitutiveMatrix == null)
 			{
-				CalculateMembraneConstitutiveMatrix(new Vector(TangentVectorV1), new Vector(TangentVectorV2), Thickness);
+				CalculateMembraneConstitutiveMatrix(TangentVectorV1, TangentVectorV2, Thickness);
 			}
 
 			if (BendingConstitutiveMatrix == null)
 			{
-				CalculateBendingConstitutiveMatrix(new Vector(TangentVectorV1), new Vector(TangentVectorV2), Thickness);
+				CalculateBendingConstitutiveMatrix(TangentVectorV1, TangentVectorV2, Thickness);
 			}
 
 			if (CouplingConstitutiveMatrix == null)
 			{
-				CalculateCouplingConstitutiveMatrix(new Vector(TangentVectorV1), new Vector(TangentVectorV2), Thickness);
+				CalculateCouplingConstitutiveMatrix(TangentVectorV1, TangentVectorV2, Thickness);
 			}
 
 			for (int l = 0; l < 3; l++)
@@ -63,35 +61,35 @@ namespace ISAAR.MSolve.Materials
 			}
 		}
 
-		private void CalculateCouplingConstitutiveMatrix(Vector vector1, Vector vector2, double thickness)
+		private void CalculateCouplingConstitutiveMatrix(double[] vector1, double[] vector2, double thickness)
 		{
-			CouplingConstitutiveMatrix= new Matrix2D(3,3);
+			CouplingConstitutiveMatrix = Matrix.CreateZero(3,3);
 		}
 
-		private void CalculateBendingConstitutiveMatrix(Vector vector1, Vector vector2, double thickness)
+		private void CalculateBendingConstitutiveMatrix(double[] vector1, double[] vector2, double thickness)
 		{
 			BendingConstitutiveMatrix = CalculateConstitutiveMatrix(vector1, vector2);
 			BendingConstitutiveMatrix.Scale(YoungModulus * Math.Pow(Thickness, 3) /
 			                                12 / (1 - Math.Pow(PoissonRatio, 2)));
 		}
 
-		private void CalculateMembraneConstitutiveMatrix(Vector vector1, Vector vector2, double thickness)
+		private void CalculateMembraneConstitutiveMatrix(double[] vector1, double[] vector2, double thickness)
 		{
 			MembraneConstitutiveMatrix= CalculateConstitutiveMatrix(vector1,vector2);
 			MembraneConstitutiveMatrix.Scale(YoungModulus * Thickness /
 			                                 (1 - Math.Pow(PoissonRatio, 2)));
 		}
 
-		private Matrix2D CalculateConstitutiveMatrix(Vector surfaceBasisVector1, Vector surfaceBasisVector2)
+		private Matrix CalculateConstitutiveMatrix(double[] surfaceBasisVector1, double[] surfaceBasisVector2)
 		{
-			var auxMatrix1 = new Matrix2D(2, 2);
+			var auxMatrix1 = Matrix.CreateZero(2, 2);
 			auxMatrix1[0, 0] = surfaceBasisVector1.DotProduct(surfaceBasisVector1);
 			auxMatrix1[0, 1] = surfaceBasisVector1.DotProduct(surfaceBasisVector2);
 			auxMatrix1[1, 0] = surfaceBasisVector2.DotProduct(surfaceBasisVector1);
 			auxMatrix1[1, 1] = surfaceBasisVector2.DotProduct(surfaceBasisVector2);
-			(Matrix2D inverse, double det) = auxMatrix1.Invert2x2AndDeterminant();
+			(Matrix inverse, double det) = auxMatrix1.InvertAndDetermninant();
 
-			var constitutiveMatrix = new Matrix2D(new double[3, 3]
+			var constitutiveMatrix = Matrix.CreateFromArray(new double[3, 3]
 			{
 				{
 					inverse[0,0]*inverse[0,0],

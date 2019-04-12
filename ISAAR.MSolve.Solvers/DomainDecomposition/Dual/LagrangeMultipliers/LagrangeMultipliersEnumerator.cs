@@ -40,16 +40,16 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
         /// For use in homogeneous problems, where we do not need that much info about lagrange multipliers and boundary dofs.
         /// </summary>
         /// <param name="model"></param>
-        public void DefineBooleanMatrices(IStructuralModel_v2 model, IDofSeparator dofSeparator)
+        public void DefineBooleanMatrices(IStructuralModel model, IDofSeparator dofSeparator)
         {
-            List<(INode node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus)> boundaryNodeData 
+            List<(INode node, DOFType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)> boundaryNodeData 
                 = DefineBoundaryDofConstraints(dofSeparator);
 
             InitializeBooleanMatrices(model);
 
             // Fill the boolean matrices: node major, subdomain medium, dof minor. TODO: not sure about this order.
             int lag = 0; // Lagrange multiplier index
-            foreach ((INode node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus)
+            foreach ((INode node, DOFType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)
                 in boundaryNodeData)
             {
                 int numSubdomainCombos = subdomainsPlus.Length;
@@ -75,9 +75,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
         /// Creates both <see cref="BooleanMatrices"/> and <see cref="LagrangeMultipliers"/>. For use in heterogeneous problems.
         /// </summary>
         /// <param name="model"></param>
-        public void DefineLagrangesAndBooleanMatrices(IStructuralModel_v2 model, IDofSeparator dofSeparator)
+        public void DefineLagrangesAndBooleanMatrices(IStructuralModel model, IDofSeparator dofSeparator)
         {
-            List<(INode node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus)> boundaryNodeData
+            List<(INode node, DOFType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)> boundaryNodeData
                 = DefineBoundaryDofConstraints(dofSeparator);
 
             InitializeBooleanMatrices(model);
@@ -85,7 +85,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
 
             // Fill the boolean matrices and lagrange multiplier data: node major, subdomain medium, dof minor. TODO: not sure about this order.
             int lag = 0; // Lagrange multiplier index
-            foreach ((INode node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus)
+            foreach ((INode node, DOFType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)
                 in boundaryNodeData)
             {
                 int numSubdomainCombos = subdomainsPlus.Length;
@@ -111,12 +111,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
         }
         
         //TODO: Perhaps this should return the number of lagranges, instead of setting it. It is unexpected.
-        private List<(INode node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus)> 
+        private List<(INode node, DOFType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)> 
             DefineBoundaryDofConstraints(IDofSeparator dofSeparator)
         {
             // Find boundary nodes and dofs
-            var boundaryNodeData = new List<(INode node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, 
-                ISubdomain_v2[] subdomainsMinus)>(dofSeparator.GlobalBoundaryDofs.Count);
+            var boundaryNodeData = new List<(INode node, DOFType[] dofs, ISubdomain[] subdomainsPlus, 
+                ISubdomain[] subdomainsMinus)>(dofSeparator.GlobalBoundaryDofs.Count);
 
             // Find continuity equations.
             NumLagrangeMultipliers = 0;
@@ -124,8 +124,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
             {
                 INode node = nodeDofsPair.Key;
                 DOFType[] dofsOfNode = nodeDofsPair.Value;
-                IEnumerable <ISubdomain_v2> nodeSubdomains = node.SubdomainsDictionary.Values;
-                (ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus) =
+                IEnumerable <ISubdomain> nodeSubdomains = node.SubdomainsDictionary.Values;
+                (ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus) =
                     crosspointStrategy.FindSubdomainCombinations(nodeSubdomains.Count(), nodeSubdomains);
 
                 boundaryNodeData.Add((node, dofsOfNode, subdomainsPlus, subdomainsMinus));
@@ -134,7 +134,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
 
             //// Find boundary nodes and continuity equations.
             //var boundaryNodeData =
-            //    new List<(INode node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus)>();
+            //    new List<(INode node, DOFType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)>();
             //NumLagrangeMultipliers = 0;
             //foreach (INode node in model.Nodes) //TODO: this probably doesn't work if there are embedded nodes. It is time to isolate the embedded nodes.
             //{
@@ -146,8 +146,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
             //        // If all dofs of this node are constrained, then it is not considered boundary.
             //        if (dofsOfNode.Length == 0) continue;
 
-            //        IEnumerable<ISubdomain_v2> nodeSubdomains = node.SubdomainsDictionary.Values;
-            //        (ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus) =
+            //        IEnumerable<ISubdomain> nodeSubdomains = node.SubdomainsDictionary.Values;
+            //        (ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus) =
             //            crosspointStrategy.FindSubdomainCombinations(nodeMultiplicity, nodeSubdomains);
 
             //        boundaryNodeData.Add((node, dofsOfNode, subdomainsPlus, subdomainsMinus));
@@ -158,11 +158,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
             return boundaryNodeData;
         }
 
-        private void InitializeBooleanMatrices(IStructuralModel_v2 model)
+        private void InitializeBooleanMatrices(IStructuralModel model)
         {
             // Create the signed boolean matrices.
             BooleanMatrices = new Dictionary<int, SignedBooleanMatrix>();
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
+            foreach (ISubdomain subdomain in model.Subdomains)
             {
                 BooleanMatrices[subdomain.ID] =
                     new SignedBooleanMatrix(NumLagrangeMultipliers, subdomain.FreeDofOrdering.NumFreeDofs);
@@ -185,22 +185,22 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
         ///// totalStiffness += linearSystems[subdomain.ID].Matrix[dofIdx, dofIdx];
         ///// }
         ///// </summary>
-        //public Dictionary<ISubdomain_v2, int>[] LagrangeMultipliersDofRelations { get; private set; }
+        //public Dictionary<ISubdomain, int>[] LagrangeMultipliersDofRelations { get; private set; }
 
         //private void FillHeterogeneousBooleanMatricesAndAssociateLagrangesWithDofs(
-        //    List<(INode node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus)> boundaryNodeData)
+        //    List<(INode node, DOFType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)> boundaryNodeData)
         //{
         //    // For each boundary dofs, aggregate the subdomains in which there is an instance and its index in those subdomains' 
         //    // vectors / matrices
-        //    var dofAggregation = new Table<INode, DOFType, Dictionary<ISubdomain_v2, int>>();
-        //    foreach ((INode node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus)
+        //    var dofAggregation = new Table<INode, DOFType, Dictionary<ISubdomain, int>>();
+        //    foreach ((INode node, DOFType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)
         //        in boundaryNodeData)
         //    {
-        //        IEnumerable<ISubdomain_v2> nodeSubdomains = node.SubdomainsDictionary.Values;
+        //        IEnumerable<ISubdomain> nodeSubdomains = node.SubdomainsDictionary.Values;
         //        foreach (DOFType dofType in dofs)
         //        {
-        //            var dofSubdomainIndices = new Dictionary<ISubdomain_v2, int>();
-        //            foreach (ISubdomain_v2 subdomain in nodeSubdomains)
+        //            var dofSubdomainIndices = new Dictionary<ISubdomain, int>();
+        //            foreach (ISubdomain subdomain in nodeSubdomains)
         //            {
         //                dofSubdomainIndices[subdomain] = subdomain.FreeDofOrdering.FreeDofs[node, dofType];
         //            }
@@ -209,9 +209,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
         //    }
 
         //    // Fill the boolean matrices and lagrange multiplier data: node major, subdomain medium, dof minor. TODO: not sure about this order.
-        //    LagrangeMultipliersDofRelations = new Dictionary<ISubdomain_v2, int>[NumLagrangeMultipliers];
+        //    LagrangeMultipliersDofRelations = new Dictionary<ISubdomain, int>[NumLagrangeMultipliers];
         //    int equationCounter = 0;
-        //    foreach ((INode node, DOFType[] dofs, ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus)
+        //    foreach ((INode node, DOFType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)
         //        in boundaryNodeData)
         //    {
         //        int numSubdomainCombos = subdomainsPlus.Length;

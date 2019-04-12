@@ -1,29 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Discretization.Interfaces
 {
+    public delegate Dictionary<int, SparseVector> NodalLoadsToSubdomainsDistributor(
+        Table<INode, DOFType, double> globalNodalLoads);
+
     public interface IStructuralModel
     {
-		Dictionary<int, ISubdomain> ISubdomainsDictionary { get;  }
-	    IList<IMassAccelerationHistoryLoad> MassAccelerationHistoryLoads { get; }
-		void AssignLoads();
-		void AssignMassAccelerationHistoryLoads(int timeStep);
-	}
+        Table<INode, DOFType, double> Constraints { get; }
+        IReadOnlyList<IElement> Elements { get; }
+        IGlobalFreeDofOrdering GlobalDofOrdering { get; set; } //TODO: this should not be managed by the model
+        IList<IMassAccelerationHistoryLoad> MassAccelerationHistoryLoads { get; }
+        IReadOnlyList<INode> Nodes { get; }
+        IReadOnlyList<ISubdomain> Subdomains { get; }
 
-	public enum DOFType
-	{
-		Unknown = 0,
-		X = 1,
-		Y = 2,
-		Z = 3,
-		RotX = 4,
-		RotY = 5,
-		RotZ = 6,
-		Pore = 7,
-        Temperature = 8
-	}
-
+        void AssignLoads(NodalLoadsToSubdomainsDistributor distributeNodalLoads); //TODOMaria: Here is where the element loads are assembled
+        void AssignMassAccelerationHistoryLoads(int timeStep);
+        void ConnectDataStructures();
+    }
 }

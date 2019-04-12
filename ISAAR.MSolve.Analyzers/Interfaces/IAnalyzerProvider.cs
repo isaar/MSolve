@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace ISAAR.MSolve.Analyzers.Interfaces
+﻿namespace ISAAR.MSolve.Analyzers.Interfaces
 {
     public interface IAnalyzerProvider
     {
+        //TODO: This should be accessed by the solver. Any element matrix providers should be passed there.
+        IDirichletEquivalentLoadsAssembler DirichletLoadsAssembler { get; }
+
         void Reset();
     }
 }

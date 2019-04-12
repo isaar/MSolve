@@ -12,11 +12,11 @@ namespace ISAAR.MSolve.FEM.Postprocessing
 {
     public class ParaviewEmbedded3D
     {
-        private Model_v2 _model;
+        private Model _model;
         private IVectorView _solution;
         private string _filename;
 
-        public ParaviewEmbedded3D(Model_v2 model, IVectorView solution, string filename)
+        public ParaviewEmbedded3D(Model model, IVectorView solution, string filename)
         {
             _model = model;
             _solution = solution;

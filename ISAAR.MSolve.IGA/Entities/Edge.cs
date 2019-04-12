@@ -1,18 +1,14 @@
-﻿using ISAAR.MSolve.IGA.Entities.Loads;
-using ISAAR.MSolve.IGA.Interfaces;
-using ISAAR.MSolve.IGA.Problems.Structural.Elements;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Elements;
+using ISAAR.MSolve.IGA.Entities.Loads;
+using ISAAR.MSolve.IGA.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-	public class Edge : Boundary
+    public class Edge : Boundary
 	{
 		public int ID { get; set; }
 
@@ -23,9 +19,9 @@ namespace ISAAR.MSolve.IGA.Entities
 		public int Degree { get; set; }
 
 		public Patch Patch { get; set; }
-		//public Patch_v2 Patch_v2 { get; set; }
+		//public Patch Patch { get; set; }
 
-		public IVector KnotValueVector { get; set; }
+		public Vector KnotValueVector { get; set; }
 
 		private readonly Dictionary<int, ControlPoint> controlPointsDictionary = new Dictionary<int, ControlPoint>();
 

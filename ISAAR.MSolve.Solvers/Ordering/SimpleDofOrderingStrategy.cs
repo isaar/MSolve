@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Numerical.Commons;
 
 //TODO: This is dramatically slower than NodeMajorDofOrderingStrategy. It must be made faster. Also this + NodeMajorReordering() 
 //      must be at least as fast as NodeMajorDofOrderingStrategy. Then the solvers should have simple + reordering as defaults.
@@ -15,18 +15,18 @@ namespace ISAAR.MSolve.Solvers.Ordering
     /// </summary>
     public class SimpleDofOrderingStrategy //: IFreeDofOrderingStrategy
     {
-        public (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderGlobalDofs(IStructuralModel_v2 model)
+        public (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderGlobalDofs(IStructuralModel model)
             => OrderFreeDofsOfElementSet(model.Elements, model.Constraints);
 
-        public (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) OrderSubdomainDofs(ISubdomain_v2 subdomain)
+        public (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) OrderSubdomainDofs(ISubdomain subdomain)
             => OrderFreeDofsOfElementSet(subdomain.Elements, subdomain.Constraints);
 
-        private static (int numFreeDofs, DofTable freeDofs) OrderFreeDofsOfElementSet(IEnumerable<IElement_v2> elements,
+        private static (int numFreeDofs, DofTable freeDofs) OrderFreeDofsOfElementSet(IEnumerable<IElement> elements,
             Table<INode, DOFType, double> constraints)
         {
             var freeDofs = new DofTable();
             int dofCounter = 0;
-            foreach (IElement_v2 element in elements)
+            foreach (IElement element in elements)
             {
                 //IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element); //this is wrong
                 IList<INode> elementNodes = element.Nodes;

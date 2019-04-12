@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -20,7 +21,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
         private const int numDimensions = 2;
 
         private readonly Vector2 macroscopicTemperatureGradient;
-        private readonly IStructuralModel_v2 model;
+        private readonly IStructuralModel model;
         private readonly double xMin, yMin, xMax, yMax;
         private readonly double thickness;
         private readonly HashSet<INode> leftNodes, rightNodes, bottomNodes, topNodes;
@@ -33,7 +34,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
         /// <param name="thickness"></param>
         /// <param name="macroscopicTemperatureGradient"></param>
         /// <param name="meshTolerance">The default is 1E-10 * min(|xMax-xMin|, |yMax-yMin|)</param>
-        public ThermalSquareRve(IStructuralModel_v2 model, Vector2 bottomLeftCoords, Vector2 topRightCoords, double thickness,
+        public ThermalSquareRve(IStructuralModel model, Vector2 bottomLeftCoords, Vector2 topRightCoords, double thickness,
             Vector2 macroscopicTemperatureGradient, double meshTolerance)
         {
             this.model = model;
@@ -59,7 +60,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
             }
         }
 
-        public ThermalSquareRve(IStructuralModel_v2 model, Vector2 bottomLeftCoords, Vector2 topRightCoords, double thickness,
+        public ThermalSquareRve(IStructuralModel model, Vector2 bottomLeftCoords, Vector2 topRightCoords, double thickness,
             Vector2 macroscopicTemperatureGradient) : 
             this(model, bottomLeftCoords, topRightCoords, thickness, macroscopicTemperatureGradient, 
                 1E-10 * topRightCoords.Subtract(bottomLeftCoords).MinAbsolute())
@@ -78,7 +79,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
 
         public double CalculateRveVolume() => (xMax - xMin) * (yMax - yMin) * thickness;
 
-        public IMatrixView CalculateKinematicRelationsMatrix(ISubdomain_v2 subdomain)
+        public IMatrixView CalculateKinematicRelationsMatrix(ISubdomain subdomain)
         {
             ISubdomainConstrainedDofOrdering constrainedDofOrdering = subdomain.ConstrainedDofOrdering;
             var kinematicRelations = Matrix.CreateZero(numDimensions, constrainedDofOrdering.NumConstrainedDofs);

@@ -4,19 +4,19 @@ using System.Text;
 using ISAAR.MSolve.IGA.Elements;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.IGA.SupportiveClasses
 {
     public class ShapeTSplines2DFromBezierExtraction
     {
-	    public IMatrix2D TSplineValues { get; private set; }
-	    public IMatrix2D TSplineDerivativeValuesKsi { get; private set; }
-	    public IMatrix2D TSplineDerivativeValuesHeta { get; private set; }
-		public IMatrix2D TSplineSecondDerivativesValueKsi { get; private set; }
-	    public IMatrix2D TSplineSecondDerivativesValueHeta { get; private set; }
-	    public IMatrix2D TSplineSecondDerivativesValueKsiHeta { get; private set; }
+	    public Matrix TSplineValues { get; private set; }
+	    public Matrix TSplineDerivativeValuesKsi { get; private set; }
+	    public Matrix TSplineDerivativeValuesHeta { get; private set; }
+		public Matrix TSplineSecondDerivativesValueKsi { get; private set; }
+	    public Matrix TSplineSecondDerivativesValueHeta { get; private set; }
+	    public Matrix TSplineSecondDerivativesValueKsiHeta { get; private set; }
 
 		public ShapeTSplines2DFromBezierExtraction(TSplineElement2D element, IList<ControlPoint> controlPoints)
 	    {
@@ -30,20 +30,20 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 				    new Knot(){ID=3,Ksi=1,Heta = 1,Zeta = 0}
 				});
 
-		    IVector parametricGaussPointKsi = new Vector(element.DegreeKsi + 1);
+		    var parametricGaussPointKsi = Vector.CreateZero(element.DegreeKsi + 1);
 		    for (int i = 0; i < element.DegreeKsi + 1; i++)
 		    {
 			    parametricGaussPointKsi[i] = gaussPoints[i * (element.DegreeHeta + 1)].Ksi;
 		    }
 
-		    IVector parametricGaussPointHeta = new Vector(element.DegreeHeta + 1);
+		    var parametricGaussPointHeta = Vector.CreateZero(element.DegreeHeta + 1);
 		    for (int i = 0; i < element.DegreeHeta + 1; i++)
 		    {
 			    parametricGaussPointHeta[i] = gaussPoints[i].Heta;
 		    }
 
-		    Vector knotValueVectorKsi = new Vector((element.DegreeKsi + 1) * 2);
-		    Vector knotValueVectorHeta = new Vector((element.DegreeHeta + 1) * 2);
+		    Vector knotValueVectorKsi = Vector.CreateZero((element.DegreeKsi + 1) * 2);
+		    Vector knotValueVectorHeta = Vector.CreateZero((element.DegreeHeta + 1) * 2);
 		    for (int i = 0; i < element.DegreeKsi + 1; i++)
 		    {
 			    knotValueVectorKsi[i]= -1;
@@ -70,16 +70,16 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 		    var bdheta = MatrixPart(supportHeta, bernsteinHeta.BSPLineDerivativeValues);
 
 		    var bernsteinShapeFunctions = KroneckerProduct(bKsi, bheta);
-		    Matrix2D bernsteinShapeFunctionDerivativesKsi = KroneckerProduct(bheta, bdKsi);
-		    Matrix2D bernsteinShapeFunctionDerivativesHeta = KroneckerProduct(bdheta, bKsi);
+		    Matrix bernsteinShapeFunctionDerivativesKsi = KroneckerProduct(bheta, bdKsi);
+		    Matrix bernsteinShapeFunctionDerivativesHeta = KroneckerProduct(bdheta, bKsi);
 
-			Matrix2D rationalTSplines = element.ExtractionOperator * bernsteinShapeFunctions.Transpose();
-		    Matrix2D rationalTSplineDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionDerivativesKsi.Transpose();
-		    Matrix2D rationalTSplineDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionDerivativesHeta.Transpose();
+			Matrix rationalTSplines = element.ExtractionOperator * bernsteinShapeFunctions.Transpose();
+		    Matrix rationalTSplineDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionDerivativesKsi.Transpose();
+		    Matrix rationalTSplineDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionDerivativesHeta.Transpose();
 
-			TSplineValues= new Matrix2D(element.ControlPoints.Count, supportKsi*supportHeta);
-			TSplineDerivativeValuesKsi = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineDerivativeValuesHeta = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineValues= Matrix.CreateZero(element.ControlPoints.Count, supportKsi*supportHeta);
+			TSplineDerivativeValuesKsi = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineDerivativeValuesHeta = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
 
 		    for (int i = 0; i < supportKsi; i++)
 		    {
@@ -124,20 +124,20 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 					new Knot(){ID=3,Ksi=1,Heta = 1,Zeta = 0}
 				});
 
-			IVector parametricGaussPointKsi = new Vector(element.DegreeKsi + 1);
+			var parametricGaussPointKsi = Vector.CreateZero(element.DegreeKsi + 1);
 			for (int i = 0; i < element.DegreeKsi + 1; i++)
 			{
 				parametricGaussPointKsi[i] = gaussPoints[i * (element.DegreeHeta + 1)].Ksi;
 			}
 
-			IVector parametricGaussPointHeta = new Vector(element.DegreeHeta + 1);
+			var parametricGaussPointHeta = Vector.CreateZero(element.DegreeHeta + 1);
 			for (int i = 0; i < element.DegreeHeta + 1; i++)
 			{
 				parametricGaussPointHeta[i] = gaussPoints[i].Heta;
 			}
 
-			Vector knotValueVectorKsi = new Vector((element.DegreeKsi + 1) * 2);
-			Vector knotValueVectorHeta = new Vector((element.DegreeHeta + 1) * 2);
+			Vector knotValueVectorKsi = Vector.CreateZero((element.DegreeKsi + 1) * 2);
+			Vector knotValueVectorHeta = Vector.CreateZero((element.DegreeHeta + 1) * 2);
 			for (int i = 0; i < element.DegreeKsi + 1; i++)
 			{
 				knotValueVectorKsi[i] = -1;
@@ -166,26 +166,26 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 			var bddheta = MatrixPart(supportHeta, bernsteinHeta.BSPLineSecondDerivativeValues);
 
 			var bernsteinShapeFunctions = KroneckerProduct(bKsi, bheta);
-			Matrix2D bernsteinShapeFunctionDerivativesKsi = KroneckerProduct(bheta, bdKsi);
-			Matrix2D bernsteinShapeFunctionDerivativesHeta = KroneckerProduct(bdheta, bKsi);
-			Matrix2D bernsteinShapeFunctionSecondDerivativesKsi = KroneckerProduct(bheta, bddKsi);
-			Matrix2D bernsteinShapeFunctionSecondDerivativesHeta = KroneckerProduct(bddheta, bKsi);
-			Matrix2D bernsteinShapeFunctionSecondDerivativesKsiHeta = KroneckerProduct(bdheta, bdKsi);
+			Matrix bernsteinShapeFunctionDerivativesKsi = KroneckerProduct(bheta, bdKsi);
+			Matrix bernsteinShapeFunctionDerivativesHeta = KroneckerProduct(bdheta, bKsi);
+			Matrix bernsteinShapeFunctionSecondDerivativesKsi = KroneckerProduct(bheta, bddKsi);
+			Matrix bernsteinShapeFunctionSecondDerivativesHeta = KroneckerProduct(bddheta, bKsi);
+			Matrix bernsteinShapeFunctionSecondDerivativesKsiHeta = KroneckerProduct(bdheta, bdKsi);
 
 			
-			Matrix2D rationalTSplines = element.ExtractionOperator * bernsteinShapeFunctions;
-			Matrix2D rationalTSplineDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionDerivativesKsi;
-			Matrix2D rationalTSplineDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionDerivativesHeta;
-			Matrix2D rationalTSplineSecondDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsi;
-			Matrix2D rationalTSplineSecondDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesHeta;
-			Matrix2D rationalTSplineSecondDerivativesKsiHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsiHeta;
+			Matrix rationalTSplines = element.ExtractionOperator * bernsteinShapeFunctions;
+			Matrix rationalTSplineDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionDerivativesKsi;
+			Matrix rationalTSplineDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionDerivativesHeta;
+			Matrix rationalTSplineSecondDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsi;
+			Matrix rationalTSplineSecondDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesHeta;
+			Matrix rationalTSplineSecondDerivativesKsiHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsiHeta;
 
-			TSplineValues = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineDerivativeValuesKsi = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineDerivativeValuesHeta = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineSecondDerivativesValueKsi = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineSecondDerivativesValueHeta = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineSecondDerivativesValueKsiHeta = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineValues = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineDerivativeValuesKsi = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineDerivativeValuesHeta = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineSecondDerivativesValueKsi = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineSecondDerivativesValueHeta = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineSecondDerivativesValueKsiHeta = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
 
 			for (int i = 0; i < supportKsi; i++)
 			{
@@ -251,8 +251,8 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 		public ShapeTSplines2DFromBezierExtraction(TSplineKirchhoffLoveShellElement element, IList<ControlPoint> controlPoints, Vector parametricGaussPointKsi, Vector parametricGaussPointHeta)
 		{
 
-			Vector knotValueVectorKsi = new Vector((element.DegreeKsi + 1) * 2);
-			Vector knotValueVectorHeta = new Vector((element.DegreeHeta + 1) * 2);
+			Vector knotValueVectorKsi = Vector.CreateZero((element.DegreeKsi + 1) * 2);
+			Vector knotValueVectorHeta = Vector.CreateZero((element.DegreeHeta + 1) * 2);
 			for (int i = 0; i < element.DegreeKsi + 1; i++)
 			{
 				knotValueVectorKsi[i] = -1;
@@ -283,26 +283,26 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 			var bddheta = MatrixPart(supportElementHeta, supportHeta, bernsteinHeta.BSPLineSecondDerivativeValues);
 
 			var bernsteinShapeFunctions = KroneckerProduct(bKsi, bheta);
-			Matrix2D bernsteinShapeFunctionDerivativesKsi = KroneckerProduct(bheta, bdKsi);
-			Matrix2D bernsteinShapeFunctionDerivativesHeta = KroneckerProduct(bdheta, bKsi);
-			Matrix2D bernsteinShapeFunctionSecondDerivativesKsi = KroneckerProduct(bheta, bddKsi);
-			Matrix2D bernsteinShapeFunctionSecondDerivativesHeta = KroneckerProduct(bddheta, bKsi);
-			Matrix2D bernsteinShapeFunctionSecondDerivativesKsiHeta = KroneckerProduct(bdheta, bdKsi);
+			Matrix bernsteinShapeFunctionDerivativesKsi = KroneckerProduct(bheta, bdKsi);
+			Matrix bernsteinShapeFunctionDerivativesHeta = KroneckerProduct(bdheta, bKsi);
+			Matrix bernsteinShapeFunctionSecondDerivativesKsi = KroneckerProduct(bheta, bddKsi);
+			Matrix bernsteinShapeFunctionSecondDerivativesHeta = KroneckerProduct(bddheta, bKsi);
+			Matrix bernsteinShapeFunctionSecondDerivativesKsiHeta = KroneckerProduct(bdheta, bdKsi);
 
 
-			Matrix2D rationalTSplines = element.ExtractionOperator * bernsteinShapeFunctions;
-			Matrix2D rationalTSplineDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionDerivativesKsi;
-			Matrix2D rationalTSplineDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionDerivativesHeta;
-			Matrix2D rationalTSplineSecondDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsi;
-			Matrix2D rationalTSplineSecondDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesHeta;
-			Matrix2D rationalTSplineSecondDerivativesKsiHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsiHeta;
+			Matrix rationalTSplines = element.ExtractionOperator * bernsteinShapeFunctions;
+			Matrix rationalTSplineDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionDerivativesKsi;
+			Matrix rationalTSplineDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionDerivativesHeta;
+			Matrix rationalTSplineSecondDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsi;
+			Matrix rationalTSplineSecondDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesHeta;
+			Matrix rationalTSplineSecondDerivativesKsiHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsiHeta;
 
-			TSplineValues = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineDerivativeValuesKsi = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineDerivativeValuesHeta = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineSecondDerivativesValueKsi = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineSecondDerivativesValueHeta = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineSecondDerivativesValueKsiHeta = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineValues = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineDerivativeValuesKsi = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineDerivativeValuesHeta = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineSecondDerivativesValueKsi = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineSecondDerivativesValueHeta = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineSecondDerivativesValueKsiHeta = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
 
 			for (int i = 0; i < supportKsi; i++)
 			{
@@ -367,8 +367,8 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 		public ShapeTSplines2DFromBezierExtraction(TSplineKirchhoffLoveShellElementMaterial element, IList<ControlPoint> controlPoints, Vector parametricGaussPointKsi, Vector parametricGaussPointHeta)
 		{
 
-			Vector knotValueVectorKsi = new Vector((element.DegreeKsi + 1) * 2);
-			Vector knotValueVectorHeta = new Vector((element.DegreeHeta + 1) * 2);
+			Vector knotValueVectorKsi = Vector.CreateZero((element.DegreeKsi + 1) * 2);
+			Vector knotValueVectorHeta = Vector.CreateZero((element.DegreeHeta + 1) * 2);
 			for (int i = 0; i < element.DegreeKsi + 1; i++)
 			{
 				knotValueVectorKsi[i] = -1;
@@ -399,26 +399,26 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 			var bddheta = MatrixPart(supportElementHeta, supportHeta, bernsteinHeta.BSPLineSecondDerivativeValues);
 
 			var bernsteinShapeFunctions = KroneckerProduct(bKsi, bheta);
-			Matrix2D bernsteinShapeFunctionDerivativesKsi = KroneckerProduct(bheta, bdKsi);
-			Matrix2D bernsteinShapeFunctionDerivativesHeta = KroneckerProduct(bdheta, bKsi);
-			Matrix2D bernsteinShapeFunctionSecondDerivativesKsi = KroneckerProduct(bheta, bddKsi);
-			Matrix2D bernsteinShapeFunctionSecondDerivativesHeta = KroneckerProduct(bddheta, bKsi);
-			Matrix2D bernsteinShapeFunctionSecondDerivativesKsiHeta = KroneckerProduct(bdheta, bdKsi);
+			Matrix bernsteinShapeFunctionDerivativesKsi = KroneckerProduct(bheta, bdKsi);
+			Matrix bernsteinShapeFunctionDerivativesHeta = KroneckerProduct(bdheta, bKsi);
+			Matrix bernsteinShapeFunctionSecondDerivativesKsi = KroneckerProduct(bheta, bddKsi);
+			Matrix bernsteinShapeFunctionSecondDerivativesHeta = KroneckerProduct(bddheta, bKsi);
+			Matrix bernsteinShapeFunctionSecondDerivativesKsiHeta = KroneckerProduct(bdheta, bdKsi);
 
 
-			Matrix2D rationalTSplines = element.ExtractionOperator * bernsteinShapeFunctions;
-			Matrix2D rationalTSplineDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionDerivativesKsi;
-			Matrix2D rationalTSplineDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionDerivativesHeta;
-			Matrix2D rationalTSplineSecondDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsi;
-			Matrix2D rationalTSplineSecondDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesHeta;
-			Matrix2D rationalTSplineSecondDerivativesKsiHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsiHeta;
+			Matrix rationalTSplines = element.ExtractionOperator * bernsteinShapeFunctions;
+			Matrix rationalTSplineDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionDerivativesKsi;
+			Matrix rationalTSplineDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionDerivativesHeta;
+			Matrix rationalTSplineSecondDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsi;
+			Matrix rationalTSplineSecondDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesHeta;
+			Matrix rationalTSplineSecondDerivativesKsiHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsiHeta;
 
-			TSplineValues = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineDerivativeValuesKsi = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineDerivativeValuesHeta = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineSecondDerivativesValueKsi = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineSecondDerivativesValueHeta = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineSecondDerivativesValueKsiHeta = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineValues = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineDerivativeValuesKsi = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineDerivativeValuesHeta = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineSecondDerivativesValueKsi = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineSecondDerivativesValueHeta = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineSecondDerivativesValueKsiHeta = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
 
 			for (int i = 0; i < supportKsi; i++)
 			{
@@ -484,8 +484,8 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 		public ShapeTSplines2DFromBezierExtraction(TSplineElement2D element, IList<ControlPoint> controlPoints, Vector parametricGaussPointKsi, Vector parametricGaussPointHeta)
 		{
 
-			Vector knotValueVectorKsi = new Vector((element.DegreeKsi + 1) * 2);
-			Vector knotValueVectorHeta = new Vector((element.DegreeHeta + 1) * 2);
+			Vector knotValueVectorKsi = Vector.CreateZero((element.DegreeKsi + 1) * 2);
+			Vector knotValueVectorHeta = Vector.CreateZero((element.DegreeHeta + 1) * 2);
 			for (int i = 0; i < element.DegreeKsi + 1; i++)
 			{
 				knotValueVectorKsi[i] = -1;
@@ -516,26 +516,26 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 			var bddheta = MatrixPart(supportElementHeta, supportHeta, bernsteinHeta.BSPLineSecondDerivativeValues);
 
 			var bernsteinShapeFunctions = KroneckerProduct(bKsi, bheta);
-			Matrix2D bernsteinShapeFunctionDerivativesKsi = KroneckerProduct(bheta, bdKsi);
-			Matrix2D bernsteinShapeFunctionDerivativesHeta = KroneckerProduct(bdheta, bKsi);
-			Matrix2D bernsteinShapeFunctionSecondDerivativesKsi = KroneckerProduct(bheta, bddKsi);
-			Matrix2D bernsteinShapeFunctionSecondDerivativesHeta = KroneckerProduct(bddheta, bKsi);
-			Matrix2D bernsteinShapeFunctionSecondDerivativesKsiHeta = KroneckerProduct(bdheta, bdKsi);
+			Matrix bernsteinShapeFunctionDerivativesKsi = KroneckerProduct(bheta, bdKsi);
+			Matrix bernsteinShapeFunctionDerivativesHeta = KroneckerProduct(bdheta, bKsi);
+			Matrix bernsteinShapeFunctionSecondDerivativesKsi = KroneckerProduct(bheta, bddKsi);
+			Matrix bernsteinShapeFunctionSecondDerivativesHeta = KroneckerProduct(bddheta, bKsi);
+			Matrix bernsteinShapeFunctionSecondDerivativesKsiHeta = KroneckerProduct(bdheta, bdKsi);
 
 
-			Matrix2D rationalTSplines = element.ExtractionOperator * bernsteinShapeFunctions;
-			Matrix2D rationalTSplineDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionDerivativesKsi;
-			Matrix2D rationalTSplineDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionDerivativesHeta;
-			Matrix2D rationalTSplineSecondDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsi;
-			Matrix2D rationalTSplineSecondDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesHeta;
-			Matrix2D rationalTSplineSecondDerivativesKsiHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsiHeta;
+			Matrix rationalTSplines = element.ExtractionOperator * bernsteinShapeFunctions;
+			Matrix rationalTSplineDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionDerivativesKsi;
+			Matrix rationalTSplineDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionDerivativesHeta;
+			Matrix rationalTSplineSecondDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsi;
+			Matrix rationalTSplineSecondDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesHeta;
+			Matrix rationalTSplineSecondDerivativesKsiHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsiHeta;
 
-			TSplineValues = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineDerivativeValuesKsi = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineDerivativeValuesHeta = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineSecondDerivativesValueKsi = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineSecondDerivativesValueHeta = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineSecondDerivativesValueKsiHeta = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineValues = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineDerivativeValuesKsi = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineDerivativeValuesHeta = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineSecondDerivativesValueKsi = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineSecondDerivativesValueHeta = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineSecondDerivativesValueKsiHeta = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
 
 			for (int i = 0; i < supportKsi; i++)
 			{
@@ -611,20 +611,20 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 					new Knot(){ID=3,Ksi=1,Heta = 1,Zeta = 0}
 				});
 
-			IVector parametricGaussPointKsi = new Vector(element.DegreeKsi + 1);
+			var parametricGaussPointKsi = Vector.CreateZero(element.DegreeKsi + 1);
 			for (int i = 0; i < element.DegreeKsi + 1; i++)
 			{
 				parametricGaussPointKsi[i] = gaussPoints[i * (element.DegreeHeta + 1)].Ksi;
 			}
 
-			IVector parametricGaussPointHeta = new Vector(element.DegreeHeta + 1);
+			var parametricGaussPointHeta = Vector.CreateZero(element.DegreeHeta + 1);
 			for (int i = 0; i < element.DegreeHeta + 1; i++)
 			{
 				parametricGaussPointHeta[i] = gaussPoints[i].Heta;
 			}
 
-			Vector knotValueVectorKsi = new Vector((element.DegreeKsi + 1) * 2);
-			Vector knotValueVectorHeta = new Vector((element.DegreeHeta + 1) * 2);
+			Vector knotValueVectorKsi = Vector.CreateZero((element.DegreeKsi + 1) * 2);
+			Vector knotValueVectorHeta = Vector.CreateZero((element.DegreeHeta + 1) * 2);
 			for (int i = 0; i < element.DegreeKsi + 1; i++)
 			{
 				knotValueVectorKsi[i] = -1;
@@ -653,26 +653,26 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 			var bddheta = MatrixPart(supportHeta, bernsteinHeta.BSPLineSecondDerivativeValues);
 
 			var bernsteinShapeFunctions = KroneckerProduct(bKsi, bheta);
-			Matrix2D bernsteinShapeFunctionDerivativesKsi = KroneckerProduct(bheta, bdKsi);
-			Matrix2D bernsteinShapeFunctionDerivativesHeta = KroneckerProduct(bdheta, bKsi);
-			Matrix2D bernsteinShapeFunctionSecondDerivativesKsi = KroneckerProduct(bheta, bddKsi);
-			Matrix2D bernsteinShapeFunctionSecondDerivativesHeta = KroneckerProduct(bddheta, bKsi);
-			Matrix2D bernsteinShapeFunctionSecondDerivativesKsiHeta = KroneckerProduct(bdheta, bdKsi);
+			Matrix bernsteinShapeFunctionDerivativesKsi = KroneckerProduct(bheta, bdKsi);
+			Matrix bernsteinShapeFunctionDerivativesHeta = KroneckerProduct(bdheta, bKsi);
+			Matrix bernsteinShapeFunctionSecondDerivativesKsi = KroneckerProduct(bheta, bddKsi);
+			Matrix bernsteinShapeFunctionSecondDerivativesHeta = KroneckerProduct(bddheta, bKsi);
+			Matrix bernsteinShapeFunctionSecondDerivativesKsiHeta = KroneckerProduct(bdheta, bdKsi);
 
 
-			Matrix2D rationalTSplines = element.ExtractionOperator * bernsteinShapeFunctions;
-			Matrix2D rationalTSplineDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionDerivativesKsi;
-			Matrix2D rationalTSplineDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionDerivativesHeta;
-			Matrix2D rationalTSplineSecondDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsi;
-			Matrix2D rationalTSplineSecondDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesHeta;
-			Matrix2D rationalTSplineSecondDerivativesKsiHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsiHeta;
+			Matrix rationalTSplines = element.ExtractionOperator * bernsteinShapeFunctions;
+			Matrix rationalTSplineDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionDerivativesKsi;
+			Matrix rationalTSplineDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionDerivativesHeta;
+			Matrix rationalTSplineSecondDerivativesKsi = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsi;
+			Matrix rationalTSplineSecondDerivativesHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesHeta;
+			Matrix rationalTSplineSecondDerivativesKsiHeta = element.ExtractionOperator * bernsteinShapeFunctionSecondDerivativesKsiHeta;
 
-			TSplineValues = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineDerivativeValuesKsi = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineDerivativeValuesHeta = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineSecondDerivativesValueKsi = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineSecondDerivativesValueHeta = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
-			TSplineSecondDerivativesValueKsiHeta = new Matrix2D(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineValues = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineDerivativeValuesKsi = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineDerivativeValuesHeta = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineSecondDerivativesValueKsi = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineSecondDerivativesValueHeta = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
+			TSplineSecondDerivativesValueKsiHeta = Matrix.CreateZero(element.ControlPoints.Count, supportKsi * supportHeta);
 
 			for (int i = 0; i < supportKsi; i++)
 			{
@@ -735,9 +735,9 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 		}
 
 
-		private static Matrix2D MatrixPart(int support, double[,] matrix)
+		private static Matrix MatrixPart(int support, double[,] matrix)
 	    {
-		    var A = new Matrix2D(support, support);
+		    var A = Matrix.CreateZero(support, support);
 		    for (int i = 0; i < support; i++)
 		    {
 			    for (int j = 0; j < support; j++)
@@ -749,9 +749,9 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 		    return A;
 	    }
 
-	    private static Matrix2D MatrixPart(int support1, int support2, double[,] matrix)
+	    private static Matrix MatrixPart(int support1, int support2, double[,] matrix)
 	    {
-		    var A = new Matrix2D(support1, support2);
+		    var A = Matrix.CreateZero(support1, support2);
 		    for (int i = 0; i < support1; i++)
 		    {
 			    for (int j = 0; j < support2; j++)
@@ -764,18 +764,18 @@ namespace ISAAR.MSolve.IGA.SupportiveClasses
 	    }
 
 
-		private static Matrix2D KroneckerProduct(Matrix2D A, Matrix2D B)
+		private static Matrix KroneckerProduct(Matrix A, Matrix B)
 	    {
-			Matrix2D C=new Matrix2D(A.Rows*B.Rows,A.Columns*B.Columns);
-		    for (int rowAIndex = 0; rowAIndex < A.Rows; rowAIndex++)
+			Matrix C = Matrix.CreateZero(A.NumRows*B.NumRows,A.NumColumns*B.NumColumns);
+		    for (int rowAIndex = 0; rowAIndex < A.NumRows; rowAIndex++)
 		    {
-			    for (int rowBIndex = 0; rowBIndex < B.Rows; rowBIndex++)
+			    for (int rowBIndex = 0; rowBIndex < B.NumRows; rowBIndex++)
 			    {
-				    for (int columnAIndex = 0; columnAIndex < A.Columns; columnAIndex++)
+				    for (int columnAIndex = 0; columnAIndex < A.NumColumns; columnAIndex++)
 				    {
-					    for (int columnBIndex = 0; columnBIndex < B.Columns; columnBIndex++)
+					    for (int columnBIndex = 0; columnBIndex < B.NumColumns; columnBIndex++)
 					    {
-							C[rowAIndex*B.Rows + rowBIndex, columnAIndex*B.Columns + columnBIndex] =
+							C[rowAIndex*B.NumRows + rowBIndex, columnAIndex*B.NumColumns + columnBIndex] =
 							    A[rowAIndex, columnAIndex] * B[rowBIndex, columnBIndex];
 					    }
 				    }

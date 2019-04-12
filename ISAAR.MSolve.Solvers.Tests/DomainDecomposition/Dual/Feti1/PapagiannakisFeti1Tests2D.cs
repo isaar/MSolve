@@ -167,7 +167,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             Assert.InRange(logger.PcgIterations, 1, iterExpected + 1); // the upper bound is inclusive!
         }
 
-        private static Model_v2 CreateModel(double stiffnessRatio)
+        private static Model CreateModel(double stiffnessRatio)
         {
             // Subdomains:
             // /|
@@ -198,14 +198,14 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             return builder.BuildModel();
         }
 
-        private static Model_v2 CreateSingleSubdomainModel(double stiffnessRatio)
+        private static Model CreateSingleSubdomainModel(double stiffnessRatio)
         {
             // Replace the existing subdomains with a single one 
-            Model_v2 model = CreateModel(stiffnessRatio);
+            Model model = CreateModel(stiffnessRatio);
             model.SubdomainsDictionary.Clear();
-            var subdomain = new Subdomain_v2(singleSubdomainID);
+            var subdomain = new Subdomain(singleSubdomainID);
             model.SubdomainsDictionary.Add(singleSubdomainID, subdomain);
-            foreach (Element_v2 element in model.Elements) subdomain.Elements.Add(element);
+            foreach (Element element in model.Elements) subdomain.Elements.Add(element);
             return model;
         }
 
@@ -214,7 +214,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
                 Residual residualConvergence, double factorizationTolerance, double pcgConvergenceTolerance)
         {
             // Model
-            Model_v2 multiSubdomainModel = CreateModel(stiffnessRatio);
+            Model multiSubdomainModel = CreateModel(stiffnessRatio);
 
             // Solver
             var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
@@ -239,7 +239,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             {
                 exactResidualConvergence = new ExactPcpgConvergence.Factory(
                     CreateSingleSubdomainModel(stiffnessRatio), solverBuilder.DofOrderer,
-                        (model, solver) => new ProblemStructural_v2(model, solver));
+                        (model, solver) => new ProblemStructural(model, solver));
             }
 
             // Lagrange separation method
@@ -295,11 +295,11 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             if (residualIsExact) exactResidualConvergence.FetiSolver = fetiSolver;
 
             // Structural problem provider
-            var provider = new ProblemStructural_v2(multiSubdomainModel, fetiSolver);
+            var provider = new ProblemStructural(multiSubdomainModel, fetiSolver);
 
             // Linear static analysis
-            var childAnalyzer = new LinearAnalyzer_v2(multiSubdomainModel, fetiSolver, provider);
-            var parentAnalyzer = new StaticAnalyzer_v2(multiSubdomainModel, fetiSolver, provider, childAnalyzer);
+            var childAnalyzer = new LinearAnalyzer(multiSubdomainModel, fetiSolver, provider);
+            var parentAnalyzer = new StaticAnalyzer(multiSubdomainModel, fetiSolver, provider, childAnalyzer);
 
             // Run the analysis
             parentAnalyzer.Initialize();
@@ -320,17 +320,17 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
 
         private static IVectorView SolveModelWithoutSubdomains(double stiffnessRatio)
         {
-            Model_v2 model = CreateSingleSubdomainModel(stiffnessRatio);
+            Model model = CreateSingleSubdomainModel(stiffnessRatio);
 
             // Solver
             SkylineSolver solver = (new SkylineSolver.Builder()).BuildSolver(model);
 
             // Structural problem provider
-            var provider = new ProblemStructural_v2(model, solver);
+            var provider = new ProblemStructural(model, solver);
 
             // Linear static analysis
-            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+            var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
             // Run the analysis
             parentAnalyzer.Initialize();

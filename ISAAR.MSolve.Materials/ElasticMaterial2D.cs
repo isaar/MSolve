@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using ISAAR.MSolve.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Materials
 {
     public class ElasticMaterial2D : IIsotropicContinuumMaterial2D
     {
         private readonly double[] strains = new double[3];
-        private readonly double[] stresses = new double[3];
-        private double[,] constitutiveMatrix = null;
+        private double[] stresses = new double[3];
+        private Matrix constitutiveMatrix = null;
 
         public double[] Coordinates { get; set; }
         public double PoissonRatio { get; set; }
@@ -26,16 +24,16 @@ namespace ISAAR.MSolve.Materials
 
         #region IFiniteElementMaterial3D
 
-        public ElasticityTensorContinuum2D ConstitutiveMatrix
+        public IMatrixView ConstitutiveMatrix
         {
             get
             {
-                if (constitutiveMatrix == null) UpdateMaterial(new StressStrainVectorContinuum2D(new double[3]));
-                return new ElasticityTensorContinuum2D(constitutiveMatrix);
+                if (constitutiveMatrix == null) UpdateMaterial(new double[3]);
+                return constitutiveMatrix;
             }
         }
 
-        public StressStrainVectorContinuum2D Stresses { get { return new StressStrainVectorContinuum2D(stresses); } }
+        public double[] Stresses => stresses;
 
         public void ClearState()
         {
@@ -52,10 +50,10 @@ namespace ISAAR.MSolve.Materials
             throw new NotImplementedException();
         }
 
-        public void UpdateMaterial(StressStrainVectorContinuum2D strains)
+        public void UpdateMaterial(double[] strains)
         {
-            strains.CopyTo(this.strains, 0);
-            constitutiveMatrix = new double[3, 3];
+            this.strains.CopyFrom(strains);
+            constitutiveMatrix = Matrix.CreateZero(3, 3); //TODO: This should be cached in the constitutive matrix property and used here.
             if (StressState == StressState2D.PlaneStress)
             {
                 double aux = YoungModulus / (1 - PoissonRatio * PoissonRatio);
@@ -74,25 +72,21 @@ namespace ISAAR.MSolve.Materials
                 constitutiveMatrix[1, 0] = PoissonRatio * aux;
                 constitutiveMatrix[2, 2] = (1 - 2 * PoissonRatio) / 2 * aux;
             }
+            // correction for stress calculation 
+            stresses = (constitutiveMatrix * Vector.CreateFromArray( strains)).CopyToArray();
+            // TODO correct strains add update strains depends of how we define update strain tou ulikou
+
         }
 
         #endregion
 
         #region IFiniteElementMaterial
 
-        public int ID
-        {
-            get { return 1; }
-        }
+        public int ID => 1;
 
-        public bool Modified
-        {
-            get { return false; }
-        }
+        public bool Modified => false;
 
-        public void ResetModified()
-        {
-        }
+        public void ResetModified() { }
 
         #endregion
 

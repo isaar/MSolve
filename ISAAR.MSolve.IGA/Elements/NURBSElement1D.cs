@@ -1,16 +1,12 @@
-﻿using ISAAR.MSolve.IGA.Entities;
-using ISAAR.MSolve.IGA.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.IGA.Elements
 {
@@ -19,13 +15,13 @@ namespace ISAAR.MSolve.IGA.Elements
 
         protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X};
         protected DOFType[][] dofTypes;
-        protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
+        protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
         public  int Degree { get; set; }
 
         #region IStructuralIsogeometricElement
         public ElementDimensions ElementDimensions { get { return ElementDimensions.OneD; } }
 
-        public IElementDofEnumerator_v2 DofEnumerator { get { return dofEnumerator; } set { this.dofEnumerator = value; } }
+        public IElementDofEnumerator DofEnumerator { get { return dofEnumerator; } set { this.dofEnumerator = value; } }
 
         public bool MaterialModified => throw new NotImplementedException();
 
@@ -267,7 +263,7 @@ namespace ISAAR.MSolve.IGA.Elements
             throw new NotImplementedException();
         }
 
-        public IMatrix2D DampingMatrix(Element element)
+        public IMatrix DampingMatrix(Element element)
         {
             throw new NotImplementedException();
         }
@@ -282,7 +278,7 @@ namespace ISAAR.MSolve.IGA.Elements
             return dofTypes;
         }
 
-        public IMatrix2D MassMatrix(Element element)
+        public IMatrix MassMatrix(Element element)
         {
             throw new NotImplementedException();
         }
@@ -292,7 +288,7 @@ namespace ISAAR.MSolve.IGA.Elements
             throw new NotImplementedException();
         }
 
-        public IMatrix StiffnessMatrix(IElement_v2 element)
+        public IMatrix StiffnessMatrix(IElement element)
         {
             throw new NotImplementedException();
         }
@@ -307,22 +303,22 @@ namespace ISAAR.MSolve.IGA.Elements
             throw new NotSupportedException();
         }
 
-		public IMatrix2D StiffnessMatrix(Element element)
+		public IMatrix StiffnessMatrix(Element element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IMatrix MassMatrix(IElement_v2 element)
+		public IMatrix MassMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IMatrix DampingMatrix(IElement_v2 element)
+		public IMatrix DampingMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
+		public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
 		{
 			throw new NotImplementedException();
 		}

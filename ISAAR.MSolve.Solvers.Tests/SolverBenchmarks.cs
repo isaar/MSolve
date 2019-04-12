@@ -20,11 +20,11 @@ namespace ISAAR.MSolve.SamplesConsole.Solvers
                 using (SuiteSparseSolver solver = solverBuilder.BuildSolver(benchmark.Model))
                 {
                     // Structural problem provider
-                    var provider = new ProblemStructural_v2(benchmark.Model, solver);
+                    var provider = new ProblemStructural(benchmark.Model, solver);
 
                     // Linear static analysis
-                    var childAnalyzer = new LinearAnalyzer_v2(benchmark.Model, solver, provider);
-                    var parentAnalyzer = new StaticAnalyzer_v2(benchmark.Model, solver, provider, childAnalyzer);
+                    var childAnalyzer = new LinearAnalyzer(benchmark.Model, solver, provider);
+                    var parentAnalyzer = new StaticAnalyzer(benchmark.Model, solver, provider, childAnalyzer);
 
                     // Run the analysis
                     parentAnalyzer.Initialize();

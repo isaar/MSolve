@@ -1,10 +1,8 @@
-﻿using ISAAR.MSolve.FEM;
-using MGroup.Stochastic.Structural.StochasticRealizers;
-using ISAAR.MSolve.Discretization.Interfaces;
+﻿using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Materials;
 using MGroup.Stochastic.Interfaces;
+using MGroup.Stochastic.Structural.StochasticRealizers;
 
 namespace MGroup.Stochastic.Structural
 {

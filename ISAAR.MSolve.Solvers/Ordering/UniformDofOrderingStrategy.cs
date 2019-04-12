@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Numerical.Commons;
 
 namespace ISAAR.MSolve.Solvers.Ordering
 {
@@ -20,11 +20,11 @@ namespace ISAAR.MSolve.Solvers.Ordering
             this.dofsPerNode = dofsPerNode;
         }
 
-        public (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderGlobalDofs(IStructuralModel_v2 model)
+        public (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderGlobalDofs(IStructuralModel model)
             => OrderFreeDofsOfNodeSet(model.Nodes, model.Constraints);
 
 
-        public (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) OrderSubdomainDofs(ISubdomain_v2 subdomain)
+        public (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) OrderSubdomainDofs(ISubdomain subdomain)
             => OrderFreeDofsOfNodeSet(subdomain.Nodes, subdomain.Constraints);
 
 

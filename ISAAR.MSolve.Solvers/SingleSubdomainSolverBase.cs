@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.LinearSystems;
@@ -20,17 +20,17 @@ namespace ISAAR.MSolve.Solvers
     /// Authors: Serafeim Bakalakos
     /// </summary>
     /// <typeparam name="TMatrix">The type of the linear system's matrix.</typeparam>
-    public abstract class SingleSubdomainSolverBase<TMatrix> : ISolver_v2
+    public abstract class SingleSubdomainSolverBase<TMatrix> : ISolver
         where TMatrix : class, IMatrix
     {
         protected readonly IGlobalMatrixAssembler<TMatrix> assembler;
         protected readonly IDofOrderer dofOrderer;
-        protected readonly IStructuralModel_v2 model;
+        protected readonly IStructuralModel model;
         protected readonly string name; // for error messages
-        protected readonly ISubdomain_v2 subdomain;
+        protected readonly ISubdomain subdomain;
         protected readonly SingleSubdomainSystem<TMatrix> linearSystem;
 
-        protected SingleSubdomainSolverBase(IStructuralModel_v2 model, IDofOrderer dofOrderer, 
+        protected SingleSubdomainSolverBase(IStructuralModel model, IDofOrderer dofOrderer, 
             IGlobalMatrixAssembler<TMatrix> assembler, string name)
         {
             if (model.Subdomains.Count != 1) throw new InvalidSolverException(
@@ -39,16 +39,16 @@ namespace ISAAR.MSolve.Solvers
             subdomain = model.Subdomains[0];
 
             linearSystem = new SingleSubdomainSystem<TMatrix>(subdomain);
-            LinearSystems = new Dictionary<int, ILinearSystem_v2>() { { subdomain.ID, linearSystem } };
+            LinearSystems = new Dictionary<int, ILinearSystem>() { { subdomain.ID, linearSystem } };
             linearSystem.MatrixObservers.Add(this);
 
             this.dofOrderer = dofOrderer;
             this.assembler = assembler;
         }
 
-        public IReadOnlyDictionary<int, ILinearSystem_v2> LinearSystems { get; }
+        public IReadOnlyDictionary<int, ILinearSystem> LinearSystems { get; }
 
-        public virtual Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider_v2 elementMatrixProvider)
+        public virtual Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider elementMatrixProvider)
         {
             return new Dictionary<int, IMatrix>
             {
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.Solvers
         }
 
         public virtual Dictionary<int, (IMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
-            IMatrixView matrixConstrConstr)> BuildGlobalSubmatrices(IElementMatrixProvider_v2 elementMatrixProvider)
+            IMatrixView matrixConstrConstr)> BuildGlobalSubmatrices(IElementMatrixProvider elementMatrixProvider)
         {
             if (subdomain.ConstrainedDofOrdering == null)
             {
@@ -104,7 +104,7 @@ namespace ISAAR.MSolve.Solvers
             assembler.HandleDofOrderingWillBeModified();
             
             model.GlobalDofOrdering = globalOrdering;
-            foreach (ISubdomain_v2 subdomain in model.Subdomains)
+            foreach (ISubdomain subdomain in model.Subdomains)
             {
                 subdomain.FreeDofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
                 if (alsoOrderConstrainedDofs) subdomain.ConstrainedDofOrdering = dofOrderer.OrderConstrainedDofs(subdomain);

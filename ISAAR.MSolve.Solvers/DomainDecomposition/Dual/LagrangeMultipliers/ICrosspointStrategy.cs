@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
     internal interface ICrosspointStrategy
     {
         //TODO: Perhaps a list of pairs is better than a pair of lists.
-        (ISubdomain_v2[] subdomainsPlus, ISubdomain_v2[] subdomainsMinus) FindSubdomainCombinations(int nodeMultiplicity,
-            IEnumerable<ISubdomain_v2> nodeSubdomains);
+        (ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus) FindSubdomainCombinations(int nodeMultiplicity,
+            IEnumerable<ISubdomain> nodeSubdomains);
     }
 }

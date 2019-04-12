@@ -1,67 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using ISAAR.MSolve.Analyzers.Interfaces;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Logging.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.Solvers;
+using ISAAR.MSolve.Solvers.LinearSystems;
 
 namespace ISAAR.MSolve.Analyzers
 {
-    public class LinearAnalyzer : IAnalyzer
+    public class LinearAnalyzer : IChildAnalyzer
     {
-        private IAnalyzer parentAnalyzer = null;
+        private readonly IReadOnlyDictionary<int, ILinearSystem> linearSystems;
+        private readonly IStructuralModel model;
+        private readonly IAnalyzerProvider provider;
         private readonly ISolver solver;
-        private readonly IDictionary<int, ILinearSystem> linearSystems;
-        private readonly Dictionary<int, ILogFactory> logFactories = new Dictionary<int, ILogFactory>();
-        private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
 
-        public LinearAnalyzer(ISolver solver, IDictionary<int, ILinearSystem> linearSystems)
+        public LinearAnalyzer(IStructuralModel model, ISolver solver, IAnalyzerProvider provider)
         {
+            this.model = model;
             this.solver = solver;
-            this.linearSystems = linearSystems;
+            this.linearSystems = solver.LinearSystems;
+            this.provider = provider;
         }
 
-        //TODO: this is temporarily injected as a property, so that the users only need to provide it if they need it.
-        //      Normally it should be defined by the model depending on the boundary & initial conditions, body forces, etc.
-        //      The provider (e.g. problem structural) may also need to be taken into consideration.
-        public IDictionary<int, IEquivalentLoadsAssembler> EquivalentLoadsAssemblers { get; set; }
+        public Dictionary<int, ILogFactory> LogFactories { get; } = new Dictionary<int, ILogFactory>();
+        public Dictionary<int, IAnalyzerLog[]> Logs { get; } = new Dictionary<int, IAnalyzerLog[]>();
 
-        private void InitializeLogs()
+        public IParentAnalyzer ParentAnalyzer { get; set; }
+
+        public void BuildMatrices()
         {
-            logs.Clear();
-            foreach (int id in logFactories.Keys) logs.Add(id, logFactories[id].CreateLogs());
+            if (ParentAnalyzer == null) throw new InvalidOperationException("This linear analyzer has no parent.");
+
+            ParentAnalyzer.BuildMatrices();
+            //solver.Initialize();
         }
 
-        private void StoreLogResults(DateTime start, DateTime end)
-        {
-            foreach (int id in logs.Keys) 
-                foreach (var l in logs[id])    
-                    l.StoreResults(start, end, linearSystems[id].Solution);
-        }
-
-        public Dictionary<int, ILogFactory> LogFactories { get { return logFactories; } }
-        public ISolver Solver { get { return solver; } }
-
-        #region IAnalyzer Members
-
-        public Dictionary<int, IAnalyzerLog[]> Logs { get { return logs; } }
-        public IAnalyzer ParentAnalyzer
-        {
-            get { return parentAnalyzer; }
-            set { parentAnalyzer = value; }
-        }
-
-        public IAnalyzer ChildAnalyzer
-        {
-            get { return null; }
-            set {  throw new InvalidOperationException("Linear analyzer cannot contain an embedded analyzer."); }
-        }
-
-        public void Initialize()
+        public void Initialize(bool isFirstAnalysis)
         {
             InitializeLogs();
             solver.Initialize();
@@ -70,38 +46,48 @@ namespace ISAAR.MSolve.Analyzers
         public void Solve()
         {
             DateTime start = DateTime.Now;
-            AddEquivalentNodalLoadsToRHS(); //TODO: The initial rhs should also be built by the analyzer instead of the model.
+            AddEquivalentNodalLoadsToRHS(); //TODO: The initial rhs (from other loads) should also be built by the analyzer instead of the model.
             solver.Solve();
             DateTime end = DateTime.Now;
-            StoreLogResults(start, end); 
+            StoreLogResults(start, end);
         }
-
-        public void BuildMatrices()
-        {
-            if (parentAnalyzer == null) throw new InvalidOperationException("This linear analyzer has no parent.");
-
-            parentAnalyzer.BuildMatrices();
-            //solver.Initialize();
-        }
-
-        #endregion
 
         private void AddEquivalentNodalLoadsToRHS()
         {
-            if (EquivalentLoadsAssemblers != null)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
-                foreach (var subdomain in linearSystems.Keys)
+                try
                 {
-                    Vector subdomainRHS = ((Vector)linearSystems[subdomain].RHS);
-                    var equivalentLoadsAssembler = EquivalentLoadsAssemblers[subdomain];
+                    // Make sure there is at least one non zero prescribed displacement.
+                    (INode node, DOFType dof, double displacement) = linearSystem.Subdomain.Constraints.Find(du => du != 0.0);
 
-                    var initialFreeSolution = new Vector(subdomainRHS.Length);
+                    //TODO: the following 2 lines are meaningless outside diplacement control (and even then, they are not so clear).
                     double scalingFactor = 1;
-                    var equivalentNodalLoads = (Vector)equivalentLoadsAssembler.GetEquivalentNodalLoads(
-                        initialFreeSolution, scalingFactor);
-                    subdomainRHS.Subtract(equivalentNodalLoads);
+                    IVector initialFreeSolution = linearSystem.CreateZeroVector();
+
+                    IVector equivalentNodalLoads = provider.DirichletLoadsAssembler.GetEquivalentNodalLoads(
+                        linearSystem.Subdomain, initialFreeSolution, scalingFactor);
+                    linearSystem.RhsVector.SubtractIntoThis(equivalentNodalLoads);
+                }
+                catch (KeyNotFoundException)
+                {
+                    // There aren't any non zero prescribed displacements, therefore we do not have to calculate the equivalent 
+                    // nodal loads, which is an expensive operation (all elements are accessed, their stiffness is built, etc..)
                 }
             }
+        }
+
+        private void InitializeLogs()
+        {
+            Logs.Clear();
+            foreach (int id in LogFactories.Keys) Logs.Add(id, LogFactories[id].CreateLogs());
+        }
+
+        private void StoreLogResults(DateTime start, DateTime end)
+        {
+            foreach (int id in Logs.Keys)
+                foreach (var l in Logs[id])
+                    l.StoreResults(start, end, linearSystems[id].Solution);
         }
     }
 }

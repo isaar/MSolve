@@ -7,7 +7,7 @@ namespace ISAAR.MSolve.FEM.Entities
 {
     public interface ITimeDependentNodalLoad
     {
-        Node_v2 Node { get; set; }
+        Node Node { get; set; }
         DOFType DOF { get; set; }
 
         double GetLoadAmount(int timeStep);

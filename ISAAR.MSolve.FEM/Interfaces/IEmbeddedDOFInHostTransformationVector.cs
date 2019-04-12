@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Embedding;
-using ISAAR.MSolve.FEM.Entities;
 
 
 namespace ISAAR.MSolve.FEM.Interfaces

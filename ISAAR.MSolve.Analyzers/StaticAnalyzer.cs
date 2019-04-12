@@ -1,88 +1,95 @@
 ﻿using System;
 using System.Collections.Generic;
-using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Analyzers.Interfaces;
+using ISAAR.MSolve.Analyzers.NonLinear;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Logging.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.Solvers;
+using ISAAR.MSolve.Solvers.LinearSystems;
 
 namespace ISAAR.MSolve.Analyzers
 {
-    public class StaticAnalyzer : IAnalyzer, INonLinearParentAnalyzer
+    public class StaticAnalyzer : INonLinearParentAnalyzer
     {
-        private readonly IDictionary<int, ILinearSystem> subdomains;
+        private readonly IReadOnlyDictionary<int, ILinearSystem> linearSystems;
+        private readonly IStructuralModel model;
         private readonly IStaticProvider provider;
-        private IAnalyzer childAnalyzer;
-        private IAnalyzer parentAnalyzer = null;
-        private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
+        private readonly ISolver solver;
 
-        public StaticAnalyzer(IStaticProvider provider, IAnalyzer embeddedAnalyzer, IDictionary<int, ILinearSystem> subdomains)
+        public StaticAnalyzer(IStructuralModel model, ISolver solver, IStaticProvider provider, 
+            IChildAnalyzer childAnalyzer)
         {
+            this.model = model;
+            this.linearSystems = solver.LinearSystems;
+            this.solver = solver;
             this.provider = provider;
-            this.childAnalyzer = embeddedAnalyzer;
-            this.subdomains = subdomains;
-            this.childAnalyzer.ParentAnalyzer = this;
+            this.ChildAnalyzer = childAnalyzer;
+            this.ChildAnalyzer.ParentAnalyzer = this;
         }
 
-        private void InitalizeMatrices()
+        public Dictionary<int, IAnalyzerLog[]> Logs { get; } = new Dictionary<int, IAnalyzerLog[]>();
+
+        public IChildAnalyzer ChildAnalyzer { get; }
+
+        public void BuildMatrices()
         {
-            foreach (ILinearSystem subdomain in subdomains.Values)
-                provider.CalculateMatrix(subdomain);
-            //provider.CalculateMatrices();
-                //subdomain.Matrix = provider.Ks[subdomain.ID];
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
+            {
+                linearSystem.Matrix = provider.CalculateMatrix(linearSystem.Subdomain);
+            }
         }
 
-        #region IAnalyzer Members
-
-        public Dictionary<int, IAnalyzerLog[]> Logs { get { return logs; } }
-        public IAnalyzer ParentAnalyzer
+        public IVector GetOtherRhsComponents(ILinearSystem linearSystem, IVector currentSolution)
         {
-            get { return parentAnalyzer; }
-            set { parentAnalyzer = value; }
+            //TODO: use a ZeroVector class that avoid doing useless operations or refactor this method. E.g. let this method 
+            // alter the child analyzer's rhs vector, instead of the opposite (which is currently done).
+            return linearSystem.CreateZeroVector();
         }
 
-        public IAnalyzer ChildAnalyzer
+        public void Initialize(bool isFirstAnalysis = true)
         {
-            get { return childAnalyzer; }
-            set { childAnalyzer = value; }
-        }
+            if (isFirstAnalysis)
+            {
+                // The order in which the next initializations happen is very important.
+                model.ConnectDataStructures();
+                solver.OrderDofs(false);
+                foreach (ILinearSystem linearSystem in linearSystems.Values)
+                {
+                    linearSystem.Reset(); // Necessary to define the linear system's size 
+                    linearSystem.Subdomain.Forces = Vector.CreateZero(linearSystem.Size);
+                }
+            }
+            else
+            {
+                foreach (ILinearSystem linearSystem in linearSystems.Values)
+                {
+                    //TODO: Perhaps these shouldn't be done if an analysis has already been executed. The model will not be 
+                    //      modified. Why should the linear system be?
+                    linearSystem.Reset(); 
+                    linearSystem.Subdomain.Forces = Vector.CreateZero(linearSystem.Size);
+                }
+            }
 
-        public void Initialize()
-        {
-            if (childAnalyzer == null) throw new InvalidOperationException("Static analyzer must contain an embedded analyzer.");
-            //InitalizeMatrices();
-            childAnalyzer.Initialize();
+            //TODO: Perhaps this should be called by the child analyzer
+            BuildMatrices(); 
+
+            // Loads must be created after building the matrices.
+            //TODO: Some loads may not have to be recalculated each time the stiffness changes.
+            model.AssignLoads(solver.DistributeNodalLoads); 
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
+            {
+                linearSystem.RhsVector = linearSystem.Subdomain.Forces;
+            }
+
+            if (ChildAnalyzer == null) throw new InvalidOperationException("Static analyzer must contain an embedded analyzer.");
+            ChildAnalyzer.Initialize(isFirstAnalysis);
         }
 
         public void Solve()
         {
-            if (childAnalyzer == null) throw new InvalidOperationException("Static analyzer must contain an embedded analyzer.");
-            childAnalyzer.Solve();
+            if (ChildAnalyzer == null) throw new InvalidOperationException("Static analyzer must contain an embedded analyzer.");
+            ChildAnalyzer.Solve();
         }
-
-        public void BuildMatrices()
-        {
-            InitalizeMatrices();
-            //int rows = subdomains[1].Matrix.Rows;
-            //double[,] data = new double[rows, rows];
-            //for (int i = 0; i < rows; i++)
-            //    for (int j = 0; j < rows; j++)
-            //        data[i, j] = subdomains[1].Matrix[i, j];
-
-            //var m = new Matrix2D<double>(data);
-            //var w = new double[rows];
-            //var v = new double[rows, rows];
-            //m.SVD(w, v);
-        }
-
-        #endregion
-
-        #region INonLinearParentAnalyzer Members
-
-        public double[] GetOtherRHSComponents(ILinearSystem subdomain, IVector currentSolution)
-        {
-            return new double[subdomain.RHS.Length];
-        }
-
-        #endregion
     }
 }
