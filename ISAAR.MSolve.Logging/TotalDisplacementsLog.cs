@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.Logging
 
         public DateTime EndTime { get; private set; }
 
-        public double GetDisplacementAt(INode node, DOFType dofType) => displacements[watchedDofs[node, dofType]];
+        public double GetDisplacementAt(INode node, IDofType dofType) => displacements[watchedDofs[node, dofType]];
 
         public DateTime StartTime { get; private set; }
 
@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.Logging
             StartTime = startTime;
             EndTime = endTime;
 
-            foreach ((INode node, DOFType dofType, int dofIdx) in watchedDofs)
+            foreach ((INode node, IDofType dofType, int dofIdx) in watchedDofs)
             {
                 int globalDofIdx = subdomain.FreeDofOrdering.FreeDofs[node, dofType];
                 displacements[dofIdx] = solution[globalDofIdx];
@@ -50,7 +50,7 @@ namespace ISAAR.MSolve.Logging
             public IAnalyzerLog[] CreateLogs()
                 => new IAnalyzerLog[] { new TotalDisplacementsLog(subdomain, numWatchedDofs, watchedDofs) };
 
-            public void WatchDof(INode node, DOFType dofType)
+            public void WatchDof(INode node, IDofType dofType)
             {
                 bool isAdded = watchedDofs.TryAdd(node, dofType, numWatchedDofs++);
                 if (!isAdded) throw new ArgumentException(

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
@@ -101,7 +102,7 @@ namespace ISAAR.MSolve.FEM
 
         public static double[] CalculateFppReactionsVector(Subdomain subdomain, IElementMatrixProvider elementProvider,
             IScaleTransitions scaleTransitions, Dictionary<int, Node> boundaryNodes, IVectorView solution, IVectorView dSolution,
-            Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements,
+            Dictionary<int, Dictionary<IDofType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<IDofType, double>> totalBoundaryDisplacements,
             int nIncrement, int totalIncrements)
         {
             //TODOGerasimos: 1) Subdomain2 einai h upo kataskevh subdomain.cs ths Marias gia na mporoume na anaferthoume sthn methodo ths CalculateElementNodalDisplacements(..,..). 
@@ -197,7 +198,7 @@ namespace ISAAR.MSolve.FEM
                             {
                                 INode nodeColumn = matrixAssemblyNodes[j];
                                 int dofTypeColumnToNumber = -1;
-                                foreach (DOFType dofTypeColumn in elementDOFTypes[j])
+                                foreach (IDofType dofTypeColumn in elementDOFTypes[j])
                                 {
                                     dofTypeColumnToNumber++;
                                     bool isFree = FreeDofs.TryGetValue(matrixAssemblyNodes[j], elementDOFTypes[j][dofTypeColumnToNumber],

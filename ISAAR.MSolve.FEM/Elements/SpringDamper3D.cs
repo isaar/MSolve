@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
@@ -16,8 +17,8 @@ namespace ISAAR.MSolve.FEM.Elements
 
     public class SpringDamper3D : IStructuralFiniteElement
     {
-        private static readonly DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
-        private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
+        private static readonly IDofType[] nodalDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ };
+        private static readonly IDofType[][] dofs = new IDofType[][] { nodalDOFTypes, nodalDOFTypes };
         private readonly double springCoefficient, dampingCoefficient;
         private readonly SpringDirections springDirections, dampingDirections;
         private IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
@@ -32,14 +33,14 @@ namespace ISAAR.MSolve.FEM.Elements
             set { dofEnumerator = value; }
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
+        public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
         {
             if (element == null) return dofs;
 
-            var d = new List<IList<DOFType>>();
+            var d = new List<IList<IDofType>>();
             foreach (var node in element.Nodes)
             {
-                var nodeDofs = new List<DOFType>();
+                var nodeDofs = new List<IDofType>();
                 nodeDofs.AddRange(nodalDOFTypes);
                 d.Add(nodeDofs);
             }

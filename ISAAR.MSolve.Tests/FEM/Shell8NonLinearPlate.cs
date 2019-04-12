@@ -2,13 +2,13 @@
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.NonLinear;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
-using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
@@ -245,11 +245,11 @@ namespace ISAAR.MSolve.Tests.FEM
             for (int k = 0; k < cnstrnd.GetLength(0); k++)
             {
                 pointID = cnstrnd[k];
-                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = DOFType.Y });
-                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = DOFType.Z });
-                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = DOFType.RotX });
-                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = DOFType.RotY });
+                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
+                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationX });
+                model.NodesDictionary[pointID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationY });
             }
 
             // fortish korufhs
@@ -258,7 +258,7 @@ namespace ISAAR.MSolve.Tests.FEM
             load1 = new Load()
             {
                 Node = model.NodesDictionary[13],
-                DOF = DOFType.Z,
+                DOF = StructuralDof.TranslationZ,
                 Amount = 1 * load_value
             };
             model.Loads.Add(load1);

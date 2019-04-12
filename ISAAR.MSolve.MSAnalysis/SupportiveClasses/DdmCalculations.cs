@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Output;
@@ -120,16 +120,16 @@ namespace ISAAR.MSolve.MultiscaleAnalysisMerge.SupportiveClasses
 
         }
 
-        public static void PrintDictionary (Dictionary<int, Dictionary<DOFType, int>> globalNodalDOFsDictionary,int TotalDOFs, int subdomainID)
+        public static void PrintDictionary (Dictionary<int, Dictionary<IDofType, int>> globalNodalDOFsDictionary,int TotalDOFs, int subdomainID)
         {
             double[] globalDOFs = new double[TotalDOFs];
             int counter = 0;
 
             foreach (int nodeID in globalNodalDOFsDictionary.Keys)
             {
-                Dictionary<DOFType, int> dofTypes = globalNodalDOFsDictionary[nodeID];
+                Dictionary<IDofType, int> dofTypes = globalNodalDOFsDictionary[nodeID];
                 //Dictionary<DOFType, int> globalDOFTypes = new Dictionary<DOFType, int>(dofTypes.Count);
-                foreach (DOFType dofType in dofTypes.Keys)
+                foreach (IDofType dofType in dofTypes.Keys)
                 {
                     if (dofTypes[dofType]!=-1)
                     {

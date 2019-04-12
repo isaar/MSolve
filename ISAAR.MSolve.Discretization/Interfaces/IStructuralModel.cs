@@ -7,11 +7,11 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 namespace ISAAR.MSolve.Discretization.Interfaces
 {
     public delegate Dictionary<int, SparseVector> NodalLoadsToSubdomainsDistributor(
-        Table<INode, DOFType, double> globalNodalLoads);
+        Table<INode, IDofType, double> globalNodalLoads);
 
     public interface IStructuralModel
     {
-        Table<INode, DOFType, double> Constraints { get; }
+        Table<INode, IDofType, double> Constraints { get; }
         IReadOnlyList<IElement> Elements { get; }
         IGlobalFreeDofOrdering GlobalDofOrdering { get; set; } //TODO: this should not be managed by the model
         IList<IMassAccelerationHistoryLoad> MassAccelerationHistoryLoads { get; }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
@@ -13,8 +14,8 @@ namespace ISAAR.MSolve.FEM.Elements
 {
     public class EulerBeam3D : IStructuralFiniteElement, IEmbeddedElement
     {
-        private static readonly DOFType[] nodalDOFTypes = new DOFType[6] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.RotX, DOFType.RotY, DOFType.RotZ };
-        private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
+        private static readonly IDofType[] nodalDOFTypes = new IDofType[6] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ, StructuralDof.RotationX, StructuralDof.RotationY, StructuralDof.RotationZ };
+        private static readonly IDofType[][] dofs = new IDofType[][] { nodalDOFTypes, nodalDOFTypes };
         private readonly double youngModulus;
         private readonly double poissonRatio;
         private readonly List<EmbeddedNode> embeddedNodes = new List<EmbeddedNode>();
@@ -23,7 +24,7 @@ namespace ISAAR.MSolve.FEM.Elements
         private const int commonDofsPerNode = 3;
         //private Matrix<double> transformation;
         private int noOfDOFs = 12;
-        private DOFType[][] dofsWhenNoRotations = null;
+        private IDofType[][] dofsWhenNoRotations = null;
         private List<Element> hostElementList;
         private bool[] isNodeEmbedded;
         private readonly Node[][] rotNodes = new Node[2][];
@@ -82,22 +83,22 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             if (rotNodes[0] == null && rotNodes[1] == null) return;
 
-            DOFType[] translationalDOFTypes = new DOFType[3] { DOFType.X, DOFType.Y, DOFType.Z };
-            dofsWhenNoRotations = new DOFType[][] { translationalDOFTypes, translationalDOFTypes,
+            IDofType[] translationalDOFTypes = new IDofType[3] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ };
+            dofsWhenNoRotations = new IDofType[][] { translationalDOFTypes, translationalDOFTypes,
                 translationalDOFTypes, translationalDOFTypes, translationalDOFTypes, translationalDOFTypes,
                 translationalDOFTypes, translationalDOFTypes, translationalDOFTypes, translationalDOFTypes };
             noOfDOFs = 30;
 
             if (rotNodes[0] == null)
             {
-                dofsWhenNoRotations = new DOFType[][] { nodalDOFTypes, translationalDOFTypes, translationalDOFTypes,
+                dofsWhenNoRotations = new IDofType[][] { nodalDOFTypes, translationalDOFTypes, translationalDOFTypes,
                 translationalDOFTypes, translationalDOFTypes, translationalDOFTypes };
                 noOfDOFs = 21;
             }
 
             if (rotNodes[1] == null)
             {
-                dofsWhenNoRotations = new DOFType[][] { translationalDOFTypes, nodalDOFTypes, translationalDOFTypes,
+                dofsWhenNoRotations = new IDofType[][] { translationalDOFTypes, nodalDOFTypes, translationalDOFTypes,
                 translationalDOFTypes, translationalDOFTypes, translationalDOFTypes };
                 noOfDOFs = 21;
             }
@@ -293,11 +294,11 @@ namespace ISAAR.MSolve.FEM.Elements
             get { return ElementDimensions.ThreeD; }
         }
 
-        private IList<Tuple<Node, IList<DOFType>>> GetDOFTypesInternal(Element element)
+        private IList<Tuple<Node, IList<IDofType>>> GetDOFTypesInternal(Element element)
         {
             if (element == null) throw new ArgumentException();
 
-            var hostDOFTypes = new List<DOFType>();
+            var hostDOFTypes = new List<IDofType>();
             foreach (var node in element.Nodes)
             {
                 var embeddedNode = embeddedNodes.Where(x => x.Node == node).FirstOrDefault();
@@ -306,18 +307,18 @@ namespace ISAAR.MSolve.FEM.Elements
             }
             hostDOFTypes = hostDOFTypes.Distinct().ToList();
 
-            var d = new Dictionary<Node, IList<DOFType>>();
-            var l = new List<Tuple<Node, IList<DOFType>>>();
+            var d = new Dictionary<Node, IList<IDofType>>();
+            var l = new List<Tuple<Node, IList<IDofType>>>();
             foreach (var node in element.Nodes)
             {
                 var embeddedNode = embeddedNodes.Where(x => x.Node == node).FirstOrDefault();
                 //if (node.EmbeddedInElement == null)
                 if (embeddedNode == null)
                 {
-                    var nodeDofs = new List<DOFType>();
+                    var nodeDofs = new List<IDofType>();
                     nodeDofs.AddRange(nodalDOFTypes.Except(hostDOFTypes));
                     d.Add(node, nodeDofs);
-                    l.Add(new Tuple<Node, IList<DOFType>>(node, nodeDofs));
+                    l.Add(new Tuple<Node, IList<IDofType>>(node, nodeDofs));
                 }
                 else
                 {
@@ -327,7 +328,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     {
                         if (!d.ContainsKey(embeddedNode.EmbeddedInElement.Nodes[i]))
                             d.Add(embeddedNode.EmbeddedInElement.Nodes[i], hostDOFsPerNode[i]);
-                        l.Add(new Tuple<Node, IList<DOFType>>(embeddedNode.EmbeddedInElement.Nodes[i], hostDOFsPerNode[i]));
+                        l.Add(new Tuple<Node, IList<IDofType>>(embeddedNode.EmbeddedInElement.Nodes[i], hostDOFsPerNode[i]));
                     }
                 }
             }
@@ -346,7 +347,7 @@ namespace ISAAR.MSolve.FEM.Elements
                         d.Add(node, uniqueDOFTypes);
                     else
                         d[node] = d[node].Concat(uniqueDOFTypes).ToArray();
-                    l.Add(new Tuple<Node, IList<DOFType>>(node, uniqueDOFTypes));
+                    l.Add(new Tuple<Node, IList<IDofType>>(node, uniqueDOFTypes));
                 }
 
             return l;
@@ -364,7 +365,7 @@ namespace ISAAR.MSolve.FEM.Elements
         //    return d;
         //}
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
+        public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
         {
             if (dofsWhenNoRotations == null) return dofs;
             return dofsWhenNoRotations;
@@ -669,8 +670,8 @@ namespace ISAAR.MSolve.FEM.Elements
             foreach (MassAccelerationLoad load in loads)
             {
                 int index = 0;
-                foreach (DOFType[] nodalDOFTypes in dofs)
-                    foreach (DOFType dofType in nodalDOFTypes)
+                foreach (IDofType[] nodalDOFTypes in dofs)
+                    foreach (IDofType dofType in nodalDOFTypes)
                     {
                         if (dofType == load.DOF) accelerations[index] += load.Amount;
                         index++;
@@ -697,7 +698,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         #region IEmbeddedElement Members
 
-        public Dictionary<DOFType, int> GetInternalNodalDOFs(Element element, Node node)
+        public Dictionary<IDofType, int> GetInternalNodalDOFs(Element element, Node node)
         {
             int index = 0;
             foreach (var elementNode in element.Nodes)
@@ -709,10 +710,10 @@ namespace ISAAR.MSolve.FEM.Elements
             if (index >= 2)
                 throw new ArgumentException(String.Format("GetInternalNodalDOFs: Node {0} not found in element {1}.", node.ID, element.ID));
 
-            return index == 0 ? new Dictionary<DOFType, int>() {
-                { DOFType.X, 0 }, { DOFType.Y, 1 }, { DOFType.Z, 2 }, { DOFType.RotX, 3 }, { DOFType.RotY, 4 }, { DOFType.RotZ, 5 } } :
-                new Dictionary<DOFType, int>() {
-                { DOFType.X, 6 }, { DOFType.Y, 7 }, { DOFType.Z, 8 }, { DOFType.RotX, 9 }, { DOFType.RotY, 10 }, { DOFType.RotZ, 11 } };
+            return index == 0 ? new Dictionary<IDofType, int>() {
+                { StructuralDof.TranslationX, 0 }, { StructuralDof.TranslationY, 1 }, { StructuralDof.TranslationZ, 2 }, { StructuralDof.RotationX, 3 }, { StructuralDof.RotationY, 4 }, { StructuralDof.RotationZ, 5 } } :
+                new Dictionary<IDofType, int>() {
+                { StructuralDof.TranslationX, 6 }, { StructuralDof.TranslationY, 7 }, { StructuralDof.TranslationZ, 8 }, { StructuralDof.RotationX, 9 }, { StructuralDof.RotationY, 10 }, { StructuralDof.RotationZ, 11 } };
         }
 
         public double[] GetLocalDOFValues(Element hostElement, double[] hostDOFValues)

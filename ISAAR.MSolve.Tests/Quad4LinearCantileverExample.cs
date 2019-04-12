@@ -1,6 +1,6 @@
 ﻿using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Geometry.Shapes;
@@ -61,14 +61,14 @@ namespace ISAAR.MSolve.Tests
             //var a = quad.StiffnessMatrix(element);
 
             // Prescribed displacements
-            model.NodesDictionary[0].Constraints.Add(new Constraint() { DOF = DOFType.X, Amount = 0.0 });
-            model.NodesDictionary[0].Constraints.Add(new Constraint() { DOF = DOFType.Y, Amount = 0.0 });
-            model.NodesDictionary[3].Constraints.Add(new Constraint() { DOF = DOFType.X, Amount = 0.0 });
-            model.NodesDictionary[3].Constraints.Add(new Constraint() { DOF = DOFType.Y, Amount = 0.0 });
+            model.NodesDictionary[0].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationX, Amount = 0.0 });
+            model.NodesDictionary[0].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationY, Amount = 0.0 });
+            model.NodesDictionary[3].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationX, Amount = 0.0 });
+            model.NodesDictionary[3].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationY, Amount = 0.0 });
 
             // Nodal loads
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[1], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.X });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[1], DOF = StructuralDof.TranslationX });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[2], DOF = StructuralDof.TranslationX });
 
             // Solver
             var pcgBuilder = new PcgAlgorithm.Builder();

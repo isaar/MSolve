@@ -2,7 +2,7 @@
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.Dynamic;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Materials;
@@ -52,9 +52,9 @@ namespace ISAAR.MSolve.Tests
             }
 
             // Constrain bottom nodes of the model
-            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.X });
-            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.Y });
-            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.RotationZ });
 
             // Create a new Beam2D element
             var beam = new EulerBeam2D(youngModulus)
@@ -83,7 +83,7 @@ namespace ISAAR.MSolve.Tests
             model.SubdomainsDictionary[1].Elements.Add(element);
 
             // define loads
-            model.Loads.Add(new Load { Amount = nodalLoad, Node = model.NodesDictionary[totalNodes], DOF = DOFType.Y });
+            model.Loads.Add(new Load { Amount = nodalLoad, Node = model.NodesDictionary[totalNodes], DOF = StructuralDof.TranslationY });
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();

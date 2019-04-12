@@ -2,8 +2,8 @@
 using ISAAR.MSolve.Analyzers.Multiscale;
 using ISAAR.MSolve.Analyzers.NonLinear;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
-using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Discretization.Providers;
 using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Elements;
@@ -62,19 +62,19 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             {
                 boundaryNodes.Add(model.NodesDictionary[k].ID, model.NodesDictionary[k]);
             }
-            Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements = new Dictionary<int, Dictionary<DOFType, double>>();
-            Dictionary<DOFType, double> initialConvergedBoundaryNodalDisplacements = new Dictionary<DOFType, double>();
-            initialConvergedBoundaryNodalDisplacements.Add(DOFType.X, 0);
+            Dictionary<int, Dictionary<IDofType, double>> initialConvergedBoundaryDisplacements = new Dictionary<int, Dictionary<IDofType, double>>();
+            Dictionary<IDofType, double> initialConvergedBoundaryNodalDisplacements = new Dictionary<IDofType, double>();
+            initialConvergedBoundaryNodalDisplacements.Add(StructuralDof.TranslationX, 0);
             for (int k = 17; k < 21; k++)
             {
                 initialConvergedBoundaryDisplacements.Add(model.NodesDictionary[k].ID, initialConvergedBoundaryNodalDisplacements);
             }
-            Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements = new Dictionary<int, Dictionary<DOFType, double>>();
+            Dictionary<int, Dictionary<IDofType, double>> totalBoundaryDisplacements = new Dictionary<int, Dictionary<IDofType, double>>();
             double[] prescribedDisplacmentXValues = new double[4] { 7.81614E-01, 7.07355E-01, 7.81614E-01, 7.07355E-01 };
             for (int k = 17; k < 21; k++)
             {
-                Dictionary<DOFType, double> totalBoundaryNodalDisplacements = new Dictionary<DOFType, double>();
-                totalBoundaryNodalDisplacements.Add(DOFType.X, 0.5*prescribedDisplacmentXValues[k - 17]);
+                Dictionary<IDofType, double> totalBoundaryNodalDisplacements = new Dictionary<IDofType, double>();
+                totalBoundaryNodalDisplacements.Add(StructuralDof.TranslationX, 0.5*prescribedDisplacmentXValues[k - 17]);
                 totalBoundaryDisplacements.Add(model.NodesDictionary[k].ID, totalBoundaryNodalDisplacements);
             }
             #endregion
@@ -112,11 +112,11 @@ namespace ISAAR.MSolve.Tests.FEMpartB
 
             initialConvergedBoundaryDisplacements = totalBoundaryDisplacements;
 
-            totalBoundaryDisplacements = new Dictionary<int, Dictionary<DOFType, double>>();
+            totalBoundaryDisplacements = new Dictionary<int, Dictionary<IDofType, double>>();
             for (int k = 17; k < 21; k++)
             {
-                Dictionary<DOFType, double> totalBoundaryNodalDisplacements = new Dictionary<DOFType, double>();
-                totalBoundaryNodalDisplacements.Add(DOFType.X, 1.0 * prescribedDisplacmentXValues[k - 17]);
+                Dictionary<IDofType, double> totalBoundaryNodalDisplacements = new Dictionary<IDofType, double>();
+                totalBoundaryNodalDisplacements.Add(StructuralDof.TranslationX, 1.0 * prescribedDisplacmentXValues[k - 17]);
                 totalBoundaryDisplacements.Add(model.NodesDictionary[k].ID, totalBoundaryNodalDisplacements);
             }
             #endregion
@@ -222,9 +222,9 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             // constraint vashh opou z=-1
             for (int k = 1; k < 5; k++)
             {
-                model.NodesDictionary[k].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[k].Constraints.Add(new Constraint { DOF = DOFType.Y });
-                model.NodesDictionary[k].Constraints.Add(new Constraint { DOF = DOFType.Z });
+                model.NodesDictionary[k].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[k].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                model.NodesDictionary[k].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
             }
 
             // thetoume constraint tous prescribed
@@ -238,7 +238,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB
                 //    Amount = 1 * load_value
                 //};
                 //model.Loads.Add(load1);
-                model.NodesDictionary[k].Constraints.Add(new Constraint { DOF = DOFType.X });
+                model.NodesDictionary[k].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
             }
 
             return true;

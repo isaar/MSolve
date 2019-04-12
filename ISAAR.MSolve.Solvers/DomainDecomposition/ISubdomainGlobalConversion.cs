@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.LinearSystems;
@@ -18,7 +19,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition
         double CalculateGlobalForcesNorm(Dictionary<int, IVectorView> subdomainForces);
 
         Dictionary<int, SparseVector> DistributeNodalLoads(IReadOnlyDictionary<int, ILinearSystem> linearSystems,
-            Table<INode, DOFType, double> globalNodalLoads);
+            Table<INode, IDofType, double> globalNodalLoads);
 
         //TODO: arguments other than the displacements should be injected into the constructor.
         Vector GatherGlobalDisplacements(Dictionary<int, IVectorView> subdomainDisplacements);

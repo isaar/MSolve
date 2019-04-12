@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
@@ -78,7 +79,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         }
 
         public void ModifyMicrostructureTotalPrescribedBoundaryDisplacementsVectorForMacroStrainVariable(Node boundaryNode,
-            double[] DefGradVec, Dictionary<int, Dictionary<DOFType, double>> totalPrescribedBoundaryDisplacements)
+            double[] DefGradVec, Dictionary<int, Dictionary<IDofType, double>> totalPrescribedBoundaryDisplacements)
         {
             double[,] Dq_nodal = new double[9, 3];
             Dq_nodal[0, +0] = boundaryNode.X; // h kai katedtheian boundaryNode.X 
@@ -105,22 +106,22 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
                                                      thesi_prescr_xyz[1] - boundaryNode.Y,
                                                      thesi_prescr_xyz[2] - boundaryNode.Z };
 
-            Dictionary<DOFType, double> totalBoundaryNodalDisplacements = new Dictionary<DOFType, double>();
-            totalBoundaryNodalDisplacements.Add(DOFType.X, u_prescr_xyz_sunol[0]);
-            totalBoundaryNodalDisplacements.Add(DOFType.Y, u_prescr_xyz_sunol[1]);
-            totalBoundaryNodalDisplacements.Add(DOFType.Z, u_prescr_xyz_sunol[2]);
+            Dictionary<IDofType, double> totalBoundaryNodalDisplacements = new Dictionary<IDofType, double>();
+            totalBoundaryNodalDisplacements.Add(StructuralDof.TranslationX, u_prescr_xyz_sunol[0]);
+            totalBoundaryNodalDisplacements.Add(StructuralDof.TranslationY, u_prescr_xyz_sunol[1]);
+            totalBoundaryNodalDisplacements.Add(StructuralDof.TranslationZ, u_prescr_xyz_sunol[2]);
 
             totalPrescribedBoundaryDisplacements.Add(boundaryNode.ID, totalBoundaryNodalDisplacements);
         }
 
         public void ImposeAppropriateConstraintsPerBoundaryNode(Model model, Node boundaryNode)
         {
-            model.NodesDictionary[boundaryNode.ID].Constraints.Add(new Constraint { DOF = DOFType.X });
-            model.NodesDictionary[boundaryNode.ID].Constraints.Add(new Constraint { DOF = DOFType.Y });
-            model.NodesDictionary[boundaryNode.ID].Constraints.Add(new Constraint { DOF = DOFType.Z });
+            model.NodesDictionary[boundaryNode.ID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+            model.NodesDictionary[boundaryNode.ID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+            model.NodesDictionary[boundaryNode.ID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
         }
 
-        public void ImposeAppropriateAndRigidBodyConstraintsPerBoundaryNode(Model model, Node boundaryNode, Dictionary<Node, IList<DOFType>> RigidBodyNodeConstraints)
+        public void ImposeAppropriateAndRigidBodyConstraintsPerBoundaryNode(Model model, Node boundaryNode, Dictionary<Node, IList<IDofType>> RigidBodyNodeConstraints)
         {
             throw new System.NotSupportedException();
         }

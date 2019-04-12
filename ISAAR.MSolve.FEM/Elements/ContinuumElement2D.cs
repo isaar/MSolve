@@ -33,8 +33,8 @@ namespace ISAAR.MSolve.FEM.Elements
     /// </summary>
     public class ContinuumElement2D : IStructuralFiniteElement
     {
-        private readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y };
-        private readonly DOFType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
+        private readonly static IDofType[] nodalDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY };
+        private readonly IDofType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
         private DynamicMaterial dynamicProperties;
         private readonly IReadOnlyList<ElasticMaterial2D> materialsAtGaussPoints;
 
@@ -52,8 +52,8 @@ namespace ISAAR.MSolve.FEM.Elements
             this.QuadratureForStiffness = quadratureForStiffness;
             this.Thickness = thickness;
 
-            dofTypes = new DOFType[nodes.Count][];
-            for (int i = 0; i < interpolation.NumFunctions; ++i) dofTypes[i] = new DOFType[] { DOFType.X, DOFType.Y };
+            dofTypes = new IDofType[nodes.Count][];
+            for (int i = 0; i < interpolation.NumFunctions; ++i) dofTypes[i] = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY };
         }
 
         public ElementDimensions ElementDimensions => ElementDimensions.TwoD;
@@ -155,8 +155,8 @@ namespace ISAAR.MSolve.FEM.Elements
             foreach (MassAccelerationLoad load in loads)
             {
                 int index = 0;
-                foreach (DOFType[] nodalDOFTypes in dofTypes)
-                    foreach (DOFType dofType in nodalDOFTypes)
+                foreach (IDofType[] nodalDOFTypes in dofTypes)
+                    foreach (IDofType dofType in nodalDOFTypes)
                     {
                         if (dofType == load.DOF) accelerations[index] += load.Amount;
                         index++;
@@ -206,19 +206,19 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public IElementDofEnumerator DofEnumerator { get; set; } = new GenericDofEnumerator();
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
 
         /// <summary>
         /// The returned structure is a list with as many entries as the number of nodes of this element. Each entry contains 
         /// a list with the dofs of the corresponding node. E.g. For node idx = 3, dof idx = 2 the IDof is result[3][2].
         /// </summary>
         /// <returns></returns>
-        public IReadOnlyList<IReadOnlyList<IDofType>> GetNodalDofs()
+        public IReadOnlyList<IReadOnlyList<Discretization.FreedomDegrees.IDofType>> GetNodalDofs()
         {
-            var allDofs = new IDofType[Nodes.Count][];
+            var allDofs = new Discretization.FreedomDegrees.IDofType[Nodes.Count][];
             for (int i = 0; i < Nodes.Count; ++i)
             {
-                var nodalDofs = new IDofType[2];
+                var nodalDofs = new Discretization.FreedomDegrees.IDofType[2];
                 nodalDofs[0] = StructuralDof.TranslationX;
                 nodalDofs[1] = StructuralDof.TranslationY;
                 allDofs[i] = nodalDofs;

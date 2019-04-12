@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers.Multiscale;
 using ISAAR.MSolve.Analyzers.NonLinear;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Discretization.Providers;
 using ISAAR.MSolve.FEM;
@@ -97,8 +98,8 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         }
 
         public virtual (MicrostructureBvpNRNLAnalyzer, ProblemStructural,ElementStructuralStiffnessProvider) AnalyzeMicrostructure(Model model,  ISolver solver,
-            int increments, int MaxIterations, int IterationsForMatrixRebuild, Dictionary<int, Dictionary<DOFType, double>> totalPrescribedBoundaryDisplacements,
-            Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Node> boundaryNodes, Dictionary<int, IVector> uInitialFreeDOFDisplacementsPerSubdomain)
+            int increments, int MaxIterations, int IterationsForMatrixRebuild, Dictionary<int, Dictionary<IDofType, double>> totalPrescribedBoundaryDisplacements,
+            Dictionary<int, Dictionary<IDofType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Node> boundaryNodes, Dictionary<int, IVector> uInitialFreeDOFDisplacementsPerSubdomain)
         {
             IReadOnlyDictionary<int, ILinearSystem> linearSystems = solver.LinearSystems; //V2.1
 

@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.IGA.SupportiveClasses;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
@@ -21,8 +21,8 @@ namespace ISAAR.MSolve.IGA.Elements
 		public Matrix ExtractionOperator { get; set; }
 		public int DegreeKsi { get; set; }
 		public int DegreeHeta { get; set; }
-		protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
-		protected DOFType[][] dofTypes;
+		protected readonly static IDofType[] controlPointDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ };
+		protected IDofType[][] dofTypes;
 		protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
 		private DynamicMaterial dynamicProperties;
 		private IReadOnlyList<IShellMaterial> materialsAtGaussPoints;
@@ -248,10 +248,10 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
+		public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
 		{
 			var nurbsElement = (TSplineKirchhoffLoveShellElementMaterial)element;
-			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
+			dofTypes = new IDofType[nurbsElement.ControlPoints.Count][];
 			for (int i = 0; i < nurbsElement.ControlPoints.Count; i++)
 			{
 				dofTypes[i] = controlPointDOFTypes;

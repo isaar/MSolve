@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
             => OrderFreeDofsOfElementSet(subdomain.Elements, subdomain.Constraints);
 
         private static (int numFreeDofs, DofTable freeDofs) OrderFreeDofsOfElementSet(IEnumerable<IElement> elements,
-            Table<INode, DOFType, double> constraints)
+            Table<INode, IDofType, double> constraints)
         {
             var freeDofs = new DofTable();
             int dofCounter = 0;
@@ -30,14 +30,14 @@ namespace ISAAR.MSolve.Solvers.Ordering
             {
                 //IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element); //this is wrong
                 IList<INode> elementNodes = element.Nodes;
-                IList<IList<DOFType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypesForDOFEnumeration(element);
+                IList<IList<IDofType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypesForDOFEnumeration(element);
                 for (int nodeIdx = 0; nodeIdx < elementNodes.Count; ++nodeIdx)
                 {
                     bool isNodeConstrained = constraints.TryGetDataOfRow(elementNodes[nodeIdx],
-                        out IReadOnlyDictionary<DOFType, double> constraintsOfNode);
+                        out IReadOnlyDictionary<IDofType, double> constraintsOfNode);
                     for (int dofIdx = 0; dofIdx < elementDofs[nodeIdx].Count; ++dofIdx)
                     {
-                        DOFType dofType = elementDofs[nodeIdx][dofIdx];
+                        IDofType dofType = elementDofs[nodeIdx][dofIdx];
                         bool isDofConstrained = isNodeConstrained ? constraintsOfNode.ContainsKey(dofType) : false;
                         if (!isDofConstrained)
                         {

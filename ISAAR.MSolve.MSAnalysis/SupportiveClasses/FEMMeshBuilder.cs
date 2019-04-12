@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
-using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Materials;
@@ -590,12 +590,12 @@ namespace ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses
 
         }
 
-        public static Dictionary<Node, IList<DOFType>> GetConstraintsOfDegenerateRVEForNonSingularStiffnessMatrix_withRenumbering(Model model, int hexa1, int hexa2, int hexa3, string renumberingVectorPath)
+        public static Dictionary<Node, IList<IDofType>> GetConstraintsOfDegenerateRVEForNonSingularStiffnessMatrix_withRenumbering(Model model, int hexa1, int hexa2, int hexa3, string renumberingVectorPath)
         {
             //Origin : RVEExamplesBuilder.AddConstraintsForNonSingularStiffnessMatrix_withRenumbering()
             //modifications: return type and nodes and dofs to be constrained
 
-            Dictionary<Node, IList<DOFType>> RigidBodyNodeConstraints = new Dictionary<Node, IList<DOFType>>();
+            Dictionary<Node, IList<IDofType>> RigidBodyNodeConstraints = new Dictionary<Node, IList<IDofType>>();
 
             // Perioxh renumbering initialization 
             renumbering renumbering = new renumbering(PrintUtilities.ReadIntVector(renumberingVectorPath));
@@ -607,14 +607,14 @@ namespace ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses
             int nodeID;
 
             nodeID = renumbering.GetNewNodeNumbering(Topol_rve(1, 1, 1, hexa1, hexa2, hexa3, kuvos, endiam_plaka, katw_plaka));
-            RigidBodyNodeConstraints.Add(model.NodesDictionary[nodeID], new List<DOFType>() { DOFType.X, DOFType.Y, DOFType.Z });
+            RigidBodyNodeConstraints.Add(model.NodesDictionary[nodeID], new List<IDofType>() { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ });
 
 
             nodeID = renumbering.GetNewNodeNumbering(Topol_rve(hexa1 + 1, 1, 1, hexa1, hexa2, hexa3, kuvos, endiam_plaka, katw_plaka));
-            RigidBodyNodeConstraints.Add(model.NodesDictionary[nodeID], new List<DOFType>() { DOFType.X, DOFType.Y, DOFType.Z });
+            RigidBodyNodeConstraints.Add(model.NodesDictionary[nodeID], new List<IDofType>() { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ });
 
             nodeID = renumbering.GetNewNodeNumbering(Topol_rve(1, hexa2 + 1, 1, hexa1, hexa2, hexa3, kuvos, endiam_plaka, katw_plaka));
-            RigidBodyNodeConstraints.Add(model.NodesDictionary[nodeID], new List<DOFType>() { DOFType.X, DOFType.Y, DOFType.Z });
+            RigidBodyNodeConstraints.Add(model.NodesDictionary[nodeID], new List<IDofType>() { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ });
 
             //nodeID = renumbering.GetNewNodeNumbering(Topol_rve(1, 1, hexa3 + 1, hexa1, hexa2, hexa3, kuvos, endiam_plaka, katw_plaka));
 

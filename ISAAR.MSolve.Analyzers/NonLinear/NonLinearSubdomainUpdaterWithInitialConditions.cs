@@ -1,8 +1,8 @@
-﻿using ISAAR.MSolve.Analyzers.Interfaces;
-using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.FEM.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.Analyzers.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Analyzers.NonLinear
@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
 		}
 
 		public IVector GetRHSFromSolutionWithInitialDisplacemntsEffect(IVectorView solution, IVectorView dSolution, Dictionary<int, Node> boundaryNodes,
-			Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements,
+			Dictionary<int, Dictionary<IDofType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<IDofType, double>> totalBoundaryDisplacements,
 			int nIncrement, int totalIncrements) //TODO leave 
 		{
 			return this.subdomain.GetRHSFromSolutionWithInitialDisplacemntsEffect(solution, dSolution, boundaryNodes,

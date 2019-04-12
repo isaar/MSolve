@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Analyzers.Dynamic;
 using ISAAR.MSolve.Analyzers.Interfaces;
-using ISAAR.MSolve.Analyzers.NonLinear;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Discretization.Providers;
 using ISAAR.MSolve.FEM.Entities;
@@ -196,7 +195,7 @@ namespace ISAAR.MSolve.Problems
                 foreach (ISubdomain subdomain in model.Subdomains)
                 {
                     int[] subdomainToGlobalDofs = model.GlobalDofOrdering.MapFreeDofsSubdomainToGlobal(subdomain);
-                    foreach ((INode node, DOFType dofType, int subdomainDofIdx) in subdomain.FreeDofOrdering.FreeDofs)
+                    foreach ((INode node, IDofType dofType, int subdomainDofIdx) in subdomain.FreeDofOrdering.FreeDofs)
                     {
                         int globalDofIdx = subdomainToGlobalDofs[subdomainDofIdx];
                         foreach (var l in m)

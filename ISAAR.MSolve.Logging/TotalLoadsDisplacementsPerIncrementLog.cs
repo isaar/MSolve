@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
-using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Logging.Utilities;
@@ -29,7 +26,7 @@ namespace ISAAR.MSolve.Logging
         private readonly bool isMonitorDofFree;
         private readonly ConstrainedDofForcesCalculator forceCalculator;
         private readonly Node monitorNode;
-        private readonly DOFType monitorDof;
+        private readonly IDofType monitorDof;
         private readonly string outputFile;
 
         /// <summary>
@@ -42,7 +39,7 @@ namespace ISAAR.MSolve.Logging
         //TODO: It should not be stored at all. Instead we should be able to access the total prescribed displacement from the analyzer
         
         public TotalLoadsDisplacementsPerIncrementLog(Subdomain subdomain, int maxIncrementsExpected,
-            Node monitorNode, DOFType monitorDof, string outputFile)
+            Node monitorNode, IDofType monitorDof, string outputFile)
         {
             this.subdomain = subdomain;
             this.monitorNode = monitorNode;

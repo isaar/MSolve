@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
@@ -16,8 +17,8 @@ namespace ISAAR.MSolve.FEM.Elements
         protected static int iInt = 2;
         protected static int iInt2 = iInt * iInt;
         protected static int iInt3 = iInt * iInt * iInt;
-        private readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.Pore };
-        private readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
+        private readonly static IDofType[] nodalDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ, PorousMediaDof.Pressure };
+        private readonly static IDofType[][] dofTypes = new IDofType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes };
         protected IIsotropicContinuumMaterial3D[] materialsAtGaussPoints;
         protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
@@ -156,7 +157,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
 
         public IList<Node> GetNodesForMatrixAssembly(Element element) => element.Nodes;
 
@@ -213,17 +214,17 @@ namespace ISAAR.MSolve.FEM.Elements
         private static int GetSolidDOFs()
         {
             int totalDisplacementDOFs = 0;
-            foreach (DOFType[] nodalDOFs in dofTypes)
-                foreach (DOFType dofType in nodalDOFs)
-                    if (dofType != DOFType.Pore) totalDisplacementDOFs++;
+            foreach (IDofType[] nodalDOFs in dofTypes)
+                foreach (IDofType dofType in nodalDOFs)
+                    if (dofType != PorousMediaDof.Pressure) totalDisplacementDOFs++;
             return totalDisplacementDOFs;
         }
 
         private static int GetAllDOFs()
         {
             int totalDisplacementDOFs = 0;
-            foreach (DOFType[] nodalDOFs in dofTypes)
-                foreach (DOFType dofType in nodalDOFs)
+            foreach (IDofType[] nodalDOFs in dofTypes)
+                foreach (IDofType dofType in nodalDOFs)
                     totalDisplacementDOFs++;
             return totalDisplacementDOFs;
         }
@@ -233,10 +234,10 @@ namespace ISAAR.MSolve.FEM.Elements
             int localPos = 0;
             int solidPos = 0;
             double[] solidVector = new double[GetSolidDOFs()];
-            foreach (DOFType[] nodalDOFs in dofTypes)
-                foreach (DOFType dofType in nodalDOFs)
+            foreach (IDofType[] nodalDOFs in dofTypes)
+                foreach (IDofType dofType in nodalDOFs)
                 {
-                    if (dofType != DOFType.Pore)
+                    if (dofType != PorousMediaDof.Pressure)
                     {
                         solidVector[solidPos] = localVector[localPos];
                         solidPos++;
@@ -252,10 +253,10 @@ namespace ISAAR.MSolve.FEM.Elements
             int localPos = 0;
             int fluidPos = 0;
             double[] fluidVector = new double[GetAllDOFs() - GetSolidDOFs()];
-            foreach (DOFType[] nodalDOFs in dofTypes)
-                foreach (DOFType dofType in nodalDOFs)
+            foreach (IDofType[] nodalDOFs in dofTypes)
+                foreach (IDofType dofType in nodalDOFs)
                 {
-                    if (dofType == DOFType.Pore)
+                    if (dofType == PorousMediaDof.Pressure)
                     {
                         fluidVector[fluidPos] = localVector[localPos];
                         fluidPos++;
@@ -270,10 +271,10 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             int localPos = 0;
             int solidPos = 0;
-            foreach (DOFType[] nodalDOFs in dofTypes)
-                foreach (DOFType dofType in nodalDOFs)
+            foreach (IDofType[] nodalDOFs in dofTypes)
+                foreach (IDofType dofType in nodalDOFs)
                 {
-                    if (dofType != DOFType.Pore)
+                    if (dofType != PorousMediaDof.Pressure)
                     {
                         totalVector[localPos] = solidVector[solidPos];
                         solidPos++;
@@ -286,10 +287,10 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             int localPos = 0;
             int fluidPos = 0;
-            foreach (DOFType[] nodalDOFs in dofTypes)
-                foreach (DOFType dofType in nodalDOFs)
+            foreach (IDofType[] nodalDOFs in dofTypes)
+                foreach (IDofType dofType in nodalDOFs)
                 {
-                    if (dofType == DOFType.Pore)
+                    if (dofType == PorousMediaDof.Pressure)
                     {
                         totalVector[localPos] = fluidVector[fluidPos];
                         fluidPos++;
@@ -382,20 +383,16 @@ namespace ISAAR.MSolve.FEM.Elements
             var accelerations = new double[24];
             int index = 0;
             foreach (MassAccelerationLoad load in loads)
-                switch (load.DOF)
-                {
-                    case DOFType.X:
-                        for (int i = 0; i < 8; i++) accelerations[i * 3] += load.Amount;
-                        break;
-                    case DOFType.Y:
-                        for (int i = 0; i < 8; i++) accelerations[i * 3 + 1] += load.Amount;
-                        break;
-                    case DOFType.Z:
-                        for (int i = 0; i < 8; i++) accelerations[i * 3 + 2] += load.Amount;
-                        break;
-                    default:
-                        throw new InvalidOperationException("Cannot handle global acceleration for water pore when NOT translational.");
-                }
+            {
+                if (load.DOF == StructuralDof.TranslationX)
+                    for (int i = 0; i < 8; i++) accelerations[i * 3] += load.Amount;
+                else if (load.DOF == StructuralDof.TranslationY)
+                    for (int i = 0; i < 8; i++) accelerations[i * 3 + 1] += load.Amount;
+                else if (load.DOF == StructuralDof.TranslationZ)
+                    for (int i = 0; i < 8; i++) accelerations[i * 3 + 2] += load.Amount;
+                else
+                    throw new InvalidOperationException("Cannot handle global acceleration for water pore when NOT translational.");
+            }
             double[] solidForces = MassMatrix(element).Multiply(accelerations);
 
             double[,] faXYZ = GetCoordinates(element);
@@ -409,28 +406,21 @@ namespace ISAAR.MSolve.FEM.Elements
 
             double[] waterAcc = new double[3];
             foreach (MassAccelerationLoad load in loads)
-                switch (load.DOF)
-                {
-                    case DOFType.X:
-                        waterAcc[0] = load.Amount;
-                        break;
-                    case DOFType.Y:
-                        waterAcc[1] = load.Amount;
-                        break;
-                    case DOFType.Z:
-                        waterAcc[2] = load.Amount;
-                        break;
-                    default:
-                        throw new InvalidOperationException("Cannot handle global acceleration for water pore when NOT translational.");
-                }
+            {
+                if (load.DOF == StructuralDof.TranslationX) waterAcc[0] = load.Amount;
+                else if (load.DOF == StructuralDof.TranslationY) waterAcc[1] = load.Amount;
+                else if (load.DOF == StructuralDof.TranslationZ) waterAcc[2] = load.Amount;
+                else throw new InvalidOperationException(
+                    "Cannot handle global acceleration for water pore when NOT translational.");
+            }
 
             bool[] impermeableDOFs = new bool[8];
             index = 0;
             foreach (Node node in element.NodesDictionary.Values)
             {
-                foreach (DOFType dofType in element.Subdomain.FreeDofOrdering.FreeDofs.GetColumnsOfRow(node))
+                foreach (IDofType dofType in element.Subdomain.FreeDofOrdering.FreeDofs.GetColumnsOfRow(node))
                 {
-                    if (dofType != DOFType.Pore) continue;
+                    if (dofType != PorousMediaDof.Pressure) continue;
                     if (element.Subdomain.FreeDofOrdering.FreeDofs[node, dofType] < 0) impermeableDOFs[index] = true;
                     index++;
                 }

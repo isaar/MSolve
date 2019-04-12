@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
@@ -24,10 +24,10 @@ namespace ISAAR.MSolve.Tests
 
             HexaSimpleCantileverBeam.MakeCantileverBeam(model, 0, 0, 0, model.NodesDictionary.Count + 1, model.ElementsDictionary.Count + 1, 1);
 
-            model.Loads.Add(new Load() { Amount = -0.25, Node = model.Nodes[16], DOF = DOFType.Z });
-            model.Loads.Add(new Load() { Amount = -0.25, Node = model.Nodes[17], DOF = DOFType.Z });
-            model.Loads.Add(new Load() { Amount = -0.25, Node = model.Nodes[18], DOF = DOFType.Z });
-            model.Loads.Add(new Load() { Amount = -0.25, Node = model.Nodes[19], DOF = DOFType.Z });
+            model.Loads.Add(new Load() { Amount = -0.25, Node = model.Nodes[16], DOF = StructuralDof.TranslationZ });
+            model.Loads.Add(new Load() { Amount = -0.25, Node = model.Nodes[17], DOF = StructuralDof.TranslationZ });
+            model.Loads.Add(new Load() { Amount = -0.25, Node = model.Nodes[18], DOF = StructuralDof.TranslationZ });
+            model.Loads.Add(new Load() { Amount = -0.25, Node = model.Nodes[19], DOF = StructuralDof.TranslationZ });
 
             var solverBuilder = new SkylineSolver.Builder();
             ISolver solver = solverBuilder.BuildSolver(model);
@@ -90,9 +90,9 @@ namespace ISAAR.MSolve.Tests
             }
 
             // Constrain bottom nodes of the model
-            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.X });
-            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.Y });
-            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.RotationZ });
 
 
             // Create a new Beam2D element
@@ -119,7 +119,7 @@ namespace ISAAR.MSolve.Tests
             model.SubdomainsDictionary[1].Elements.Add(element);
 
             // Add nodal load values at the top nodes of the model
-            model.Loads.Add(new Load() { Amount = -nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = -nodalLoad, Node = model.NodesDictionary[2], DOF = StructuralDof.TranslationY });
 
             // Solvers, providers, analyzers
             var solverBuilder = new SkylineSolver.Builder();
@@ -174,8 +174,8 @@ namespace ISAAR.MSolve.Tests
             // Constrain left nodes of the model
             for (int i = 0; i < 5; i++)
             {
-                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
             }
 
             int indexElement = 0;
@@ -198,7 +198,7 @@ namespace ISAAR.MSolve.Tests
                 }
             }
             // Add nodal load values to node 3
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[124], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[124], DOF = StructuralDof.TranslationY });
 
             #endregion
 
@@ -267,8 +267,8 @@ namespace ISAAR.MSolve.Tests
             // Constrain left nodes of the model
             for (int i = 0; i < 5; i++)
             {
-                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
             }
 
             int indexElement = 0;
@@ -291,7 +291,7 @@ namespace ISAAR.MSolve.Tests
                 }
             }
             // Add nodal load values to node 3
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[124], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[124], DOF = StructuralDof.TranslationY });
 
             // Needed in order to make all the required data structures
             model.ConnectDataStructures();
@@ -365,8 +365,8 @@ namespace ISAAR.MSolve.Tests
             // Constrain left nodes of the model
             for (int i = 0; i < 3; i++)
             {
-                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[i].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
             }
 
             int indexElement = 0;
@@ -389,7 +389,7 @@ namespace ISAAR.MSolve.Tests
                 }
             }
             // Add nodal load values to node 3
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[17], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[17], DOF = StructuralDof.TranslationY });
 
             // Needed in order to make all the required data structures
             model.ConnectDataStructures();
@@ -447,10 +447,10 @@ namespace ISAAR.MSolve.Tests
                 trussModel.NodesDictionary.Add(i + 1, nodes[i]);
             }
 
-            trussModel.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.X });
-            trussModel.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.Y });
-            trussModel.NodesDictionary[2].Constraints.Add(new Constraint { DOF = DOFType.X });
-            trussModel.NodesDictionary[2].Constraints.Add(new Constraint { DOF = DOFType.Y });
+            trussModel.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+            trussModel.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+            trussModel.NodesDictionary[2].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+            trussModel.NodesDictionary[2].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
 
 
             var element1 = new Element() { ID = 1, ElementType = new Rod2D(youngMod) { Density = 1, SectionArea = sectionArea } };
@@ -468,8 +468,8 @@ namespace ISAAR.MSolve.Tests
             trussModel.SubdomainsDictionary[0].Elements.Add(element1);
             trussModel.SubdomainsDictionary[0].Elements.Add(element2);
 
-            trussModel.Loads.Add(new Load() { Amount = loadX, Node = trussModel.NodesDictionary[3], DOF = DOFType.X });
-            trussModel.Loads.Add(new Load() { Amount = loadY, Node = trussModel.NodesDictionary[3], DOF = DOFType.Y });
+            trussModel.Loads.Add(new Load() { Amount = loadX, Node = trussModel.NodesDictionary[3], DOF = StructuralDof.TranslationX });
+            trussModel.Loads.Add(new Load() { Amount = loadY, Node = trussModel.NodesDictionary[3], DOF = StructuralDof.TranslationY });
             #endregion
 
             // Solvers, providers, analyzers

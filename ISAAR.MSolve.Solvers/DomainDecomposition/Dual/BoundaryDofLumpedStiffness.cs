@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 
@@ -20,14 +21,14 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual
         internal double TotalStiffness { get; }
 
         //TODO: Is it more efficient to use (INode node, DOFType[] dofTypes)[]? It would reduce the cost of accessing node data?
-        public static Table<INode, DOFType, BoundaryDofLumpedStiffness> ExtractBoundaryDofLumpedStiffnesses(
+        public static Table<INode, IDofType, BoundaryDofLumpedStiffness> ExtractBoundaryDofLumpedStiffnesses(
             IDofSeparator dofSeparator, Dictionary<int, IMatrixView> stiffnesses)
         {
-            var result = new Table<INode, DOFType, BoundaryDofLumpedStiffness>();
+            var result = new Table<INode, IDofType, BoundaryDofLumpedStiffness>();
             foreach (var nodeDofsPair in dofSeparator.GlobalBoundaryDofs)
             {
                 INode node = nodeDofsPair.Key;
-                foreach (DOFType dofType in nodeDofsPair.Value)
+                foreach (IDofType dofType in nodeDofsPair.Value)
                 {
                     var subdomainStiffnesses = new Dictionary<ISubdomain, double>();
                     double totalStiffness = 0.0;

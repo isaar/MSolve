@@ -132,9 +132,9 @@ namespace ISAAR.MSolve.Problems
                 for (int i = 0; i < element.ElementType.DofEnumerator.GetDOFTypes(element).Count; i++)
                 {
                     Node nodeRow = element.Nodes[i];
-                    foreach (DOFType dofTypeRow in element.ElementType.DofEnumerator.GetDOFTypes(element)[i])
+                    foreach (IDofType dofTypeRow in element.ElementType.DofEnumerator.GetDOFTypes(element)[i])
                     {
-                        if (dofTypeRow != DOFType.Pore) continue;
+                        if (dofTypeRow != PorousMediaDof.Pressure) continue;
 
                         int dofRow = allDofs[nodeRow, dofTypeRow];
                         int iElementMatrixColumn = 0;
@@ -142,9 +142,9 @@ namespace ISAAR.MSolve.Problems
                         for (int j = 0; j < element.ElementType.DofEnumerator.GetDOFTypes(element).Count; j++)
                         {
                             Node nodeColumn = element.Nodes[j];
-                            foreach (DOFType dofTypeColumn in element.ElementType.DofEnumerator.GetDOFTypes(element)[j])
+                            foreach (IDofType dofTypeColumn in element.ElementType.DofEnumerator.GetDOFTypes(element)[j])
                             {
-                                if (dofTypeColumn == DOFType.Pore) continue;
+                                if (dofTypeColumn == PorousMediaDof.Pressure) continue;
 
                                 int dofColumn = allDofs[nodeColumn, dofTypeColumn];
                                 qSubdomain.AddToEntry(dofColumn, dofRow, q[iElementMatrixRow, iElementMatrixColumn]);
@@ -161,9 +161,9 @@ namespace ISAAR.MSolve.Problems
 
         private void ScaleSubdomainSolidVector(ISubdomain subdomain, IVector vector)
         {
-            foreach ((INode node, DOFType dofType, int dofIdx) in subdomain.FreeDofOrdering.FreeDofs)
+            foreach ((INode node, IDofType dofType, int dofIdx) in subdomain.FreeDofOrdering.FreeDofs)
             {
-                if (dofType!= DOFType.Pore) vector.Set(dofIdx, vector[dofIdx] * this.scalingCoefficient);
+                if (dofType != PorousMediaDof.Pressure) vector.Set(dofIdx, vector[dofIdx] * this.scalingCoefficient);
             }
         }
 
@@ -234,7 +234,7 @@ namespace ISAAR.MSolve.Problems
                 foreach (ISubdomain subdomain in model.Subdomains)
                 {
                     int[] subdomainToGlobalDofs = model.GlobalDofOrdering.MapFreeDofsSubdomainToGlobal(subdomain);
-                    foreach ((INode node, DOFType dofType, int subdomainDofIdx) in subdomain.FreeDofOrdering.FreeDofs)
+                    foreach ((INode node, IDofType dofType, int subdomainDofIdx) in subdomain.FreeDofOrdering.FreeDofs)
                     {
                         int globalDofIdx = subdomainToGlobalDofs[subdomainDofIdx];
                         foreach (var l in m)
@@ -308,9 +308,9 @@ namespace ISAAR.MSolve.Problems
             //return (new Vector<double>(rhs)).Norm;
 
             double norm = 0;
-            foreach ((INode node, DOFType dofType, int dofIdx) in model.GlobalDofOrdering.GlobalFreeDofs)
+            foreach ((INode node, IDofType dofType, int dofIdx) in model.GlobalDofOrdering.GlobalFreeDofs)
             {
-                if (dofType != DOFType.Pore) norm += rhs[dofIdx] * rhs[dofIdx];
+                if (dofType != PorousMediaDof.Pressure) norm += rhs[dofIdx] * rhs[dofIdx];
             }
             return Math.Sqrt(norm);
         }

@@ -71,10 +71,10 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
         {
             double dTdx = macroscopicTemperatureGradient[0];
             double dTdy = macroscopicTemperatureGradient[1];
-            foreach (var node in leftNodes) node.Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 0.0 });
-            foreach (var node in bottomNodes) node.Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = 0.0 });
-            foreach (var node in rightNodes) node.Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = dTdx });
-            foreach (var node in topNodes) node.Constraints.Add(new Constraint() { DOF = DOFType.Temperature, Amount = dTdy });
+            foreach (var node in leftNodes) node.Constraints.Add(new Constraint() { DOF = ThermalDof.Temperature, Amount = 0.0 });
+            foreach (var node in bottomNodes) node.Constraints.Add(new Constraint() { DOF = ThermalDof.Temperature, Amount = 0.0 });
+            foreach (var node in rightNodes) node.Constraints.Add(new Constraint() { DOF = ThermalDof.Temperature, Amount = dTdx });
+            foreach (var node in topNodes) node.Constraints.Add(new Constraint() { DOF = ThermalDof.Temperature, Amount = dTdy });
         }
 
         public double CalculateRveVolume() => (xMax - xMin) * (yMax - yMin) * thickness;
@@ -95,7 +95,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
         {
             foreach (INode node in edgeNodes)
             {
-                int dofIdx = constrainedDofOrdering.ConstrainedDofs[node, DOFType.Temperature];
+                int dofIdx = constrainedDofOrdering.ConstrainedDofs[node, ThermalDof.Temperature];
                 kinematicRelations[0, dofIdx] = node.X;
                 kinematicRelations[1, dofIdx] = node.Y;
             }

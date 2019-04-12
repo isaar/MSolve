@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
@@ -15,8 +16,8 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 {
     public class NURBSElement2D : Element, IStructuralIsogeometricElement
 	{
-		protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] {DOFType.X, DOFType.Y};
-		protected DOFType[][] dofTypes;
+		protected readonly static IDofType[] controlPointDOFTypes = new IDofType[] {StructuralDof.TranslationX, StructuralDof.TranslationY};
+		protected IDofType[][] dofTypes;
 		protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
 		private DynamicMaterial dynamicProperties;
 
@@ -35,10 +36,10 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 			get { return ElementDimensions.TwoD; }
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
+		public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
 		{
 			var nurbsElement = (NURBSElement2D) element;
-			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
+			dofTypes = new IDofType[nurbsElement.ControlPoints.Count][];
 			for (int i = 0; i < nurbsElement.ControlPoints.Count; i++)
 			{
 				dofTypes[i] = controlPointDOFTypes;
@@ -221,9 +222,9 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 					//int dofIDX = element.Model.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.X];
 					//int dofIDY = element.Model.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.Y];
 					//int dofIDZ = element.Model.ControlPointDOFsDictionary[element.ControlPoints[k].ID][DOFType.Y];
-					int dofIDX = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], DOFType.X];
-					int dofIDY = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], DOFType.Y];
-					int dofIDZ = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], DOFType.Z];
+					int dofIDX = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], StructuralDof.TranslationX];
+					int dofIDY = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], StructuralDof.TranslationY];
+					int dofIDZ = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], StructuralDof.TranslationZ];
 
 					if (neumannLoad.ContainsKey(dofIDX))
 						neumannLoad[dofIDX] += nurbs.NurbsValues[k, j] * jacdet * gaussPoints[j].WeightFactor *
@@ -262,7 +263,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 		public Dictionary<int, double> CalculateLoadingCondition(Element element, Face face,
 			PressureBoundaryCondition pressure)
 		{
-			var dofs = new DOFType[] {DOFType.X, DOFType.Y, DOFType.Z};
+			var dofs = new IDofType[] {StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ};
 
 			IList<GaussLegendrePoint3D> gaussPoints =
 				CreateElementGaussPoints(element, face.Degrees[0], face.Degrees[1]);

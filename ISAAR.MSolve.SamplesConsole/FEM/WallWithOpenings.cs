@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Preprocessor.Meshes;
@@ -51,14 +51,14 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             // Prescribed displacements
             double tol = 1E-10;
             IEnumerable<Node> constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol);
-            model.ApplyPrescribedDisplacements(constrainedNodes, DOFType.X, 0.0);
-            model.ApplyPrescribedDisplacements(constrainedNodes, DOFType.Y, 0.0);
+            model.ApplyPrescribedDisplacements(constrainedNodes, StructuralDof.TranslationX, 0.0);
+            model.ApplyPrescribedDisplacements(constrainedNodes, StructuralDof.TranslationY, 0.0);
 
             // Loads
             Node[] loadedNodes = nodes.Where(
                 node => (Math.Abs(node.Y - height) <= tol) && ((Math.Abs(node.X) <= tol))).ToArray();
             if (loadedNodes.Length != 1) throw new Exception("Only 1 node was expected at the top left corner");
-            model.ApplyNodalLoad(loadedNodes[0], DOFType.X, horizontalLoad);
+            model.ApplyNodalLoad(loadedNodes[0], StructuralDof.TranslationX, horizontalLoad);
 
             // Define output
             OutputRequests output = new OutputRequests(workingDirectory + "\\Plots");
@@ -110,14 +110,14 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             // Prescribed displacements
             double tol = 1E-10;
             IEnumerable<Node> constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol);
-            model.ApplyPrescribedDisplacements(constrainedNodes, DOFType.X, 0.0);
-            model.ApplyPrescribedDisplacements(constrainedNodes, DOFType.Y, 0.0);
+            model.ApplyPrescribedDisplacements(constrainedNodes, StructuralDof.TranslationX, 0.0);
+            model.ApplyPrescribedDisplacements(constrainedNodes, StructuralDof.TranslationY, 0.0);
 
             // Loads
             string accelerogramPath = workingDirectory + "\\elcentro_NS.txt";
-            Dictionary<DOFType, double> magnifications = new Dictionary<DOFType, double>
+            Dictionary<IDofType, double> magnifications = new Dictionary<IDofType, double>
             {
-                { DOFType.X, 1.0 }
+                { StructuralDof.TranslationX, 1.0 }
             };
             model.SetGroundMotion(accelerogramPath, magnifications, 0.02, 53.74);
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Analyzers.NonLinear;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Entities;
@@ -39,8 +40,8 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
         private readonly Dictionary<int, IVector> du = new Dictionary<int, IVector>();
         private readonly Dictionary<int, IVector> uPlusdu = new Dictionary<int, IVector>();
         Dictionary<int, Node> boundaryNodes;
-        Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements;
-        Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements;
+        Dictionary<int, Dictionary<IDofType, double>> initialConvergedBoundaryDisplacements;
+        Dictionary<int, Dictionary<IDofType, double>> totalBoundaryDisplacements;
         private readonly Dictionary<int, EquivalentContributionsAssebler> equivalentContributionsAssemblers;
         private Vector globalRhs;
         private readonly Dictionary<int, LinearAnalyzerLogFactory> logFactories = new Dictionary<int, LinearAnalyzerLogFactory>();
@@ -48,7 +49,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
 
         public MicrostructureBvpNRNLAnalyzer(IStructuralModel model, ISolver solver, Dictionary<int, NonLinearSubdomainUpdaterWithInitialConditions> subdomainUpdaters,
             INonLinearProvider provider, int increments, Dictionary<int, IVector> uInitialFreeDOFDisplacementsPerSubdomain,
-            Dictionary<int, Node> boundaryNodes, Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements,
+            Dictionary<int, Node> boundaryNodes, Dictionary<int, Dictionary<IDofType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<IDofType, double>> totalBoundaryDisplacements,
             Dictionary<int, EquivalentContributionsAssebler> equivalentContributionsAssemblers)//, ISubdomainGlobalMapping[] mappings)
         {
             this.model = model;

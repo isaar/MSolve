@@ -73,10 +73,10 @@ namespace ISAAR.MSolve.Solvers
             
         }
 
-        public Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, DOFType, double> globalNodalLoads)
+        public Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, IDofType, double> globalNodalLoads)
         {
             var subdomainLoads = new SortedDictionary<int, double>();
-            foreach ((INode node, DOFType dofType, double amount) in globalNodalLoads)
+            foreach ((INode node, IDofType dofType, double amount) in globalNodalLoads)
             {
                 int subdomainDofIdx = subdomain.FreeDofOrdering.FreeDofs[node, dofType];
                 subdomainLoads[subdomainDofIdx] = amount;

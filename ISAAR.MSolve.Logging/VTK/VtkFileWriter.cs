@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 //TODO: Node and Element in FEM, XFEM, etc should implement corresponding interfaces (point, cell, etc). Then these interfaces
 //      should be used here instead of dedicated VTK point and cell classes. This is mostly case right now.  

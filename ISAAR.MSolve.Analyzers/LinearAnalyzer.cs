@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Logging.Interfaces;
@@ -59,7 +60,7 @@ namespace ISAAR.MSolve.Analyzers
                 try
                 {
                     // Make sure there is at least one non zero prescribed displacement.
-                    (INode node, DOFType dof, double displacement) = linearSystem.Subdomain.Constraints.Find(du => du != 0.0);
+                    (INode node, IDofType dof, double displacement) = linearSystem.Subdomain.Constraints.Find(du => du != 0.0);
 
                     //TODO: the following 2 lines are meaningless outside diplacement control (and even then, they are not so clear).
                     double scalingFactor = 1;

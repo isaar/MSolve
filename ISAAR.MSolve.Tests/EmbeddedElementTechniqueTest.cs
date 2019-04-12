@@ -3,8 +3,8 @@ using System.Linq;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.NonLinear;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
-using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Embedding;
@@ -74,18 +74,18 @@ namespace ISAAR.MSolve.Tests
                 model.NodesDictionary.Add(8, new Node() { ID = 8, X = 10.00, Y = -2.50, Z = -2.50 });
 
                 // Boundary Conditions
-                model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = DOFType.Y });
-                model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = DOFType.Z });
-                model.NodesDictionary[3].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[3].Constraints.Add(new Constraint { DOF = DOFType.Y });
-                model.NodesDictionary[3].Constraints.Add(new Constraint { DOF = DOFType.Z });
-                model.NodesDictionary[6].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[6].Constraints.Add(new Constraint { DOF = DOFType.Y });
-                model.NodesDictionary[6].Constraints.Add(new Constraint { DOF = DOFType.Z });
-                model.NodesDictionary[7].Constraints.Add(new Constraint { DOF = DOFType.X });
-                model.NodesDictionary[7].Constraints.Add(new Constraint { DOF = DOFType.Y });
-                model.NodesDictionary[7].Constraints.Add(new Constraint { DOF = DOFType.Z });
+                model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
+                model.NodesDictionary[3].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[3].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                model.NodesDictionary[3].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
+                model.NodesDictionary[6].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[6].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                model.NodesDictionary[6].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
+                model.NodesDictionary[7].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[7].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                model.NodesDictionary[7].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
 
                 // Create Material
                 var solidMaterial = new ElasticMaterial3D()
@@ -116,10 +116,10 @@ namespace ISAAR.MSolve.Tests
                 model.SubdomainsDictionary[1].Elements.Add(hexa8NLelement);
 
                 // Add nodal load values at the top nodes of the model
-                model.Loads.Add(new Load() { Amount = 25, Node = model.NodesDictionary[1], DOF = DOFType.Z });
-                model.Loads.Add(new Load() { Amount = 25, Node = model.NodesDictionary[4], DOF = DOFType.Z });
-                model.Loads.Add(new Load() { Amount = 25, Node = model.NodesDictionary[5], DOF = DOFType.Z });
-                model.Loads.Add(new Load() { Amount = 25, Node = model.NodesDictionary[8], DOF = DOFType.Z });
+                model.Loads.Add(new Load() { Amount = 25, Node = model.NodesDictionary[1], DOF = StructuralDof.TranslationZ });
+                model.Loads.Add(new Load() { Amount = 25, Node = model.NodesDictionary[4], DOF = StructuralDof.TranslationZ });
+                model.Loads.Add(new Load() { Amount = 25, Node = model.NodesDictionary[5], DOF = StructuralDof.TranslationZ });
+                model.Loads.Add(new Load() { Amount = 25, Node = model.NodesDictionary[8], DOF = StructuralDof.TranslationZ });
             }
 
             public static void EmbeddedElementsBuilder(Model model)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
@@ -16,8 +17,8 @@ namespace ISAAR.MSolve.IGA.Elements
 {
     public class TSplineElement2D : Element, IStructuralIsogeometricElement
 	{
-		protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X, DOFType.Y };
-		protected DOFType[][] dofTypes;
+		protected readonly static IDofType[] controlPointDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY };
+		protected IDofType[][] dofTypes;
 		private IReadOnlyList<IContinuumMaterial2D> materialsAtGaussPoints;
 		private DynamicMaterial dynamicProperties;
 
@@ -94,10 +95,10 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
+		public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
 		{
 			var nurbsElement = (TSplineElement2D)element;
-			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
+			dofTypes = new IDofType[nurbsElement.ControlPoints.Count][];
 			for (int i = 0; i < nurbsElement.ControlPoints.Count; i++)
 			{
 				dofTypes[i] = controlPointDOFTypes;

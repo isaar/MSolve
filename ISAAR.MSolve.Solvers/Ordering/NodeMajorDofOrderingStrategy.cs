@@ -21,16 +21,16 @@ namespace ISAAR.MSolve.Solvers.Ordering
 
         // Copied from the methods used by Subdomain and Model previously.
         private static (int numFreeDofs, DofTable freeDofs) OrderFreeDofsOfElementSet(IEnumerable<IElement> elements,
-            IEnumerable<INode> sortedNodes, Table<INode, DOFType, double> constraints)
+            IEnumerable<INode> sortedNodes, Table<INode, IDofType, double> constraints)
         {
             int totalDOFs = 0;
-            Dictionary<int, List<DOFType>> nodalDOFTypesDictionary = new Dictionary<int, List<DOFType>>(); //TODO: use Set instead of List
+            Dictionary<int, List<IDofType>> nodalDOFTypesDictionary = new Dictionary<int, List<IDofType>>(); //TODO: use Set instead of List
             foreach (IElement element in elements)
             {
                 for (int i = 0; i < element.Nodes.Count; i++)
                 {
                     if (!nodalDOFTypesDictionary.ContainsKey(element.Nodes[i].ID))
-                        nodalDOFTypesDictionary.Add(element.Nodes[i].ID, new List<DOFType>());
+                        nodalDOFTypesDictionary.Add(element.Nodes[i].ID, new List<IDofType>());
                     nodalDOFTypesDictionary[element.Nodes[i].ID].AddRange(element.ElementType.DofEnumerator.GetDOFTypesForDOFEnumeration(element)[i]);
                 }
             }
@@ -48,9 +48,9 @@ namespace ISAAR.MSolve.Solvers.Ordering
                 //    }
                 //}
 
-                Dictionary<DOFType, int> dofsDictionary = new Dictionary<DOFType, int>();
+                Dictionary<IDofType, int> dofsDictionary = new Dictionary<IDofType, int>();
                 //foreach (DOFType dofType in dofTypes.Distinct<DOFType>())
-                foreach (DOFType dofType in nodalDOFTypesDictionary[node.ID].Distinct<DOFType>())
+                foreach (IDofType dofType in nodalDOFTypesDictionary[node.ID].Distinct())
                 {
                     int dofID = 0;
                     #region removeMaria

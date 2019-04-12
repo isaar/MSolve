@@ -4,8 +4,8 @@ using System.Linq;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.NonLinear;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
-using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Embedding;
@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // Variables
             int monitorNode = 41;
-            DOFType monitorDof = DOFType.Z;
+            IDofType monitorDof = StructuralDof.TranslationZ;
 
             // Choose model
             EmbeddedEBEModelBuilder.EmbeddedExampleBuilder(model);
@@ -85,7 +85,7 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // Variables
             int monitorNode = 161;
-            DOFType monitorDof = DOFType.Z;
+            IDofType monitorDof = StructuralDof.TranslationZ;
 
             // Choose model
             EmbeddedEBEModelBuilder.EmbeddedExampleBuilder(model);
@@ -211,7 +211,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 {
                     //model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.X });
                     //model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Y });
-                    model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.Z });
+                    model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
                 }
 
                 // Boundary Conditions - Bottom End [End-3]
@@ -219,20 +219,20 @@ namespace ISAAR.MSolve.SamplesConsole
                 {
                     for (int j = 0; j < 2; j++)
                     {
-                        model.NodesDictionary[iNode + j].Constraints.Add(new Constraint { DOF = DOFType.Y });
+                        model.NodesDictionary[iNode + j].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
                     }
                 }
 
                 // Boundary Conditions - Bottom End [End-5]
                 for (int iNode = 1; iNode <= 43; iNode += 2)
                 {
-                    model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.X });
+                    model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
                 }
 
                 // Boundary Conditions - Bottom End [End-6]
                 for (int iNode = 2; iNode <= 44; iNode += 2)
                 {
-                    model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = DOFType.X });
+                    model.NodesDictionary[iNode].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
                 }
                 
                 // Add nodal load values at the top nodes of the model
@@ -251,7 +251,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 double nodalLoad = -25.0; //0.40;
                 for (int iNode = 41; iNode <= 44; iNode++) //[End-4]
                 {
-                    model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[iNode], DOF = DOFType.Z });
+                    model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[iNode], DOF = StructuralDof.TranslationZ });
                 }
 
                 //// Applied Displacements

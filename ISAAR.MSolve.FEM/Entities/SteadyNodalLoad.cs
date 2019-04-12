@@ -1,7 +1,4 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using ISAAR.MSolve.Discretization.FreedomDegrees;
 
 //TODO: This is probably covered by Load.cs
 namespace ISAAR.MSolve.FEM.Entities
@@ -19,7 +16,7 @@ namespace ISAAR.MSolve.FEM.Entities
         }
 
         public Node Node { get; set; }
-        public DOFType DOF { get; set; }
+        public IDofType DOF { get; set; }
 
         public double GetLoadAmount(int timeStep)
         {

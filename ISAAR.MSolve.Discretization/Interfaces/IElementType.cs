@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.Discretization.Interfaces
@@ -17,6 +18,6 @@ namespace ISAAR.MSolve.Discretization.Interfaces
         IMatrix StiffnessMatrix(IElement element);
         IMatrix MassMatrix(IElement element);
         IMatrix DampingMatrix(IElement element);
-        IList<IList<DOFType>> GetElementDOFTypes(IElement element);
+        IList<IList<IDofType>> GetElementDOFTypes(IElement element);
     }
 }

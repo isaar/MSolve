@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.IGA.Entities
 		
 		private readonly List<ControlPoint> controlPoints = new List<ControlPoint>();
 
-		public Table<INode, DOFType, double> Constraints { get; } = new Table<INode, DOFType, double>();
+		public Table<INode, IDofType, double> Constraints { get; } = new Table<INode, IDofType, double>();
 
 		IReadOnlyList<IElement> ISubdomain.Elements => Elements;
 		public List<Element> Elements { get; } = new List<Element>();
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.IGA.Entities
 
 		public bool MaterialsModified { get; set; }
 
-		public Table<ControlPoint, DOFType, double> ControlPointLoads { get; set; }
+		public Table<ControlPoint, IDofType, double> ControlPointLoads { get; set; }
 
 		public Dictionary<int, Edge> EdgesDictionary
 		{
@@ -56,26 +56,26 @@ namespace ISAAR.MSolve.IGA.Entities
 		}
 
 		private static void ApplyConstraintDisplacements(IElement element, double[] elementNodalDisplacements,
-			Table<INode, DOFType, double> constraints)
+			Table<INode, IDofType, double> constraints)
 		{
 			int elementDofIdx = 0;
 			IList<INode> nodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
-			IList<IList<DOFType>> dofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
+            IList<IList<IDofType>> dofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
 			for (int i = 0; i < nodes.Count; ++i)
 			{
 				//bool isConstrainedNode = constraintsDictionary.TryGetValue(nodes[i].ID, 
 				//    out Dictionary<DOFType, double> constrainedDOFs);
 				bool isConstrainedNode = constraints.TryGetDataOfRow(nodes[i],
-					out IReadOnlyDictionary<DOFType, double> constrainedDOFs);
+					out IReadOnlyDictionary<IDofType, double> constrainedDOFs);
 				if (isConstrainedNode)
 				{
-					foreach (DOFType dofType in dofs[i])
+					foreach (IDofType dofType in dofs[i])
 					{
 						bool isConstrainedDof = constrainedDOFs.TryGetValue(dofType, out double constraintDisplacement);
 						//if (isConstrainedNode && isConstrainedDof)
 						if (isConstrainedDof)
 						{
-							Debug.Assert(elementNodalDisplacements[elementDofIdx] == 0); // TODO: and why is this an assumption?
+                            Debug.Assert(elementNodalDisplacements[elementDofIdx] == 0); // TODO: and why is this an assumption?
 							elementNodalDisplacements[elementDofIdx] = constraintDisplacement;
 						}
 						++elementDofIdx;
@@ -109,12 +109,12 @@ namespace ISAAR.MSolve.IGA.Entities
 			controlPoints.AddRange(cpSet);
 		}
 
-		public void ExtractConstraintsFromGlobal(Table<INode, DOFType, double> globalConstraints)
+		public void ExtractConstraintsFromGlobal(Table<INode, IDofType, double> globalConstraints)
 		{
 			foreach (ControlPoint controlPoint in ControlPoints)
 			{
 				bool isControlPointConstrained = globalConstraints.TryGetDataOfRow(controlPoint,
-					out IReadOnlyDictionary<DOFType, double> constraintsOfNode);
+					out IReadOnlyDictionary<IDofType, double> constraintsOfNode);
 				if (isControlPointConstrained)
 				{
 					foreach (var dofDisplacementPair in constraintsOfNode)

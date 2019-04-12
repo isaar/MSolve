@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.LinearSystems;
@@ -106,7 +107,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
         }
 
         public abstract Dictionary<int, SparseVector> DistributeNodalLoads(
-            IReadOnlyDictionary<int, ILinearSystem> linearSystems, Table<INode, DOFType, double> globalNodalLoads);
+            IReadOnlyDictionary<int, ILinearSystem> linearSystems, Table<INode, IDofType, double> globalNodalLoads);
         protected abstract double[] CalcBoundaryDofMultipliers(ISubdomain subdomain);
 
         #region incorrect implementation

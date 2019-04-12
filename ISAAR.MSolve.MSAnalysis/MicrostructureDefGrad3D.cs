@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.Analyzers.Multiscale;
 using ISAAR.MSolve.Analyzers.NonLinear;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Providers;
 using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Entities;
@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
         //private NewtonRaphsonNonLinearAnalyzer microAnalyzer;
         private double volume;
         public Dictionary<int, IVector> uInitialFreeDOFDisplacementsPerSubdomain { get; private set; }
-        Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements;
+        Dictionary<int, Dictionary<IDofType, double>> initialConvergedBoundaryDisplacements;
         private IScaleTransitions scaleTransitions = new DefGradVec3DScaleTransition();
         Random rnd1 = new Random();
         private readonly Func<Model, ISolver> createSolver;
@@ -99,7 +99,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             }
             double[,] DGtr = new double[3, 3] { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
             double[] DefGradVec = new double[9] { DGtr[0, 0], DGtr[1, 1], DGtr[2, 2], DGtr[1, 0], DGtr[2, 1], DGtr[0, 2], DGtr[2, 0], DGtr[0, 1], DGtr[1, 2], };
-            initialConvergedBoundaryDisplacements = new Dictionary<int, Dictionary<DOFType, double>>();
+            initialConvergedBoundaryDisplacements = new Dictionary<int, Dictionary<IDofType, double>>();
             foreach (Node boundaryNode in boundaryNodes.Values)
             {
                 scaleTransitions.ModifyMicrostructureTotalPrescribedBoundaryDisplacementsVectorForMacroStrainVariable(boundaryNode,
@@ -156,7 +156,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             }
 
             #region Rve prescribed Dofs total DIsplacement Dictionary Creation (nessesary for NRNLAnalyzer)
-            Dictionary<int, Dictionary<DOFType, double>> totalPrescribedBoundaryDisplacements = new Dictionary<int, Dictionary<DOFType, double>>();
+            Dictionary<int, Dictionary<IDofType, double>> totalPrescribedBoundaryDisplacements = new Dictionary<int, Dictionary<IDofType, double>>();
             foreach (Node boundaryNode in boundaryNodes.Values)
             {
                 scaleTransitions.ModifyMicrostructureTotalPrescribedBoundaryDisplacementsVectorForMacroStrainVariable(boundaryNode,

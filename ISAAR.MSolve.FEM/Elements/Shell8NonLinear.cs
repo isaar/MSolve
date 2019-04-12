@@ -1,4 +1,7 @@
-﻿using ISAAR.MSolve.Discretization;
+﻿using System;
+using System.Collections.Generic;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
@@ -8,8 +11,6 @@ using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials.Interfaces;
-using System;
-using System.Collections.Generic;
 
 //TODO: move stuff to Shell8DirectionVectorUtilities
 namespace ISAAR.MSolve.FEM.Elements
@@ -20,8 +21,8 @@ namespace ISAAR.MSolve.FEM.Elements
     /// </summary>
     public class Shell8NonLinear : IStructuralFiniteElement
     {
-        protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.RotX, DOFType.RotY };
-        protected readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
+        protected readonly static IDofType[] nodalDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ, StructuralDof.RotationX, StructuralDof.RotationY };
+        protected readonly static IDofType[][] dofTypes = new IDofType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes };
         protected readonly IShellMaterial[] materialsAtGaussPoints; 
         protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
@@ -685,7 +686,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         // region IstructuralFiniteElement
 
-        public virtual IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public virtual IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
 
         //IstructuralElement concerning material
         public void ClearMaterialState()

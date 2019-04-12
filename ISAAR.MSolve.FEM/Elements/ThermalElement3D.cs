@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
@@ -15,8 +16,8 @@ namespace ISAAR.MSolve.FEM.Elements
 {
     public class ThermalElement3D : IFiniteElement
     {
-        private readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.Temperature };
-        private readonly DOFType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
+        private readonly static IDofType[] nodalDOFTypes = new IDofType[] { ThermalDof.Temperature };
+        private readonly IDofType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
         private readonly ThermalMaterial material;
 
         public ThermalElement3D(IReadOnlyList<Node> nodes, IIsoparametricInterpolation3D interpolation,
@@ -30,8 +31,8 @@ namespace ISAAR.MSolve.FEM.Elements
             this.QuadratureForConsistentMass = quadratureForMass;
             this.QuadratureForStiffness = quadratureForStiffness;
 
-            dofTypes = new DOFType[nodes.Count][];
-            for (int i = 0; i < interpolation.NumFunctions; ++i) dofTypes[i] = new DOFType[] { DOFType.Temperature };
+            dofTypes = new IDofType[nodes.Count][];
+            for (int i = 0; i < interpolation.NumFunctions; ++i) dofTypes[i] = new IDofType[] { ThermalDof.Temperature };
         }
         public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
 
@@ -135,7 +136,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return Matrix.CreateFromArray(shapeFunctions, 1, shapeFunctions.Length);
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
 
         public void ResetMaterialModified()
         {

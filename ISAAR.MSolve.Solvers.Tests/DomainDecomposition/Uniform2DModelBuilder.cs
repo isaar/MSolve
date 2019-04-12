@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Materials;
@@ -20,13 +20,13 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
         }
 
         private const double minX = 0.0, minY = 0.0;
-        private List<(BoundaryRegion region, DOFType dof, double displacement)> prescribedDisplacements;
-        private List<(BoundaryRegion region, DOFType dof, double load)> prescribedLoads;
+        private List<(BoundaryRegion region, IDofType dof, double displacement)> prescribedDisplacements;
+        private List<(BoundaryRegion region, IDofType dof, double load)> prescribedLoads;
 
         public Uniform2DModelBuilder()
         {
-            prescribedDisplacements = new List<(BoundaryRegion region, DOFType dof, double displacement)>();
-            prescribedLoads = new List<(BoundaryRegion region, DOFType dof, double load)>();
+            prescribedDisplacements = new List<(BoundaryRegion region, IDofType dof, double displacement)>();
+            prescribedLoads = new List<(BoundaryRegion region, IDofType dof, double load)>();
         }
 
         public double DomainLengthX { get; set; } = 1.0;
@@ -128,14 +128,14 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
             }
 
             // Apply prescribed displacements
-            foreach ((BoundaryRegion region, DOFType dof, double displacement) in prescribedDisplacements)
+            foreach ((BoundaryRegion region, IDofType dof, double displacement) in prescribedDisplacements)
             {
                 Node[] nodes = FindBoundaryNodes(region, model, meshTolerance);
                 foreach (Node node in nodes) node.Constraints.Add(new Constraint() { DOF = dof, Amount = displacement });
             }
 
             // Apply prescribed loads
-            foreach ((BoundaryRegion region, DOFType dof, double totalLoad) in prescribedLoads)
+            foreach ((BoundaryRegion region, IDofType dof, double totalLoad) in prescribedLoads)
             {
                 Node[] nodes = FindBoundaryNodes(region, model, meshTolerance);
                 double load = totalLoad / nodes.Length;
@@ -145,13 +145,13 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
             return model;
         }
 
-        public void PrescribeDisplacement(BoundaryRegion region, DOFType dof, double displacement)
+        public void PrescribeDisplacement(BoundaryRegion region, IDofType dof, double displacement)
             => prescribedDisplacements.Add((region, dof, displacement));
 
         /// <summary>
         /// </summary>
         /// <param name="load">Will be distributed evenly.</param>
-        public void PrescribeDistributedLoad(BoundaryRegion region, DOFType dof, double load) 
+        public void PrescribeDistributedLoad(BoundaryRegion region, IDofType dof, double load) 
             => prescribedLoads.Add((region, dof, load));
 
         private Node[] FindBoundaryNodes(BoundaryRegion region, Model model, double tol)

@@ -144,7 +144,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         }
 
         //TODO: this and the fields should be handled by a class that handles dof mappings.
-        public Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, DOFType, double> globalNodalLoads)
+        public Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, IDofType, double> globalNodalLoads)
             => stiffnessDistribution.SubdomainGlobalConversion.DistributeNodalLoads(LinearSystems, globalNodalLoads);
 
         //TODO: this and the fields should be handled by a class that handles dof mappings.

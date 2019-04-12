@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Embedding;
@@ -20,8 +21,8 @@ namespace ISAAR.MSolve.FEM.Elements
         protected static int iInt = 2;
         protected static int iInt2 = iInt * iInt;
         protected static int iInt3 = iInt2 * iInt;
-        protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
-        protected readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
+        protected readonly static IDofType[] nodalDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ };
+        protected readonly static IDofType[][] dofTypes = new IDofType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes };
         protected readonly IContinuumMaterial3D[] materialsAtGaussPoints;
         protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
@@ -121,7 +122,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
 
-        public virtual IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public virtual IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
 
         public IList<Node> GetNodesForMatrixAssembly(Element element) => element.Nodes;
 
@@ -482,8 +483,8 @@ namespace ISAAR.MSolve.FEM.Elements
             foreach (MassAccelerationLoad load in loads)
             {
                 int index = 0;
-                foreach (DOFType[] nodalDOFTypes in dofTypes)
-                    foreach (DOFType dofType in nodalDOFTypes)
+                foreach (IDofType[] nodalDOFTypes in dofTypes)
+                    foreach (IDofType dofType in nodalDOFTypes)
                     {
                         if (dofType == load.DOF) accelerations[index] += load.Amount;
                         index++;

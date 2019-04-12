@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Logging;
@@ -56,11 +56,11 @@ namespace ISAAR.MSolve.SamplesConsole
             }
 
             // Constrain bottom nodes of the model
-            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.X });
-            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.Y });
-            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.RotationZ });
 
-            model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = DOFType.Y, Amount = -4.16666666666667E-07 });
+            model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY, Amount = -4.16666666666667E-07 });
 
             //Create a new Beam2D element
             var beam = new EulerBeam2D(youngModulus)
@@ -102,8 +102,8 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // Output requests
             var logFactory = new TotalDisplacementsLog.Factory(model.SubdomainsDictionary[subdomainID]);
-            logFactory.WatchDof(model.NodesDictionary[2], DOFType.X);
-            logFactory.WatchDof(model.NodesDictionary[2], DOFType.RotZ);
+            logFactory.WatchDof(model.NodesDictionary[2], StructuralDof.TranslationX);
+            logFactory.WatchDof(model.NodesDictionary[2], StructuralDof.RotationZ);
             childAnalyzer.LogFactories[subdomainID] = logFactory;
 
             // Run the analysis
@@ -113,8 +113,8 @@ namespace ISAAR.MSolve.SamplesConsole
             // Choose dof types X, Y, rotZ to log for node 5
             var logger = (TotalDisplacementsLog)(childAnalyzer.Logs[subdomainID][0]); //There is a list of logs for each subdomain and we want the first one
             double[] results = {
-                logger.GetDisplacementAt(model.NodesDictionary[2], DOFType.X),
-                logger.GetDisplacementAt(model.NodesDictionary[2], DOFType.RotZ) };
+                logger.GetDisplacementAt(model.NodesDictionary[2], StructuralDof.TranslationX),
+                logger.GetDisplacementAt(model.NodesDictionary[2], StructuralDof.RotationZ) };
             
 
             double[] expected = new double[] { 0, -4.16666666666667E-07, -6.25E-07 };

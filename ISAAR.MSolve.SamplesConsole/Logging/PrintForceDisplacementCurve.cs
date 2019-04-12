@@ -2,7 +2,7 @@
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.NonLinear;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Entities;
@@ -18,14 +18,14 @@ namespace ISAAR.MSolve.SamplesConsole.Logging
         private const string outputDirectory = @"E:\GEORGE_DATA\DESKTOP\MSolveResults";
         private const int subdomainID = 0;
         private const int monitorNode = 3;
-        private const DOFType monitorDof = DOFType.Y;
+        private static readonly IDofType monitorDof = StructuralDof.TranslationY;
 
         public static void CantileverBeam2DCorotationalDisplacementControl()
         {
             Model model = CreateModelWithoutLoads();
 
             double nodalDisplacement = 146.558710945558;
-            model.NodesDictionary[monitorNode].Constraints.Add(new Constraint { DOF = DOFType.Y, Amount = nodalDisplacement });
+            model.NodesDictionary[monitorNode].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY, Amount = nodalDisplacement });
 
             Analyze(model, false);
         }
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.SamplesConsole.Logging
 
             // Add nodal load values at the top nodes of the model
             double nodalLoad = 20000.0;
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode], DOF = StructuralDof.TranslationY });
 
             Analyze(model, true);
         }
@@ -79,9 +79,9 @@ namespace ISAAR.MSolve.SamplesConsole.Logging
             }
 
             // Constrain bottom nodes of the model
-            model.NodesDictionary[1].Constraints.Add(new Constraint() { DOF = DOFType.X, Amount = 0.0 });
-            model.NodesDictionary[1].Constraints.Add(new Constraint() { DOF = DOFType.Y, Amount = 0.0 });
-            model.NodesDictionary[1].Constraints.Add(new Constraint() { DOF = DOFType.RotZ, Amount = 0.0 });
+            model.NodesDictionary[1].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationX, Amount = 0.0 });
+            model.NodesDictionary[1].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationY, Amount = 0.0 });
+            model.NodesDictionary[1].Constraints.Add(new Constraint() { DOF = StructuralDof.RotationZ, Amount = 0.0 });
 
             // Generate elements of the structure
             int iNode = 1;

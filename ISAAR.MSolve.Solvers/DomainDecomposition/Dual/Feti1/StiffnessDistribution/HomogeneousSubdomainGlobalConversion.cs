@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.LinearSystems;
@@ -14,7 +15,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
         }
 
         public override Dictionary<int, SparseVector> DistributeNodalLoads(
-            IReadOnlyDictionary<int, ILinearSystem> linearSystems, Table<INode, DOFType, double> globalNodalLoads)
+            IReadOnlyDictionary<int, ILinearSystem> linearSystems, Table<INode, IDofType, double> globalNodalLoads)
         {
             //TODO: Should I implemented this as fb(s) = Lpb(s) * fb, Lpb(s) = Lb(s) * inv(Mb)?
             //TODO: Internal loaded dofs should be handled differently as an optimization.
@@ -22,7 +23,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
             var subdomainLoads = new Dictionary<int, SortedDictionary<int, double>>();
             foreach (var subdomainID in linearSystems.Keys) subdomainLoads[subdomainID] = new SortedDictionary<int, double>();
 
-            foreach ((INode node, DOFType dofType, double amount) in globalNodalLoads)
+            foreach ((INode node, IDofType dofType, double amount) in globalNodalLoads)
             {
                 double amountPerSubdomain = amount / node.SubdomainsDictionary.Count;
                 foreach (var idSubdomain in node.SubdomainsDictionary)

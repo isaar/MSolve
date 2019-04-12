@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.Logging.VTK;
@@ -63,15 +63,15 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             double tol = 1E-10;
             model.ApplyNodalLoads(
                 node => (Math.Abs(node.Y - height) <= tol) && ((Math.Abs(node.X) <= tol)),
-                DOFType.X, horizontalLoad);
+                StructuralDof.TranslationX, horizontalLoad);
         }
 
         private static void ApplyLoadsDynamic(PreprocessorModel model)
         {
             string accelerogramPath = workingDirectory + "\\elcentro_NS.dat";
-            Dictionary<DOFType, double> magnifications = new Dictionary<DOFType, double>
+            Dictionary<IDofType, double> magnifications = new Dictionary<IDofType, double>
             {
-                { DOFType.X, 1.0 }
+                { StructuralDof.TranslationX, 1.0 }
             };
             model.SetGroundMotion(accelerogramPath, magnifications, 0.02, 53.74);
         }
@@ -94,8 +94,8 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             // Prescribed displacements: all nodes at the bottom
             double tol = 1E-10;
             IEnumerable<Node> constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol);
-            model.ApplyPrescribedDisplacements(constrainedNodes, DOFType.X, 0.0);
-            model.ApplyPrescribedDisplacements(constrainedNodes, DOFType.Y, 0.0);
+            model.ApplyPrescribedDisplacements(constrainedNodes, StructuralDof.TranslationX, 0.0);
+            model.ApplyPrescribedDisplacements(constrainedNodes, StructuralDof.TranslationY, 0.0);
 
 
 

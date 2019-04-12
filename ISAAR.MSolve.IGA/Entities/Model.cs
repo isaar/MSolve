@@ -70,8 +70,8 @@ namespace ISAAR.MSolve.IGA.Entities
 			get => patchesDictionary;
 		}
 
-		public Table<INode, DOFType, double> Constraints { get; private set; } =
-			new Table<INode, DOFType, double>(); //TODOMaria: maybe it's useless in model class
+		public Table<INode, IDofType, double> Constraints { get; private set; } =
+			new Table<INode, IDofType, double>(); //TODOMaria: maybe it's useless in model class
 
 		public IGlobalFreeDofOrdering GlobalDofOrdering
 		{
@@ -126,7 +126,7 @@ namespace ISAAR.MSolve.IGA.Entities
 
 		private void AssignControlPointLoads(NodalLoadsToSubdomainsDistributor distributeControlPointLoads)
 		{
-            var globalPointLoads = new Table<INode, DOFType, double>();
+            var globalPointLoads = new Table<INode, IDofType, double>();
             foreach (Load load in Loads) globalPointLoads.TryAdd(load.ControlPoint, load.DOF, load.Amount);
 
             Dictionary<int, SparseVector> patchPointLoads = distributeControlPointLoads(globalPointLoads);

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
@@ -20,8 +21,8 @@ namespace ISAAR.MSolve.FEM.Elements
     {
         private const int numNodes = 2;
         private const int numDofs = 2;
-        private static readonly DOFType[][] dofTypes = {
-            new DOFType[] { DOFType.Temperature }, new DOFType[] { DOFType.Temperature } }; 
+        private static readonly IDofType[][] dofTypes = {
+            new IDofType[] { ThermalDof.Temperature }, new IDofType[] { ThermalDof.Temperature } }; 
 
         private readonly ThermalMaterial material;
 
@@ -69,7 +70,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return Matrix.CreateFromArray(conductivity);
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
 
         public void ResetMaterialModified()
         {
@@ -121,10 +122,10 @@ namespace ISAAR.MSolve.FEM.Elements
             throw new NotImplementedException();
         }
 
-        public Dictionary<DOFType, int> GetInternalNodalDOFs(Element element, Node node)
+        public Dictionary<IDofType, int> GetInternalNodalDOFs(Element element, Node node)
         {
-            if (node.ID == this.Nodes[0].ID) return new Dictionary<DOFType, int> { { DOFType.Temperature, 0 } };
-            else if (node.ID == this.Nodes[1].ID) return new Dictionary<DOFType, int> { { DOFType.Temperature, 1 } };
+            if (node.ID == this.Nodes[0].ID) return new Dictionary<IDofType, int> { { ThermalDof.Temperature, 0 } };
+            else if (node.ID == this.Nodes[1].ID) return new Dictionary<IDofType, int> { { ThermalDof.Temperature, 1 } };
             else throw new ArgumentException($"GetInternalNodalDOFs: Node {node.ID} not found in element {element.ID}.");
         }
 

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
@@ -20,8 +21,8 @@ namespace ISAAR.MSolve.FEM.Embedding
         private readonly IElement embeddedElement;
         private readonly IEmbeddedDOFInHostTransformationVector transformation;
         private readonly Dictionary<SuperElementDof, int> superElementMap = new Dictionary<SuperElementDof, int>();
-        private readonly Dictionary<EmbeddedNode, Dictionary<DOFType, int>> dofToHostMapping
-            = new Dictionary<EmbeddedNode, Dictionary<DOFType, int>>();
+        private readonly Dictionary<EmbeddedNode, Dictionary<IDofType, int>> dofToHostMapping
+            = new Dictionary<EmbeddedNode, Dictionary<IDofType, int>>();
         private CscMatrix transformationMatrix;
 
         public CohesiveElementEmbedder(Model model, Element embeddedElement,
@@ -208,13 +209,13 @@ namespace ISAAR.MSolve.FEM.Embedding
             return transformationMatrix.Multiply(vector, true);
         }
 
-        public IList<IList<DOFType>> GetDOFTypes(IElement element)
+        public IList<IList<IDofType>> GetDOFTypes(IElement element)
         {
             //return element.ElementType.GetElementDOFTypes(element);
 
-            var dofs = new List<IList<DOFType>>();
+            var dofs = new List<IList<IDofType>>();
             INode currentNode = null;
-            List<DOFType> nodeDOFs = null;
+            List<IDofType> nodeDOFs = null;
 
             foreach (var superElement in superElementMap)
             {
@@ -225,7 +226,7 @@ namespace ISAAR.MSolve.FEM.Embedding
                     if (nodeDOFs != null)
                         dofs.Add(nodeDOFs);
                     currentNode = node;
-                    nodeDOFs = new List<DOFType>();
+                    nodeDOFs = new List<IDofType>();
                 }
                 nodeDOFs.Add(superElement.Key.DOF);
             }
@@ -235,7 +236,7 @@ namespace ISAAR.MSolve.FEM.Embedding
             return dofs;
         }
 
-        public IList<IList<DOFType>> GetDOFTypesForDOFEnumeration(IElement element)
+        public IList<IList<IDofType>> GetDOFTypesForDOFEnumeration(IElement element)
         {
             //if (embeddedElement != element) throw new ArgumentException();
 
@@ -247,12 +248,12 @@ namespace ISAAR.MSolve.FEM.Embedding
                 index++;
             }
 
-            var dofs = new List<IList<DOFType>>();
+            var dofs = new List<IList<IDofType>>();
             for (int i = 0; i < element.Nodes.Count; i++)
-                dofs.Add(new List<DOFType>());
+                dofs.Add(new List<IDofType>());
 
             INode currentNode = null;
-            List<DOFType> nodeDOFs = null;
+            List<IDofType> nodeDOFs = null;
 
             foreach (var superElement in superElementMap)
             {
@@ -265,7 +266,7 @@ namespace ISAAR.MSolve.FEM.Embedding
                     if (nodeDOFs != null)
                         dofs[nodesDictionary[currentNode]] = nodeDOFs;
                     currentNode = node;
-                    nodeDOFs = new List<DOFType>();
+                    nodeDOFs = new List<IDofType>();
                 }
                 nodeDOFs.Add(superElement.Key.DOF);
             }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Entities;
@@ -18,9 +19,9 @@ namespace ISAAR.MSolve.FEM.Elements
         protected static readonly int AXIS_COUNT = 1;
         protected static readonly int NODE_COUNT = 2;
 
-        protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.RotZ };
-        protected readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
-        private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes, nodalDOFTypes };
+        protected readonly static IDofType[] nodalDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.RotationZ };
+        protected readonly static IDofType[][] dofTypes = new IDofType[][] { nodalDOFTypes, nodalDOFTypes };
+        private static readonly IDofType[][] dofs = new IDofType[][] { nodalDOFTypes, nodalDOFTypes };
 
         protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
         protected readonly IFiniteElementMaterial material;
@@ -227,7 +228,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return transformMatrix;
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
 
         public IMatrix StiffnessMatrix(IElement element)
         {
@@ -277,8 +278,8 @@ namespace ISAAR.MSolve.FEM.Elements
 
             int index = 0;
             foreach (MassAccelerationLoad load in loads)
-                foreach (DOFType[] nodalDOFTypes in dofs)
-                    foreach (DOFType dofType in nodalDOFTypes)
+                foreach (IDofType[] nodalDOFTypes in dofs)
+                    foreach (IDofType dofType in nodalDOFTypes)
                     {
                         if (dofType == load.DOF) accelerations[index] += load.Amount;
                         index++;
