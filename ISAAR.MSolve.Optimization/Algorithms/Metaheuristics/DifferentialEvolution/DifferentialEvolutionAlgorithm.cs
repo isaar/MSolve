@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.DifferentialEvolut
         private double crossoverProbability = 0.9;
 
         private IConvergenceCriterion convergenceCriterion;
-        private readonly Random randomNumberGenerator = new Random();
+        private readonly Random randomNumberGenerator;
 
         // Optimization problem definition
         private readonly int dimension;
@@ -32,7 +32,8 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.DifferentialEvolut
         private Individual[] offsprings;
 
         protected DifferentialEvolutionAlgorithm(OptimizationProblem optimizationProblem, int populationSize, 
-            double mutationFactor, double crossoverProbability, IConvergenceCriterion convergenceCriterion)
+            double mutationFactor, double crossoverProbability, IConvergenceCriterion convergenceCriterion,
+            Random randomNumberGenerator)
         {
             this.dimension = optimizationProblem.Dimension;
             this.lowerBound = optimizationProblem.LowerBound;
@@ -43,6 +44,8 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.DifferentialEvolut
             this.mutationFactor = mutationFactor;
             this.crossoverProbability = crossoverProbability;
             this.convergenceCriterion = convergenceCriterion;
+
+            this.randomNumberGenerator = randomNumberGenerator;
         }
 
         public double BestFitness
@@ -239,6 +242,8 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.DifferentialEvolut
                 get; set;
             }
 
+            public Random RandomNumberGenerator { get; set; } = new Random();
+
             public Builder(OptimizationProblem optimizationProblem)
             {
                 this.optimizationProblem = optimizationProblem;
@@ -248,7 +253,7 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.DifferentialEvolut
             {
                 ProblemChecker.Check(optimizationProblem);
                 return new DifferentialEvolutionAlgorithm(optimizationProblem, PopulationSize, 
-                    MutationFactor, CrossoverProbability, ConvergenceCriterion);
+                    MutationFactor, CrossoverProbability, ConvergenceCriterion, RandomNumberGenerator);
             }
         }
     }
