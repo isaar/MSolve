@@ -190,7 +190,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			{
 				var element = new NURBSKirchhoffLoveShellElement();
 				var patch = new Patch();
-				patch.Material = new ElasticMaterial2D_v2(StressState2D.PlaneStrain)
+				patch.Material = new ElasticMaterial2D(StressState2D.PlaneStrain)
 				{
 					YoungModulus = 100,
 					PoissonRatio = 0.0

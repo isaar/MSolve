@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.Tests
         private const int subdomainID = 0;
 
         [Fact]
-        private static void CantileverBeam2DCorotationalNonlinearTest_v2()
+        private static void CantileverBeam2DCorotationalNonlinearTest()
         {
             double youngModulus = 21000.0;
             double poissonRatio = 0.3;
@@ -39,20 +39,20 @@ namespace ISAAR.MSolve.Tests
             };
 
             // Node creation
-            IList<Node_v2> nodes = new List<Node_v2>();
-            Node_v2 node1 = new Node_v2 { ID = 1, X = 0.0, Y = 0.0 };
-            Node_v2 node2 = new Node_v2 { ID = 2, X = 100.0, Y = 0.0 };
-            Node_v2 node3 = new Node_v2 { ID = 3, X = 200.0, Y = 0.0 };
+            IList<Node> nodes = new List<Node>();
+            Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0 };
+            Node node2 = new Node { ID = 2, X = 100.0, Y = 0.0 };
+            Node node3 = new Node { ID = 3, X = 200.0, Y = 0.0 };
 
             nodes.Add(node1);
             nodes.Add(node2);
             nodes.Add(node3);
 
             // Model creation
-            var model = new Model_v2();
+            var model = new Model();
 
             // Add a single subdomain to the model
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain(subdomainID));
 
             // Add nodes to the nodes dictonary of the model
             for (int i = 0; i < nodes.Count; ++i)
@@ -70,7 +70,7 @@ namespace ISAAR.MSolve.Tests
             for (int iElem = 0; iElem < nElems; iElem++)
             {
                 // element nodes
-                IList<Node_v2> elementNodes = new List<Node_v2>();
+                IList<Node> elementNodes = new List<Node>();
                 elementNodes.Add(model.NodesDictionary[iNode]);
                 elementNodes.Add(model.NodesDictionary[iNode + 1]);
 
@@ -78,10 +78,10 @@ namespace ISAAR.MSolve.Tests
                 var beamSection = new BeamSection2D(area, inertia);
 
                 // Create elements
-                var element = new Element_v2()
+                var element = new Element()
                 {
                     ID = iElem + 1,
-                    ElementType = new Beam2DCorotational_v2(elementNodes, material, 7.85, beamSection)
+                    ElementType = new Beam2DCorotational(elementNodes, material, 7.85, beamSection)
                 };
 
                 // Add nodes to the created element
@@ -97,39 +97,39 @@ namespace ISAAR.MSolve.Tests
             }
 
             // Add nodal load values at the top nodes of the model
-            model.Loads.Add(new Load_v2() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode], DOF = DOFType.Y });
 
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();
             // If we reorder, the expected displacements might correspond to different dofs
             //solverBuilder.DofOrderer = new DofOrderer(new SimpleDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd());
-            ISolver_v2 solver = solverBuilder.BuildSolver(model);
+            ISolver solver = solverBuilder.BuildSolver(model);
 
             // Choose the provider of the problem -> here a structural problem
-            var provider = new ProblemStructural_v2(model, solver);
+            var provider = new ProblemStructural(model, solver);
 
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
             int increments = 10;
-            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
-            LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
+            var childAnalyzerBuilder = new LoadControlAnalyzer.Builder(model, solver, provider, increments);
+            LoadControlAnalyzer childAnalyzer = childAnalyzerBuilder.Build();
 
             // Choose parent analyzer -> Parent: Static
-            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
             // Request output
-            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory_v2(new int[] { 4 }); 
+            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 4 }); 
 
             // Run the analysis
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
             // Check output
-            DOFSLog_v2 log = (DOFSLog_v2)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
+            DOFSLog log = (DOFSLog)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
             Assert.Equal(146.5587362562, log.DOFValues[4], 3);
         }
 
         [Fact]
-        public void CantileverBeam2DCorotationalDisplacementControlTest_v2()
+        public void CantileverBeam2DCorotationalDisplacementControlTest()
         {
             double youngModulus = 21000.0;
             double poissonRatio = 0.3;
@@ -148,20 +148,20 @@ namespace ISAAR.MSolve.Tests
             };
 
             // Node creation
-            IList<Node_v2> nodes = new List<Node_v2>();
-            Node_v2 node1 = new Node_v2 { ID = 1, X = 0.0, Y = 0.0 };
-            Node_v2 node2 = new Node_v2 { ID = 2, X = 100.0, Y = 0.0 };
-            Node_v2 node3 = new Node_v2 { ID = 3, X = 200.0, Y = 0.0 };
+            IList<Node> nodes = new List<Node>();
+            Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0 };
+            Node node2 = new Node { ID = 2, X = 100.0, Y = 0.0 };
+            Node node3 = new Node { ID = 3, X = 200.0, Y = 0.0 };
 
             nodes.Add(node1);
             nodes.Add(node2);
             nodes.Add(node3);
 
             // Model creation
-            Model_v2 model = new Model_v2();
+            Model model = new Model();
 
             // Add a single subdomain to the model
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain(subdomainID));
 
             // Add nodes to the nodes dictonary of the model
             for (int i = 0; i < nodes.Count; ++i)
@@ -182,7 +182,7 @@ namespace ISAAR.MSolve.Tests
             for (int iElem = 0; iElem < nElems; iElem++)
             {
                 // element nodes
-                IList<Node_v2> elementNodes = new List<Node_v2>();
+                IList<Node> elementNodes = new List<Node>();
                 elementNodes.Add(model.NodesDictionary[iNode]);
                 elementNodes.Add(model.NodesDictionary[iNode + 1]);
 
@@ -190,10 +190,10 @@ namespace ISAAR.MSolve.Tests
                 var beamSection = new BeamSection2D(area, inertia);
 
                 // Create elements
-                var element = new Element_v2()
+                var element = new Element()
                 {
                     ID = iElem + 1,
-                    ElementType = new Beam2DCorotational_v2(elementNodes, material, 7.85, beamSection)
+                    ElementType = new Beam2DCorotational(elementNodes, material, 7.85, beamSection)
                 };
 
                 // Add nodes to the created element
@@ -210,29 +210,29 @@ namespace ISAAR.MSolve.Tests
 
             // Choose linear equation system solver
             var solverBuilder = new SkylineSolver.Builder();
-            ISolver_v2 solver = solverBuilder.BuildSolver(model);
+            ISolver solver = solverBuilder.BuildSolver(model);
 
             // Choose the provider of the problem -> here a structural problem
-            var provider = new ProblemStructural_v2(model, solver);
+            var provider = new ProblemStructural(model, solver);
 
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
-            var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) };
+            var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.SubdomainsDictionary[subdomainID]) };
             int numIncrements = 10;
-            var childAnalyzerBuilder = new DisplacementControlAnalyzer_v2.Builder(model, solver, provider, numIncrements);
+            var childAnalyzerBuilder = new DisplacementControlAnalyzer.Builder(model, solver, provider, numIncrements);
             var childAnalyzer = childAnalyzerBuilder.Build();
 
             // Choose parent analyzer -> Parent: Static
-            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
             // Request output
-            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory_v2(new int[] { 3 });
+            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 3 });
 
             // Run the analysis
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
             // Check output
-            DOFSLog_v2 log = (DOFSLog_v2)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
+            DOFSLog log = (DOFSLog)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
             Assert.Equal(-72.090605787610343, log.DOFValues[3], 8);
         }
     }

@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
     /// </summary>
     public class Tet4
 	{
-		private static readonly ElasticMaterial3D_v2 Material0 = new ElasticMaterial3D_v2()
+		private static readonly ElasticMaterial3D Material0 = new ElasticMaterial3D()
 		{
 			YoungModulus = 480,
 			PoissonRatio = 1.0 / 3.0
@@ -22,12 +22,12 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
 
 		private static readonly DynamicMaterial DynamicMaterial0 = new DynamicMaterial(1,0,0);
 
-		private static readonly IReadOnlyList<Node_v2> NodeSet0 = new Node_v2[]
+		private static readonly IReadOnlyList<Node> NodeSet0 = new Node[]
 		{
-			new Node_v2 { ID = 0, X = 2, Y = 3, Z = 4 },
-			new Node_v2 { ID = 1, X = 6, Y = 3, Z = 2 },
-			new Node_v2 { ID = 2, X = 2, Y = 5, Z = 1 },
-			new Node_v2 { ID = 3, X = 4, Y = 3, Z = 6 },
+			new Node { ID = 0, X = 2, Y = 3, Z = 4 },
+			new Node { ID = 1, X = 6, Y = 3, Z = 2 },
+			new Node { ID = 2, X = 2, Y = 5, Z = 1 },
+			new Node { ID = 3, X = 4, Y = 3, Z = 6 },
 		};
 
 		/// <summary>

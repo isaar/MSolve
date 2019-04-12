@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.Solvers.Direct
         private bool mustFactorize = true;
         private LdlSkyline factorizedMatrix;
 
-        private SkylineSolver(IStructuralModel_v2 model, double factorizationPivotTolerance, IDofOrderer dofOrderer):
+        private SkylineSolver(IStructuralModel model, double factorizationPivotTolerance, IDofOrderer dofOrderer):
             base(model, dofOrderer, new SkylineAssembler(), "SkylineSolver")
         {
             this.factorizationPivotTolerance = factorizationPivotTolerance;
@@ -110,9 +110,9 @@ namespace ISAAR.MSolve.Solvers.Direct
 
             public double FactorizationPivotTolerance { get; set; } = 1E-15;
 
-            ISolver_v2 ISolverBuilder.BuildSolver(IStructuralModel_v2 model) => BuildSolver(model);
+            ISolver ISolverBuilder.BuildSolver(IStructuralModel model) => BuildSolver(model);
 
-            public SkylineSolver BuildSolver(IStructuralModel_v2 model)
+            public SkylineSolver BuildSolver(IStructuralModel model)
             {
                 return new SkylineSolver(model, FactorizationPivotTolerance, DofOrderer);
             }

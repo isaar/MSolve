@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             Assert.True(expectedDisplacements.Equals(computedDisplacements, equalityTolerance));
         }
 
-        private static Model_v2 CreateModel(int numElementsX, int numElementsY)
+        private static Model CreateModel(int numElementsX, int numElementsY)
         {
             // if numElementsX = numElementsY = 2:
             // 6 ----- 7 ----- 8  -->
@@ -65,21 +65,21 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             return builder.BuildModel();
         }
 
-        private static Model_v2 CreateSingleSubdomainModel(int numElementsX, int numElementsY)
+        private static Model CreateSingleSubdomainModel(int numElementsX, int numElementsY)
         {
             // Replace the existing subdomains with a single one 
-            Model_v2 model = CreateModel(numElementsX, numElementsY);
+            Model model = CreateModel(numElementsX, numElementsY);
             model.SubdomainsDictionary.Clear();
-            var subdomain = new Subdomain_v2(singleSubdomainID);
+            var subdomain = new Subdomain(singleSubdomainID);
             model.SubdomainsDictionary.Add(singleSubdomainID, subdomain);
-            foreach (Element_v2 element in model.Elements) subdomain.Elements.Add(element);
+            foreach (Element element in model.Elements) subdomain.Elements.Add(element);
             return model;
         }
 
         private static (IVectorView U, DualSolverLogger logger) SolveModelWithSubdomains(int numElementsX, int numElementsY,
             double factorizationTolerance)
         {
-            Model_v2 multiSubdomainModel = CreateModel(numElementsX, numElementsY);
+            Model multiSubdomainModel = CreateModel(numElementsX, numElementsY);
 
             // Solver
             var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
@@ -88,9 +88,9 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             Feti1Solver fetiSolver = solverBuilder.BuildSolver(multiSubdomainModel);
 
             // Linear static analysis
-            var provider = new ProblemStructural_v2(multiSubdomainModel, fetiSolver);
-            var childAnalyzer = new LinearAnalyzer_v2(multiSubdomainModel, fetiSolver, provider);
-            var parentAnalyzer = new StaticAnalyzer_v2(multiSubdomainModel, fetiSolver, provider, childAnalyzer);
+            var provider = new ProblemStructural(multiSubdomainModel, fetiSolver);
+            var childAnalyzer = new LinearAnalyzer(multiSubdomainModel, fetiSolver, provider);
+            var parentAnalyzer = new StaticAnalyzer(multiSubdomainModel, fetiSolver, provider, childAnalyzer);
 
             // Run the analysis
             parentAnalyzer.Initialize();
@@ -104,15 +104,15 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
 
         private static IVectorView SolveModelWithoutSubdomains(int numElementsX, int numElementsY)
         {
-            Model_v2 model = CreateSingleSubdomainModel(numElementsX, numElementsY);
+            Model model = CreateSingleSubdomainModel(numElementsX, numElementsY);
 
             // Solver
             SkylineSolver solver = (new SkylineSolver.Builder()).BuildSolver(model);
 
             // Linear static analysis
-            var provider = new ProblemStructural_v2(model, solver);
-            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+            var provider = new ProblemStructural(model, solver);
+            var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
             // Run the analysis
             parentAnalyzer.Initialize();

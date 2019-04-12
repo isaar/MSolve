@@ -17,14 +17,14 @@ using System.Collections.Generic;
 //TODO: Is there any point in having different material properties per Gauss point?
 namespace ISAAR.MSolve.FEM.Elements
 {
-    public class ThermalElement2D : IFiniteElement_v2, IEmbeddedHostElement_v2
+    public class ThermalElement2D : IFiniteElement, IEmbeddedHostElement
     {
         private readonly DOFType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
         private readonly ThermalMaterial material;
         //private readonly Dictionary<GaussPoint2D, ThermalMaterial> materialsAtGaussPoints;
 
 
-        public ThermalElement2D(double thickness, IReadOnlyList<Node_v2> nodes, IIsoparametricInterpolation2D interpolation,
+        public ThermalElement2D(double thickness, IReadOnlyList<Node> nodes, IIsoparametricInterpolation2D interpolation,
             IQuadrature2D quadratureForStiffness, IQuadrature2D quadratureForConsistentMass,
             IGaussPointExtrapolation2D gaussPointExtrapolation,
             ThermalMaterial material)
@@ -48,16 +48,16 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public IGaussPointExtrapolation2D GaussPointExtrapolation { get; }
         public IIsoparametricInterpolation2D Interpolation { get; }
-        public IReadOnlyList<Node_v2> Nodes { get; }
+        public IReadOnlyList<Node> Nodes { get; }
         public IQuadrature2D QuadratureForConsistentMass { get; }
         public IQuadrature2D QuadratureForStiffness { get; }
         public double Thickness { get; }
 
         public bool MaterialModified => throw new NotImplementedException();
 
-        public IElementDofEnumerator_v2 DofEnumerator { get; set; } = new GenericDofEnumerator_v2();
+        public IElementDofEnumerator DofEnumerator { get; set; } = new GenericDofEnumerator();
 
-        public IMatrix MassMatrix(IElement_v2 element)
+        public IMatrix MassMatrix(IElement element)
         {
             return BuildCapacityMatrix();
         }
@@ -154,29 +154,29 @@ namespace ISAAR.MSolve.FEM.Elements
             return Matrix.CreateFromArray(shapeFunctions, 1, shapeFunctions.Length);
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element) => dofTypes;
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
 
         public void ResetMaterialModified()
         {
             throw new NotImplementedException();
         }
 
-        public Tuple<double[], double[]> CalculateStresses(Element_v2 element, double[] localDisplacements, double[] localdDisplacements)
+        public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
         {
             throw new NotImplementedException();
         }
 
-        public double[] CalculateForces(Element_v2 element, double[] localDisplacements, double[] localdDisplacements)
+        public double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements)
         {
             throw new NotImplementedException();
         }
 
-        public double[] CalculateForcesForLogging(Element_v2 element, double[] localDisplacements)
+        public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
         {
             throw new NotImplementedException();
         }
 
-        public double[] CalculateAccelerationForces(Element_v2 element, IList<MassAccelerationLoad> loads)
+        public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {
             throw new NotImplementedException();
         }
@@ -196,17 +196,17 @@ namespace ISAAR.MSolve.FEM.Elements
             throw new NotImplementedException();
         }
 
-        public IMatrix StiffnessMatrix(IElement_v2 element)
+        public IMatrix StiffnessMatrix(IElement element)
         {
             return BuildConductivityMatrix();
         }
 
-        public IMatrix DampingMatrix(IElement_v2 element)
+        public IMatrix DampingMatrix(IElement element)
         {
             throw new NotImplementedException();
         }
 
-        public EmbeddedNode_v2 BuildHostElementEmbeddedNode(Element_v2 element, Node_v2 node, IEmbeddedDOFInHostTransformationVector_v2 transformationVector)
+        public EmbeddedNode BuildHostElementEmbeddedNode(Element element, Node node, IEmbeddedDOFInHostTransformationVector transformationVector)
         {
             IInverseInterpolation2D inverseInterpolation = Interpolation.CreateInverseMappingFor(Nodes);
             double[] naturalCoordinates = inverseInterpolation.TransformPointCartesianToNatural(new CartesianPoint2D(node.X, node.Y)).Coordinates;
@@ -214,13 +214,13 @@ namespace ISAAR.MSolve.FEM.Elements
             if (naturalCoordinates.Length == 0) return null;
 
             element.EmbeddedNodes.Add(node);
-            var embeddedNode = new EmbeddedNode_v2(node, element, transformationVector.GetDependentDOFTypes);
+            var embeddedNode = new EmbeddedNode(node, element, transformationVector.GetDependentDOFTypes);
             for (int i = 0; i < naturalCoordinates.Length; i++)
                 embeddedNode.Coordinates.Add(naturalCoordinates[i]);
             return embeddedNode;
         }
 
-        public double[] GetShapeFunctionsForNode(Element_v2 element, EmbeddedNode_v2 node)
+        public double[] GetShapeFunctionsForNode(Element element, EmbeddedNode node)
         {
             return Interpolation.EvaluateFunctionsAt(new NaturalPoint2D(node.Coordinates[0], node.Coordinates[1]));
 

@@ -9,14 +9,14 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
     public abstract class NonLinearAnalyzerBuilderBase
     {
         protected int maxIterationsPerIncrement = 1000;
-        protected readonly IStructuralModel_v2 model;
+        protected readonly IStructuralModel model;
         protected readonly int numIncrements;
         protected int numIterationsForMatrixRebuild = 1;
-        protected readonly INonLinearProvider_v2 provider;
+        protected readonly INonLinearProvider provider;
         protected double residualTolerance = 1e-8;
-        protected readonly ISolver_v2 solver;
+        protected readonly ISolver solver;
 
-        protected NonLinearAnalyzerBuilderBase(IStructuralModel_v2 model, ISolver_v2 solver, INonLinearProvider_v2 provider, 
+        protected NonLinearAnalyzerBuilderBase(IStructuralModel model, ISolver solver, INonLinearProvider provider, 
             int numIncrements)
         {
             //TODO: this should belong to all (child) analyzer builders
@@ -57,15 +57,15 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
             }
         }
 
-        public IReadOnlyDictionary<int, INonLinearSubdomainUpdater_v2> SubdomainUpdaters { get; set; }
+        public IReadOnlyDictionary<int, INonLinearSubdomainUpdater> SubdomainUpdaters { get; set; }
 
-        private IReadOnlyDictionary<int, INonLinearSubdomainUpdater_v2> CreateDefaultSubdomainUpdaters()
+        private IReadOnlyDictionary<int, INonLinearSubdomainUpdater> CreateDefaultSubdomainUpdaters()
         {
             int numSubdomains = model.Subdomains.Count;
-            var subdomainUpdaters = new Dictionary<int, INonLinearSubdomainUpdater_v2>(numSubdomains);
+            var subdomainUpdaters = new Dictionary<int, INonLinearSubdomainUpdater>(numSubdomains);
             for (int i = 0; i < numSubdomains; ++i)
             {
-                subdomainUpdaters[model.Subdomains[i].ID] = new NonLinearSubdomainUpdater_v2(model.Subdomains[i]);
+                subdomainUpdaters[model.Subdomains[i].ID] = new NonLinearSubdomainUpdater(model.Subdomains[i]);
             }
             return subdomainUpdaters;
 

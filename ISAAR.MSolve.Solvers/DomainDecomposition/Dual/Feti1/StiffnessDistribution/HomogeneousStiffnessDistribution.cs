@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
         //TODO: perhaps the should be removed from the interface methods
         private readonly Feti1DofSeparator dofSeparator;
 
-        public HomogeneousStiffnessDistribution(IStructuralModel_v2 model, Feti1DofSeparator dofSeparator)
+        public HomogeneousStiffnessDistribution(IStructuralModel model, Feti1DofSeparator dofSeparator)
         {
             this.dofSeparator = dofSeparator;
             this.SubdomainGlobalConversion = new HomogeneousSubdomainGlobalConversion(model, dofSeparator);

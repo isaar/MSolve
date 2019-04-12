@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
         /// Orders the constrained freedom degrees of one of the model's subdomains.
         /// </summary>
         /// <param name="subdomain">A subdomain of the whole model.</param>
-        internal (int numSubdomainConstrainedDofs, DofTable subdomainConstrainedDofs) OrderSubdomainDofs(ISubdomain_v2 subdomain)
+        internal (int numSubdomainConstrainedDofs, DofTable subdomainConstrainedDofs) OrderSubdomainDofs(ISubdomain subdomain)
         {
             var constrainedDofs = new DofTable();
             int dofCounter = 0;

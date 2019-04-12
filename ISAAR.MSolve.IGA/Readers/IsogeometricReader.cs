@@ -74,11 +74,11 @@ namespace ISAAR.MSolve.IGA.Readers
                     case Attributes.material:
                         if (ModelCreator.NumberOfDimensions == 2)
                         {
-                            ModelCreator.Material = new ElasticMaterial2D_v2((line[4] == "plstress") ? StressState2D.PlaneStress : StressState2D.PlaneStrain) { YoungModulus = Double.Parse(line[2], CultureInfo.InvariantCulture), PoissonRatio = Double.Parse(line[3], CultureInfo.InvariantCulture)};
+                            ModelCreator.Material = new ElasticMaterial2D((line[4] == "plstress") ? StressState2D.PlaneStress : StressState2D.PlaneStrain) { YoungModulus = Double.Parse(line[2], CultureInfo.InvariantCulture), PoissonRatio = Double.Parse(line[3], CultureInfo.InvariantCulture)};
                         }
                         else
                         {
-                            ModelCreator.Material = new ElasticMaterial3D_v2 { YoungModulus = Double.Parse(line[2], CultureInfo.InvariantCulture), PoissonRatio = Double.Parse(line[3], CultureInfo.InvariantCulture) };
+                            ModelCreator.Material = new ElasticMaterial3D { YoungModulus = Double.Parse(line[2], CultureInfo.InvariantCulture), PoissonRatio = Double.Parse(line[3], CultureInfo.InvariantCulture) };
                         }
                         break;
                     case Attributes.patchid:

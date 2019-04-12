@@ -12,7 +12,7 @@ using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-    public class Patch: ISubdomain_v2
+    public class Patch: ISubdomain
 	{
 		private readonly Dictionary<int, Edge> edgesDictionary = new Dictionary<int, Edge>();
 		private readonly Dictionary<int, Face> facesDictionary = new Dictionary<int, Face>();
@@ -21,12 +21,12 @@ namespace ISAAR.MSolve.IGA.Entities
 
 		public Table<INode, DOFType, double> Constraints { get; } = new Table<INode, DOFType, double>();
 
-		IReadOnlyList<IElement_v2> ISubdomain_v2.Elements => Elements;
+		IReadOnlyList<IElement> ISubdomain.Elements => Elements;
 		public List<Element> Elements { get; } = new List<Element>();
 		
 		public int ID { get; }
 
-		IReadOnlyList<INode> ISubdomain_v2.Nodes => controlPoints;
+		IReadOnlyList<INode> ISubdomain.Nodes => controlPoints;
 		public IReadOnlyList<ControlPoint> ControlPoints => controlPoints;
 
         public ISubdomainConstrainedDofOrdering ConstrainedDofOrdering { get; set; }
@@ -48,14 +48,14 @@ namespace ISAAR.MSolve.IGA.Entities
 			get { return facesDictionary; }
 		}
 
-		public double[] CalculateElementIncrementalConstraintDisplacements(IElement_v2 element, double constraintScalingFactor)
+		public double[] CalculateElementIncrementalConstraintDisplacements(IElement element, double constraintScalingFactor)
 		{
 			var elementNodalDisplacements = new double[FreeDofOrdering.CountElementDofs(element)];
 			ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
 			return elementNodalDisplacements;
 		}
 
-		private static void ApplyConstraintDisplacements(IElement_v2 element, double[] elementNodalDisplacements,
+		private static void ApplyConstraintDisplacements(IElement element, double[] elementNodalDisplacements,
 			Table<INode, DOFType, double> constraints)
 		{
 			int elementDofIdx = 0;

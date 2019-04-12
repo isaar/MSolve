@@ -10,13 +10,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual
 {
     public class BoundaryDofLumpedStiffness
     {
-        internal BoundaryDofLumpedStiffness(Dictionary<ISubdomain_v2, double> subdomainStiffnesses, double totalStiffness)
+        internal BoundaryDofLumpedStiffness(Dictionary<ISubdomain, double> subdomainStiffnesses, double totalStiffness)
         {
             this.SubdomainStiffnesses = subdomainStiffnesses;
             this.TotalStiffness = totalStiffness;
         }
 
-        internal Dictionary<ISubdomain_v2, double> SubdomainStiffnesses { get; }
+        internal Dictionary<ISubdomain, double> SubdomainStiffnesses { get; }
         internal double TotalStiffness { get; }
 
         //TODO: Is it more efficient to use (INode node, DOFType[] dofTypes)[]? It would reduce the cost of accessing node data?
@@ -29,9 +29,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual
                 INode node = nodeDofsPair.Key;
                 foreach (DOFType dofType in nodeDofsPair.Value)
                 {
-                    var subdomainStiffnesses = new Dictionary<ISubdomain_v2, double>();
+                    var subdomainStiffnesses = new Dictionary<ISubdomain, double>();
                     double totalStiffness = 0.0;
-                    foreach (ISubdomain_v2 subdomain in node.SubdomainsDictionary.Values)
+                    foreach (ISubdomain subdomain in node.SubdomainsDictionary.Values)
                     {
                         int dofIdx = subdomain.FreeDofOrdering.FreeDofs[node, dofType];
                         double stiffness = stiffnesses[subdomain.ID][dofIdx, dofIdx]; //TODO: optimized GetDiagonal(i) method for matrices.

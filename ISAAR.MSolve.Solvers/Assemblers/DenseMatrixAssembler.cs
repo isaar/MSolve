@@ -16,14 +16,14 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         //TODO: we need dense matrices for the constrained dofs as well.
         private ConstrainedMatricesAssembler constrainedAssembler = new ConstrainedMatricesAssembler();
 
-        public Matrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement_v2> elements, 
-            IElementMatrixProvider_v2 elementMatrixProvider)
+        public Matrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement> elements, 
+            IElementMatrixProvider elementMatrixProvider)
         {
             int numFreeDofs = dofOrdering.NumFreeDofs;
             var subdomainMatrix = Matrix.CreateZero(numFreeDofs, numFreeDofs);
 
             // Process the stiffness of each element
-            foreach (IElement_v2 element in elements)
+            foreach (IElement element in elements)
             {
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 (int[] elementDofIndices, int[] subdomainDofIndices) = dofOrdering.MapFreeDofsElementToSubdomain(element);
@@ -38,7 +38,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         public (Matrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
             IMatrixView matrixConstrConstr) BuildGlobalSubmatrices(
             ISubdomainFreeDofOrdering freeDofOrdering, ISubdomainConstrainedDofOrdering constrainedDofOrdering,
-            IEnumerable<IElement_v2> elements, IElementMatrixProvider_v2 matrixProvider)
+            IEnumerable<IElement> elements, IElementMatrixProvider matrixProvider)
         {
             int numFreeDofs = freeDofOrdering.NumFreeDofs;
             var subdomainMatrix = Matrix.CreateZero(numFreeDofs, numFreeDofs);
@@ -47,7 +47,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             constrainedAssembler.InitializeNewMatrices(freeDofOrdering.NumFreeDofs, constrainedDofOrdering.NumConstrainedDofs);
 
             // Process the stiffness of each element
-            foreach (IElement_v2 element in elements)
+            foreach (IElement element in elements)
             {
                 (int[] elementDofsFree, int[] subdomainDofsFree) = freeDofOrdering.MapFreeDofsElementToSubdomain(element);
                 //IReadOnlyDictionary<int, int> elementToGlobalDofs = dofOrdering.MapFreeDofsElementToSubdomain(element);

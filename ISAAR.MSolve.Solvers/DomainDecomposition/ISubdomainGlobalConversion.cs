@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition
     {
         double CalculateGlobalForcesNorm(Dictionary<int, IVectorView> subdomainForces);
 
-        Dictionary<int, SparseVector> DistributeNodalLoads(IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems,
+        Dictionary<int, SparseVector> DistributeNodalLoads(IReadOnlyDictionary<int, ILinearSystem> linearSystems,
             Table<INode, DOFType, double> globalNodalLoads);
 
         //TODO: arguments other than the displacements should be injected into the constructor.

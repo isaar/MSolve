@@ -17,13 +17,13 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 	{
 		protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] {DOFType.X, DOFType.Y};
 		protected DOFType[][] dofTypes;
-		protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
+		protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
 		private DynamicMaterial dynamicProperties;
 
 		#region IStructuralIsogeometricElement
 
 
-		public IElementDofEnumerator_v2 DofEnumerator
+		public IElementDofEnumerator DofEnumerator
 		{
 			get { return dofEnumerator; }
 
@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 			get { return ElementDimensions.TwoD; }
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
+		public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
 		{
 			var nurbsElement = (NURBSElement2D) element;
 			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
@@ -73,17 +73,17 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix DampingMatrix(IElement_v2 element)
+		public IMatrix DampingMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IMatrix MassMatrix(IElement_v2 element)
+		public IMatrix MassMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IMatrix StiffnessMatrix(IElement_v2 element)
+		public IMatrix StiffnessMatrix(IElement element)
 		{
 			var nurbsElement = (NURBSElement2D) element;
 			IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(nurbsElement);
@@ -128,7 +128,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
 				}
 
 				Matrix B = B1 * B2;
-				IMatrixView ElasticityMatrix = ((IContinuumMaterial2D_v2)nurbsElement.Patch.Material).ConstitutiveMatrix;
+				IMatrixView ElasticityMatrix = ((IContinuumMaterial2D)nurbsElement.Patch.Material).ConstitutiveMatrix;
 				Matrix stiffnessMatrixGaussPoint = B.ThisTransposeTimesOtherTimesThis(ElasticityMatrix);
 				stiffnessMatrixGaussPoint = stiffnessMatrixGaussPoint *
 				                            (jacdet * gaussPoints[j].WeightFactor * nurbsElement.Patch.Thickness);

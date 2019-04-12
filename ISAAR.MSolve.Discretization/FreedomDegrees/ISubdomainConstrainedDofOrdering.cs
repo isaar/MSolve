@@ -10,6 +10,6 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
     {
         DofTable ConstrainedDofs { get; }
         int NumConstrainedDofs { get; }
-        (int[] elementDofIndices, int[] subdomainDofIndices) MapConstrainedDofsElementToSubdomain(IElement_v2 element);
+        (int[] elementDofIndices, int[] subdomainDofIndices) MapConstrainedDofsElementToSubdomain(IElement element);
     }
 }

@@ -13,13 +13,13 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
     /// </summary>
     public class Hexa8
     {
-        private static  readonly ElasticMaterial3D_v2 Material0 =  new ElasticMaterial3D_v2
+        private static  readonly ElasticMaterial3D Material0 =  new ElasticMaterial3D
         {
             YoungModulus = 1000,
             PoissonRatio = 0.3
         };
 
-        private static readonly ElasticMaterial3D_v2 Material1 = new ElasticMaterial3D_v2
+        private static readonly ElasticMaterial3D Material1 = new ElasticMaterial3D
         {
             YoungModulus = 210000,
             PoissonRatio = 0.3
@@ -29,37 +29,37 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         private static readonly DynamicMaterial DynamicMaterial1= new DynamicMaterial(78.5,0,0);
 
         // The nodes in the order of the Abaqus Hexa8 element
-        private static readonly IReadOnlyList<Node_v2> NodeSet0= new Node_v2[]
+        private static readonly IReadOnlyList<Node> NodeSet0= new Node[]
         {
-            new Node_v2 { ID = 0, X = 0, Y = 5, Z = 5 },
-            new Node_v2 { ID = 1, X = 0, Y = 0, Z = 5 },
-            new Node_v2 { ID = 2, X = 0, Y = 0, Z = 0 },
-            new Node_v2 { ID = 3, X = 0, Y = 5, Z = 0 },
+            new Node { ID = 0, X = 0, Y = 5, Z = 5 },
+            new Node { ID = 1, X = 0, Y = 0, Z = 5 },
+            new Node { ID = 2, X = 0, Y = 0, Z = 0 },
+            new Node { ID = 3, X = 0, Y = 5, Z = 0 },
 
-            new Node_v2 { ID = 4, X = 5, Y = 5, Z = 5 },
-            new Node_v2 { ID = 5, X = 5, Y = 0, Z = 5 },
-            new Node_v2 { ID = 6, X = 5, Y = 0, Z = 0 },
-            new Node_v2 { ID = 7, X = 5, Y = 5, Z = 0 },
+            new Node { ID = 4, X = 5, Y = 5, Z = 5 },
+            new Node { ID = 5, X = 5, Y = 0, Z = 5 },
+            new Node { ID = 6, X = 5, Y = 0, Z = 0 },
+            new Node { ID = 7, X = 5, Y = 5, Z = 0 },
         };
 
         // The nodes in the order of the Abaqus Hexa8 element
-        private static readonly IReadOnlyList<Node_v2> NodeSet1 = new Node_v2[]
+        private static readonly IReadOnlyList<Node> NodeSet1 = new Node[]
         {
-            new Node_v2 { ID = 0, X = -1, Y =  1, Z = 2 },
-            new Node_v2 { ID = 1, X = -1, Y = -1, Z = 2 },
-            new Node_v2 { ID = 2, X = -1, Y = -1, Z = 0 },
-            new Node_v2 { ID = 3, X = -1, Y =  1, Z = 0 },
+            new Node { ID = 0, X = -1, Y =  1, Z = 2 },
+            new Node { ID = 1, X = -1, Y = -1, Z = 2 },
+            new Node { ID = 2, X = -1, Y = -1, Z = 0 },
+            new Node { ID = 3, X = -1, Y =  1, Z = 0 },
 
-            new Node_v2 { ID = 4, X =  1, Y =  1, Z = 2 },
-            new Node_v2 { ID = 5, X =  1, Y = -1, Z = 2 },
-            new Node_v2 { ID = 6, X =  1, Y = -1, Z = 0 },
-            new Node_v2 { ID = 7, X =  1, Y =  1, Z = 0 },
+            new Node { ID = 4, X =  1, Y =  1, Z = 2 },
+            new Node { ID = 5, X =  1, Y = -1, Z = 2 },
+            new Node { ID = 6, X =  1, Y = -1, Z = 0 },
+            new Node { ID = 7, X =  1, Y =  1, Z = 0 },
         };
 
-        internal static IReadOnlyList<Node_v2> AbaqusToMSolveHexa8Nodes(IReadOnlyList<Node_v2> abaqusOrder)
+        internal static IReadOnlyList<Node> AbaqusToMSolveHexa8Nodes(IReadOnlyList<Node> abaqusOrder)
         {
             var msolveFromAbaqusMap = new int[] { 2, 6, 7, 3, 1, 5, 4, 0 };
-            var msolveOrder = new Node_v2[8];
+            var msolveOrder = new Node[8];
             for (int i = 0; i < 8; ++i) msolveOrder[i] = abaqusOrder[msolveFromAbaqusMap[i]];
             return msolveOrder;
         }
@@ -161,8 +161,8 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
                 { 26362.17949, -10657.05128, -38327.99145, 24118.58974, 24118.58974, -36832.26496, 10657.05128, 10657.05128, 9909.188034, -560.8974359, -24118.58974, 24866.45299, 560.8974359, 560.8974359, -27857.90598, -10657.05128, 26362.17949, -38327.99145, -24118.58974, -560.8974359, 24866.45299, -26362.17949, -26362.17949, 81704.05983 }
             }));
 
-            //var element = new Element_v2() { ID = 0, ElementType = new Hexa8_v2(Material1) };
-            ////var element = new Element_v2() { ID = 0, ElementType = new Hexa8Fixed_v2(Material1) };
+            //var element = new Element() { ID = 0, ElementType = new Hexa8(Material1) };
+            ////var element = new Element() { ID = 0, ElementType = new Hexa8Fixed(Material1) };
             //foreach (var node in AbaqusToMSolveHexa8Nodes(NodeSet1)) element.AddNode(node);
             //writer.WriteToFile(element.ElementType.StiffnessMatrix(element), output, true);
 

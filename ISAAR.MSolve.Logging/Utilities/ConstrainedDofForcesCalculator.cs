@@ -12,18 +12,18 @@ namespace ISAAR.MSolve.Logging.Utilities
     /// </summary>
     internal class ConstrainedDofForcesCalculator
     {
-        private readonly Subdomain_v2 subdomain;
+        private readonly Subdomain subdomain;
 
-        internal ConstrainedDofForcesCalculator(Subdomain_v2 subdomain)
+        internal ConstrainedDofForcesCalculator(Subdomain subdomain)
         {
             this.subdomain = subdomain;
         }
 
-        internal double CalculateForceAt(Node_v2 node, DOFType dofType, IVectorView totalDisplacements)
+        internal double CalculateForceAt(Node node, DOFType dofType, IVectorView totalDisplacements)
         {
             double totalForce = 0.0;
 
-            foreach (Element_v2 element in node.ElementsDictionary.Values)
+            foreach (Element element in node.ElementsDictionary.Values)
             {
                 // It is possible that one of the elements at this node does not engage this dof type, in which case -1 will be returned.
                 // We will not have any contribution from them. If none of the elements engage this dof type, the total force will always be 0.
@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.Logging.Utilities
         /// <summary>
         /// Returns -1 if the element does not engage the requested <see cref="DOFType"/>
         /// </summary>
-        private int FindLocalDofIndex(Element_v2 element, Node_v2 node, DOFType dofType)
+        private int FindLocalDofIndex(Element element, Node node, DOFType dofType)
         {
             int localNodeIdx = element.Nodes.IndexOf(node);
             Debug.Assert(localNodeIdx != -1, "The element does not contain this node.");

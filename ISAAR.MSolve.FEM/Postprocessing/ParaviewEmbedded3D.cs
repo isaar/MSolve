@@ -12,11 +12,11 @@ namespace ISAAR.MSolve.FEM.Postprocessing
 {
     public class ParaviewEmbedded3D
     {
-        private Model_v2 _model;
+        private Model _model;
         private IVectorView _solution;
         private string _filename;
 
-        public ParaviewEmbedded3D(Model_v2 model, IVectorView solution, string filename)
+        public ParaviewEmbedded3D(Model model, IVectorView solution, string filename)
         {
             _model = model;
             _solution = solution;
@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.FEM.Postprocessing
         private int[] conn = new int[] { 6, 7, 4, 5, 2, 3, 0, 1 };
         private void WriteParaviewFile3D()
         {
-            var elements = _model.Elements.Where(e=>e.ElementType is Hexa8NonLinear_v2).ToList();
+            var elements = _model.Elements.Where(e=>e.ElementType is Hexa8NonLinear).ToList();
             var nodes = new List<INode>();
             elements.ForEach(e => nodes.AddRange(e.Nodes));
             nodes = nodes.Distinct().ToList();

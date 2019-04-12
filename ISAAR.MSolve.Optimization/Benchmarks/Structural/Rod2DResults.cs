@@ -6,19 +6,19 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
 {
     public class Rod2DResults
     {
-        private readonly Subdomain_v2 subdomain;
-        private readonly ILinearSystem_v2 linearSystem;
+        private readonly Subdomain subdomain;
+        private readonly ILinearSystem linearSystem;
 
-        public Rod2DResults(Subdomain_v2 subdomain, ILinearSystem_v2 linearSystem)
+        public Rod2DResults(Subdomain subdomain, ILinearSystem linearSystem)
         {
             this.subdomain = subdomain;
             this.linearSystem = linearSystem;
         }
 
-        public double AxialRod2DStress(Element_v2 element)
+        public double AxialRod2DStress(Element element)
         {
             double[] localDisplacements = subdomain.FreeDofOrdering.ExtractVectorElementFromSubdomain(element, linearSystem.Solution);
-            var rod = (Rod2D_v2)element.ElementType;
+            var rod = (Rod2D)element.ElementType;
             return  rod.CalculateAxialStress(element, localDisplacements, null);
         }
     }

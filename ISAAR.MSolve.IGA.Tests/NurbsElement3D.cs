@@ -136,7 +136,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			{
 				var element = new NURBSElement3D();
 				var patch = new Patch();
-				patch.Material= new ElasticMaterial3D_v2()
+				patch.Material= new ElasticMaterial3D()
 				{
 					YoungModulus = 1,
 					PoissonRatio = 0.3

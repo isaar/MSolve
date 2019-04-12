@@ -7,7 +7,7 @@ using System.Text;
 namespace ISAAR.MSolve.FEM.Entities
 {
     /// <summary>
-    /// You should use <see cref="Load_v2"/> instead.
+    /// You should use <see cref="Load"/> instead.
     /// </summary>
     public class SteadyNodalLoad: ITimeDependentNodalLoad
     {
@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.FEM.Entities
             this.constantloadAmount = constantloadAmount;
         }
 
-        public Node_v2 Node { get; set; }
+        public Node Node { get; set; }
         public DOFType DOF { get; set; }
 
         public double GetLoadAmount(int timeStep)

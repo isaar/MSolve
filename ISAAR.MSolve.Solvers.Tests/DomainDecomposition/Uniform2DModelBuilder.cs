@@ -49,15 +49,15 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
         /// </summary>
         public double[,] YoungModuliOfSubdomains { get; set; } = null;
 
-        public Model_v2 BuildModel()
+        public Model BuildModel()
         {
             // Generate global mesh
             double dx = DomainLengthX / NumTotalElementsX;
             double dy = DomainLengthY / NumTotalElementsY;
             double meshTolerance = 1E-10 * Math.Min(dx, dy);
-            var meshGenerator = new UniformMeshGenerator2D_v2(0, 0, DomainLengthX, DomainLengthY,
+            var meshGenerator = new UniformMeshGenerator2D(0, 0, DomainLengthX, DomainLengthY,
                 NumTotalElementsX, NumTotalElementsY);
-            (IReadOnlyList<Node_v2> vertices, IReadOnlyList<CellConnectivity_v2> cells) = meshGenerator.CreateMesh();
+            (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity> cells) = meshGenerator.CreateMesh();
 
             // Define subdomain boundaries
             int numTotalSubdomains = NumSubdomainsX * NumSubdomainsY;
@@ -96,12 +96,12 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
             }
             double thickness = 1.0;
             var dynamicProperties = new DynamicMaterial(1.0, 0.0, 0.0);
-            ElasticMaterial2D_v2[] materials = youngModuli.Select(
-                E => new ElasticMaterial2D_v2(StressState2D.PlaneStress) { YoungModulus = E, PoissonRatio = 0.3 }).ToArray();
+            ElasticMaterial2D[] materials = youngModuli.Select(
+                E => new ElasticMaterial2D(StressState2D.PlaneStress) { YoungModulus = E, PoissonRatio = 0.3 }).ToArray();
 
             // Define model, subdomains, nodes
-            var model = new Model_v2();
-            for (int s = 0; s < numTotalSubdomains; ++s) model.SubdomainsDictionary.Add(s, new Subdomain_v2(s));
+            var model = new Model();
+            for (int s = 0; s < numTotalSubdomains; ++s) model.SubdomainsDictionary.Add(s, new Subdomain(s));
             for (int n = 0; n < vertices.Count; ++n) model.NodesDictionary.Add(n, vertices[n]);
 
             // Elements
@@ -118,8 +118,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
 
                         // Create the element
                         ContinuumElement2D element = elementFactories[s].CreateElement(cells[e].CellType, cells[e].Vertices);
-                        var elementWrapper = new Element_v2() { ID = e, ElementType = element };
-                        foreach (Node_v2 node in element.Nodes) elementWrapper.AddNode(node);
+                        var elementWrapper = new Element() { ID = e, ElementType = element };
+                        foreach (Node node in element.Nodes) elementWrapper.AddNode(node);
                         model.ElementsDictionary.Add(e, elementWrapper);
                         model.SubdomainsDictionary[s].Elements.Add(elementWrapper);
                     }
@@ -130,16 +130,16 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
             // Apply prescribed displacements
             foreach ((BoundaryRegion region, DOFType dof, double displacement) in prescribedDisplacements)
             {
-                Node_v2[] nodes = FindBoundaryNodes(region, model, meshTolerance);
-                foreach (Node_v2 node in nodes) node.Constraints.Add(new Constraint() { DOF = dof, Amount = displacement });
+                Node[] nodes = FindBoundaryNodes(region, model, meshTolerance);
+                foreach (Node node in nodes) node.Constraints.Add(new Constraint() { DOF = dof, Amount = displacement });
             }
 
             // Apply prescribed loads
             foreach ((BoundaryRegion region, DOFType dof, double totalLoad) in prescribedLoads)
             {
-                Node_v2[] nodes = FindBoundaryNodes(region, model, meshTolerance);
+                Node[] nodes = FindBoundaryNodes(region, model, meshTolerance);
                 double load = totalLoad / nodes.Length;
-                foreach (Node_v2 node in nodes) model.Loads.Add(new Load_v2() { Node = node, DOF = dof, Amount = load });
+                foreach (Node node in nodes) model.Loads.Add(new Load() { Node = node, DOF = dof, Amount = load });
             }
 
             return model;
@@ -154,11 +154,11 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
         public void PrescribeDistributedLoad(BoundaryRegion region, DOFType dof, double load) 
             => prescribedLoads.Add((region, dof, load));
 
-        private Node_v2[] FindBoundaryNodes(BoundaryRegion region, Model_v2 model, double tol)
+        private Node[] FindBoundaryNodes(BoundaryRegion region, Model model, double tol)
         {
             double minX = 0.0, minY = 0.0, maxX = DomainLengthX, maxY = DomainLengthY; // for brevity
 
-            IEnumerable<Node_v2> nodes;
+            IEnumerable<Node> nodes;
             if (region == BoundaryRegion.LeftSide) nodes = model.Nodes.Where(node => Math.Abs(node.X - minX) <= tol);
             else if (region == BoundaryRegion.RightSide) nodes = model.Nodes.Where(node => Math.Abs(node.X - maxX) <= tol);
             else if (region == BoundaryRegion.LowerSide) nodes = model.Nodes.Where(node => Math.Abs(node.Y - minY) <= tol);
@@ -196,7 +196,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
                 this.maxY = maxY;
             }
 
-            public bool Contains(CellConnectivity_v2 cell, double tol)
+            public bool Contains(CellConnectivity cell, double tol)
             {
                 return cell.Vertices.All(node =>
                      (node.X >= minX - tol) && (node.X <= maxX + tol) && (node.Y >= minY - tol) && (node.Y <= maxY + tol));

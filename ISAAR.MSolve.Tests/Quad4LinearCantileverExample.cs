@@ -17,31 +17,31 @@ namespace ISAAR.MSolve.Tests
     public static class Quad4LinearCantileverExample
     {
         [Fact]
-        private static void TestQuad4LinearCantileverExample_v2()
+        private static void TestQuad4LinearCantileverExample()
         {
             // Model & subdomains
-            var model = new Model_v2();
+            var model = new Model();
             int subdomainID = 0;
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain(subdomainID));
 
             // Materials
             double youngModulus = 3.76;
             double poissonRatio = 0.3779;
             double thickness = 1.0;
             double nodalLoad = 500.0;
-            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
+            var material = new ElasticMaterial2D(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
             };
 
             // Nodes
-            var nodes = new Node_v2[]
+            var nodes = new Node[]
             {
-                new Node_v2 { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 },
-                new Node_v2 { ID = 2, X = 10.0, Y = 0.0, Z = 0.0 },
-                new Node_v2 { ID = 3, X = 10.0, Y = 10.0, Z = 0.0 },
-                new Node_v2 { ID = 4, X = 0.0, Y = 10.0, Z = 0.0 }
+                new Node { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 },
+                new Node { ID = 2, X = 10.0, Y = 0.0, Z = 0.0 },
+                new Node { ID = 3, X = 10.0, Y = 10.0, Z = 0.0 },
+                new Node { ID = 4, X = 0.0, Y = 10.0, Z = 0.0 }
             };
             for (int i = 0; i < nodes.Length; ++i) model.NodesDictionary.Add(i, nodes[i]);
 
@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.Tests
             // Elements
             var factory = new ContinuumElement2DFactory(thickness, material, null);
 
-            var elementWrapper = new Element_v2()
+            var elementWrapper = new Element()
             {
                 ID = 0,
                 ElementType = factory.CreateElement(CellType.Quad4, nodes)
@@ -67,8 +67,8 @@ namespace ISAAR.MSolve.Tests
             model.NodesDictionary[3].Constraints.Add(new Constraint() { DOF = DOFType.Y, Amount = 0.0 });
 
             // Nodal loads
-            model.Loads.Add(new Load_v2() { Amount = nodalLoad, Node = model.NodesDictionary[1], DOF = DOFType.X });
-            model.Loads.Add(new Load_v2() { Amount = nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.X });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[1], DOF = DOFType.X });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.X });
 
             // Solver
             var pcgBuilder = new PcgAlgorithm.Builder();
@@ -79,22 +79,22 @@ namespace ISAAR.MSolve.Tests
             PcgSolver solver = solverBuilder.BuildSolver(model);
 
             // Problem type
-            var provider = new ProblemStructural_v2(model, solver);
+            var provider = new ProblemStructural(model, solver);
 
             // Analyzers
-            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+            var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
             //NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, childAnalyzer, linearSystems, 0.25, 0.5, 0.28, 3.36);
 
             // Request output
-            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory_v2(new int[] { 0 });
+            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 0 });
 
             // Run the anlaysis 
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
             // Check output
-            DOFSLog_v2 log = (DOFSLog_v2)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
+            DOFSLog log = (DOFSLog)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
             Assert.Equal(253.132375961535, log.DOFValues[0], 8);
         }
     }

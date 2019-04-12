@@ -13,19 +13,19 @@ namespace ISAAR.MSolve.Solvers.Ordering
     /// </summary>
     public class NodeMajorDofOrderingStrategy : IFreeDofOrderingStrategy
     {
-        public (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderGlobalDofs(IStructuralModel_v2 model)
+        public (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderGlobalDofs(IStructuralModel model)
             => OrderFreeDofsOfElementSet(model.Elements, model.Nodes, model.Constraints);
 
-        public (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) OrderSubdomainDofs(ISubdomain_v2 subdomain)
+        public (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) OrderSubdomainDofs(ISubdomain subdomain)
             => OrderFreeDofsOfElementSet(subdomain.Elements, subdomain.Nodes, subdomain.Constraints);
 
         // Copied from the methods used by Subdomain and Model previously.
-        private static (int numFreeDofs, DofTable freeDofs) OrderFreeDofsOfElementSet(IEnumerable<IElement_v2> elements,
+        private static (int numFreeDofs, DofTable freeDofs) OrderFreeDofsOfElementSet(IEnumerable<IElement> elements,
             IEnumerable<INode> sortedNodes, Table<INode, DOFType, double> constraints)
         {
             int totalDOFs = 0;
             Dictionary<int, List<DOFType>> nodalDOFTypesDictionary = new Dictionary<int, List<DOFType>>(); //TODO: use Set instead of List
-            foreach (IElement_v2 element in elements)
+            foreach (IElement element in elements)
             {
                 for (int i = 0; i < element.Nodes.Count; i++)
                 {

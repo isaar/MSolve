@@ -18,12 +18,12 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         /// <summary>
         /// Random shape, not too distorted.
         /// </summary>
-        private static readonly IReadOnlyList<Node_v2> nodeSet0 = new Node_v2[]
+        private static readonly IReadOnlyList<Node> nodeSet0 = new Node[]
         {
-            new Node_v2 { ID = 0, X = 0.0, Y = 0.0 },
-            new Node_v2 { ID = 1, X = 1.0, Y = 0.0 },
-            new Node_v2 { ID = 2, X = 1.0, Y = 1.0 },
-            new Node_v2 { ID = 3, X = 0.0, Y = 1.0 }
+            new Node { ID = 0, X = 0.0, Y = 0.0 },
+            new Node { ID = 1, X = 1.0, Y = 0.0 },
+            new Node { ID = 2, X = 1.0, Y = 1.0 },
+            new Node { ID = 3, X = 0.0, Y = 1.0 }
         };
 
         [Fact]

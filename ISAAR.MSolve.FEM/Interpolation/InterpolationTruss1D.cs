@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
             return derivatives;
         }
 
-        public IReadOnlyList<EvalInterpolation1D> EvaluateAllAtGaussPoints(IReadOnlyList<Node_v2> nodes, IQuadrature1D quadrature)
+        public IReadOnlyList<EvalInterpolation1D> EvaluateAllAtGaussPoints(IReadOnlyList<Node> nodes, IQuadrature1D quadrature)
         {
             // The shape functions and natural derivatives at each Gauss point are probably cached from previous calls
             IReadOnlyList<Vector> shapeFunctionsAtGPs = EvaluateFunctionsAtGaussPoints(quadrature);

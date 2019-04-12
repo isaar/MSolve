@@ -56,14 +56,14 @@ namespace ISAAR.MSolve.Tests.FEMpartB
                                                       {32.500000000000028,-38.971143170299747},
                                                       {-38.971143170299754,77.499999999999972},};
 
-            Assert.True(AreDisplacementsSame_v2( calculated_stresses, stress_data));
-            Assert.True(AreDisplacementsSame_v2(calculated_Const, const_data));
+            Assert.True(AreDisplacementsSame( calculated_stresses, stress_data));
+            Assert.True(AreDisplacementsSame(calculated_Const, const_data));
         }
 
         public static (double[][],double[][,]) CheckStressStrainBonSlipMaterial()
         {
             //VectorExtensions.AssignTotalAffinityCount();
-            BondSlipCohMat_v2 material1 = new BondSlipCohMat_v2(100, 10, 100, 100, new double[2], new double[2], 1e-10);
+            BondSlipCohMat material1 = new BondSlipCohMat(100, 10, 100, 100, new double[2], new double[2], 1e-10);
             int loadsteps_2 = 120;
             double[][] DeltaEhist = new double[2 * loadsteps_2][];
             double phi_metakinhshs = ((double)30 / (double)360) * 2 * Math.PI;
@@ -84,7 +84,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB
 
         }
 
-        public static bool AreDisplacementsSame_v2(double[,] expectedValues,
+        public static bool AreDisplacementsSame(double[,] expectedValues,
             double[,] computedValues)
         {
             var comparer = new ValueComparer(1E-8);
@@ -101,7 +101,7 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             return true;
         }
 
-        private static (double[][] stressHistory, double[][,] constitutiveMatrixHistory) StressStrainHistory(double[][] strainHistory, ICohesiveZoneMaterial3D_v2 testedMaterial)
+        private static (double[][] stressHistory, double[][,] constitutiveMatrixHistory) StressStrainHistory(double[][] strainHistory, ICohesiveZoneMaterial3D testedMaterial)
         {
             double[][] stressHistory = new double[strainHistory.GetLength(0)][];
             double[][,] constitutiveMatrixHistory = new double[strainHistory.GetLength(0)][,];

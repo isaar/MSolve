@@ -10,7 +10,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     /// Creates a elastic matrix rve
     /// Authors Gerasimos Sotiropoulos
     /// </summary>
-    public class HomogeneousRVEBuilderLinear : IRVEbuilder_v2
+    public class HomogeneousRVEBuilderLinear : IRVEbuilder
     {        
         private Tuple<rveMatrixParameters, grapheneSheetParameters> mpgp ;
         private rveMatrixParameters mp;
@@ -23,21 +23,21 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             // this.renumbering_vector_path=renumbering_vector_path,
             // this.subdiscr1=subdiscr1
         }
-        public IRVEbuilder_v2 Clone(int a) => new HomogeneousRVEBuilderLinear();
+        public IRVEbuilder Clone(int a) => new HomogeneousRVEBuilderLinear();
 
-        public Tuple<Model_v2, Dictionary<int, Node_v2>,double> GetModelAndBoundaryNodes()
+        public Tuple<Model, Dictionary<int, Node>,double> GetModelAndBoundaryNodes()
         {
            return Reference2RVEExample10_000withRenumbering_mono_hexa();
         }
 
         
 
-        public Tuple<Model_v2, Dictionary<int, Node_v2>,double> Reference2RVEExample10_000withRenumbering_mono_hexa()
+        public Tuple<Model, Dictionary<int, Node>,double> Reference2RVEExample10_000withRenumbering_mono_hexa()
         {
-            Model_v2 model = new Model_v2();
-            model.SubdomainsDictionary.Add(1, new Subdomain_v2( 1 ));
+            Model model = new Model();
+            model.SubdomainsDictionary.Add(1, new Subdomain( 1 ));
 
-            Dictionary<int, Node_v2> boundaryNodes= new Dictionary<int, Node_v2>();
+            Dictionary<int, Node> boundaryNodes= new Dictionary<int, Node>();
             // COPY APO: Reference2RVEExample100_000withRenumbering_mono_hexa
             double[,] Dq = new double[1, 1];
             //Tuple<rveMatrixParameters, grapheneSheetParameters> mpgp;
@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             int subdiscr1_shell = 7;
             int discr1_shell = 1;
 
-            mpgp = FEMMeshBuilder_v2.GetReferenceRveExampleParameters(subdiscr1, discr1, discr3, subdiscr1_shell, discr1_shell);
+            mpgp = FEMMeshBuilder.GetReferenceRveExampleParameters(subdiscr1, discr1, discr3, subdiscr1_shell, discr1_shell);
             mp = mpgp.Item1;
             gp = mpgp.Item2;
             double[][] ekk_xyz = new double[2][] { new double[] { 0, 0, 0 }, new double[] { 0.25 * 105, 0, 0.25 * 40 } };
@@ -62,12 +62,12 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             o_x_parameters[] model_o_x_parameteroi = new o_x_parameters[graphene_sheets_number];
 
 
-            FEMMeshBuilder_v2.LinearHexaElementsOnlyRVEwithRenumbering_forMS(model, mp, Dq, renumbering_vector_path, boundaryNodes);
+            FEMMeshBuilder.LinearHexaElementsOnlyRVEwithRenumbering_forMS(model, mp, Dq, renumbering_vector_path, boundaryNodes);
             double volume = mp.L01 * mp.L02 * mp.L03;
 
             
 
-            return new Tuple<Model_v2, Dictionary<int, Node_v2>,double>(model, boundaryNodes,volume);
+            return new Tuple<Model, Dictionary<int, Node>,double>(model, boundaryNodes,volume);
         }
 
         

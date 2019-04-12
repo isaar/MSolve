@@ -25,8 +25,8 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         private SkylineBuilder skylineBuilder;
         private ConstrainedMatricesAssembler constrainedAssembler = new ConstrainedMatricesAssembler();
 
-        public SkylineMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement_v2> elements,
-            IElementMatrixProvider_v2 matrixProvider)
+        public SkylineMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement> elements,
+            IElementMatrixProvider matrixProvider)
         {
             if (!areIndexersCached)
             {
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             }
             else skylineBuilder.ClearValues();
 
-            foreach (IElement_v2 element in elements)
+            foreach (IElement element in elements)
             {
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 (int[] elementDofIndices, int[] subdomainDofIndices) = dofOrdering.MapFreeDofsElementToSubdomain(element);
@@ -50,7 +50,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         public (SkylineMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree, 
             IMatrixView matrixConstrConstr) BuildGlobalSubmatrices(
             ISubdomainFreeDofOrdering freeDofOrdering, ISubdomainConstrainedDofOrdering constrainedDofOrdering, 
-            IEnumerable<IElement_v2> elements, IElementMatrixProvider_v2 matrixProvider)
+            IEnumerable<IElement> elements, IElementMatrixProvider matrixProvider)
         {
             if (!areIndexersCached)
             {
@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
             constrainedAssembler.InitializeNewMatrices(freeDofOrdering.NumFreeDofs, constrainedDofOrdering.NumConstrainedDofs);
 
             // Process the stiffness of each element
-            foreach (IElement_v2 element in elements)
+            foreach (IElement element in elements)
             {
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 (int[] elementDofsFree, int[] subdomainDofsFree) = freeDofOrdering.MapFreeDofsElementToSubdomain(element);
@@ -93,11 +93,11 @@ namespace ISAAR.MSolve.Solvers.Assemblers
         //TODO: If one element engages some dofs (of a node) and another engages other dofs, the ones not in the intersection 
         // are not dependent from the rest. This method assumes dependency for all dofs of the same node. This is a rare occasion 
         // though.
-        private static int[] FindSkylineColumnHeights(IEnumerable<IElement_v2> elements,
+        private static int[] FindSkylineColumnHeights(IEnumerable<IElement> elements,
             int numFreeDofs, DofTable freeDofs)
         {
             int[] colHeights = new int[numFreeDofs]; //only entries above the diagonal count towards the column height
-            foreach (IElement_v2 element in elements)
+            foreach (IElement element in elements)
             {
                 //TODO: perhaps I could use dofOrdering.MapFreeDofsElementToSubdomain(element). This way they can be cached,
                 //      which would speed up the code when building the values array. However, if there is not enough memory for 

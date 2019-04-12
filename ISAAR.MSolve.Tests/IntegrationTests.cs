@@ -17,24 +17,24 @@ namespace ISAAR.MSolve.Tests
     public class IntegrationTests
     {
         [Fact]
-        public void TestSolveHexaCantileverBeam_v2()
+        public void TestSolveHexaCantileverBeam()
         {
-            var model = new Model_v2();
-            model.SubdomainsDictionary.Add(1, new Subdomain_v2(1));
+            var model = new Model();
+            model.SubdomainsDictionary.Add(1, new Subdomain(1));
 
-            HexaSimpleCantileverBeam.MakeCantileverBeam_v2(model, 0, 0, 0, model.NodesDictionary.Count + 1, model.ElementsDictionary.Count + 1, 1);
+            HexaSimpleCantileverBeam.MakeCantileverBeam(model, 0, 0, 0, model.NodesDictionary.Count + 1, model.ElementsDictionary.Count + 1, 1);
 
-            model.Loads.Add(new Load_v2() { Amount = -0.25, Node = model.Nodes[16], DOF = DOFType.Z });
-            model.Loads.Add(new Load_v2() { Amount = -0.25, Node = model.Nodes[17], DOF = DOFType.Z });
-            model.Loads.Add(new Load_v2() { Amount = -0.25, Node = model.Nodes[18], DOF = DOFType.Z });
-            model.Loads.Add(new Load_v2() { Amount = -0.25, Node = model.Nodes[19], DOF = DOFType.Z });
+            model.Loads.Add(new Load() { Amount = -0.25, Node = model.Nodes[16], DOF = DOFType.Z });
+            model.Loads.Add(new Load() { Amount = -0.25, Node = model.Nodes[17], DOF = DOFType.Z });
+            model.Loads.Add(new Load() { Amount = -0.25, Node = model.Nodes[18], DOF = DOFType.Z });
+            model.Loads.Add(new Load() { Amount = -0.25, Node = model.Nodes[19], DOF = DOFType.Z });
 
             var solverBuilder = new SkylineSolver.Builder();
-            ISolver_v2 solver = solverBuilder.BuildSolver(model);
-            var provider = new ProblemStructural_v2(model, solver);
-            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
-            //childAnalyzer.LogFactories[1] = new LinearAnalyzerLogFactory_v2(new int[] { 47 });
+            ISolver solver = solverBuilder.BuildSolver(model);
+            var provider = new ProblemStructural(model, solver);
+            var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
+            //childAnalyzer.LogFactories[1] = new LinearAnalyzerLogFactory(new int[] { 47 });
 
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.Tests
         }
 
         [Fact]
-        public void SolveCantileverBeam2D_v2()
+        public void SolveCantileverBeam2D()
         {
             double youngModulus = 2.0e08;
             double poissonRatio = 0.3;
@@ -71,17 +71,17 @@ namespace ISAAR.MSolve.Tests
             };
 
             // Node creation
-            IList<Node_v2> nodes = new List<Node_v2>();
-            Node_v2 node1 = new Node_v2 { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
-            Node_v2 node2 = new Node_v2 { ID = 2, X = 5.0, Y = 0.0, Z = 0.0 };
+            IList<Node> nodes = new List<Node>();
+            Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
+            Node node2 = new Node { ID = 2, X = 5.0, Y = 0.0, Z = 0.0 };
             nodes.Add(node1);
             nodes.Add(node2);
 
             // Model creation
-            Model_v2 model = new Model_v2();
+            Model model = new Model();
 
             // Add a single subdomain to the model
-            model.SubdomainsDictionary.Add(1, new Subdomain_v2(1));
+            model.SubdomainsDictionary.Add(1, new Subdomain(1));
 
             // Add nodes to the nodes dictonary of the model
             for (int i = 0; i < nodes.Count; ++i)
@@ -96,13 +96,13 @@ namespace ISAAR.MSolve.Tests
 
 
             // Create a new Beam2D element
-            var beam = new EulerBeam2D_v2(youngModulus)
+            var beam = new EulerBeam2D(youngModulus)
             {
                 SectionArea = 1,
                 MomentOfInertia = .1
             };
 
-            var element = new Element_v2()
+            var element = new Element()
             {
                 ID = 1,
                 ElementType = beam
@@ -119,14 +119,14 @@ namespace ISAAR.MSolve.Tests
             model.SubdomainsDictionary[1].Elements.Add(element);
 
             // Add nodal load values at the top nodes of the model
-            model.Loads.Add(new Load_v2() { Amount = -nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = -nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.Y });
 
             // Solvers, providers, analyzers
             var solverBuilder = new SkylineSolver.Builder();
-            ISolver_v2 solver = solverBuilder.BuildSolver(model);
-            var provider = new ProblemStructural_v2(model, solver);
-            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+            ISolver solver = solverBuilder.BuildSolver(model);
+            var provider = new ProblemStructural(model, solver);
+            var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
@@ -135,7 +135,7 @@ namespace ISAAR.MSolve.Tests
         }
 
         [Fact]
-        private static void SolveQuadCantileverDecompositionTest1_v2()
+        private static void SolveQuadCantileverDecompositionTest1()
         {
             #region Quad Cantilever Model
             double youngModulus = 3.0e07;
@@ -143,17 +143,17 @@ namespace ISAAR.MSolve.Tests
             double nodalLoad = 1000;
 
             // Create a new elastic 2D material
-            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
+            var material = new ElasticMaterial2D(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
             };
 
             // Model creation
-            var model = new Model_v2();
+            var model = new Model();
 
             // Add a single subdomain to the model
-            model.SubdomainsDictionary.Add(0, new Subdomain_v2(0));
+            model.SubdomainsDictionary.Add(0, new Subdomain(0));
 
             // Add nodes to the nodes dictonary of the model
             int indexNode = 0;
@@ -161,7 +161,7 @@ namespace ISAAR.MSolve.Tests
             {
                 for (int j = 0; j < 5; j++)
                 {
-                    model.NodesDictionary.Add(indexNode, new Node_v2()
+                    model.NodesDictionary.Add(indexNode, new Node()
                     {
                         ID = indexNode++,
                         X = i,
@@ -183,10 +183,10 @@ namespace ISAAR.MSolve.Tests
             {
                 for (int j = 0; j < 4; j++)
                 {
-                    var element = new Element_v2()
+                    var element = new Element()
                     {
                         ID = indexElement,
-                        ElementType = new Quad4_v2(material)
+                        ElementType = new Quad4(material)
                     };
                     element.AddNode(model.NodesDictionary[i * 5 + j]);
                     element.AddNode(model.NodesDictionary[(i + 1) * 5 + j]);
@@ -198,14 +198,14 @@ namespace ISAAR.MSolve.Tests
                 }
             }
             // Add nodal load values to node 3
-            model.Loads.Add(new Load_v2() { Amount = nodalLoad, Node = model.NodesDictionary[124], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[124], DOF = DOFType.Y });
 
             #endregion
 
             // Needed in order to make all the required data structures
             model.ConnectDataStructures();
 
-            var domainDecomposer = new AutomaticDomainDecomposer_v2(model, 3);
+            var domainDecomposer = new AutomaticDomainDecomposer(model, 3);
             domainDecomposer.UpdateModel();
 
 
@@ -228,7 +228,7 @@ namespace ISAAR.MSolve.Tests
         }
 
         [Fact]
-        private static void SolveQuadCantileverDecompositionTest2_v2()
+        private static void SolveQuadCantileverDecompositionTest2()
         {
             #region Quad Cantilever Model
             double youngModulus = 3.0e07;
@@ -236,17 +236,17 @@ namespace ISAAR.MSolve.Tests
             double nodalLoad = 1000;
 
             // Create a new elastic 2D material
-            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
+            var material = new ElasticMaterial2D(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
             };
 
             // Model creation
-            Model_v2 model = new Model_v2();
+            Model model = new Model();
 
             // Add a single subdomain to the model
-            model.SubdomainsDictionary.Add(0, new Subdomain_v2(0));
+            model.SubdomainsDictionary.Add(0, new Subdomain(0));
 
             // Add nodes to the nodes dictonary of the model
             int indexNode = 0;
@@ -254,7 +254,7 @@ namespace ISAAR.MSolve.Tests
             {
                 for (int j = 0; j < 5; j++)
                 {
-                    model.NodesDictionary.Add(indexNode, new Node_v2()
+                    model.NodesDictionary.Add(indexNode, new Node()
                     {
                         ID = indexNode++,
                         X = i,
@@ -276,10 +276,10 @@ namespace ISAAR.MSolve.Tests
             {
                 for (int j = 0; j < 4; j++)
                 {
-                    var element = new Element_v2()
+                    var element = new Element()
                     {
                         ID = indexElement,
-                        ElementType = new Quad4_v2(material)
+                        ElementType = new Quad4(material)
                     };
                     element.AddNode(model.NodesDictionary[i * 5 + j]);
                     element.AddNode(model.NodesDictionary[(i + 1) * 5 + j]);
@@ -291,14 +291,14 @@ namespace ISAAR.MSolve.Tests
                 }
             }
             // Add nodal load values to node 3
-            model.Loads.Add(new Load_v2() { Amount = nodalLoad, Node = model.NodesDictionary[124], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[124], DOF = DOFType.Y });
 
             // Needed in order to make all the required data structures
             model.ConnectDataStructures();
 
             #endregion
 
-            var domainDecomposer = new AutomaticDomainDecomposer_v2(model, 8);
+            var domainDecomposer = new AutomaticDomainDecomposer(model, 8);
             domainDecomposer.UpdateModel();
 
 
@@ -326,7 +326,7 @@ namespace ISAAR.MSolve.Tests
         }
 
         [Fact]
-        private static void SolveQuadCantileverDecompositionTest3_v2()
+        private static void SolveQuadCantileverDecompositionTest3()
         {
             #region Quad Cantilever Model
             double youngModulus = 3.0e07;
@@ -334,17 +334,17 @@ namespace ISAAR.MSolve.Tests
             double nodalLoad = 1000;
 
             // Create a new elastic 2D material
-            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
+            var material = new ElasticMaterial2D(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
             };
 
             // Model creation
-            Model_v2 model = new Model_v2();
+            Model model = new Model();
 
             // Add a single subdomain to the model
-            model.SubdomainsDictionary.Add(0, new Subdomain_v2(0));
+            model.SubdomainsDictionary.Add(0, new Subdomain(0));
 
             // Add nodes to the nodes dictonary of the model
             int indexNode = 0;
@@ -352,7 +352,7 @@ namespace ISAAR.MSolve.Tests
             {
                 for (int j = 0; j < 3; j++)
                 {
-                    model.NodesDictionary.Add(indexNode, new Node_v2()
+                    model.NodesDictionary.Add(indexNode, new Node()
                     {
                         ID = indexNode++,
                         X = i,
@@ -374,10 +374,10 @@ namespace ISAAR.MSolve.Tests
             {
                 for (int j = 0; j < 2; j++)
                 {
-                    var element = new Element_v2()
+                    var element = new Element()
                     {
                         ID = indexElement,
-                        ElementType = new Quad4_v2(material)
+                        ElementType = new Quad4(material)
                     };
                     element.AddNode(model.NodesDictionary[i * 3 + j]);
                     element.AddNode(model.NodesDictionary[(i + 1) * 3 + j]);
@@ -389,14 +389,14 @@ namespace ISAAR.MSolve.Tests
                 }
             }
             // Add nodal load values to node 3
-            model.Loads.Add(new Load_v2() { Amount = nodalLoad, Node = model.NodesDictionary[17], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[17], DOF = DOFType.Y });
 
             // Needed in order to make all the required data structures
             model.ConnectDataStructures();
 
             #endregion
 
-            var domainDecomposer = new AutomaticDomainDecomposer_v2(model, 3);
+            var domainDecomposer = new AutomaticDomainDecomposer(model, 3);
             domainDecomposer.UpdateModel();
 
 
@@ -419,14 +419,14 @@ namespace ISAAR.MSolve.Tests
         }
 
         [Fact]
-        private static void SolveLinearTrussExample_v2()
+        private static void SolveLinearTrussExample()
         {
             #region CreateGeometry
 
-            IList<Node_v2> nodes = new List<Node_v2>();
-            Node_v2 node1 = new Node_v2 { ID = 1, X = 0, Y = 0 };
-            Node_v2 node2 = new Node_v2 { ID = 2, X = 0, Y = 40 };
-            Node_v2 node3 = new Node_v2 { ID = 3, X = 40, Y = 40 };
+            IList<Node> nodes = new List<Node>();
+            Node node1 = new Node { ID = 1, X = 0, Y = 0 };
+            Node node2 = new Node { ID = 2, X = 0, Y = 40 };
+            Node node3 = new Node { ID = 3, X = 40, Y = 40 };
 
             nodes.Add(node1);
             nodes.Add(node2);
@@ -438,9 +438,9 @@ namespace ISAAR.MSolve.Tests
             double loadY = 300;
             double sectionArea = 1.5;
 
-            var trussModel = new Model_v2();
+            var trussModel = new Model();
 
-            trussModel.SubdomainsDictionary.Add(0, new Subdomain_v2(0));
+            trussModel.SubdomainsDictionary.Add(0, new Subdomain(0));
 
             for (int i = 0; i < nodes.Count; i++)
             {
@@ -453,8 +453,8 @@ namespace ISAAR.MSolve.Tests
             trussModel.NodesDictionary[2].Constraints.Add(new Constraint { DOF = DOFType.Y });
 
 
-            var element1 = new Element_v2() { ID = 1, ElementType = new Rod2D_v2(youngMod) { Density = 1, SectionArea = sectionArea } };
-            var element2 = new Element_v2() { ID = 2, ElementType = new Rod2D_v2(youngMod) { Density = 1, SectionArea = sectionArea } };
+            var element1 = new Element() { ID = 1, ElementType = new Rod2D(youngMod) { Density = 1, SectionArea = sectionArea } };
+            var element2 = new Element() { ID = 2, ElementType = new Rod2D(youngMod) { Density = 1, SectionArea = sectionArea } };
 
             element1.AddNode(trussModel.NodesDictionary[1]);
             element1.AddNode(trussModel.NodesDictionary[3]);
@@ -468,16 +468,16 @@ namespace ISAAR.MSolve.Tests
             trussModel.SubdomainsDictionary[0].Elements.Add(element1);
             trussModel.SubdomainsDictionary[0].Elements.Add(element2);
 
-            trussModel.Loads.Add(new Load_v2() { Amount = loadX, Node = trussModel.NodesDictionary[3], DOF = DOFType.X });
-            trussModel.Loads.Add(new Load_v2() { Amount = loadY, Node = trussModel.NodesDictionary[3], DOF = DOFType.Y });
+            trussModel.Loads.Add(new Load() { Amount = loadX, Node = trussModel.NodesDictionary[3], DOF = DOFType.X });
+            trussModel.Loads.Add(new Load() { Amount = loadY, Node = trussModel.NodesDictionary[3], DOF = DOFType.Y });
             #endregion
 
             // Solvers, providers, analyzers
             var solverBuilder = new SkylineSolver.Builder();
-            ISolver_v2 solver = solverBuilder.BuildSolver(trussModel);
-            var provider = new ProblemStructural_v2(trussModel, solver);
-            var childAnalyzer = new LinearAnalyzer_v2(trussModel, solver, provider);
-            var parentAnalyzer = new StaticAnalyzer_v2(trussModel, solver, provider, childAnalyzer);
+            ISolver solver = solverBuilder.BuildSolver(trussModel);
+            var provider = new ProblemStructural(trussModel, solver);
+            var childAnalyzer = new LinearAnalyzer(trussModel, solver, provider);
+            var parentAnalyzer = new StaticAnalyzer(trussModel, solver, provider, childAnalyzer);
 
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();

@@ -16,23 +16,23 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     /// </summary>
     public class SubdomainCalculationsAndAssembly
     {
-        //SubdomainCalculationsSimultaneousObje_v2
+        //SubdomainCalculationsSimultaneousObje
 
         private Dictionary<int, double[][]> KfpDqVectors;
         private Dictionary<int, double[][]> KppDqVectors;
         //ISubdomainFreeDofOrdering dofOrdering;
         //DofTable FreeDofs;
         //v2.1 Dictionary<int, Dictionary<DOFType, int>> nodalDOFsDictionary;
-        IScaleTransitions_v2 scaleTransitions;
-        Dictionary<int, Dictionary<int, Element_v2>> boundaryElements;
-        Dictionary<int, Node_v2> boundaryNodes;
+        IScaleTransitions scaleTransitions;
+        Dictionary<int, Dictionary<int, Element>> boundaryElements;
+        Dictionary<int, Node> boundaryNodes;
         Dictionary<int, int> boundaryNodesOrder;
         //int currentSubdomainID;
 
-        public (Dictionary<int, double[][]>, Dictionary<int, double[][]>) UpdateSubdomainKffAndCalculateKfpDqAndKppDqpMultipleObje_v2(Model_v2 model, IElementMatrixProvider_v2 elementProvider, IScaleTransitions_v2 scaleTransitions,
-            Dictionary<int, Node_v2> boundaryNodes, Dictionary<int, Dictionary<int, Element_v2>> boundaryElements,ISolver_v2 solver)
+        public (Dictionary<int, double[][]>, Dictionary<int, double[][]>) UpdateSubdomainKffAndCalculateKfpDqAndKppDqpMultipleObje(Model model, IElementMatrixProvider elementProvider, IScaleTransitions scaleTransitions,
+            Dictionary<int, Node> boundaryNodes, Dictionary<int, Dictionary<int, Element>> boundaryElements,ISolver solver)
         {
-            IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems = solver.LinearSystems; //v2.3
+            IReadOnlyDictionary<int, ILinearSystem> linearSystems = solver.LinearSystems; //v2.3
 
             Dictionary<int, double[][]> KfpDqSubdomains = new Dictionary<int, double[][]>(model.SubdomainsDictionary.Count);
             Dictionary<int, double[][]> KppDqVectorsSubdomains = new Dictionary<int, double[][]>(model.SubdomainsDictionary.Count);
@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
 
             KfpDqVectors = new Dictionary<int, double[][]>(model.SubdomainsDictionary.Count);
             KppDqVectors = new Dictionary<int, double[][]>(model.SubdomainsDictionary.Count);
-            foreach (Subdomain_v2 subdomain in model.Subdomains)
+            foreach (Subdomain subdomain in model.Subdomains)
             {
                 #region Create KfpDq and KppDq vectors 
                 KfpDqVectors[subdomain.ID] = new double[scaleTransitions.MacroscaleVariableDimension()][];
@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
                 }
 
                 KppDqVectors[subdomain.ID] = new double[scaleTransitions.MacroscaleVariableDimension()][];
-                boundaryNodesOrder = SubdomainCalculations_v2.GetNodesOrderInDictionary(boundaryNodes);
+                boundaryNodesOrder = SubdomainCalculations.GetNodesOrderInDictionary(boundaryNodes);
                 for (int j1 = 0; j1 < scaleTransitions.MacroscaleVariableDimension(); j1++)
                 {
                     KppDqVectors[subdomain.ID][j1] = new double[boundaryNodesOrder.Count * scaleTransitions.PrescribedDofsPerNode()]; // h allliws subdomain.Forces.GetLength(0)
@@ -60,13 +60,13 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
                 #endregion
             }
 
-            var StiffnessProvider = new StiffnessProviderSimu_v2(this);
+            var StiffnessProvider = new StiffnessProviderSimu(this);
             Dictionary<int, IMatrix> subdomainKs = solver.BuildGlobalMatrices(StiffnessProvider);
 
-            foreach (Subdomain_v2 subdomain in model.Subdomains)
+            foreach (Subdomain subdomain in model.Subdomains)
             {
-                //dofOrdering = subdomain.FreeDofOrdering; //_v2.1
-                //FreeDofs = subdomain.FreeDofOrdering.FreeDofs;//_v2.1 nodalDOFsDictionary = subdomain.NodalDOFsDictionary;
+                //dofOrdering = subdomain.FreeDofOrdering; //.1
+                //FreeDofs = subdomain.FreeDofOrdering.FreeDofs;//.1 nodalDOFsDictionary = subdomain.NodalDOFsDictionary;
                 //currentSubdomainID = subdomain.ID;
 
                 
@@ -84,13 +84,13 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             return (KfpDqSubdomains, KppDqVectorsSubdomains);        
         }
 
-        public void UpdateVectors_v2(IElement_v2 element, IMatrix ElementK)
+        public void UpdateVectors(IElement element, IMatrix ElementK)
         {
-            ISubdomain_v2 subdomain = element.Subdomain;
+            ISubdomain subdomain = element.Subdomain;
             if (boundaryElements[subdomain.ID].ContainsKey(element.ID))//COPIED From UpdateSubdomainKffAndCalculateKfpDqAndKppDqp (prosoxh boundary elements Dictionary diathetoun kai to model kai to subdomain kai einai diaforetika edw exei diorthwthei
             {
                 //ADDED these lines from another part of UpdateSubdomainKffAndCalculateKfpDqAndKppDqp
-                var isEmbeddedElement = element.ElementType is ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement_v2;
+                var isEmbeddedElement = element.ElementType is ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
                 var elementDOFTypes = element.ElementType.DofEnumerator.GetDOFTypes(element);
                 var matrixAssemblyNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
 

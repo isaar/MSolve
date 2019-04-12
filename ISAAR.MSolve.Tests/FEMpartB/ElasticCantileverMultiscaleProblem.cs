@@ -13,8 +13,8 @@ namespace ISAAR.MSolve.Tests.FEMpartB
         public static void CheckElasticMultiscaleCantilever()
         {
             IReadOnlyList<Dictionary<int, double>> expectedDisplacements = GetExpectedDisplacements();
-            TotalDisplacementsPerIterationLog_v2 computedDisplacements = IntegrationElasticCantileverBenchmark.RunExample();
-            Assert.True( AreDisplacementsSame_v2(expectedDisplacements, computedDisplacements));
+            TotalDisplacementsPerIterationLog computedDisplacements = IntegrationElasticCantileverBenchmark.RunExample();
+            Assert.True( AreDisplacementsSame(expectedDisplacements, computedDisplacements));
 
         }
 
@@ -47,8 +47,8 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             return expectedDisplacements;
         }
 
-        private static bool AreDisplacementsSame_v2(IReadOnlyList<Dictionary<int, double>> expectedDisplacements,
-            TotalDisplacementsPerIterationLog_v2 computedDisplacements)
+        private static bool AreDisplacementsSame(IReadOnlyList<Dictionary<int, double>> expectedDisplacements,
+            TotalDisplacementsPerIterationLog computedDisplacements)
         {
             int subdomainID = 1;
             var comparer = new ValueComparer(1E-13);

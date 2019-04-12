@@ -20,16 +20,16 @@ namespace ISAAR.MSolve.Tests.FEM
         private const int subdomainID = 0;
 
         [Fact]
-        public static void RunTest_v2()
+        public static void RunTest()
         {
             IReadOnlyList<Dictionary<int, double>> expectedDisplacements = GetExpectedDisplacements();
             //IncrementalDisplacementsLog computedDisplacements = SolveModel();
-            TotalDisplacementsPerIterationLog_v2 computedDisplacements = SolveModel_v2();
-            Assert.True(AreDisplacementsSame_v2(expectedDisplacements, computedDisplacements));
+            TotalDisplacementsPerIterationLog computedDisplacements = SolveModel();
+            Assert.True(AreDisplacementsSame(expectedDisplacements, computedDisplacements));
         }
 
-        private static bool AreDisplacementsSame_v2(IReadOnlyList<Dictionary<int, double>> expectedDisplacements, 
-            TotalDisplacementsPerIterationLog_v2 computedDisplacements)
+        private static bool AreDisplacementsSame(IReadOnlyList<Dictionary<int, double>> expectedDisplacements, 
+            TotalDisplacementsPerIterationLog computedDisplacements)
         {
             var comparer = new ValueComparer(1E-10); // for node major dof order and skyline solver
             //var comparer = new ValueComparer(1E-3); // for other solvers. It may require adjusting after visual inspection
@@ -65,12 +65,12 @@ namespace ISAAR.MSolve.Tests.FEM
             return expectedDisplacements;
         }
 
-        private static TotalDisplacementsPerIterationLog_v2 SolveModel_v2()
+        private static TotalDisplacementsPerIterationLog SolveModel()
         {
-            var model = new Model_v2();
+            var model = new Model();
             //model.dofOrderer = (subdomain) => (new SimpleDofOrderer()).OrderDofs(model);
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
-            ShellAndCohesiveRAM_11tlkShellPaktwsh_v2(model);
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain(subdomainID));
+            ShellAndCohesiveRAM_11tlkShellPaktwsh(model);
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
@@ -79,23 +79,23 @@ namespace ISAAR.MSolve.Tests.FEM
             var solver = solverBuilder.BuildSolver(model);
 
             // Problem type
-            var provider = new ProblemStructural_v2(model, solver);
+            var provider = new ProblemStructural(model, solver);
 
             // Analyzers
             int increments = 2;
-            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
+            var childAnalyzerBuilder = new LoadControlAnalyzer.Builder(model, solver, provider, increments);
             childAnalyzerBuilder.ResidualTolerance = 1E-8;
             childAnalyzerBuilder.MaxIterationsPerIncrement = 100;
             childAnalyzerBuilder.NumIterationsForMatrixRebuild = 1;
-            //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) }; // This is the default
-            LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
+            //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.SubdomainsDictionary[subdomainID]) }; // This is the default
+            LoadControlAnalyzer childAnalyzer = childAnalyzerBuilder.Build();
 
-            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
             // Output
             var watchDofs = new Dictionary<int, int[]>();
             watchDofs.Add(subdomainID, new int[5] { 0, 11, 23, 35, 39 });
-            var log1 = new TotalDisplacementsPerIterationLog_v2(watchDofs);
+            var log1 = new TotalDisplacementsPerIterationLog(watchDofs);
             childAnalyzer.TotalDisplacementsPerIterationLog = log1;
 
             // Run the anlaysis 
@@ -105,7 +105,7 @@ namespace ISAAR.MSolve.Tests.FEM
             return log1;
         }
 
-        private static void ShellAndCohesiveRAM_11tlkShellPaktwsh_v2(Model_v2 model)
+        private static void ShellAndCohesiveRAM_11tlkShellPaktwsh(Model model)
         {
             //Origin: dhmiourgithike kata to ParadeigmataElegxwnBuilder.ShellAndCohesiveRAM_11ShellPaktwsh(model);
             // allaxame to cohesive element
@@ -119,21 +119,21 @@ namespace ISAAR.MSolve.Tests.FEM
             double startZ = 0;
             for (int l = 0; l < 3; l++)
             {
-                model.NodesDictionary.Add(nodeID, new Node_v2() { ID = nodeID, X = startX, Y = startY + l * 0.25, Z = startZ });
+                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX, Y = startY + l * 0.25, Z = startZ });
                 nodeID++;
             }
 
             startX = 0.25;
             for (int l = 0; l < 2; l++)
             {
-                model.NodesDictionary.Add(nodeID, new Node_v2() { ID = nodeID, X = startX, Y = startY + l * 0.5, Z = startZ });
+                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX, Y = startY + l * 0.5, Z = startZ });
                 nodeID++;
             }
 
             startX = 0.5;
             for (int l = 0; l < 3; l++)
             {
-                model.NodesDictionary.Add(nodeID, new Node_v2() { ID = nodeID, X = startX, Y = startY + l * 0.25, Z = startZ });
+                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX, Y = startY + l * 0.25, Z = startZ });
                 nodeID++;
             }
 
@@ -142,21 +142,21 @@ namespace ISAAR.MSolve.Tests.FEM
             startX = 0;
             for (int l = 0; l < 3; l++)
             {
-                model.NodesDictionary.Add(nodeID, new Node_v2() { ID = nodeID, X = startX, Y = startY + l * 0.25, Z = startZ - 0.5 * Tk });
+                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX, Y = startY + l * 0.25, Z = startZ - 0.5 * Tk });
                 nodeID++;
             }
 
             startX = 0.25;
             for (int l = 0; l < 2; l++)
             {
-                model.NodesDictionary.Add(nodeID, new Node_v2() { ID = nodeID, X = startX, Y = startY + l * 0.5, Z = startZ - 0.5 * Tk });
+                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX, Y = startY + l * 0.5, Z = startZ - 0.5 * Tk });
                 nodeID++;
             }
 
             startX = 0.5;
             for (int l = 0; l < 3; l++)
             {
-                model.NodesDictionary.Add(nodeID, new Node_v2() { ID = nodeID, X = startX, Y = startY + l * 0.25, Z = startZ - 0.5 * Tk });
+                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX, Y = startY + l * 0.25, Z = startZ - 0.5 * Tk });
                 nodeID++;
             }
 
@@ -184,7 +184,7 @@ namespace ISAAR.MSolve.Tests.FEM
             //perioxh constraints ews edw
 
             // perioxh materials 
-            var material1 = new BenzeggaghKenaneCohesiveMaterial_v2()
+            var material1 = new BenzeggaghKenaneCohesiveMaterial()
             {
                 T_o_3 = 57, // New load case argurhs NR_shell_coh.m
                 D_o_3 = 5.7e-5,
@@ -216,11 +216,11 @@ namespace ISAAR.MSolve.Tests.FEM
                 Tk_vec[j] = Tk;
             }
 
-            Element_v2 e1;
-            e1 = new Element_v2()
+            Element e1;
+            e1 = new Element()
             {
                 ID = 1,
-                ElementType = new Shell8NonLinear_v2(material2, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3))
+                ElementType = new Shell8NonLinear(material2, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3))
                 {
                     oVn_i = VH,
                     tk = Tk_vec,
@@ -243,11 +243,11 @@ namespace ISAAR.MSolve.Tests.FEM
             int[] coh_global_nodes;
             coh_global_nodes = new int[] { 8, 3, 1, 6, 5, 2, 4, 7, 16, 11, 9, 14, 13, 10, 12, 15 };
 
-            Element_v2 e2;
-            e2 = new Element_v2()
+            Element e2;
+            e2 = new Element()
             {
                 ID = 2,
-                ElementType = new CohesiveShell8ToHexa20_v2(material1, GaussLegendre2D.GetQuadratureWithOrder(3, 3))
+                ElementType = new CohesiveShell8ToHexa20(material1, GaussLegendre2D.GetQuadratureWithOrder(3, 3))
                 {
                     oVn_i = VH,
                     tk = Tk_vec,
@@ -273,8 +273,8 @@ namespace ISAAR.MSolve.Tests.FEM
             int[] points_with_positive_load;
             points_with_positive_load = new int[] { 2, 4, 5, 7 };
 
-            Load_v2 load1;
-            Load_v2 load2;
+            Load load1;
+            Load load2;
 
             // LOADCASE '' orthi ''
             //for (int j = 0; j < 4; j++)
@@ -299,7 +299,7 @@ namespace ISAAR.MSolve.Tests.FEM
             // LOADCASE '' orthi '' dixws ta duo prwta fortia  (-0.3333) kai (1.3333)
             for (int j = 0; j < 3; j++)
             {
-                load1 = new Load_v2()
+                load1 = new Load()
                 {
                     Node = model.NodesDictionary[points_with_negative_load[j + 1]],
                     DOF = DOFType.Z,
@@ -307,7 +307,7 @@ namespace ISAAR.MSolve.Tests.FEM
                 };
                 model.Loads.Add(load1);
 
-                load2 = new Load_v2()
+                load2 = new Load()
                 {
                     Node = model.NodesDictionary[points_with_positive_load[j + 1]],
                     DOF = DOFType.Z,

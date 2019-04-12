@@ -9,10 +9,10 @@ namespace ISAAR.MSolve.IGA.Postprocessing
     public class ParaviewTsplines2D
 	{
 		private Model _model;
-		private ILinearSystem_v2 _linearSystem;
+		private ILinearSystem _linearSystem;
 		private string _filename;
 
-		public ParaviewTsplines2D(Model model, ILinearSystem_v2 linearSystem, string filename)
+		public ParaviewTsplines2D(Model model, ILinearSystem linearSystem, string filename)
 		{
 			_model = model;
 			_linearSystem = linearSystem;

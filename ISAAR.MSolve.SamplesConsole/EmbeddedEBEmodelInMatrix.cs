@@ -26,11 +26,11 @@ namespace ISAAR.MSolve.SamplesConsole
         public static void EmbeddedEBEinMatrix_NewtonRaphson()
         {
             // Model creation
-            var model = new Model_v2();
+            var model = new Model();
 
             // Subdomains
             //model.SubdomainsDictionary.Add(subdomainID, new Subdomain() { ID = 1 });
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain(subdomainID));
 
             // Variables
             int monitorNode = 41;
@@ -40,7 +40,7 @@ namespace ISAAR.MSolve.SamplesConsole
             EmbeddedEBEModelBuilder.EmbeddedExampleBuilder(model);
 
             //-----------------------------------------------------------------------------------------------------------
-            // Model_v2
+            // Model
 
             // Choose linear equation system solver
             //var solverBuilder = new SkylineSolver.Builder();
@@ -49,15 +49,15 @@ namespace ISAAR.MSolve.SamplesConsole
             SuiteSparseSolver solver = solverBuilder.BuildSolver(model);
 
             // Choose the provider of the problem -> here a structural problem
-            var provider = new ProblemStructural_v2(model, solver);
+            var provider = new ProblemStructural(model, solver);
 
             // Choose child analyzer -> Child: NewtonRaphsonNonLinearAnalyzer
             int increments = 100;
-            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments) { ResidualTolerance = 1E-03, MaxIterationsPerIncrement = 10 };
-            LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
+            var childAnalyzerBuilder = new LoadControlAnalyzer.Builder(model, solver, provider, increments) { ResidualTolerance = 1E-03, MaxIterationsPerIncrement = 10 };
+            LoadControlAnalyzer childAnalyzer = childAnalyzerBuilder.Build();
 
             // Choose parent analyzer -> Parent: Static
-            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
             // Request output
             string outputFile = outputDirectory + "\\CNT-Embedded-3D_Results.txt";
@@ -77,11 +77,11 @@ namespace ISAAR.MSolve.SamplesConsole
         public static void EmbeddedEBEinMatrix_DisplacementControl()
         {
             // Model creation
-            var model = new Model_v2();
+            var model = new Model();
 
             // Subdomains
             //model.SubdomainsDictionary.Add(subdomainID, new Subdomain() { ID = 1 });
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain(subdomainID));
 
             // Variables
             int monitorNode = 161;
@@ -91,7 +91,7 @@ namespace ISAAR.MSolve.SamplesConsole
             EmbeddedEBEModelBuilder.EmbeddedExampleBuilder(model);
 
             //-----------------------------------------------------------------------------------------------------------
-            // Model_v2
+            // Model
 
             // Choose linear equation system solver
             //var solverBuilder = new SkylineSolver.Builder();
@@ -100,16 +100,16 @@ namespace ISAAR.MSolve.SamplesConsole
             SuiteSparseSolver solver = solverBuilder.BuildSolver(model);
 
             // Choose the provider of the problem -> here a structural problem
-            var provider = new ProblemStructural_v2(model, solver);
+            var provider = new ProblemStructural(model, solver);
 
-            // Choose child analyzer -> Child: DisplacementControl_v2
-            var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) };
+            // Choose child analyzer -> Child: DisplacementControl
+            var subdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.SubdomainsDictionary[subdomainID]) };
             int increments = 100;
-            var childAnalyzerBuilder = new DisplacementControlAnalyzer_v2.Builder(model, solver, provider, increments);
-            DisplacementControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
+            var childAnalyzerBuilder = new DisplacementControlAnalyzer.Builder(model, solver, provider, increments);
+            DisplacementControlAnalyzer childAnalyzer = childAnalyzerBuilder.Build();
 
             // Choose parent analyzer -> Parent: Static
-            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
             // Request output
             string outputFile = outputDirectory + "\\CNT-Embedded-3D_Results.txt";
@@ -124,14 +124,14 @@ namespace ISAAR.MSolve.SamplesConsole
 
         public static class EmbeddedEBEModelBuilder
         {
-            public static void EmbeddedExampleBuilder(Model_v2 model)
+            public static void EmbeddedExampleBuilder(Model model)
             {
                 MatrixModelBuilder(model);
                 EBEModelBuilder(model);
-                var embeddedGrouping = new EmbeddedGrouping_v2(model, model.ElementsDictionary.Where(x => x.Key <= 10).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 10).Select(kv => kv.Value), true);
+                var embeddedGrouping = new EmbeddedGrouping(model, model.ElementsDictionary.Where(x => x.Key <= 10).Select(kv => kv.Value), model.ElementsDictionary.Where(x => x.Key > 10).Select(kv => kv.Value), true);
             }
 
-            public static void MatrixModelBuilder(Model_v2 model)
+            public static void MatrixModelBuilder(Model model)
             {
                 string workingDirectory = @"E:\GEORGE_DATA\DESKTOP\input files"; //@"D:\George\Desktop\input files"; //
 
@@ -157,12 +157,12 @@ namespace ISAAR.MSolve.SamplesConsole
                         double nodeX = double.Parse(bits[1]);
                         double nodeY = double.Parse(bits[2]);
                         double nodeZ = double.Parse(bits[3]);
-                        model.NodesDictionary.Add(nodeID, new Node_v2 { ID = nodeID, X = nodeX, Y = nodeY, Z = nodeZ });
+                        model.NodesDictionary.Add(nodeID, new Node { ID = nodeID, X = nodeX, Y = nodeY, Z = nodeZ });
                     }
                 }
 
                 // Create Material
-                var solidMaterial = new ElasticMaterial3D_v2()
+                var solidMaterial = new ElasticMaterial3D()
                 {
                     YoungModulus = 1.00,
                     PoissonRatio = 0.30,
@@ -185,10 +185,10 @@ namespace ISAAR.MSolve.SamplesConsole
                         int node7 = int.Parse(bits[7]);
                         int node8 = int.Parse(bits[8]);
                         // Hexa8NL element definition
-                        var hexa8NLelement = new Element_v2()
+                        var hexa8NLelement = new Element()
                         {
                             ID = elementID,
-                            ElementType = new Hexa8NonLinear_v2(solidMaterial, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3))
+                            ElementType = new Hexa8NonLinear(solidMaterial, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3))
                         };
                         // Add nodes to the created element
                         hexa8NLelement.AddNode(model.NodesDictionary[node1]);
@@ -251,7 +251,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 double nodalLoad = -25.0; //0.40;
                 for (int iNode = 41; iNode <= 44; iNode++) //[End-4]
                 {
-                    model.Loads.Add(new Load_v2() { Amount = nodalLoad, Node = model.NodesDictionary[iNode], DOF = DOFType.Z });
+                    model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[iNode], DOF = DOFType.Z });
                 }
 
                 //// Applied Displacements
@@ -262,7 +262,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 //}
             }
 
-            public static void EBEModelBuilder(Model_v2 model)
+            public static void EBEModelBuilder(Model model)
             {
                 // define mechanical properties
                 double youngModulus = 1.0;
@@ -306,12 +306,12 @@ namespace ISAAR.MSolve.SamplesConsole
                         double nodeX = double.Parse(bits[1]);
                         double nodeY = double.Parse(bits[2]);
                         double nodeZ = double.Parse(bits[3]);
-                        model.NodesDictionary.Add(nodeID, new Node_v2 { ID = nodeID, X = nodeX, Y = nodeY, Z = nodeZ });
+                        model.NodesDictionary.Add(nodeID, new Node { ID = nodeID, X = nodeX, Y = nodeY, Z = nodeZ });
                     }
                 }
 
                 // Create new 3D material
-                var beamMaterial = new ElasticMaterial3D_v2
+                var beamMaterial = new ElasticMaterial3D
                 {
                     YoungModulus = youngModulus,
                     PoissonRatio = poissonRatio,
@@ -332,12 +332,12 @@ namespace ISAAR.MSolve.SamplesConsole
                         int node2 = int.Parse(bits[2]) + 44; // matrixNodes
                                                     
                         // element nodes
-                        var elementNodes = new List<Node_v2>();
+                        var elementNodes = new List<Node>();
                         elementNodes.Add(model.NodesDictionary[node1]);
                         elementNodes.Add(model.NodesDictionary[node2]);
                         // create element
-                        var beam_1 = new Beam3DCorotationalQuaternion_v2(elementNodes, beamMaterial, 7.85, beamSection);
-                        var beamElement = new Element_v2 { ID = elementID, ElementType = beam_1 };
+                        var beam_1 = new Beam3DCorotationalQuaternion(elementNodes, beamMaterial, 7.85, beamSection);
+                        var beamElement = new Element { ID = elementID, ElementType = beam_1 };
                         // Add nodes to the created element
                         beamElement.AddNode(model.NodesDictionary[node1]);
                         beamElement.AddNode(model.NodesDictionary[node2]);

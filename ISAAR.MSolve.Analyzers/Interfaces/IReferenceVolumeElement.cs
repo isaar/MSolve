@@ -9,7 +9,7 @@ namespace ISAAR.MSolve.Analyzers.Interfaces
     public interface IReferenceVolumeElement
     {
         void ApplyBoundaryConditions();
-        IMatrixView CalculateKinematicRelationsMatrix(ISubdomain_v2 subdomain);
+        IMatrixView CalculateKinematicRelationsMatrix(ISubdomain subdomain);
         double CalculateRveVolume();
     }
 }

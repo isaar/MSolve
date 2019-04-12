@@ -14,11 +14,11 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             double[] displacements1sIncrement = PrintUtilities.ReadVector(results_file1);
             double[] displacements2ndncrement = PrintUtilities.ReadVector(results_file2);
 
-            (IVector uInitialFreeDOFs_state1, IVector uInitialFreeDOFs_state2) = NRNLAnalyzerDevelopTest_v2.SolveDisplLoadsExample();
+            (IVector uInitialFreeDOFs_state1, IVector uInitialFreeDOFs_state2) = NRNLAnalyzerDevelopTest.SolveDisplLoadsExample();
 
             
-            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(displacements1sIncrement, uInitialFreeDOFs_state1.CopyToArray()));
-            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(displacements2ndncrement, uInitialFreeDOFs_state2.CopyToArray()));
+            Assert.True(NRNLAnalyzerDevelopTest.AreDisplacementsSame(displacements1sIncrement, uInitialFreeDOFs_state1.CopyToArray()));
+            Assert.True(NRNLAnalyzerDevelopTest.AreDisplacementsSame(displacements2ndncrement, uInitialFreeDOFs_state2.CopyToArray()));
         }
     }
 }

@@ -7,7 +7,7 @@ using ISAAR.MSolve.Materials.Interfaces;
 
 namespace ISAAR.MSolve.Materials
 {
-	 public class ShellElasticMaterial2D : IShellMaterial_v2
+	 public class ShellElasticMaterial2D : IShellMaterial
 	{
 		public double[] NormalVectorV3 { get; set; }
 		public double[] TangentVectorV1 { get; set; }
@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.Materials
 
 		object ICloneable.Clone() => Clone();
 
-		public IShellMaterial_v2 Clone()
+		public IShellMaterial Clone()
 		{
 			return new ShellElasticMaterial2D()
 			{

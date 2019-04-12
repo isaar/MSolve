@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.SamplesConsole.MeshGeneration
 
             var generator = new UniformMeshGenerator3D(minX, minY, minZ, maxX, maxY, maxZ, cellsPerX, cellsPerY, cellsPerZ);
             generator.StartIDsAt0 = false;
-            (IReadOnlyList<Node_v2> vertices, IReadOnlyList<CellConnectivity_v2> cells) = generator.CreateMesh();
+            (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity> cells) = generator.CreateMesh();
 
             Console.WriteLine($"{vertices.Count} vertices:");
             foreach (var vertex in vertices)

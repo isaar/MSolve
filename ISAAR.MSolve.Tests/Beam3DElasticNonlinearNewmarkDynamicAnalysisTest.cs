@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.Tests
 {
     public class Beam3DElasticNonlinearNewmarkDynamicAnalysisTest
     {
-        private static void TestBeam3DElasticNonlinearNewmarkDynamicAnalysisExample_v2()
+        private static void TestBeam3DElasticNonlinearNewmarkDynamicAnalysisExample()
         {
             double youngModulus = 21000.0;
             double poissonRatio = 0.3;
@@ -33,28 +33,28 @@ namespace ISAAR.MSolve.Tests
             int monitorNode = 3;
 
             // Create new 3D material
-            var material = new ElasticMaterial3D_v2
+            var material = new ElasticMaterial3D
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,
             };
 
             // Node creation
-            IList<Node_v2> nodes = new List<Node_v2>();
-            Node_v2 node1 = new Node_v2 { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
-            Node_v2 node2 = new Node_v2 { ID = 2, X = 300.0, Y = 0.0, Z = 0.0 };
-            Node_v2 node3 = new Node_v2 { ID = 3, X = 600.0, Y = 0.0, Z = 0.0 };
+            IList<Node> nodes = new List<Node>();
+            Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
+            Node node2 = new Node { ID = 2, X = 300.0, Y = 0.0, Z = 0.0 };
+            Node node3 = new Node { ID = 3, X = 600.0, Y = 0.0, Z = 0.0 };
 
             nodes.Add(node1);
             nodes.Add(node2);
             nodes.Add(node3);
 
             // Model creation
-            Model_v2 model = new Model_v2();
+            Model model = new Model();
 
             // Add a single subdomain to the model
             int subdomainID = 0;
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain(subdomainID));
 
             // Add nodes to the nodes dictonary of the model
             for (int i = 0; i < nodes.Count; ++i)
@@ -74,16 +74,16 @@ namespace ISAAR.MSolve.Tests
             for (int iElem = 0; iElem < nElems; iElem++)
             {
                 // element nodes
-                IList<Node_v2> elementNodes = new List<Node_v2>();
+                IList<Node> elementNodes = new List<Node>();
                 elementNodes.Add(model.NodesDictionary[iNode]);
                 elementNodes.Add(model.NodesDictionary[iNode + 1]);
 
                 // Create new Beam3D section and element
                 var beamSection = new BeamSection3D(area, inertiaY, inertiaZ, torsionalInertia, effectiveAreaY, effectiveAreaZ);
-                var beam = new Beam3DCorotationalQuaternion_v2(elementNodes, material, density, beamSection);
+                var beam = new Beam3DCorotationalQuaternion(elementNodes, material, density, beamSection);
 
                 // Create elements
-                var element = new Element_v2()
+                var element = new Element()
                 {
                     ID = iElem + 1,
                     ElementType = beam
@@ -103,25 +103,25 @@ namespace ISAAR.MSolve.Tests
             }
 
             // Add nodal load values at the top nodes of the model
-            model.Loads.Add(new Load_v2() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode], DOF = DOFType.Y });
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
-            ISolver_v2 solver = solverBuilder.BuildSolver(model);
+            ISolver solver = solverBuilder.BuildSolver(model);
 
             // Problem type
-            var provider = new ProblemStructural_v2(model, solver);
+            var provider = new ProblemStructural(model, solver);
 
             // Analyzers
             int increments = 10;
-            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
+            var childAnalyzerBuilder = new LoadControlAnalyzer.Builder(model, solver, provider, increments);
             childAnalyzerBuilder.MaxIterationsPerIncrement = 120;
             childAnalyzerBuilder.NumIterationsForMatrixRebuild = 500;
-            //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) }; // This is the default
-            LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
-            var parentAnalyzerBuilder = new NewmarkDynamicAnalyzer_v2.Builder(model, solver, provider, childAnalyzer, 0.28, 3.36);
+            //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.SubdomainsDictionary[subdomainID]) }; // This is the default
+            LoadControlAnalyzer childAnalyzer = childAnalyzerBuilder.Build();
+            var parentAnalyzerBuilder = new NewmarkDynamicAnalyzer.Builder(model, solver, provider, childAnalyzer, 0.28, 3.36);
             parentAnalyzerBuilder.SetNewmarkParametersForConstantAcceleration(); // Not necessary. This is the default
-            NewmarkDynamicAnalyzer_v2 parentAnalyzer = parentAnalyzerBuilder.Build();
+            NewmarkDynamicAnalyzer parentAnalyzer = parentAnalyzerBuilder.Build();
 
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();

@@ -32,11 +32,11 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             double[] stressesCheck3Expected = PrintUtilities.ReadVector(results_file4);
             double[] stressesCheck4Expected = PrintUtilities.ReadVector(results_file5);
 
-            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(displacements1sIncrement, uInitialFreeDOFs_state1.CopyToArray()));
-            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(displacements2ndIncrement, uInitialFreeDOFs_state2.CopyToArray()));
-            Assert.True(BondSlipTest.AreDisplacementsSame_v2(consCheck1, consCheck1Expected));
-            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(stressesCheck3, stressesCheck3Expected));
-            Assert.True(NRNLAnalyzerDevelopTest_v2.AreDisplacementsSame_v2(stressesCheck4, stressesCheck4Expected));
+            Assert.True(NRNLAnalyzerDevelopTest.AreDisplacementsSame(displacements1sIncrement, uInitialFreeDOFs_state1.CopyToArray()));
+            Assert.True(NRNLAnalyzerDevelopTest.AreDisplacementsSame(displacements2ndIncrement, uInitialFreeDOFs_state2.CopyToArray()));
+            Assert.True(BondSlipTest.AreDisplacementsSame(consCheck1, consCheck1Expected));
+            Assert.True(NRNLAnalyzerDevelopTest.AreDisplacementsSame(stressesCheck3, stressesCheck3Expected));
+            Assert.True(NRNLAnalyzerDevelopTest.AreDisplacementsSame(stressesCheck4, stressesCheck4Expected));
         }
 
         [Fact]
@@ -54,12 +54,12 @@ namespace ISAAR.MSolve.Tests.FEMpartB
             int[] shellPrintExpected = PrintUtilities.ReadIntVector(results_file3);
             
 
-            Assert.True(AreDisplacementsSame_v2(hexaPrint, hexaPrintExpected));
-            Assert.True(AreDisplacementsSame_v2(cohePrint, cohePrintExpected));
-            Assert.True(AreDisplacementsSame_v2(shellPrint, shellPrintExpected));
+            Assert.True(AreDisplacementsSame(hexaPrint, hexaPrintExpected));
+            Assert.True(AreDisplacementsSame(cohePrint, cohePrintExpected));
+            Assert.True(AreDisplacementsSame(shellPrint, shellPrintExpected));
         }
 
-        public static bool AreDisplacementsSame_v2(int[] expectedValues,
+        public static bool AreDisplacementsSame(int[] expectedValues,
             int[] computedValues)
         {
             var comparer = new ValueComparer(1E-14);

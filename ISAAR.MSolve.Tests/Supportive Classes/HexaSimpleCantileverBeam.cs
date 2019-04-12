@@ -8,7 +8,7 @@ namespace ISAAR.MSolve.Tests
 {
     public static class HexaSimpleCantileverBeam
     {
-        public static void MakeCantileverBeam_v2(Model_v2 model, double startX, double startY, double startZ, int startNodeID,
+        public static void MakeCantileverBeam(Model model, double startX, double startY, double startZ, int startNodeID,
             int startElementID, int subdomainID)
 
         {
@@ -19,11 +19,11 @@ namespace ISAAR.MSolve.Tests
             {
                 if (nodeID % 2 == 0)
                 {
-                    model.NodesDictionary.Add(nodeID, new Node_v2() { ID = nodeID, X = startX, Y = startY + 0.25, Z = startZ + 0.25 * (j / 2) });
+                    model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX, Y = startY + 0.25, Z = startZ + 0.25 * (j / 2) });
                 }
                 else
                 {
-                    model.NodesDictionary.Add(nodeID, new Node_v2() { ID = nodeID, X = startX, Y = startY, Z = startZ + 0.25 * (j / 2) });
+                    model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX, Y = startY, Z = startZ + 0.25 * (j / 2) });
                 }
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
@@ -38,19 +38,19 @@ namespace ISAAR.MSolve.Tests
                 {
                     if (nodeID % 2 == 0)
                     {
-                        model.NodesDictionary.Add(nodeID, new Node_v2() { ID = nodeID, X = startX + 0.25 * (i + 1), Y = startY + 0.25, Z = startZ + 0.25 * (k / 2) });
+                        model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 0.25 * (i + 1), Y = startY + 0.25, Z = startZ + 0.25 * (k / 2) });
                     }
                     else
                     {
-                        model.NodesDictionary.Add(nodeID, new Node_v2() { ID = nodeID, X = startX + 0.25 * (i + 1), Y = startY, Z = startZ + 0.25 * (k / 2) });
+                        model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 0.25 * (i + 1), Y = startY, Z = startZ + 0.25 * (k / 2) });
                     }
                     nodeID++;
                 }
             }
 
             int elementID = startElementID;
-            Element_v2 e;
-            var material = new ElasticMaterial3D_v2()
+            Element e;
+            var material = new ElasticMaterial3D()
             {
                 YoungModulus = 2.0e7,
                 PoissonRatio = 0.3
@@ -59,10 +59,10 @@ namespace ISAAR.MSolve.Tests
             for (int i = 0; i < 4; i++)
             {
 
-                e = new Element_v2()
+                e = new Element()
                 {
                     ID = elementID,
-                    ElementType = new Hexa8_v2(material)
+                    ElementType = new Hexa8(material)
 
                 };
 

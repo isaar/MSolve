@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.Materials.VonMisesStress
         private readonly double E;
         private readonly double v;
 
-        public ElasticPlaneStrainVonMises(ElasticMaterial2D_v2 material)
+        public ElasticPlaneStrainVonMises(ElasticMaterial2D material)
         {
             this.E = material.YoungModulus;
             this.v = material.PoissonRatio;

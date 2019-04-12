@@ -21,9 +21,9 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
     /// </summary>
     public class MicrostructureBvpNRNLAnalyzer : IChildAnalyzer
     {
-        private readonly IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
-        protected readonly IStructuralModel_v2 model;
-        private readonly Dictionary<int,NonLinearSubdomainUpdaterWithInitialConditions_v2> subdomainUpdaters;
+        private readonly IReadOnlyDictionary<int, ILinearSystem> linearSystems;
+        protected readonly IStructuralModel model;
+        private readonly Dictionary<int,NonLinearSubdomainUpdaterWithInitialConditions> subdomainUpdaters;
         //private readonly ISubdomainGlobalMapping[] mappings; 
         private readonly int increments;
         //private readonly int totalDOFs;
@@ -31,25 +31,25 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
         private int stepsForMatrixRebuild = 0;
         private readonly double tolerance = 1e-3;
         private double rhsNorm;
-        private INonLinearParentAnalyzer_v2 parentAnalyzer = null;
-        private readonly ISolver_v2 solver;
-        private readonly INonLinearProvider_v2 provider;
+        private INonLinearParentAnalyzer parentAnalyzer = null;
+        private readonly ISolver solver;
+        private readonly INonLinearProvider provider;
         private readonly Dictionary<int, IVector> rhs = new Dictionary<int, IVector>();//comment MS2:apothikevetai se afto h timh (externalLoads/increments) gia kathe subdomain kai apo ekei pernietai opou xreiasthei (p.x. subdomain.RHS)
         private readonly Dictionary<int, IVector> u = new Dictionary<int, IVector>();
         private readonly Dictionary<int, IVector> du = new Dictionary<int, IVector>();
         private readonly Dictionary<int, IVector> uPlusdu = new Dictionary<int, IVector>();
-        Dictionary<int, Node_v2> boundaryNodes;
+        Dictionary<int, Node> boundaryNodes;
         Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements;
         Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements;
-        private readonly Dictionary<int, EquivalentContributionsAssebler_v2> equivalentContributionsAssemblers;
+        private readonly Dictionary<int, EquivalentContributionsAssebler> equivalentContributionsAssemblers;
         private Vector globalRhs;
-        private readonly Dictionary<int, LinearAnalyzerLogFactory_v2> logFactories = new Dictionary<int, LinearAnalyzerLogFactory_v2>();
-        private readonly Dictionary<int, IAnalyzerLog_v2[]> logs = new Dictionary<int, IAnalyzerLog_v2[]>();
+        private readonly Dictionary<int, LinearAnalyzerLogFactory> logFactories = new Dictionary<int, LinearAnalyzerLogFactory>();
+        private readonly Dictionary<int, IAnalyzerLog[]> logs = new Dictionary<int, IAnalyzerLog[]>();
 
-        public MicrostructureBvpNRNLAnalyzer(IStructuralModel_v2 model, ISolver_v2 solver, Dictionary<int, NonLinearSubdomainUpdaterWithInitialConditions_v2> subdomainUpdaters,
-            INonLinearProvider_v2 provider, int increments, Dictionary<int, IVector> uInitialFreeDOFDisplacementsPerSubdomain,
-            Dictionary<int, Node_v2> boundaryNodes, Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements,
-            Dictionary<int, EquivalentContributionsAssebler_v2> equivalentContributionsAssemblers)//, ISubdomainGlobalMapping[] mappings)
+        public MicrostructureBvpNRNLAnalyzer(IStructuralModel model, ISolver solver, Dictionary<int, NonLinearSubdomainUpdaterWithInitialConditions> subdomainUpdaters,
+            INonLinearProvider provider, int increments, Dictionary<int, IVector> uInitialFreeDOFDisplacementsPerSubdomain,
+            Dictionary<int, Node> boundaryNodes, Dictionary<int, Dictionary<DOFType, double>> initialConvergedBoundaryDisplacements, Dictionary<int, Dictionary<DOFType, double>> totalBoundaryDisplacements,
+            Dictionary<int, EquivalentContributionsAssebler> equivalentContributionsAssemblers)//, ISubdomainGlobalMapping[] mappings)
         {
             this.model = model;
             this.solver = solver;
@@ -102,19 +102,19 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
         //            l.StoreResults(start, end, linearSystems[id].Solution);
         //}
 
-        public Dictionary<int, LinearAnalyzerLogFactory_v2> LogFactories { get { return logFactories; } }
+        public Dictionary<int, LinearAnalyzerLogFactory> LogFactories { get { return logFactories; } }
 
         #region IAnalyzer Members
 
-        public Dictionary<int, IAnalyzerLog_v2[]> Logs { get { return logs; } }
+        public Dictionary<int, IAnalyzerLog[]> Logs { get { return logs; } }
 
         public IParentAnalyzer ParentAnalyzer// exei diorthothei apo bas v2
         {
             get => parentAnalyzer;
-            set => parentAnalyzer = (INonLinearParentAnalyzer_v2)value; //TODO: remove this cast. Now it only serves as a check
+            set => parentAnalyzer = (INonLinearParentAnalyzer)value; //TODO: remove this cast. Now it only serves as a check
         }
 
-        public IAnalyzer_v2 ChildAnalyzer
+        public IAnalyzer ChildAnalyzer
         {
             get { return null; }
             set { throw new InvalidOperationException("Newton-Raphson analyzer cannot contain an embedded analyzer."); }
@@ -128,7 +128,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
             du.Clear();
             uPlusdu.Clear(); //prosthiki MS
 
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
 
@@ -152,7 +152,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
         private void UpdateInternalVectors()//TODOMaria this is where I should add the calculation of the internal nodal force vector
         {
             globalRhs.Clear();
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
 
@@ -172,7 +172,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
 
         private void UpdateRHS(int step)
         {
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 linearSystem.RhsVector.CopyFrom(rhs[linearSystem.Subdomain.ID]);                                
             }
@@ -220,7 +220,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
         private double CalculateInternalRHS(int currentIncrement, int step, int totalIncrements)
         {
             globalRhs.Clear();
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
 
@@ -261,7 +261,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
 
         private void ClearIncrementalSolutionVector()
         {
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
                 du[id].Clear();
@@ -270,7 +270,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
 
         private void SplitResidualForcesToSubdomains()
         {
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
                 linearSystem.RhsVector.Clear();
@@ -280,7 +280,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
 
         private void UpdateSolution()
         {
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
                 u[id].AddIntoThis(du[id]);
@@ -289,7 +289,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
 
         public void SaveMaterialState()
         {
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
                 subdomainUpdaters[id].UpdateState();
@@ -310,7 +310,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
 
         private void CopySolutionToSubdomains()
         {
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 //TODO:
                 //int id = linearSystem.Subdomain.ID;
@@ -320,7 +320,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
 
         private void ClearMaterialStresses()
         {
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
                 subdomainUpdaters[id].ResetState();
@@ -339,7 +339,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
         private void UpdateRHSForLinearizationContributions(int nIncrement, int increments)
         {
             globalRhs.Clear();
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
                 //var equivalentContributionsAssembler = equivalentContributionsAssemblers[linearSystems.Select((v, i) => new { System = v, Index = i }).First(x => x.System.ID == subdomain.ID).Index];

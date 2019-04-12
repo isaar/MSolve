@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.
         /// </summary>
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
-        public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node_v2> nodes)
+        public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node> nodes)
             => new InverseInterpolationTri3(nodes);
         
         protected override sealed double[] EvaluateAt(double xi, double eta)

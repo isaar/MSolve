@@ -22,11 +22,11 @@ namespace ISAAR.MSolve.IGA.Elements
 		public int DegreeHeta { get; set; }
 		protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
 		protected DOFType[][] dofTypes;
-		protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
+		protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
 		private DynamicMaterial dynamicProperties;
 		private IReadOnlyList<IShellSectionMaterial> materialsAtGaussPoints;
 
-		public IElementDofEnumerator_v2 DofEnumerator
+		public IElementDofEnumerator DofEnumerator
 		{
 			get
 			{
@@ -168,12 +168,12 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix DampingMatrix(IElement_v2 element)
+		public IMatrix DampingMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
+		public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
 		{
 			var nurbsElement = (TSplineKirchhoffLoveShellElement)element;
 			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
@@ -184,7 +184,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			return dofTypes;
 		}
 
-		public IMatrix MassMatrix(IElement_v2 element)
+		public IMatrix MassMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
@@ -194,7 +194,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix StiffnessMatrix(IElement_v2 element)
+		public IMatrix StiffnessMatrix(IElement element)
 		{
 			var shellElement = (TSplineKirchhoffLoveShellElement)element;
             IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(shellElement);
@@ -257,7 +257,7 @@ namespace ISAAR.MSolve.IGA.Elements
             auxMatrix1[1, 1] = surfaceBasisVector2.DotProduct(surfaceBasisVector2);
             (Matrix inverse, double det) = auxMatrix1.InvertAndDetermninant();
 
-			var material = ((IContinuumMaterial2D_v2)element.Patch.Material);
+			var material = ((IContinuumMaterial2D)element.Patch.Material);
 			var constitutiveMatrix = Matrix.CreateFromArray(new double[3, 3]
 			{
 				{

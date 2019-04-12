@@ -86,18 +86,18 @@ namespace ISAAR.MSolve.Solvers.Tests
         {
             double tolerance = 1E-10;
 
-            Model_v2 model = CreateModel();
+            Model model = CreateModel();
             int id = model.Subdomains.First().ID;
 
             var solver = (new SkylineSolver.Builder()).BuildSolver(model);
-            var problem = new ProblemStructural_v2(model, solver);
+            var problem = new ProblemStructural(model, solver);
 
             // Prepare model
             model.ConnectDataStructures();
 
             // Order dofs and initialize linear system
             solver.OrderDofs(true);
-            ILinearSystem_v2 linearSystem = solver.LinearSystems.First().Value;
+            ILinearSystem linearSystem = solver.LinearSystems.First().Value;
             linearSystem.Reset(); // Necessary to define the linear system's size 
 
             // Build and assign global matrices
@@ -119,18 +119,18 @@ namespace ISAAR.MSolve.Solvers.Tests
         {
             double tolerance = 1E-10;
 
-            Model_v2 model = CreateModel();
+            Model model = CreateModel();
             int id = model.Subdomains.First().ID;
 
             var solver = (new SkylineSolver.Builder()).BuildSolver(model);
-            var problem = new ProblemStructural_v2(model, solver);
+            var problem = new ProblemStructural(model, solver);
 
             // Prepare model
             model.ConnectDataStructures();
 
             // Order dofs and initialize linear system
             solver.OrderDofs(true);
-            ILinearSystem_v2 linearSystem = solver.LinearSystems.First().Value;
+            ILinearSystem linearSystem = solver.LinearSystems.First().Value;
             linearSystem.Reset(); // Necessary to define the linear system's size 
 
             // Build and assign global matrices
@@ -145,7 +145,7 @@ namespace ISAAR.MSolve.Solvers.Tests
 
         }
 
-        private static Model_v2 CreateModel()
+        private static Model CreateModel()
         {
             int numElementsX = 2, numElementsY = 4; // for the hardcoded stiffness matrices
 

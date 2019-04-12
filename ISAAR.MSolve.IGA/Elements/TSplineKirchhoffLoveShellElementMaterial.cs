@@ -23,17 +23,17 @@ namespace ISAAR.MSolve.IGA.Elements
 		public int DegreeHeta { get; set; }
 		protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
 		protected DOFType[][] dofTypes;
-		protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
+		protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
 		private DynamicMaterial dynamicProperties;
-		private IReadOnlyList<IShellMaterial_v2> materialsAtGaussPoints;
+		private IReadOnlyList<IShellMaterial> materialsAtGaussPoints;
 
-		private Dictionary<GaussLegendrePoint3D, Dictionary<GaussLegendrePoint3D, IShellMaterial_v2>>
+		private Dictionary<GaussLegendrePoint3D, Dictionary<GaussLegendrePoint3D, IShellMaterial>>
 			materialsAtThicknessGP =
-				new Dictionary<GaussLegendrePoint3D, Dictionary<GaussLegendrePoint3D, IShellMaterial_v2>>();
+				new Dictionary<GaussLegendrePoint3D, Dictionary<GaussLegendrePoint3D, IShellMaterial>>();
 
 
 		public TSplineKirchhoffLoveShellElementMaterial(int id, Patch patch, int degreeKsi, int degreeHeta,
-			double thickness, Matrix extractionOperator, IShellMaterial_v2 shellMaterial)
+			double thickness, Matrix extractionOperator, IShellMaterial shellMaterial)
 		{
 			this.ID = id;
 			this.Patch = patch;
@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			CreateElementGaussPoints(this);
 			foreach (var medianSurfaceGP in thicknessIntegrationPoints.Keys)
 			{
-				materialsAtThicknessGP.Add(medianSurfaceGP, new Dictionary<GaussLegendrePoint3D, IShellMaterial_v2>());
+				materialsAtThicknessGP.Add(medianSurfaceGP, new Dictionary<GaussLegendrePoint3D, IShellMaterial>());
 				foreach (var point in thicknessIntegrationPoints[medianSurfaceGP])
 				{
 					materialsAtThicknessGP[medianSurfaceGP].Add(point, shellMaterial.Clone());
@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			}
 		}
 
-		public IElementDofEnumerator_v2 DofEnumerator
+		public IElementDofEnumerator DofEnumerator
 		{
 			get
 			{
@@ -243,12 +243,12 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix DampingMatrix(IElement_v2 element)
+		public IMatrix DampingMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
+		public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
 		{
 			var nurbsElement = (TSplineKirchhoffLoveShellElementMaterial)element;
 			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
@@ -259,7 +259,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			return dofTypes;
 		}
 
-		public IMatrix MassMatrix(IElement_v2 element)
+		public IMatrix MassMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
@@ -343,7 +343,7 @@ namespace ISAAR.MSolve.IGA.Elements
 		//}
 
 
-		public IMatrix StiffnessMatrix(IElement_v2 element)
+		public IMatrix StiffnessMatrix(IElement element)
 		{
 			var shellElement = (TSplineKirchhoffLoveShellElementMaterial)element;
 			var gaussPoints = materialsAtThicknessGP.Keys.ToArray();

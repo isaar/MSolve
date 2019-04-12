@@ -40,7 +40,7 @@ namespace ISAAR.MSolve.IGA.Entities
 
         public List<Constraint> Constraints => constraints;
 
-        public Dictionary<int, ISubdomain_v2> SubdomainsDictionary => throw new NotImplementedException();
+        public Dictionary<int, ISubdomain> SubdomainsDictionary => throw new NotImplementedException();
 
         public void BuildPatchesDictionary()
         {

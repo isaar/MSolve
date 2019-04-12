@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
 		/// <returns></returns>
 		// TODO: Find and implement inverse mapping for Tet4.
-	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node_v2> node) 
+	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> node) 
             => throw new NotImplementedException("Not implemented yet.");
 
 		/// <summary>

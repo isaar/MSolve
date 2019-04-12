@@ -13,12 +13,12 @@ namespace ISAAR.MSolve.Solvers.Ordering
         /// Orders the unconstrained freedom degrees of the whole model.
         /// </summary>
         /// <param name="model">The physical model that is analyzed.</param>
-        (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderGlobalDofs(IStructuralModel_v2 model);
+        (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderGlobalDofs(IStructuralModel model);
 
         /// <summary>
         /// Orders the unconstrained freedom degrees of one of the model's subdomains.
         /// </summary>
         /// <param name="subdomain">A subdomain of the whole model.</param>
-        (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) OrderSubdomainDofs(ISubdomain_v2 subdomain);
+        (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) OrderSubdomainDofs(ISubdomain subdomain);
     }
 }

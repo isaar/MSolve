@@ -7,9 +7,9 @@ namespace ISAAR.MSolve.FEM.Entities
 {
     public class Cluster
     {
-        private readonly IList<Subdomain_v2> subdomains = new List<Subdomain_v2>();
+        private readonly IList<Subdomain> subdomains = new List<Subdomain>();
 
-        public IList<Subdomain_v2> Subdomains
+        public IList<Subdomain> Subdomains
         {
             get { return subdomains; }
         }

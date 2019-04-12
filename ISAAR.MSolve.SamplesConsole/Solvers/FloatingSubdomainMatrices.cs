@@ -26,12 +26,12 @@ namespace ISAAR.MSolve.SamplesConsole.Solvers
             //  |____|____|
 
             // Model with 1 subdomain
-            var model = new Model_v2();
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
+            var model = new Model();
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain(subdomainID));
 
             // Material
             double thickness = 1.0;
-            var material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
+            var material = new ElasticMaterial2D(StressState2D.PlaneStress)
             {
                 YoungModulus = 2.1E7,
                 PoissonRatio = 0.3
@@ -41,8 +41,8 @@ namespace ISAAR.MSolve.SamplesConsole.Solvers
             // Generate mesh
             double domainLength = 2.0;
             double domainHeight = 2.4;
-            var meshGenerator = new UniformMeshGenerator2D_v2(0.0, 0.0, domainLength, domainHeight, 10, 10);
-            (IReadOnlyList<Node_v2> vertices, IReadOnlyList<CellConnectivity_v2> cells) = meshGenerator.CreateMesh();
+            var meshGenerator = new UniformMeshGenerator2D(0.0, 0.0, domainLength, domainHeight, 10, 10);
+            (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity> cells) = meshGenerator.CreateMesh();
 
             // Add nodes to the model
             for (int n = 0; n < vertices.Count; ++n) model.NodesDictionary.Add(n, vertices[n]);
@@ -52,8 +52,8 @@ namespace ISAAR.MSolve.SamplesConsole.Solvers
             for (int e = 0; e < cells.Count; ++e)
             {
                 ContinuumElement2D element = factory.CreateElement(cells[e].CellType, cells[e].Vertices);
-                var elementWrapper = new Element_v2() { ID = e, ElementType = element };
-                foreach (Node_v2 node in element.Nodes) elementWrapper.AddNode(node);
+                var elementWrapper = new Element() { ID = e, ElementType = element };
+                foreach (Node node in element.Nodes) elementWrapper.AddNode(node);
                 model.ElementsDictionary.Add(e, elementWrapper);
                 model.SubdomainsDictionary[subdomainID].Elements.Add(elementWrapper);
             }
@@ -63,11 +63,11 @@ namespace ISAAR.MSolve.SamplesConsole.Solvers
             SkylineSolver solver = solverBuilder.BuildSolver(model);
 
             // Structural problem provider
-            var provider = new ProblemStructural_v2(model, solver);
+            var provider = new ProblemStructural(model, solver);
 
             // Linear static analysis
-            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+            var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
             // Run the analysis to build the stiffness matrix
             parentAnalyzer.Initialize();
@@ -92,11 +92,11 @@ namespace ISAAR.MSolve.SamplesConsole.Solvers
             //  
 
             // Model with 1 subdomain
-            var model = new Model_v2();
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2(subdomainID));
+            var model = new Model();
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain(subdomainID));
 
             // Material
-            var material = new ElasticMaterial3D_v2()
+            var material = new ElasticMaterial3D()
             {
                 YoungModulus = 2.1E7,
                 PoissonRatio = 0.3
@@ -108,7 +108,7 @@ namespace ISAAR.MSolve.SamplesConsole.Solvers
             double lengthY = 2.4;
             double lengthZ = 2.2;
             var meshGenerator = new UniformMeshGenerator3D(0.0, 0.0, 0.0, lengthX, lengthY, lengthZ, 10, 10, 10);
-            (IReadOnlyList<Node_v2> vertices, IReadOnlyList<CellConnectivity_v2> cells) = meshGenerator.CreateMesh();
+            (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity> cells) = meshGenerator.CreateMesh();
 
             // Add nodes to the model
             for (int n = 0; n < vertices.Count; ++n) model.NodesDictionary.Add(n, vertices[n]);
@@ -118,8 +118,8 @@ namespace ISAAR.MSolve.SamplesConsole.Solvers
             for (int e = 0; e < cells.Count; ++e)
             {
                 ContinuumElement3D element = factory.CreateElement(cells[e].CellType, cells[e].Vertices);
-                var elementWrapper = new Element_v2() { ID = e, ElementType = element };
-                foreach (Node_v2 node in element.Nodes) elementWrapper.AddNode(node);
+                var elementWrapper = new Element() { ID = e, ElementType = element };
+                foreach (Node node in element.Nodes) elementWrapper.AddNode(node);
                 model.ElementsDictionary.Add(e, elementWrapper);
                 model.SubdomainsDictionary[subdomainID].Elements.Add(elementWrapper);
             }
@@ -129,11 +129,11 @@ namespace ISAAR.MSolve.SamplesConsole.Solvers
             SkylineSolver solver = solverBuilder.BuildSolver(model);
 
             // Structural problem provider
-            var provider = new ProblemStructural_v2(model, solver);
+            var provider = new ProblemStructural(model, solver);
 
             // Linear static analysis
-            var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+            var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
             // Run the analysis to build the stiffness matrix
             parentAnalyzer.Initialize();

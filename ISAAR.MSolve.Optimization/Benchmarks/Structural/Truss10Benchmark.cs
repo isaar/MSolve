@@ -58,8 +58,8 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
             public Truss10Design(double[] x)
             {
                 // Perform simulation
-                Model_v2 model;
-                LinearAnalyzer_v2 childAnalyzer;
+                Model model;
+                LinearAnalyzer childAnalyzer;
                 Rod2DResults rodResults;
                 Solve(x, out model, out childAnalyzer, out rodResults);
 
@@ -70,15 +70,15 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
                 this.ConstraintValues = EvaluateConstraints(model, childAnalyzer, rodResults);
             }
 
-            private void Solve(double[] x, out Model_v2 model, out LinearAnalyzer_v2 childAnalyzer,
+            private void Solve(double[] x, out Model model, out LinearAnalyzer childAnalyzer,
                 out Rod2DResults rodResults)
             {
                 model = BuildModel(x);
 
                 SkylineSolver solver = new SkylineSolver.Builder().BuildSolver(model);
-                var provider = new ProblemStructural_v2(model, solver);
-                childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-                var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+                var provider = new ProblemStructural(model, solver);
+                childAnalyzer = new LinearAnalyzer(model, solver, provider);
+                var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
                 CreateLogs(model, childAnalyzer);
                 rodResults = new Rod2DResults(model.SubdomainsDictionary[1], solver.LinearSystems[1]); // Let's hope this is the one!
 
@@ -86,21 +86,21 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
                 parentAnalyzer.Solve();
             }
 
-            private Model_v2 BuildModel(double[] x)
+            private Model BuildModel(double[] x)
             {
                 double youngModulus = 10e4;
                 double poissonRatio = 0.3;
                 double loadP = 100;
 
-                var model = new Model_v2();
+                var model = new Model();
 
-                var nodes = new List<Node_v2>();
-                var node1 = new Node_v2 { ID = 1, X = 720, Y = 360 };
-                var node2 = new Node_v2 { ID = 2, X = 720, Y = 0 };
-                var node3 = new Node_v2 { ID = 3, X = 360, Y = 360 };
-                var node4 = new Node_v2 { ID = 4, X = 360, Y = 0 };
-                var node5 = new Node_v2 { ID = 5, X = 0, Y = 360 };
-                var node6 = new Node_v2 { ID = 6, X = 0, Y = 0 };
+                var nodes = new List<Node>();
+                var node1 = new Node { ID = 1, X = 720, Y = 360 };
+                var node2 = new Node { ID = 2, X = 720, Y = 0 };
+                var node3 = new Node { ID = 3, X = 360, Y = 360 };
+                var node4 = new Node { ID = 4, X = 360, Y = 0 };
+                var node5 = new Node { ID = 5, X = 0, Y = 360 };
+                var node6 = new Node { ID = 6, X = 0, Y = 0 };
 
                 nodes.Add(node1);
                 nodes.Add(node2);
@@ -114,17 +114,17 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
                     model.NodesDictionary.Add(i + 1, nodes[i]);
                 }
 
-                var elements = new List<Element_v2>();
-                var element1 = new Element_v2() { ID = 1, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[0] } };
-                var element2 = new Element_v2() { ID = 2, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[1] } };
-                var element3 = new Element_v2() { ID = 3, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[2] } };
-                var element4 = new Element_v2() { ID = 4, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[3] } };
-                var element5 = new Element_v2() { ID = 5, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[4] } };
-                var element6 = new Element_v2() { ID = 6, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[5] } };
-                var element7 = new Element_v2() { ID = 7, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[6] } };
-                var element8 = new Element_v2() { ID = 8, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[7] } };
-                var element9 = new Element_v2() { ID = 9, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[8] } };
-                var element10 = new Element_v2() { ID = 10, ElementType = new Rod2D_v2(youngModulus) { Density = 0.1, SectionArea = x[9] } };
+                var elements = new List<Element>();
+                var element1 = new Element() { ID = 1, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[0] } };
+                var element2 = new Element() { ID = 2, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[1] } };
+                var element3 = new Element() { ID = 3, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[2] } };
+                var element4 = new Element() { ID = 4, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[3] } };
+                var element5 = new Element() { ID = 5, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[4] } };
+                var element6 = new Element() { ID = 6, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[5] } };
+                var element7 = new Element() { ID = 7, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[6] } };
+                var element8 = new Element() { ID = 8, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[7] } };
+                var element9 = new Element() { ID = 9, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[8] } };
+                var element10 = new Element() { ID = 10, ElementType = new Rod2D(youngModulus) { Density = 0.1, SectionArea = x[9] } };
 
                 element1.AddNode(model.NodesDictionary[3]);
                 element1.AddNode(model.NodesDictionary[5]);
@@ -158,7 +158,7 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
                 model.ElementsDictionary.Add(element9.ID, element9);
                 model.ElementsDictionary.Add(element10.ID, element10);
 
-                model.SubdomainsDictionary.Add(1, new Subdomain_v2(1));
+                model.SubdomainsDictionary.Add(1, new Subdomain(1));
 
                 model.SubdomainsDictionary[1].Elements.Add(element1);
                 model.SubdomainsDictionary[1].Elements.Add(element2);
@@ -176,13 +176,13 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
                 model.NodesDictionary[6].Constraints.Add(new Constraint { DOF = DOFType.X, Amount = 0.0 });
                 model.NodesDictionary[6].Constraints.Add(new Constraint { DOF = DOFType.Y, Amount = 0.0 });
 
-                model.Loads.Add(new Load_v2() { Amount = -loadP, Node = model.NodesDictionary[2], DOF = DOFType.Y });
-                model.Loads.Add(new Load_v2() { Amount = -loadP, Node = model.NodesDictionary[4], DOF = DOFType.Y });
+                model.Loads.Add(new Load() { Amount = -loadP, Node = model.NodesDictionary[2], DOF = DOFType.Y });
+                model.Loads.Add(new Load() { Amount = -loadP, Node = model.NodesDictionary[4], DOF = DOFType.Y });
 
                 return model;
             }
 
-            private void CreateLogs(Model_v2 model, LinearAnalyzer_v2 childAnalyzer)
+            private void CreateLogs(Model model, LinearAnalyzer childAnalyzer)
             {
                 int[] monitoredDOFs = new int[] {
                     model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[1], DOFType.Y],
@@ -190,19 +190,19 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
                     model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[3], DOFType.Y],
                     model.GlobalDofOrdering.GlobalFreeDofs[model.NodesDictionary[4], DOFType.Y]
                 };
-                childAnalyzer.LogFactories[1] = new LinearAnalyzerLogFactory_v2(monitoredDOFs);
+                childAnalyzer.LogFactories[1] = new LinearAnalyzerLogFactory(monitoredDOFs);
                 //Element[] stressElements = model.ElementsDictionary.Values.ToArray<Element>();
                 //childAnalyzer.LogFactories[1] = new LinearAnalyzerLogFactory(monitoredDOFs,
                 //    stressElements, new Element[0]);
             }
 
-            private double[] EvaluateObjective(double[] x, Model_v2 model)
+            private double[] EvaluateObjective(double[] x, Model model)
             {
                 double weight = 0;
 
                 for (int i = 0; i < x.Length; i++)
                 {
-                    var element_i = model.Elements[i].ElementType as Rod2D_v2;
+                    var element_i = model.Elements[i].ElementType as Rod2D;
                     var nodeStart = model.Nodes[0];
                     var nodeEnd = model.Nodes[1];
                     var Length_i = Math.Sqrt(Math.Pow(nodeEnd.X - nodeStart.X, 2) + Math.Pow(nodeEnd.Y - nodeStart.Y, 2));
@@ -212,7 +212,7 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
                 return new double[] { weight };
             }
 
-            private double[] EvaluateConstraints(Model_v2 model, LinearAnalyzer_v2 childAnalyzer,
+            private double[] EvaluateConstraints(Model model, LinearAnalyzer childAnalyzer,
                 Rod2DResults rodResults)
             {
                 var constraints = new LinkedList<double>();
@@ -221,7 +221,7 @@ namespace ISAAR.MSolve.Optimization.Benchmarks.Structural
                 const double maxDisplacement = 2;
                 double max = 0;
 
-                foreach (var displacement in ((DOFSLog_v2)childAnalyzer.Logs[1][0]).DOFValues.Values)
+                foreach (var displacement in ((DOFSLog)childAnalyzer.Logs[1][0]).DOFValues.Values)
                 {
                     if (Math.Abs(displacement) > max)
                     {

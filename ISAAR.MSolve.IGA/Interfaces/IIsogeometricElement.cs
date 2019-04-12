@@ -7,11 +7,11 @@ using ISAAR.MSolve.IGA.Entities.Loads;
 namespace ISAAR.MSolve.IGA.Interfaces
 {
 
-    public interface IIsogeometricElement: IElementType_v2
+    public interface IIsogeometricElement: IElementType
 	{
         int ID { get; }
         ElementDimensions ElementDimensions { get; }
-        IElementDofEnumerator_v2 DofEnumerator { get; set; }
+        IElementDofEnumerator DofEnumerator { get; set; }
         //IList<IList<DOFType>> GetElementDOFTypes(IElement element);
         bool MaterialModified { get; }
         //IMatrix2D StiffnessMatrix(Element element);

@@ -9,11 +9,11 @@ namespace ISAAR.MSolve.FEM.Embedding
 {
     public class ThermalEmbeddedGrouping
     {
-        private readonly Model_v2 model;
-        private readonly IEmbeddedDOFInHostTransformationVector_v2 transformer;
+        private readonly Model model;
+        private readonly IEmbeddedDOFInHostTransformationVector transformer;
 
-        public ThermalEmbeddedGrouping(Model_v2 model, IEnumerable<Element_v2> hostGroup, IEnumerable<Element_v2> embeddedGroup,
-            IEmbeddedDOFInHostTransformationVector_v2 transformer)
+        public ThermalEmbeddedGrouping(Model model, IEnumerable<Element> hostGroup, IEnumerable<Element> embeddedGroup,
+            IEmbeddedDOFInHostTransformationVector transformer)
         {
             this.model = model;
             this.HostGroup = hostGroup;
@@ -21,28 +21,28 @@ namespace ISAAR.MSolve.FEM.Embedding
             this.transformer = transformer;
             hostGroup.Select(e => e.ElementType).Distinct().ToList().ForEach(et =>
             {
-                if (!(et is IEmbeddedHostElement_v2))
+                if (!(et is IEmbeddedHostElement))
                     throw new ArgumentException("EmbeddedGrouping: One or more elements of host group does NOT implement IEmbeddedHostElement.");
             });
             embeddedGroup.Select(e => e.ElementType).Distinct().ToList().ForEach(et =>
             {
-                if (!(et is IEmbeddedElement_v2))
+                if (!(et is IEmbeddedElement))
                     throw new ArgumentException("EmbeddedGrouping: One or more elements of embedded group does NOT implement IEmbeddedElement.");
             });
         }
 
-        public IEnumerable<Element_v2> HostGroup { get; }
-        public IEnumerable<Element_v2> EmbeddedGroup { get; }
+        public IEnumerable<Element> HostGroup { get; }
+        public IEnumerable<Element> EmbeddedGroup { get; }
 
         public void ApplyEmbedding()
         {
             foreach (var embeddedElement in EmbeddedGroup)
             {
-                var elType = (IEmbeddedElement_v2)embeddedElement.ElementType;
+                var elType = (IEmbeddedElement)embeddedElement.ElementType;
                 foreach (var node in embeddedElement.Nodes)
                 {
                     var embeddedNodes = HostGroup
-                        .Select(e => ((IEmbeddedHostElement_v2)e.ElementType).BuildHostElementEmbeddedNode(e, node, transformer))
+                        .Select(e => ((IEmbeddedHostElement)e.ElementType).BuildHostElementEmbeddedNode(e, node, transformer))
                         .Where(e => e != null);
                     foreach (var embeddedNode in embeddedNodes)
                     {
@@ -51,19 +51,19 @@ namespace ISAAR.MSolve.FEM.Embedding
 
                         // Update embedded node information for elements that are not inside the embedded group but contain an embedded node.
                         foreach (var element in model.Elements.Except(EmbeddedGroup))
-                            if (element.ElementType is IEmbeddedElement_v2 && element.Nodes.Contains(embeddedNode.Node))
+                            if (element.ElementType is IEmbeddedElement && element.Nodes.Contains(embeddedNode.Node))
                             {
-                                var currentElementType = (IEmbeddedElement_v2)element.ElementType;
+                                var currentElementType = (IEmbeddedElement)element.ElementType;
                                 if (!currentElementType.EmbeddedNodes.Contains(embeddedNode))
                                 {
                                     currentElementType.EmbeddedNodes.Add(embeddedNode);
-                                    element.ElementType.DofEnumerator = new ElementEmbedder_v2(model, element, transformer);
+                                    element.ElementType.DofEnumerator = new ElementEmbedder(model, element, transformer);
                                 }
                             }
                     }
                 }
 
-                embeddedElement.ElementType.DofEnumerator = new ElementEmbedder_v2(model, embeddedElement, transformer);
+                embeddedElement.ElementType.DofEnumerator = new ElementEmbedder(model, embeddedElement, transformer);
             }
         }
     }

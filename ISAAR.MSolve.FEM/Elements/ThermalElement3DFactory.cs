@@ -111,7 +111,7 @@ namespace ISAAR.MSolve.FEM.Elements
             this.commonMaterial = commonMaterial;
         }
 
-        public ThermalElement3D CreateElement(CellType cellType, IReadOnlyList<Node_v2> nodes)
+        public ThermalElement3D CreateElement(CellType cellType, IReadOnlyList<Node> nodes)
         {
             return new ThermalElement3D(nodes, interpolations[cellType],
                 integrationsForStiffness[cellType], integrationsForMass[cellType], extrapolations[cellType], commonMaterial);

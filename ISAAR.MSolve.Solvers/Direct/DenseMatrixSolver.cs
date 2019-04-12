@@ -24,13 +24,13 @@ namespace ISAAR.MSolve.Solvers.Direct
         private bool mustInvert = true;
         private Matrix inverse;
 
-        private DenseMatrixSolver(IStructuralModel_v2 model, IDofOrderer dofOrderer, bool isMatrixPositiveDefinite) :
+        private DenseMatrixSolver(IStructuralModel model, IDofOrderer dofOrderer, bool isMatrixPositiveDefinite) :
             base(model, dofOrderer, new DenseMatrixAssembler(), "DenseMatrixSolver")
         {
             this.isMatrixPositiveDefinite = isMatrixPositiveDefinite;
         }
 
-        public override Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider_v2 elementMatrixProvider)
+        public override Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider elementMatrixProvider)
         {
             #region Code to facilitate debugging
             //var writer = new FullMatrixWriter();
@@ -135,9 +135,9 @@ namespace ISAAR.MSolve.Solvers.Direct
 
             public bool IsMatrixPositiveDefinite { get; set; } = true;
 
-            ISolver_v2 ISolverBuilder.BuildSolver(IStructuralModel_v2 model) => BuildSolver(model);
+            ISolver ISolverBuilder.BuildSolver(IStructuralModel model) => BuildSolver(model);
 
-            public DenseMatrixSolver BuildSolver(IStructuralModel_v2 model)
+            public DenseMatrixSolver BuildSolver(IStructuralModel model)
                 => new DenseMatrixSolver(model, DofOrderer, IsMatrixPositiveDefinite);
         }
     }

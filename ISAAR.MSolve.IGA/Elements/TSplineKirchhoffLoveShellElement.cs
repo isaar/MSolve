@@ -20,9 +20,9 @@ namespace ISAAR.MSolve.IGA.Elements
 		public int DegreeHeta { get; set; }
 		protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
 		protected DOFType[][] dofTypes;
-		protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
+		protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
 
-		public IElementDofEnumerator_v2 DofEnumerator
+		public IElementDofEnumerator DofEnumerator
 		{
 			get
 			{
@@ -85,12 +85,12 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix DampingMatrix(IElement_v2 element)
+		public IMatrix DampingMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
+		public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
 		{
 			var nurbsElement = (TSplineKirchhoffLoveShellElement)element;
 			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
@@ -101,7 +101,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			return dofTypes;
 		}
 
-		public IMatrix MassMatrix(IElement_v2 element)
+		public IMatrix MassMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
@@ -111,7 +111,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix StiffnessMatrix(IElement_v2 element)
+		public IMatrix StiffnessMatrix(IElement element)
 		{
 			var shellElement = (TSplineKirchhoffLoveShellElement)element;
             IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(shellElement);
@@ -143,14 +143,14 @@ namespace ISAAR.MSolve.IGA.Elements
 
 				var Bbending = CalculateBendingDeformationMatrix(surfaceBasisVector3, tsplines, j, surfaceBasisVector2, surfaceBasisVectorDerivative1, surfaceBasisVector1, J1, surfaceBasisVectorDerivative2, surfaceBasisVectorDerivative12, shellElement);
 
-				double membraneStiffness = ((IIsotropicContinuumMaterial2D_v2)shellElement.Patch.Material).YoungModulus * shellElement.Patch.Thickness /
-										   (1 - Math.Pow(((IIsotropicContinuumMaterial2D_v2)shellElement.Patch.Material).PoissonRatio, 2));
+				double membraneStiffness = ((IIsotropicContinuumMaterial2D)shellElement.Patch.Material).YoungModulus * shellElement.Patch.Thickness /
+										   (1 - Math.Pow(((IIsotropicContinuumMaterial2D)shellElement.Patch.Material).PoissonRatio, 2));
 
 				var Kmembrane = Bmembrane.Transpose() * constitutiveMatrix * Bmembrane * membraneStiffness * J1 *
 								gaussPoints[j].WeightFactor;
 
-				double bendingStiffness = ((IIsotropicContinuumMaterial2D_v2)shellElement.Patch.Material).YoungModulus * Math.Pow(shellElement.Patch.Thickness, 3) /
-										  12 / (1 - Math.Pow(((IIsotropicContinuumMaterial2D_v2)shellElement.Patch.Material).PoissonRatio, 2));
+				double bendingStiffness = ((IIsotropicContinuumMaterial2D)shellElement.Patch.Material).YoungModulus * Math.Pow(shellElement.Patch.Thickness, 3) /
+										  12 / (1 - Math.Pow(((IIsotropicContinuumMaterial2D)shellElement.Patch.Material).PoissonRatio, 2));
 
 				var Kbending = Bbending.Transpose() * constitutiveMatrix * Bbending * bendingStiffness * J1 *
 							   gaussPoints[j].WeightFactor;
@@ -171,7 +171,7 @@ namespace ISAAR.MSolve.IGA.Elements
             auxMatrix1[1, 1] = surfaceBasisVector2.DotProduct(surfaceBasisVector2);
             (Matrix inverse, double det) = auxMatrix1.InvertAndDetermninant();
 
-			var material = ((IContinuumMaterial2D_v2)element.Patch.Material);
+			var material = ((IContinuumMaterial2D)element.Patch.Material);
 			var constitutiveMatrix = Matrix.CreateFromArray(new double[3, 3]
 			{
 				{

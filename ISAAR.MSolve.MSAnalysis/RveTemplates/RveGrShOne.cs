@@ -13,10 +13,10 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     /// Model builder that can be used to create graphene reinforced rves 
     /// Authors: Gerasimos Sotiropoulos
     /// </summary>
-    public class RveGrShOne : IRVEbuilder_v2 //IdegenerateRVEbuilder
+    public class RveGrShOne : IRVEbuilder //IdegenerateRVEbuilder
     {
-        //GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_forCheck_v2
-        //Origin  einai o updated GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData( _v2 to idio einai) apo thn ekdosh ms_development_nl_elements_merge
+        //GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData_forCheck
+        //Origin  einai o updated GrapheneReinforcedRVEBuilderExample35fe2boundstiffHostTestPostData(  to idio einai) apo thn ekdosh ms_development_nl_elements_merge
         // modifications: discretization data kai paths wste
         //anti gia REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2
         //na trexoume REFERENCE_kanonikh_gewmetria_fe2_post_dg\REF2_10__000_renu_new_multiple_algorithms_check_develop_gia_fe2_3grsh_4182dofs_multiple2_forCHECK
@@ -34,19 +34,19 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             this.RVE_id = RVE_id;
         }
 
-        public IRVEbuilder_v2 Clone(int a) => new RveGrShOne(a);
+        public IRVEbuilder Clone(int a) => new RveGrShOne(a);
     
-        public Tuple<Model_v2, Dictionary<int, Node_v2>,double> GetModelAndBoundaryNodes()
+        public Tuple<Model, Dictionary<int, Node>,double> GetModelAndBoundaryNodes()
         {
             return Reference2RVEExample10000withRenumberingwithInput_forMS();
         }
 
-        private Tuple<Model_v2, Dictionary<int, Node_v2>,double> Reference2RVEExample10000withRenumberingwithInput_forMS()
+        private Tuple<Model, Dictionary<int, Node>,double> Reference2RVEExample10000withRenumberingwithInput_forMS()
         {
-            Model_v2 model = new Model_v2();
-            model.SubdomainsDictionary.Add(1, new Subdomain_v2(1) );
+            Model model = new Model();
+            model.SubdomainsDictionary.Add(1, new Subdomain(1) );
 
-            Dictionary<int, Node_v2> boundaryNodes = new Dictionary<int, Node_v2>();
+            Dictionary<int, Node> boundaryNodes = new Dictionary<int, Node>();
 
             //Origin  public static void Reference2RVEExample10000withRenumberingwithInput(Model model)
             double[,] Dq;
@@ -70,8 +70,8 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             int discr3 = 6;
             int subdiscr1_shell = 3;
             int discr1_shell = 1;
-            //mpgp = FEMMeshBuilder_v2.GetReferenceKanonikhGewmetriaRveExampleParametersStiffCase(subdiscr1, discr1, discr3, subdiscr1_shell, discr1_shell);
-            mpgp = FEMMeshBuilder_v2.GetReferenceKanonikhGewmetriaRveExampleParameters(subdiscr1, discr1, discr3, subdiscr1_shell, discr1_shell);
+            //mpgp = FEMMeshBuilder.GetReferenceKanonikhGewmetriaRveExampleParametersStiffCase(subdiscr1, discr1, discr3, subdiscr1_shell, discr1_shell);
+            mpgp = FEMMeshBuilder.GetReferenceKanonikhGewmetriaRveExampleParameters(subdiscr1, discr1, discr3, subdiscr1_shell, discr1_shell);
             mp = mpgp.Item1; //mp.hexa1 = 9; mp.hexa2 = 9; mp.hexa3 = 9;
             gp = mpgp.Item2;
 
@@ -83,7 +83,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
 
 
             Dq = new double[9, 3 * (((mp.hexa1 + 1) * (mp.hexa2 + 1) * (mp.hexa3 + 1)) - ((mp.hexa1 - 1) * (mp.hexa2 - 1) * (mp.hexa3 - 1)))];
-            FEMMeshBuilder_v2.HexaElementsOnlyRVEwithRenumbering_forMS(model, mp, Dq, renumbering_vector_path, boundaryNodes);
+            FEMMeshBuilder.HexaElementsOnlyRVEwithRenumbering_forMS(model, mp, Dq, renumbering_vector_path, boundaryNodes);
             double volume = mp.L01 * mp.L02 * mp.L03;
 
             int hexaElementsNumber = model.ElementsDictionary.Count();
@@ -98,7 +98,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             {
                 string file_no = (j + 1).ToString();
                 string ox_sunol_input_path = string.Format(o_xsunol_input_path_gen, file_no);
-                FEMMeshBuilder_v2.AddGrapheneSheet_with_o_x_Input_withRenumbering(model, gp, ekk_xyz[j], model_o_x_parameteroi[j], renumbering_vector_path, ox_sunol_input_path);
+                FEMMeshBuilder.AddGrapheneSheet_with_o_x_Input_withRenumbering(model, gp, ekk_xyz[j], model_o_x_parameteroi[j], renumbering_vector_path, ox_sunol_input_path);
                 shellElementsNumber = (model.ElementsDictionary.Count() - element_counter_after_Adding_sheet) / 3; //tha xrhsimefsei
                 for (int k = shellElementsNumber + element_counter_after_Adding_sheet + 1; k < model.ElementsDictionary.Count() + 1; k++)
                 {
@@ -111,22 +111,22 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
            
 
             int[] EmbElementsIds = EmbeddedElementsIDs.ToArray();
-            IEnumerable<Element_v2> embdeddedGroup = model.ElementsDictionary.Where(x => (Array.IndexOf(EmbElementsIds, x.Key) > -1)).Select(kv => kv.Value); // dld einai null afth th stigmh
+            IEnumerable<Element> embdeddedGroup = model.ElementsDictionary.Where(x => (Array.IndexOf(EmbElementsIds, x.Key) > -1)).Select(kv => kv.Value); // dld einai null afth th stigmh
             //var embeddedGrouping = new EmbeddedCohesiveGrouping(model, hostGroup, embdeddedGroup);
 
             //var CohesiveGroupings = new EmbeddedCohesiveGrouping[EmbElementsIds.GetLength(0)];
 
-            var hostSubGroups = new Dictionary<int, IEnumerable<Element_v2>>();
+            var hostSubGroups = new Dictionary<int, IEnumerable<Element>>();
             for (int i1 = 0; i1 < EmbElementsIds.GetLength(0); i1++)
             {
-                hostSubGroups.Add(EmbElementsIds[i1], FEMMeshBuilder_v2.GetHostGroupForCohesiveElement(model.ElementsDictionary[EmbElementsIds[i1]], mp, model, renumbering_vector_path));
+                hostSubGroups.Add(EmbElementsIds[i1], FEMMeshBuilder.GetHostGroupForCohesiveElement(model.ElementsDictionary[EmbElementsIds[i1]], mp, model, renumbering_vector_path));
                 //var embeddedGroup_i1 = new List<Element>(1) { model.ElementsDictionary[EmbElementsIds[i1]] };
                 //CohesiveGroupings[i1] = new EmbeddedCohesiveGrouping(model, hostGroup_i1, embeddedGroup_i1);
             }
 
-            var CohesiveGroupping = new EmbeddedCohesiveSubGrouping_v2(model, hostSubGroups, embdeddedGroup);
+            var CohesiveGroupping = new EmbeddedCohesiveSubGrouping(model, hostSubGroups, embdeddedGroup);
 
-            return new Tuple<Model_v2, Dictionary<int, Node_v2>,double>(model, boundaryNodes,volume);
+            return new Tuple<Model, Dictionary<int, Node>,double>(model, boundaryNodes,volume);
 
         }
 

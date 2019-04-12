@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.Materials
     /// cohesion only friction type response in shear separation mode (with kinematic hardening like behaviour). Linear elastic behaviour in normal mode
     /// Authors Gerasimos Sotiropoulos
     /// </summary>
-    public class BondSlipCohMat_v2 : ICohesiveZoneMaterial3D_v2 // TODOGerasimos
+    public class BondSlipCohMat : ICohesiveZoneMaterial3D // TODOGerasimos
     {
         private bool modified; // opws sto MohrCoulomb gia to modified
 
@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.Materials
         private double[] stress3D;
         
 
-        public BondSlipCohMat_v2(double k_elastic, double k_elastic2,double k_elastic_normal, double t_max, double[] s_0, double[] a_0, double tol)
+        public BondSlipCohMat(double k_elastic, double k_elastic2,double k_elastic_normal, double t_max, double[] s_0, double[] a_0, double tol)
         {
             this.k_elastic = k_elastic;
             this.k_elastic2 = k_elastic2;
@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.Materials
             this.InitializeMatrices();
         }
 
-        public BondSlipCohMat_v2(double T_o_1, double D_o_1, double k_elastic2_ratio,double T_o_3, double D_o_3, double[] s_0, double[] a_0, double tol)
+        public BondSlipCohMat(double T_o_1, double D_o_1, double k_elastic2_ratio,double T_o_3, double D_o_3, double[] s_0, double[] a_0, double tol)
         {
             this.k_elastic = T_o_1/D_o_1;
             this.k_elastic2 = k_elastic2_ratio*k_elastic;
@@ -58,14 +58,14 @@ namespace ISAAR.MSolve.Materials
             this.InitializeMatrices();
         }
 
-        ICohesiveZoneMaterial3D_v2 ICohesiveZoneMaterial3D_v2.Clone()
+        ICohesiveZoneMaterial3D ICohesiveZoneMaterial3D.Clone()
         {
             return this.Clone();
         }
 
-        public BondSlipCohMat_v2 Clone()
+        public BondSlipCohMat Clone()
         {
-            return new BondSlipCohMat_v2(k_elastic, k_elastic2, k_elastic_normal, t_max, s_0, a_0, tol);            
+            return new BondSlipCohMat(k_elastic, k_elastic2, k_elastic_normal, t_max, s_0, a_0, tol);            
         }
 
         private double c1;

@@ -15,14 +15,14 @@ namespace ISAAR.MSolve.Problems
     /// </summary>
     public class DirichletEquivalentLoadsStructural : IDirichletEquivalentLoadsAssembler
     {
-        private IElementMatrixProvider_v2 elementProvider; //TODO: not sure if df = K * du is the best way to calcuate df.
+        private IElementMatrixProvider elementProvider; //TODO: not sure if df = K * du is the best way to calcuate df.
 
-        public DirichletEquivalentLoadsStructural(IElementMatrixProvider_v2 elementProvider)
+        public DirichletEquivalentLoadsStructural(IElementMatrixProvider elementProvider)
         {
             this.elementProvider = elementProvider;
         }
 
-        public IVector GetEquivalentNodalLoads(ISubdomain_v2 subdomain, IVectorView solution, double constraintScalingFactor) 
+        public IVector GetEquivalentNodalLoads(ISubdomain subdomain, IVectorView solution, double constraintScalingFactor) 
         {
             //var times = new Dictionary<string, TimeSpan>();
             //var totalStart = DateTime.Now;
@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.Problems
             //times.Add("addition", TimeSpan.Zero);
 
             var subdomainEquivalentForces = Vector.CreateZero(subdomain.FreeDofOrdering.NumFreeDofs);
-            foreach (IElement_v2 element in subdomain.Elements) //TODO: why go through all the elements? Most of them will not have Dirichlet bc.
+            foreach (IElement element in subdomain.Elements) //TODO: why go through all the elements? Most of them will not have Dirichlet bc.
             {
                 //var elStart = DateTime.Now;
                 IMatrix elementK = elementProvider.Matrix(element);

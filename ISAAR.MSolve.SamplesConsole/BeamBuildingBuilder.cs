@@ -9,11 +9,11 @@ namespace ISAAR.MSolve.SamplesConsole
 {
     public static class BeamBuildingBuilder
     {
-        private static Node_v2 GetNodeUnderNode_v2(Model_v2 model, Node_v2 node)
+        private static Node GetNodeUnderNode(Model model, Node node)
         {
             double distance = Double.MaxValue;
-            Node_v2 returnNode = null;
-            foreach (Node_v2 n in model.NodesDictionary.Values)
+            Node returnNode = null;
+            foreach (Node n in model.NodesDictionary.Values)
             {
                 if (n.ID == node.ID) continue;
                 if (n.X != node.X || n.Z != node.Z) continue;
@@ -28,17 +28,17 @@ namespace ISAAR.MSolve.SamplesConsole
             return returnNode;
         }
 
-        private static Node_v2[] GetAdjacentNodes_v2(Model_v2 model, Node_v2 node)
+        private static Node[] GetAdjacentNodes(Model model, Node node)
         {
-            Node_v2 nodeLeft = null;
-            Node_v2 nodeRight = null;
-            Node_v2 nodeTop = null;
-            Node_v2 nodeBottom = null;
+            Node nodeLeft = null;
+            Node nodeRight = null;
+            Node nodeTop = null;
+            Node nodeBottom = null;
             double distanceLeft = Double.MaxValue;
             double distanceRight = Double.MaxValue;
             double distanceTop = Double.MaxValue;
             double distanceBottom = Double.MaxValue;
-            foreach (Node_v2 n in model.NodesDictionary.Values)
+            foreach (Node n in model.NodesDictionary.Values)
             {
                 if (n.ID == node.ID) continue;
                 if (n.Y != node.Y) continue;
@@ -81,10 +81,10 @@ namespace ISAAR.MSolve.SamplesConsole
                     }
                 }
             }
-            return new Node_v2[] { nodeRight, nodeTop, nodeLeft, nodeBottom };
+            return new Node[] { nodeRight, nodeTop, nodeLeft, nodeBottom };
         }
 
-        public static void MakeBeamBuilding_v2(Model_v2 model, double startX, double startY, double startZ, double beamWidth,
+        public static void MakeBeamBuilding(Model model, double startX, double startY, double startZ, double beamWidth,
             double beamHeight, int startNodeID, int startElementID, int subdomainID, int floors, bool isInHexaSoil, bool hasPiles)
         {
             const int nodesPerFloor = 18;
@@ -97,7 +97,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 {
                     for (int k = 0; k < 5; k++)
                     {
-                        model.NodesDictionary.Add(nodeID, new Node_v2() { ID = nodeID, X = startX + k * beamWidth, Y = startY, Z = startZ + j * beamWidth });
+                        model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + k * beamWidth, Y = startY, Z = startZ + j * beamWidth });
                         model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
                         model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
                         model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
@@ -107,7 +107,7 @@ namespace ISAAR.MSolve.SamplesConsole
                         nodeID++;
                     }
                 }
-                model.NodesDictionary.Add(nodeID, new Node_v2() { ID = nodeID, X = startX + 2 * beamWidth, Y = startY, Z = startZ + 3 * beamWidth });
+                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 2 * beamWidth, Y = startY, Z = startZ + 3 * beamWidth });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
@@ -115,7 +115,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotY });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
                 nodeID++;
-                model.NodesDictionary.Add(nodeID, new Node_v2() { ID = nodeID, X = startX + 3 * beamWidth, Y = startY, Z = startZ + 3 * beamWidth });
+                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 3 * beamWidth, Y = startY, Z = startZ + 3 * beamWidth });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
@@ -123,7 +123,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotY });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.RotZ });
                 nodeID++;
-                model.NodesDictionary.Add(nodeID, new Node_v2() { ID = nodeID, X = startX + 4 * beamWidth, Y = startY, Z = startZ + 3 * beamWidth });
+                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 4 * beamWidth, Y = startY, Z = startZ + 3 * beamWidth });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.X });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Y });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = DOFType.Z });
@@ -139,20 +139,20 @@ namespace ISAAR.MSolve.SamplesConsole
                 {
                     for (int k = 0; k < 5; k++)
                     {
-                        model.NodesDictionary.Add(nodeID, new Node_v2() { ID = nodeID, X = startX + k * beamWidth, Y = startY + i * beamHeight, Z = startZ + j * beamWidth });
+                        model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + k * beamWidth, Y = startY + i * beamHeight, Z = startZ + j * beamWidth });
                         nodeID++;
                     }
                 }
-                model.NodesDictionary.Add(nodeID, new Node_v2() { ID = nodeID, X = startX + 2 * beamWidth, Y = startY + i * beamHeight, Z = startZ + 3 * beamWidth });
+                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 2 * beamWidth, Y = startY + i * beamHeight, Z = startZ + 3 * beamWidth });
                 nodeID++;
-                model.NodesDictionary.Add(nodeID, new Node_v2() { ID = nodeID, X = startX + 3 * beamWidth, Y = startY + i * beamHeight, Z = startZ + 3 * beamWidth });
+                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 3 * beamWidth, Y = startY + i * beamHeight, Z = startZ + 3 * beamWidth });
                 nodeID++;
-                model.NodesDictionary.Add(nodeID, new Node_v2() { ID = nodeID, X = startX + 4 * beamWidth, Y = startY + i * beamHeight, Z = startZ + 3 * beamWidth });
+                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 4 * beamWidth, Y = startY + i * beamHeight, Z = startZ + 3 * beamWidth });
                 nodeID++;
             }
-            List<Node_v2> groundNodes = new List<Node_v2>();
+            List<Node> groundNodes = new List<Node>();
             int elementID = startElementID;
-            Element_v2 e;
+            Element e;
             int fibers = 400;
             double b = 0.3;
             double h = 0.1;
@@ -161,14 +161,14 @@ namespace ISAAR.MSolve.SamplesConsole
 
             if (isInHexaSoil)
             {
-                List<Node_v2> sub1Nodes = new List<Node_v2>();
-                List<Node_v2> sub2Nodes = new List<Node_v2>();
+                List<Node> sub1Nodes = new List<Node>();
+                List<Node> sub2Nodes = new List<Node>();
                 // Get ground and sub nodes
                 for (int i = 0; i < nodesPerFloor; i++)
                 {
-                    groundNodes.Add(GetNodeUnderNode_v2(model, model.NodesDictionary[startNodeID + i]));
-                    sub1Nodes.Add(GetNodeUnderNode_v2(model, groundNodes[i]));
-                    sub2Nodes.Add(GetNodeUnderNode_v2(model, sub1Nodes[i]));
+                    groundNodes.Add(GetNodeUnderNode(model, model.NodesDictionary[startNodeID + i]));
+                    sub1Nodes.Add(GetNodeUnderNode(model, groundNodes[i]));
+                    sub2Nodes.Add(GetNodeUnderNode(model, sub1Nodes[i]));
                 }
 
                 if (hasPiles)
@@ -176,12 +176,12 @@ namespace ISAAR.MSolve.SamplesConsole
                     // Create sub2 piles
                     for (int i = 0; i < nodesPerFloor; i++)
                     {
-                        Node_v2[] sub1AdjacentNodes = GetAdjacentNodes_v2(model, sub1Nodes[i]);
-                        Node_v2[] sub2AdjacentNodes = GetAdjacentNodes_v2(model, sub2Nodes[i]);
-                        e = new Element_v2()
+                        Node[] sub1AdjacentNodes = GetAdjacentNodes(model, sub1Nodes[i]);
+                        Node[] sub2AdjacentNodes = GetAdjacentNodes(model, sub2Nodes[i]);
+                        e = new Element()
                         {
                             ID = elementID,
-                            ElementType = new EulerBeam3D_v2(youngModulus, poissonRatio, sub2AdjacentNodes, sub1AdjacentNodes)
+                            ElementType = new EulerBeam3D(youngModulus, poissonRatio, sub2AdjacentNodes, sub1AdjacentNodes)
                             {
                                 Density = 7.85,
                                 SectionArea = b * h,
@@ -191,8 +191,8 @@ namespace ISAAR.MSolve.SamplesConsole
                         };
                         e.NodesDictionary.Add(sub2Nodes[i].ID, sub2Nodes[i]);
                         e.NodesDictionary.Add(sub1Nodes[i].ID, sub1Nodes[i]);
-                        foreach (Node_v2 node in sub2AdjacentNodes) e.NodesDictionary.Add(node.ID, node);
-                        foreach (Node_v2 node in sub1AdjacentNodes) e.NodesDictionary.Add(node.ID, node);
+                        foreach (Node node in sub2AdjacentNodes) e.NodesDictionary.Add(node.ID, node);
+                        foreach (Node node in sub1AdjacentNodes) e.NodesDictionary.Add(node.ID, node);
                         model.ElementsDictionary.Add(e.ID, e);
                         model.SubdomainsDictionary[subdomainID].Elements.Add(e);
                         elementID++;
@@ -200,12 +200,12 @@ namespace ISAAR.MSolve.SamplesConsole
                     // Create sub1 piles
                     for (int i = 0; i < nodesPerFloor; i++)
                     {
-                        Node_v2[] sub1AdjacentNodes = GetAdjacentNodes_v2(model, sub1Nodes[i]);
-                        Node_v2[] groundAdjacentNodes = GetAdjacentNodes_v2(model, groundNodes[i]);
-                        e = new Element_v2()
+                        Node[] sub1AdjacentNodes = GetAdjacentNodes(model, sub1Nodes[i]);
+                        Node[] groundAdjacentNodes = GetAdjacentNodes(model, groundNodes[i]);
+                        e = new Element()
                         {
                             ID = elementID,
-                            ElementType = new EulerBeam3D_v2(youngModulus, poissonRatio, sub1AdjacentNodes, groundAdjacentNodes)
+                            ElementType = new EulerBeam3D(youngModulus, poissonRatio, sub1AdjacentNodes, groundAdjacentNodes)
                             {
                                 Density = 7.85,
                                 SectionArea = b * h,
@@ -215,8 +215,8 @@ namespace ISAAR.MSolve.SamplesConsole
                         };
                         e.NodesDictionary.Add(sub1Nodes[i].ID, sub1Nodes[i]);
                         e.NodesDictionary.Add(groundNodes[i].ID, groundNodes[i]);
-                        foreach (Node_v2 node in sub1AdjacentNodes) e.NodesDictionary.Add(node.ID, node);
-                        foreach (Node_v2 node in groundAdjacentNodes) e.NodesDictionary.Add(node.ID, node);
+                        foreach (Node node in sub1AdjacentNodes) e.NodesDictionary.Add(node.ID, node);
+                        foreach (Node node in groundAdjacentNodes) e.NodesDictionary.Add(node.ID, node);
                         model.ElementsDictionary.Add(e.ID, e);
                         model.SubdomainsDictionary[subdomainID].Elements.Add(e);
                         elementID++;
@@ -233,11 +233,11 @@ namespace ISAAR.MSolve.SamplesConsole
             // Create ground-to-1st-floor beams
             for (int i = 0; i < nodesPerFloor; i++)
             {
-                Node_v2[] groundAdjacentNodes = GetAdjacentNodes_v2(model, groundNodes[i]);
-                e = new Element_v2()
+                Node[] groundAdjacentNodes = GetAdjacentNodes(model, groundNodes[i]);
+                e = new Element()
                 {
                     ID = elementID,
-                    ElementType = new EulerBeam3D_v2(youngModulus, poissonRatio, isInHexaSoil ? groundAdjacentNodes : null, null)
+                    ElementType = new EulerBeam3D(youngModulus, poissonRatio, isInHexaSoil ? groundAdjacentNodes : null, null)
                     {
                         Density = 7.85,
                         SectionArea = b * h,
@@ -248,7 +248,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 e.NodesDictionary.Add(groundNodes[i].ID, groundNodes[i]);
                 e.NodesDictionary.Add(startNodeID + i, model.NodesDictionary[startNodeID + i]);
                 if (isInHexaSoil)
-                    foreach (Node_v2 node in groundAdjacentNodes)
+                    foreach (Node node in groundAdjacentNodes)
                         e.NodesDictionary.Add(node.ID, node);
                 model.ElementsDictionary.Add(e.ID, e);
                 model.SubdomainsDictionary[subdomainID].Elements.Add(e);
@@ -263,10 +263,10 @@ namespace ISAAR.MSolve.SamplesConsole
                 {
                     for (int k = 0; k < 4; k++)
                     {
-                        e = new Element_v2()
+                        e = new Element()
                         {
                             ID = elementID,
-                            ElementType = new EulerBeam3D_v2(youngModulus, poissonRatio, null, null)
+                            ElementType = new EulerBeam3D(youngModulus, poissonRatio, null, null)
                             {
                                 Density = dens,
                                 SectionArea = b * h,
@@ -281,10 +281,10 @@ namespace ISAAR.MSolve.SamplesConsole
                         elementID++;
                     }
                 }
-                e = new Element_v2()
+                e = new Element()
                 {
                     ID = elementID,
-                    ElementType = new EulerBeam3D_v2(youngModulus, poissonRatio, null, null)
+                    ElementType = new EulerBeam3D(youngModulus, poissonRatio, null, null)
                     {
                         Density = dens,
                         SectionArea = b * h,
@@ -297,10 +297,10 @@ namespace ISAAR.MSolve.SamplesConsole
                 model.ElementsDictionary.Add(e.ID, e);
                 model.SubdomainsDictionary[subdomainID].Elements.Add(e);
                 elementID++;
-                e = new Element_v2()
+                e = new Element()
                 {
                     ID = elementID,
-                    ElementType = new EulerBeam3D_v2(youngModulus, poissonRatio, null, null)
+                    ElementType = new EulerBeam3D(youngModulus, poissonRatio, null, null)
                     {
                         Density = dens,
                         SectionArea = b * h,
@@ -318,10 +318,10 @@ namespace ISAAR.MSolve.SamplesConsole
                 {
                     for (int k = 0; k < 2; k++)
                     {
-                        e = new Element_v2()
+                        e = new Element()
                         {
                             ID = elementID,
-                            ElementType = new EulerBeam3D_v2(youngModulus, poissonRatio, null, null)
+                            ElementType = new EulerBeam3D(youngModulus, poissonRatio, null, null)
                             {
                                 Density = dens,
                                 SectionArea = b * h,
@@ -336,10 +336,10 @@ namespace ISAAR.MSolve.SamplesConsole
                         elementID++;
                     }
                 }
-                e = new Element_v2()
+                e = new Element()
                 {
                     ID = elementID,
-                    ElementType = new EulerBeam3D_v2(youngModulus, poissonRatio, null, null)
+                    ElementType = new EulerBeam3D(youngModulus, poissonRatio, null, null)
                     {
                         Density = dens,
                         SectionArea = b * h,
@@ -352,10 +352,10 @@ namespace ISAAR.MSolve.SamplesConsole
                 model.ElementsDictionary.Add(e.ID, e);
                 model.SubdomainsDictionary[subdomainID].Elements.Add(e);
                 elementID++;
-                e = new Element_v2()
+                e = new Element()
                 {
                     ID = elementID,
-                    ElementType = new EulerBeam3D_v2(youngModulus, poissonRatio, null, null)
+                    ElementType = new EulerBeam3D(youngModulus, poissonRatio, null, null)
                     {
                         Density = dens,
                         SectionArea = b * h,
@@ -368,10 +368,10 @@ namespace ISAAR.MSolve.SamplesConsole
                 model.ElementsDictionary.Add(e.ID, e);
                 model.SubdomainsDictionary[subdomainID].Elements.Add(e);
                 elementID++;
-                e = new Element_v2()
+                e = new Element()
                 {
                     ID = elementID,
-                    ElementType = new EulerBeam3D_v2(youngModulus, poissonRatio, null, null)
+                    ElementType = new EulerBeam3D(youngModulus, poissonRatio, null, null)
                     {
                         Density = dens,
                         SectionArea = b * h,
@@ -388,10 +388,10 @@ namespace ISAAR.MSolve.SamplesConsole
                 if (i == floors - 1) continue;
                 for (int j = 0; j < nodesPerFloor; j++)
                 {
-                    e = new Element_v2()
+                    e = new Element()
                     {
                         ID = elementID,
-                        ElementType = new EulerBeam3D_v2(youngModulus, poissonRatio, null, null)
+                        ElementType = new EulerBeam3D(youngModulus, poissonRatio, null, null)
                         {
                             Density = dens,
                             SectionArea = b * h,

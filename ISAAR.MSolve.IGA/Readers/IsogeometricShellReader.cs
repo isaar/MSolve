@@ -73,7 +73,7 @@ namespace ISAAR.MSolve.IGA.Readers
 						//Model.NumberOfPatches = Int32.Parse(line[1]);
 						break;
 					case IsogeometricShellReader.Attributes.material:
-						Model.PatchesDictionary[patchID].Material = new ElasticMaterial2D_v2(StressState2D.PlaneStrain) { YoungModulus = Double.Parse(line[2], CultureInfo.InvariantCulture), PoissonRatio = Double.Parse(line[3], CultureInfo.InvariantCulture) };
+						Model.PatchesDictionary[patchID].Material = new ElasticMaterial2D(StressState2D.PlaneStrain) { YoungModulus = Double.Parse(line[2], CultureInfo.InvariantCulture), PoissonRatio = Double.Parse(line[3], CultureInfo.InvariantCulture) };
 						break;
 					case IsogeometricShellReader.Attributes.patchid:
 						patchID = Int32.Parse(line[1]);

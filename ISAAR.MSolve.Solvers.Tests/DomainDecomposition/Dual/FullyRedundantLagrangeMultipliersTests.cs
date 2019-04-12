@@ -22,9 +22,9 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual
         [Fact]
         public static void TestLagrangeMultipliersCreation()
         {
-            Model_v2 model = CreateModel();
-            Dictionary<int, Node_v2> nodes = model.NodesDictionary;
-            Dictionary<int, Subdomain_v2> subdomains = model.SubdomainsDictionary;
+            Model model = CreateModel();
+            Dictionary<int, Node> nodes = model.NodesDictionary;
+            Dictionary<int, Subdomain> subdomains = model.SubdomainsDictionary;
             LagrangeMultiplier[] lagrangesComputed = CreateBooleanMultipliers(model, true).LagrangeMultipliers;
             var lagrangesExpected = new LagrangeMultiplier[numLagranges];
 
@@ -220,7 +220,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual
                 {  0,  0,  0,  0,  0, -1,  0,  0 }  // Node 7
             });
 
-            Model_v2 model = CreateModel();
+            Model model = CreateModel();
             LagrangeMultipliersEnumerator lagrangeMultipliers = CreateBooleanMultipliers(model, false);
             foreach (var id in lagrangeMultipliers.BooleanMatrices.Keys)
             {
@@ -229,7 +229,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual
             }
         }
 
-        private static LagrangeMultipliersEnumerator CreateBooleanMultipliers(Model_v2 model, bool createLagranges)
+        private static LagrangeMultipliersEnumerator CreateBooleanMultipliers(Model model, bool createLagranges)
         {
             // Initialize model
             model.ConnectDataStructures();
@@ -238,7 +238,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual
             var orderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
             IGlobalFreeDofOrdering globalOrdering = orderer.OrderFreeDofs(model);
             model.GlobalDofOrdering = globalOrdering;
-            foreach (Subdomain_v2 subdomain in model.Subdomains)
+            foreach (Subdomain subdomain in model.Subdomains)
             {
                 subdomain.FreeDofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
             }
@@ -252,7 +252,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual
             return lagrangeEnumerator;
         }
 
-        private static Model_v2 CreateModel()
+        private static Model CreateModel()
         {
             // 6 ----- 7 ----- 8
             // |  (2)  |  (3)  |

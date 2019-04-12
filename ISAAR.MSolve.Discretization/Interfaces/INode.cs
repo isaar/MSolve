@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 		double Z { get; set; }
 
         List<Constraint> Constraints { get; }
-        Dictionary<int, ISubdomain_v2> SubdomainsDictionary { get; }
+        Dictionary<int, ISubdomain> SubdomainsDictionary { get; }
     }
 
     public static class NodeExtensions

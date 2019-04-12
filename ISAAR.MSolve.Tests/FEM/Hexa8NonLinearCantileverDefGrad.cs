@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.Tests.FEM
     {
         private const int subdomainID = 1;
 
-        private static bool AreDisplacementsSame(IReadOnlyList<Dictionary<int, double>> expectedDisplacements, TotalDisplacementsPerIterationLog_v2 computedDisplacements)
+        private static bool AreDisplacementsSame(IReadOnlyList<Dictionary<int, double>> expectedDisplacements, TotalDisplacementsPerIterationLog computedDisplacements)
         {
             var comparer = new ValueComparer(1E-13);
             for (int iter = 0; iter < expectedDisplacements.Count; ++iter)
@@ -38,14 +38,14 @@ namespace ISAAR.MSolve.Tests.FEM
         }
 
         [Fact]
-        private static void RunTest_v2()
+        private static void RunTest()
         {
-            IReadOnlyList<Dictionary<int, double>> expectedDisplacements = GetExpectedDisplacements_v2();
-            TotalDisplacementsPerIterationLog_v2 computedDisplacements = SolveModel_v2();
+            IReadOnlyList<Dictionary<int, double>> expectedDisplacements = GetExpectedDisplacements();
+            TotalDisplacementsPerIterationLog computedDisplacements = SolveModel();
             Assert.True(AreDisplacementsSame(expectedDisplacements, computedDisplacements));
         }
 
-        private static IReadOnlyList<Dictionary<int, double>> GetExpectedDisplacements_v2()
+        private static IReadOnlyList<Dictionary<int, double>> GetExpectedDisplacements()
         {
             var expectedDisplacements = new Dictionary<int, double>[11]; //TODO: this should be 11 EINAI ARRAY APO DICTIONARIES
 
@@ -80,13 +80,13 @@ namespace ISAAR.MSolve.Tests.FEM
             return expectedDisplacements;
         }
 
-        private static TotalDisplacementsPerIterationLog_v2 SolveModel_v2()
+        private static TotalDisplacementsPerIterationLog SolveModel()
         {
             //VectorExtensions.AssignTotalAffinityCount();
-            Model_v2 model = new Model_v2();
-            model.SubdomainsDictionary.Add(subdomainID, new Subdomain_v2( subdomainID));
+            Model model = new Model();
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain( subdomainID));
 
-            BuildCantileverModel_v2(model, 850);
+            BuildCantileverModel(model, 850);
 
             //model.ConnectDataStructures();
 
@@ -105,10 +105,10 @@ namespace ISAAR.MSolve.Tests.FEM
 
             // Solver
             var solverBuilder = new SkylineSolver.Builder();
-            ISolver_v2 solver = solverBuilder.BuildSolver(model);
+            ISolver solver = solverBuilder.BuildSolver(model);
 
             // Problem type
-            var provider = new ProblemStructural_v2(model, solver);
+            var provider = new ProblemStructural(model, solver);
 
             //var solver = new SolverSkyline(linearSystems[subdomainID]);
             //var linearSystemsArray = new[] { linearSystems[subdomainID] };
@@ -117,17 +117,17 @@ namespace ISAAR.MSolve.Tests.FEM
             //var subdomainMappers = new[] { new SubdomainGlobalMapping(model.Subdomains[0]) };
 
             var increments = 2;
-            var childAnalyzerBuilder = new LoadControlAnalyzer_v2.Builder(model, solver, provider, increments);
+            var childAnalyzerBuilder = new LoadControlAnalyzer.Builder(model, solver, provider, increments);
             childAnalyzerBuilder.ResidualTolerance = 1E-8;
             childAnalyzerBuilder.MaxIterationsPerIncrement = 100;
             childAnalyzerBuilder.NumIterationsForMatrixRebuild = 1;
-            //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater_v2(model.SubdomainsDictionary[subdomainID]) }; // This is the default
-            LoadControlAnalyzer_v2 childAnalyzer = childAnalyzerBuilder.Build();
-            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+            //childAnalyzerBuilder.SubdomainUpdaters = new[] { new NonLinearSubdomainUpdater(model.SubdomainsDictionary[subdomainID]) }; // This is the default
+            LoadControlAnalyzer childAnalyzer = childAnalyzerBuilder.Build();
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
             var watchDofs = new Dictionary<int, int[]>();
             watchDofs.Add(subdomainID, new int[5] { 0, 11, 23, 35, 47 });
-            var log1 = new TotalDisplacementsPerIterationLog_v2(watchDofs);
+            var log1 = new TotalDisplacementsPerIterationLog(watchDofs);
             childAnalyzer.TotalDisplacementsPerIterationLog = log1;
 
 
@@ -144,7 +144,7 @@ namespace ISAAR.MSolve.Tests.FEM
             return log1;
         }
 
-        private static void BuildCantileverModel_v2(Model_v2 model, double load_value)
+        private static void BuildCantileverModel(Model model, double load_value)
         {
             //xrhsimopoiithike to  ParadeigmataElegxwnBuilder.HexaCantileverBuilder(Model model, double load_value)
             // allagh tou element kai tou material
@@ -157,7 +157,7 @@ namespace ISAAR.MSolve.Tests.FEM
 
 
             //VonMisesMaterial3D material1 = new VonMisesMaterial3D(1353000, 0.30, 1353000, 0.15);
-            IContinuumMaterial3DDefGrad_v2 material1 = new ElasticMaterial3D_v2DefGrad() { PoissonRatio = 0.3, YoungModulus = 1353000 };
+            IContinuumMaterial3DDefGrad material1 = new ElasticMaterial3DDefGrad() { PoissonRatio = 0.3, YoungModulus = 1353000 };
 
             double[,] nodeData = new double[,] { {-0.250000,-0.250000,-1.000000},
             {0.250000,-0.250000,-1.000000},
@@ -188,19 +188,19 @@ namespace ISAAR.MSolve.Tests.FEM
             // orismos shmeiwn
             for (int nNode = 0; nNode < nodeData.GetLength(0); nNode++)
             {
-                model.NodesDictionary.Add(nNode + 1, new Node_v2() { ID = nNode + 1, X = nodeData[nNode, 0], Y = nodeData[nNode, 1], Z = nodeData[nNode, 2] });
+                model.NodesDictionary.Add(nNode + 1, new Node() { ID = nNode + 1, X = nodeData[nNode, 0], Y = nodeData[nNode, 1], Z = nodeData[nNode, 2] });
 
             }
 
             // orismos elements 
-            Element_v2 e1;
+            Element e1;
             int subdomainID = 1;
             for (int nElement = 0; nElement < elementData.GetLength(0); nElement++)
             {
-                e1 = new Element_v2()
+                e1 = new Element()
                 {
                     ID = nElement + 1,
-                    ElementType = new Hexa8NonLinearDefGrad_v2(material1, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3)) // dixws to e. exoume sfalma enw sto beambuilding oxi//edw kaleitai me ena orisma to Hexa8                    
+                    ElementType = new Hexa8NonLinearDefGrad(material1, GaussLegendre3D.GetQuadratureWithOrder(3, 3, 3)) // dixws to e. exoume sfalma enw sto beambuilding oxi//edw kaleitai me ena orisma to Hexa8                    
                 };
                 for (int j = 0; j < 8; j++)
                 {
@@ -231,10 +231,10 @@ namespace ISAAR.MSolve.Tests.FEM
             }
 
             // fortish korufhs
-            Load_v2 load1;
+            Load load1;
             for (int k = 17; k < 21; k++)
             {
-                load1 = new Load_v2()
+                load1 = new Load()
                 {
                     Node = model.NodesDictionary[k],
                     DOF = DOFType.X,

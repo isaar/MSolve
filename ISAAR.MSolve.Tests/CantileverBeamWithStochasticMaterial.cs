@@ -8,13 +8,13 @@ namespace ISAAR.MSolve.Tests
     public static class CantileverBeamWithStochasticMaterial
     {
         [Fact]
-        public static void Solve_v2()
+        public static void Solve()
         {
             const int iterations = 1000;
             const double youngModulus = 2.1e8;
 
             var domainMapper = new CantileverStochasticDomainMapper(new[] { 0d, 0d, 0d });
-            var evaluator = new StructuralStochasticEvaluator_v2(youngModulus, domainMapper);
+            var evaluator = new StructuralStochasticEvaluator(youngModulus, domainMapper);
             var m = new MonteCarlo(iterations, evaluator, evaluator);
             m.Evaluate();
             double[] expectedMeanValueResponse = new double[]

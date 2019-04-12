@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.FEM.Elements
     /// account geometric non-linearities.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class ThermalRod : IFiniteElement_v2, IEmbeddedElement_v2
+    public class ThermalRod : IFiniteElement, IEmbeddedElement
     {
         private const int numNodes = 2;
         private const int numDofs = 2;
@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         private readonly ThermalMaterial material;
 
-        public ThermalRod(IReadOnlyList<Node_v2> nodes, double crossSectionArea, ThermalMaterial material)
+        public ThermalRod(IReadOnlyList<Node> nodes, double crossSectionArea, ThermalMaterial material)
         {
             Debug.Assert(nodes.Count == 2, "Thermal rod element must have exactly 2 nodes.");
             this.material = material;
@@ -41,15 +41,15 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public double CrossSectionArea { get; }
         public double Length { get; }
-        public IReadOnlyList<Node_v2> Nodes { get; }
+        public IReadOnlyList<Node> Nodes { get; }
 
         public bool MaterialModified => throw new NotImplementedException();
 
-        public IElementDofEnumerator_v2 DofEnumerator { get; set; } = new GenericDofEnumerator_v2();
+        public IElementDofEnumerator DofEnumerator { get; set; } = new GenericDofEnumerator();
 
-        public IList<EmbeddedNode_v2> EmbeddedNodes { get; } = new List<EmbeddedNode_v2>();
+        public IList<EmbeddedNode> EmbeddedNodes { get; } = new List<EmbeddedNode>();
 
-        public IMatrix MassMatrix(IElement_v2 element)
+        public IMatrix MassMatrix(IElement element)
         {
             return BuildCapacityMatrix();
         }
@@ -69,29 +69,29 @@ namespace ISAAR.MSolve.FEM.Elements
             return Matrix.CreateFromArray(conductivity);
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element) => dofTypes;
+        public IList<IList<DOFType>> GetElementDOFTypes(IElement element) => dofTypes;
 
         public void ResetMaterialModified()
         {
             throw new NotImplementedException();
         }
 
-        public Tuple<double[], double[]> CalculateStresses(Element_v2 element, double[] localDisplacements, double[] localdDisplacements)
+        public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
         {
             throw new NotImplementedException();
         }
 
-        public double[] CalculateForces(Element_v2 element, double[] localDisplacements, double[] localdDisplacements)
+        public double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements)
         {
             throw new NotImplementedException();
         }
 
-        public double[] CalculateForcesForLogging(Element_v2 element, double[] localDisplacements)
+        public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
         {
             throw new NotImplementedException();
         }
 
-        public double[] CalculateAccelerationForces(Element_v2 element, IList<MassAccelerationLoad> loads)
+        public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {
             throw new NotImplementedException();
         }
@@ -111,24 +111,24 @@ namespace ISAAR.MSolve.FEM.Elements
             throw new NotImplementedException();
         }
 
-        public IMatrix StiffnessMatrix(IElement_v2 element)
+        public IMatrix StiffnessMatrix(IElement element)
         {
             return DofEnumerator.GetTransformedMatrix(BuildConductivityMatrix());
         }
 
-        public IMatrix DampingMatrix(IElement_v2 element)
+        public IMatrix DampingMatrix(IElement element)
         {
             throw new NotImplementedException();
         }
 
-        public Dictionary<DOFType, int> GetInternalNodalDOFs(Element_v2 element, Node_v2 node)
+        public Dictionary<DOFType, int> GetInternalNodalDOFs(Element element, Node node)
         {
             if (node.ID == this.Nodes[0].ID) return new Dictionary<DOFType, int> { { DOFType.Temperature, 0 } };
             else if (node.ID == this.Nodes[1].ID) return new Dictionary<DOFType, int> { { DOFType.Temperature, 1 } };
             else throw new ArgumentException($"GetInternalNodalDOFs: Node {node.ID} not found in element {element.ID}.");
         }
 
-        public double[] GetLocalDOFValues(Element_v2 hostElement, double[] hostDOFValues)
+        public double[] GetLocalDOFValues(Element hostElement, double[] hostDOFValues)
         {
             return DofEnumerator.GetTransformedDisplacementsVector(hostDOFValues);
         }

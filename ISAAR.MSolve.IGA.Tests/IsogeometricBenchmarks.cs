@@ -53,14 +53,14 @@ namespace ISAAR.MSolve.IGA.Tests
 			var solverBuilder = new DenseMatrixSolver.Builder();
 			solverBuilder.DofOrderer = new DofOrderer(
 				new NodeMajorDofOrderingStrategy(), new NullReordering());
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -139,14 +139,14 @@ namespace ISAAR.MSolve.IGA.Tests
 			}
 
 			var solverBuilder = new SkylineSolver.Builder();
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -236,14 +236,14 @@ namespace ISAAR.MSolve.IGA.Tests
 			var solverBuilder = new DenseMatrixSolver.Builder();
 			solverBuilder.DofOrderer = new DofOrderer(
 				new NodeMajorDofOrderingStrategy(), new NullReordering());
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -352,14 +352,14 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			// Solvers
 			var solverBuilder = new SkylineSolver.Builder();
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -921,7 +921,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			{
 				var element = new NURBSKirchhoffLoveShellElement();
 				var patch = new Patch();
-				patch.Material = new ElasticMaterial2D_v2(StressState2D.PlaneStrain)
+				patch.Material = new ElasticMaterial2D(StressState2D.PlaneStrain)
 				{
 					YoungModulus = 100,
 					PoissonRatio = 0.0
@@ -983,14 +983,14 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			// Solvers
 			var solverBuilder = new SkylineSolver.Builder();
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -1052,14 +1052,14 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			// Solvers
 			var solverBuilder = new SkylineSolver.Builder();
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -1598,14 +1598,14 @@ namespace ISAAR.MSolve.IGA.Tests
 			
 			// Solvers
 			var solverBuilder = new SkylineSolver.Builder();
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -1658,14 +1658,14 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			// Solvers
 			var solverBuilder = new SkylineSolver.Builder();
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -1718,14 +1718,14 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			// Solvers
 			var solverBuilder = new SkylineSolver.Builder();
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -1753,7 +1753,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			IGAFileReader modelReader = new IGAFileReader(model, filename);
 			modelReader.CreateTSplineShellsModelFromFile();
 
-			model.PatchesDictionary[0].Material = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
+			model.PatchesDictionary[0].Material = new ElasticMaterial2D(StressState2D.PlaneStress)
 			{
 				PoissonRatio = 0.3,
 				YoungModulus = 10e6
@@ -1780,14 +1780,14 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			// Solvers
 			var solverBuilder = new SkylineSolver.Builder();
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(model, solver, provider);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();

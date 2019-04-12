@@ -17,25 +17,25 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
         //TODO: this should be passed in the constructor by the implementing class and used in Solve().
         //protected readonly double residualTolerance; 
 
-        protected readonly IReadOnlyDictionary<int, ILinearSystem_v2> linearSystems;
+        protected readonly IReadOnlyDictionary<int, ILinearSystem> linearSystems;
         protected readonly int maxIterationsPerIncrement;
-        protected readonly IStructuralModel_v2 model;
+        protected readonly IStructuralModel model;
         protected readonly int numIncrements;
         protected readonly int numIterationsForMatrixRebuild;
-        protected readonly INonLinearProvider_v2 provider;
+        protected readonly INonLinearProvider provider;
         protected readonly double residualTolerance;
-        protected readonly ISolver_v2 solver;
-        protected readonly IReadOnlyDictionary<int, INonLinearSubdomainUpdater_v2> subdomainUpdaters;
+        protected readonly ISolver solver;
+        protected readonly IReadOnlyDictionary<int, INonLinearSubdomainUpdater> subdomainUpdaters;
         protected readonly Dictionary<int, IVector> rhs = new Dictionary<int, IVector>();
         protected readonly Dictionary<int, IVector> u = new Dictionary<int, IVector>();
         protected readonly Dictionary<int, IVector> du = new Dictionary<int, IVector>();
         protected readonly Dictionary<int, IVector> uPlusdu = new Dictionary<int, IVector>();
         protected Vector globalRhs; //TODO: This was originally readonly 
         protected double globalRhsNormInitial; //TODO: This can probably be a local variable.
-        protected INonLinearParentAnalyzer_v2 parentAnalyzer = null;
+        protected INonLinearParentAnalyzer parentAnalyzer = null;
 
-        internal NonLinearAnalyzerBase(IStructuralModel_v2 model, ISolver_v2 solver, INonLinearProvider_v2 provider,
-            IReadOnlyDictionary<int, INonLinearSubdomainUpdater_v2> subdomainUpdaters,
+        internal NonLinearAnalyzerBase(IStructuralModel model, ISolver solver, INonLinearProvider provider,
+            IReadOnlyDictionary<int, INonLinearSubdomainUpdater> subdomainUpdaters,
             int numIncrements, int maxIterationsPerIncrement, int numIterationsForMatrixRebuild, double residualTolerance)
         {
             this.model = model;
@@ -49,17 +49,17 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
             this.residualTolerance = residualTolerance;
         }
 
-        public Dictionary<int, LinearAnalyzerLogFactory_v2> LogFactories { get; } = new Dictionary<int, LinearAnalyzerLogFactory_v2>();
-        public Dictionary<int, IAnalyzerLog_v2[]> Logs { get; } = new Dictionary<int, IAnalyzerLog_v2[]>();
+        public Dictionary<int, LinearAnalyzerLogFactory> LogFactories { get; } = new Dictionary<int, LinearAnalyzerLogFactory>();
+        public Dictionary<int, IAnalyzerLog[]> Logs { get; } = new Dictionary<int, IAnalyzerLog[]>();
 
-        public TotalDisplacementsPerIterationLog_v2 TotalDisplacementsPerIterationLog { get; set; }
+        public TotalDisplacementsPerIterationLog TotalDisplacementsPerIterationLog { get; set; }
         public Dictionary<int, TotalLoadsDisplacementsPerIncrementLog> IncrementalLogs { get; }
             = new Dictionary<int, TotalLoadsDisplacementsPerIncrementLog>();
 
         public IParentAnalyzer ParentAnalyzer
         {
             get => parentAnalyzer;
-            set => parentAnalyzer = (INonLinearParentAnalyzer_v2)value; //TODO: remove this cast. Now it only serves as a check
+            set => parentAnalyzer = (INonLinearParentAnalyzer)value; //TODO: remove this cast. Now it only serves as a check
         }
 
         public void BuildMatrices()
@@ -81,7 +81,7 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
         protected Dictionary<int, IVector> CalculateInternalRhs(int currentIncrement, int iteration)
         {
             var internalRhsVectors = new Dictionary<int, IVector>();
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
 
@@ -125,7 +125,7 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
         protected double UpdateResidualForcesAndNorm(int currentIncrement, Dictionary<int, IVector> internalRhs)
         {
             globalRhs.Clear();
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
 
@@ -145,7 +145,7 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
 
         protected void ClearIncrementalSolutionVector()
         {
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values) du[linearSystem.Subdomain.ID].Clear();
+            foreach (ILinearSystem linearSystem in linearSystems.Values) du[linearSystem.Subdomain.ID].Clear();
         }
 
         protected virtual void InitializeInternalVectors()//TODOMaria: this is probably where the initial internal nodal vector is calculated
@@ -156,7 +156,7 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
             du.Clear();
             uPlusdu.Clear();
 
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
 
@@ -180,7 +180,7 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
 
         protected void SaveMaterialStateAndUpdateSolution()
         {
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
                 subdomainUpdaters[id].UpdateState();
@@ -190,7 +190,7 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
 
         protected void SplitResidualForcesToSubdomains()
         {
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
                 linearSystem.RhsVector.Clear(); //TODO: why clear it if it is going to be overwritten immediately afterwards?
@@ -209,7 +209,7 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
         protected void UpdateInternalVectors()//TODOMaria this is where I should add the calculation of the internal nodal force vector
         {
             globalRhs.Clear();
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 int id = linearSystem.Subdomain.ID;
 
@@ -224,7 +224,7 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
 
         protected void UpdateRhs(int step)
         {
-            foreach (ILinearSystem_v2 linearSystem in linearSystems.Values)
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
                 linearSystem.RhsVector.CopyFrom(rhs[linearSystem.Subdomain.ID]);
                 //linearSystem.RhsVector.Multiply(step + 1);
