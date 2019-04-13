@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Preprocessor.Meshes;
 
 namespace ISAAR.MSolve.SamplesConsole.Preprocessing
 {
@@ -134,7 +134,7 @@ namespace ISAAR.MSolve.SamplesConsole.Preprocessing
         /// <param name="material">The common material of all elements in the mesh.</param>
         /// <param name="dynamicProperties">Optional material properties for dynamic analysis. Common for all elements in the 
         ///     mesh.</param>
-        public void AddMesh2D(IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity> elements, 
+        public void AddMesh2D(IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements, 
             IFiniteElementMaterial material, DynamicMaterial dynamicProperties = null)
         {
             if (Dimensions == ProblemDimensions.ThreeDimensional)

@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Geometry.Shapes;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 
 //TODO: abstract this in order to be used with points in various coordinate systems
 //TODO: perhaps the origin should be (0.0, 0.0) and the meshes could then be transformed. Abaqus does something similar with its
 //      meshed parts during assembly
-namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
+namespace ISAAR.MSolve.Discretization.Mesh.Custom
 {
     /// <summary>
     /// Creates 2D meshes based on uniform rectilinear grids: the distance between two consecutive vertices for the same axis is 
@@ -15,7 +13,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
     /// (rectangles in particular).
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class UniformMeshGenerator2D : IMeshProvider2D<Node, CellConnectivity>
+    public class UniformMeshGenerator2D<TNode> : IMeshGenerator<TNode> where TNode : INode
     {
         private readonly double minX, minY;
         private readonly double dx, dy;
@@ -38,43 +36,44 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
         /// Generates a uniform mesh with the dimensions and density defined in the constructor.
         /// </summary>
         /// <returns></returns>
-        public (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity> cells) CreateMesh()
+        public (IReadOnlyList<TNode> vertices, IReadOnlyList<CellConnectivity<TNode>> cells)
+            CreateMesh(CreateNode<TNode> createNode)
         {
-            Node[] vertices = CreateVertices();
-            CellConnectivity[] cells = CreateCells(vertices);
+            TNode[] vertices = CreateVertices(createNode);
+            CellConnectivity<TNode>[] cells = CreateCells(vertices);
             return (vertices, cells);
         }
 
-        private Node[] CreateVertices()
+        private TNode[] CreateVertices(CreateNode<TNode> createNode)
         {
-            var vertices = new Node[verticesPerY * verticesPerX];
+            var vertices = new TNode[verticesPerY * verticesPerX];
             int id = 0;
             for (int j = 0; j < verticesPerY; ++j)
             {
                 for (int i = 0; i < verticesPerX; ++i)
                 {
-                    vertices[id] = new Node { ID = id, X = minX + i * dx , Y = minY + j * dy };
+                    vertices[id] = createNode(id, minX + i * dx, minY + j * dy, 0.0 );
                     ++id;
                 }
             }
             return vertices;
         }
 
-        private CellConnectivity[] CreateCells(Node[] allVertices)
+        private CellConnectivity<TNode>[] CreateCells(TNode[] allVertices)
         {
-            var cells = new CellConnectivity[cellsPerY * cellsPerX];
+            var cells = new CellConnectivity<TNode>[cellsPerY * cellsPerX];
             for (int j = 0; j < cellsPerY; ++j)
             {
                 for (int i = 0; i < cellsPerX; ++i)
                 {
                     int cell = j * cellsPerX + i;
                     int firstVertex = j * verticesPerX + i;
-                    Node[] verticesOfCell = 
+                    TNode[] verticesOfCell = 
                     {
                         allVertices[firstVertex], allVertices[firstVertex+1],
                         allVertices[firstVertex + verticesPerX + 1], allVertices[firstVertex + verticesPerX]
                     };
-                    cells[cell] = new CellConnectivity(CellType.Quad4, verticesOfCell); // row major
+                    cells[cell] = new CellConnectivity<TNode>(CellType.Quad4, verticesOfCell); // row major
                 }
             }
             return cells;
