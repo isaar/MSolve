@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Tensors;
+using ISAAR.MSolve.Geometry.Tensors;
 
 //TODO: This should be IDisposable
 //TODO: It should work with Mesh, not Model. What about data that is interpolated over specific regions (e.g. narrow band LSM)?

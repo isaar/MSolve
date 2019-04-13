@@ -1,15 +1,16 @@
 ﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 {
-    class DofTable<TDof>: Table<XNode2D, TDof, int> where TDof: IDof
+    class DofTable<TDof> : Table<XNode2D, TDof, int> where TDof : IDof
     {
-        public DofTable(): base()
+        public DofTable() : base()
         { }
 
-        private DofTable(Dictionary<XNode2D, Dictionary<TDof, int>> data): base(data)
+        private DofTable(Dictionary<XNode2D, Dictionary<TDof, int>> data) : base(data)
         { }
 
         //TODO: this would be nice to have in Table too.

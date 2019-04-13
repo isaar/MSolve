@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ISAAR.MSolve.XFEM.Tensors
+namespace ISAAR.MSolve.Geometry.Tensors
 {
     // TODO: Add methods that mustate the same instance instead of returning new ones.
     public class Tensor2D

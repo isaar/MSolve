@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 using ISAAR.MSolve.XFEM.Elements;
@@ -96,7 +97,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             double localGrowthAngleEnd, double growthLengthEnd)
         {
             // End tip
-            double globalAngleEnd = AngleUtilities.Wrap(localGrowthAngleEnd + endTipSystem.RotationAngle);
+            double globalAngleEnd = MathUtilities.WrapAngle(localGrowthAngleEnd + endTipSystem.RotationAngle);
             double dxEnd = growthLengthEnd * Math.Cos(globalAngleEnd);
             double dyEnd = growthLengthEnd * Math.Sin(globalAngleEnd);
             var oldEndTip = Vertices.Last.Value; ;
@@ -107,7 +108,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             endTipSystem = new TipCoordinateSystem(newEndTip, globalAngleEnd);
 
             //StartTip
-            double globalAngleStart = AngleUtilities.Wrap(localGrowthAngleStart + startTipSystem.RotationAngle);
+            double globalAngleStart = MathUtilities.WrapAngle(localGrowthAngleStart + startTipSystem.RotationAngle);
             double dxStart = growthLengthStart * Math.Cos(globalAngleStart);
             double dyStart = growthLengthStart * Math.Sin(globalAngleStart);
             var oldStartTip = Vertices.First.Value;

@@ -1,4 +1,5 @@
 ﻿using System;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Utilities;

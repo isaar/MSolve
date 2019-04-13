@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Tensors;
+using ISAAR.MSolve.Geometry.Tensors;
 
 namespace ISAAR.MSolve.XFEM.Output.VTK
 {

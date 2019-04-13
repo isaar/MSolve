@@ -41,7 +41,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
 
             Console.WriteLine("********* Interjection from triangulator of element " + elementID + " - START ************");
             Console.WriteLine("Generated Mesh:");
-            Utilities.Triangles.PrintMesh(triangles);
+            PrintMesh(triangles);
             Console.WriteLine("********* Interjection from triangulator of element " + elementID + " - END ************\n");
 
             return triangles;
@@ -69,10 +69,19 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
 
             Console.WriteLine("********* Interjection from triangulator of element " + elementID + " - START ************");
             Console.WriteLine("Generated Mesh:");
-            Utilities.Triangles.PrintMesh(triangles);
+            PrintMesh(triangles);
             Console.WriteLine("********* Interjection from triangulator of element " + elementID + " - END ************\n");
 
             return triangles;
+        }
+
+        private static void PrintMesh(IReadOnlyList<Triangle2D> triangles)
+        {
+            for (int i = 0; i < triangles.Count; ++i)
+            {
+                Console.Write("Triangle " + i + ": ");
+                Console.WriteLine(triangles[i]);
+            }
         }
     }
 }

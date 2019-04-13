@@ -1,5 +1,5 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.XFEM.Tensors;
+using ISAAR.MSolve.Geometry.Tensors;
 using System;
 using System.Collections.Generic;
 using System.IO;

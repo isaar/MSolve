@@ -12,7 +12,7 @@ using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems;
 using ISAAR.MSolve.XFEM.Interpolation.InverseMappings;
-using ISAAR.MSolve.XFEM.Tensors;
+using ISAAR.MSolve.Geometry.Tensors;
 using System;
 using System.Collections.Generic;
 using System.Text;
