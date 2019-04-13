@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.Geometry.Tensors;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Integration.Points;
 
 namespace ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems
 
         public IReadOnlyList<GaussPoint2D> GaussPoints { get { return gaussPoints; } }
 
-        public Tensor2D ExtrapolateTensorFromGaussPoints(IReadOnlyList<Tensor2D> tensorsAtGPs, INaturalPoint2D point)
+        public Tensor2D ExtrapolateTensorFromGaussPoints(IReadOnlyList<Tensor2D> tensorsAtGPs, NaturalPoint2D point)
         {
             double r = Math.Sqrt(3) * point.Xi;
             double s = Math.Sqrt(3) * point.Eta;
@@ -91,7 +91,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems
             return nodalTensors;
         }
 
-        public Vector2 ExtrapolateVectorFromGaussPoints(IReadOnlyList<Vector2> vectorsAtGPs, INaturalPoint2D point)
+        public Vector2 ExtrapolateVectorFromGaussPoints(IReadOnlyList<Vector2> vectorsAtGPs, NaturalPoint2D point)
         {
             double r = Math.Sqrt(3) * point.Xi;
             double s = Math.Sqrt(3) * point.Eta;

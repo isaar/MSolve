@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Interpolation;
 
 namespace ISAAR.MSolve.XFEM.Materials
@@ -13,12 +13,12 @@ namespace ISAAR.MSolve.XFEM.Materials
     // avoid redundant object creation and copying doubles in the concrete classes.
     interface IMaterialField2D
     {
-        double GetYoungModulusAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation);
-        double GetEquivalentYoungModulusAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation);
-        double GetPoissonRatioAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation);
-        double GetEquivalentPoissonRatioAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation);
-        double GetThicknessAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation);
-        Matrix CalculateConstitutiveMatrixAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation);
+        double GetYoungModulusAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation);
+        double GetEquivalentYoungModulusAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation);
+        double GetPoissonRatioAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation);
+        double GetEquivalentPoissonRatioAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation);
+        double GetThicknessAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation);
+        Matrix CalculateConstitutiveMatrixAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation);
 
         /// <summary>
         /// Used in material stochasticity, XFEM inclusions, etc

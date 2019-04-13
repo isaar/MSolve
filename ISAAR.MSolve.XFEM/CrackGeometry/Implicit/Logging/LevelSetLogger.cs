@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Output.VTK;
 
 //TODO: Decide between 1) push observer, 2) pull observer with the observable injected in observer.Observe(observarble) and  

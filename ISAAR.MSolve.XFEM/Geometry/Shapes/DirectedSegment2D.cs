@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Shapes
 {
@@ -30,11 +30,11 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         /// </summary>
         private readonly Vector2 normalVector;
 
-        public ICartesianPoint2D Start { get; }
-        public ICartesianPoint2D End { get; }
+        public CartesianPoint2D Start { get; }
+        public CartesianPoint2D End { get; }
         public double Length { get; }
         
-        public DirectedSegment2D(ICartesianPoint2D start, ICartesianPoint2D end)
+        public DirectedSegment2D(CartesianPoint2D start, CartesianPoint2D end)
         {
             this.Start = start;
             this.End = end;
@@ -54,19 +54,19 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             normalVector = Vector2.Create(-sina, cosa ); // This is the opposite from the one in LineSegment2D I think
         }
 
-        public double SignedDistanceOf(ICartesianPoint2D point)
+        public double SignedDistanceOf(CartesianPoint2D point)
         {
             return LocalYOf(point); // This suffices since there is no scaling involved in the transformation.
         }
 
-        public ICartesianPoint2D TransformGlobalToLocalPoint(ICartesianPoint2D point)
+        public CartesianPoint2D TransformGlobalToLocalPoint(CartesianPoint2D point)
         {
             return new CartesianPoint2D(cosa * point.X + sina * point.Y + originLocalX,
                 -sina * point.X + cosa * point.Y + originLocalY);
         }
 
         // The normal vector for the positive region.
-        public Vector2 NormalVectorThrough(ICartesianPoint2D point)
+        public Vector2 NormalVectorThrough(CartesianPoint2D point)
         {
             return normalVector.Copy();
         }
@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             return segment.IntersectionWith(new LineSegment2D(Start, End), out intersectionPoint);
         }
 
-        public PointProjectionPosition FindPositionOfProjectionOfPointOntoThis(ICartesianPoint2D point)
+        public PointProjectionPosition FindPositionOfProjectionOfPointOntoThis(CartesianPoint2D point)
         {
             double projectionX = LocalXOf(point);
             if (projectionX < 0.0) return PointProjectionPosition.BeforeSegment;
@@ -86,12 +86,12 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             else return PointProjectionPosition.OnSegment;
         }
 
-        private double LocalXOf(ICartesianPoint2D point)
+        private double LocalXOf(CartesianPoint2D point)
         {
             return cosa * point.X + sina * point.Y + originLocalX;
         }
 
-        private double LocalYOf(ICartesianPoint2D point)
+        private double LocalYOf(CartesianPoint2D point)
         {
             return -sina * point.X + cosa * point.Y + originLocalY;
         }

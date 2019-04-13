@@ -6,7 +6,7 @@ using System.Text;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.Decomposition;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 
 namespace ISAAR.MSolve.XFEM.Output.VTK
@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
 
         public void WriteBoundaryNodes(string path, IReadOnlyList<XSubdomain2D> subdomains)
         {
-            var boundaryNodes = new Dictionary<ICartesianPoint2D, double>();
+            var boundaryNodes = new Dictionary<CartesianPoint2D, double>();
             foreach (var subdomain in subdomains)
             {
                 foreach (var node in subdomain.BoundaryNodes) boundaryNodes[node] = 0.0;
@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
 
         public void WriteRegions(string path, PolygonalRegion[] regions)
         {
-            var pointIds = new Dictionary<ICartesianPoint2D, int>();
+            var pointIds = new Dictionary<CartesianPoint2D, int>();
             var polygons = new HashSet<List<int>>();
             foreach (var region in regions)
             {

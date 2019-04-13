@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Shapes
 {
@@ -15,8 +15,8 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
     // the normal vector of the positive region is pointing DOWNWARDS (into the positive region). 
     class LineSegment2D
     {
-        public ICartesianPoint2D Start { get; }
-        public ICartesianPoint2D End { get; }
+        public CartesianPoint2D Start { get; }
+        public CartesianPoint2D End { get; }
 
         public double Length
         {
@@ -28,13 +28,13 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             }
         }
         
-        public LineSegment2D(ICartesianPoint2D start, ICartesianPoint2D end)
+        public LineSegment2D(CartesianPoint2D start, CartesianPoint2D end)
         {
             this.Start = start;
             this.End = end;
         }
 
-        public double DistanceOf(ICartesianPoint2D point)
+        public double DistanceOf(CartesianPoint2D point)
         {
             double triangleAreax2 = Math.Abs(
                 (End.Y - Start.Y) * point.X - (End.X - Start.X) * point.Y + End.X * Start.Y - End.Y * Start.X);
@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         }
 
         // One of the 2 normal vectors for the positive region.
-        public Vector NormalVectorThrough(ICartesianPoint2D point)
+        public Vector NormalVectorThrough(CartesianPoint2D point)
         {
             double dy = End.Y - Start.Y;
             double dx = Start.X - End.X;
@@ -50,7 +50,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             return Vector.CreateFromArray(new double[] { dy / length, -dx / length });
         }
 
-        public IReadOnlyList<ICartesianPoint2D> IntersectionWith(ConvexPolygon2D polygon)
+        public IReadOnlyList<CartesianPoint2D> IntersectionWith(ConvexPolygon2D polygon)
         {
             var intersectionPoints = new List<CartesianPoint2D>();
             // Should I also include the vertices if they fall inside? Or should I do that in the enrichment item?
@@ -142,7 +142,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             }
         }
 
-        public SegmentPointPosition FindRelativePositionOfPoint(ICartesianPoint2D point)
+        public SegmentPointPosition FindRelativePositionOfPoint(CartesianPoint2D point)
         {
             // Local coordinate system
             double length = Length;

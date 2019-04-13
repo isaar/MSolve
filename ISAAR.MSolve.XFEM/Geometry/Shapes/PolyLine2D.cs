@@ -4,7 +4,7 @@ using System.Text;
 using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Utilities;
 
 //TODO: implement all inherited methods
@@ -15,12 +15,12 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
     {
         private readonly List<double> angles;
         private readonly List<DirectedSegment2D> segments;
-        private readonly List<ICartesianPoint2D> vertices;
+        private readonly List<CartesianPoint2D> vertices;
         private TipCoordinateSystem tipSystem;
 
-        public PolyLine2D(ICartesianPoint2D first, ICartesianPoint2D second)
+        public PolyLine2D(CartesianPoint2D first, CartesianPoint2D second)
         {
-            vertices = new List<ICartesianPoint2D>();
+            vertices = new List<CartesianPoint2D>();
             segments = new List<DirectedSegment2D>();
             angles = new List<double>();
 
@@ -35,14 +35,14 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         }
 
         public IReadOnlyList<DirectedSegment2D> Segments { get { return segments; } }
-        public IReadOnlyList<ICartesianPoint2D> Vertices { get { return vertices; } }
-        public ICartesianPoint2D Start { get { return vertices[0]; } }
-        public ICartesianPoint2D End { get { return vertices[vertices.Count - 1]; } }
+        public IReadOnlyList<CartesianPoint2D> Vertices { get { return vertices; } }
+        public CartesianPoint2D Start { get { return vertices[0]; } }
+        public CartesianPoint2D End { get { return vertices[vertices.Count - 1]; } }
         public Vector2 TangentAtStart => throw new NotImplementedException();
         public Vector2 TangentAtEnd => throw new NotImplementedException();
 
         // The normal vector for the positive region.
-        public Vector2 NormalThrough(ICartesianPoint2D point)
+        public Vector2 NormalThrough(CartesianPoint2D point)
         {
             if (segments.Count == 1)
             {
@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         /// </summary>
         /// <param name="point"></param>
         /// <returns></returns>
-        public double SignedDistance(ICartesianPoint2D point)
+        public double SignedDistance(CartesianPoint2D point)
         {
             if (segments.Count == 1) return segments[0].TransformGlobalToLocalPoint(point).Y;
 
@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             bool afterPreviousSegment = false;
 
             // First segment
-            ICartesianPoint2D localPoint = segments[0].TransformGlobalToLocalPoint(point);
+            CartesianPoint2D localPoint = segments[0].TransformGlobalToLocalPoint(point);
             if (localPoint.X < segments[0].Length) distances.Add(localPoint.Y);
             else afterPreviousSegment = true;
 

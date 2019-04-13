@@ -11,7 +11,7 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Geometry.Triangulation;
@@ -31,16 +31,16 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         IHeavisideSingularityResolver SingularityResolver { get; }
 
         double SignedDistanceOf(XNode2D node);
-        double SignedDistanceOf(INaturalPoint2D point, XContinuumElement2D element,
+        double SignedDistanceOf(NaturalPoint2D point, XContinuumElement2D element,
             EvaluatedInterpolation2D interpolation);
 
-        //ICartesianPoint2D GetCrackTip(CrackTipPosition tipPosition);
+        //CartesianPoint2D GetCrackTip(CrackTipPosition tipPosition);
         /// TODO: an interface is needed for TipSystems. Then the explicit (global, local, polar) systems or the level 
         /// sets could be used for the transformations (points, vectors, derivatives)
         //TipCoordinateSystem GetTipSystem(CrackTipPosition tipPosition);
         //IReadOnlyList<XContinuumElement2D> GetTipElements(CrackTipPosition tipPosition);
 
         void InitializeGeometry(PolyLine2D initialCrack);
-        SortedSet<ICartesianPoint2D> FindTriangleVertices(XContinuumElement2D element);
+        SortedSet<CartesianPoint2D> FindTriangleVertices(XContinuumElement2D element);
     }
 }

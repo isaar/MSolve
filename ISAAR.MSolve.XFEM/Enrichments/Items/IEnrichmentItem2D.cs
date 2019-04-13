@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Utilities;
 
@@ -28,11 +28,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
 
         //void EnrichElement(XContinuumElement2D element);
 
-        IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element);
+        IReadOnlyList<CartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element);
 
         double[] EvaluateFunctionsAt(XNode2D node);
 
-        EvaluatedFunction2D[] EvaluateAllAt(INaturalPoint2D point, XContinuumElement2D element,
+        EvaluatedFunction2D[] EvaluateAllAt(NaturalPoint2D point, XContinuumElement2D element,
              EvaluatedInterpolation2D interpolation);
     }
 }

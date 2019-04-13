@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.Geometry.Tensors;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Materials;
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
             this.material = globalMaterial;
         }
 
-        public AuxiliaryStatesTensors ComputeTensorsAt(ICartesianPoint2D globalIntegrationPoint, 
+        public AuxiliaryStatesTensors ComputeTensorsAt(CartesianPoint2D globalIntegrationPoint, 
             TipCoordinateSystem tipCoordinateSystem)
         {
             // Common calculations

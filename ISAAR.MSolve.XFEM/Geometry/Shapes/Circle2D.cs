@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Shapes
 {
@@ -14,16 +14,16 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
 
     class Circle2D
     {
-        public ICartesianPoint2D Center { get; }
+        public CartesianPoint2D Center { get; }
         public double Radius { get; }
 
-        public Circle2D(ICartesianPoint2D center, double radius)
+        public Circle2D(CartesianPoint2D center, double radius)
         {
-            this.Center = new CartesianPoint2D(center.X, center.Y); // Coy it for extra safety
+            this.Center = new CartesianPoint2D(center.X, center.Y); // Copy it for extra safety
             this.Radius = radius;
         }
 
-        public CirclePointPosition FindRelativePositionOfPoint(ICartesianPoint2D point)
+        public CirclePointPosition FindRelativePositionOfPoint(CartesianPoint2D point)
         {
             double distanceX = point.X - Center.X;
             double distanceY = point.Y - Center.Y;

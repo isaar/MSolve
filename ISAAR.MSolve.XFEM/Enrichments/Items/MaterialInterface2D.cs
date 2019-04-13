@@ -5,7 +5,7 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Descriptions;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Utilities;
@@ -35,10 +35,10 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             return new double[] { enrichmentFunction.EvaluateAt(signedDistance) };
         }
 
-        public override EvaluatedFunction2D[] EvaluateAllAt(INaturalPoint2D point, XContinuumElement2D element,
+        public override EvaluatedFunction2D[] EvaluateAllAt(NaturalPoint2D point, XContinuumElement2D element,
              EvaluatedInterpolation2D interpolation)
         {
-            ICartesianPoint2D cartesianPoint = interpolation.TransformPointNaturalToGlobalCartesian(point);
+            CartesianPoint2D cartesianPoint = interpolation.TransformPointNaturalToGlobalCartesian(point);
             double signedDistance = Discontinuity.SignedDistanceOf(cartesianPoint);
             Vector2 normalVector = Discontinuity.NormalVectorThrough(cartesianPoint);
             return new EvaluatedFunction2D[] { enrichmentFunction.EvaluateAllAt(signedDistance, normalVector) };
@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         /// <param name="point"></param>
         /// <param name="subdomain">The posi</param>
         /// <returns></returns>
-        public Subdomain LocatePoint(ICartesianPoint2D point)
+        public Subdomain LocatePoint(CartesianPoint2D point)
         {
             int sign = Math.Sign(Discontinuity.SignedDistanceOf(point));
             if (sign < 0) return Subdomain.Negative;
@@ -60,7 +60,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             else return Subdomain.Boundary;
         }
 
-        public override IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element)
+        public override IReadOnlyList<CartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element)
         {
             return Discontinuity.IntersectionWith(element);
         }

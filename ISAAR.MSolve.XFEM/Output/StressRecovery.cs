@@ -8,7 +8,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.Geometry.Tensors;
 
@@ -86,7 +86,7 @@ namespace ISAAR.MSolve.XFEM.Output
             Vector enrichedDisplacements = 
                 dofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
 
-            IReadOnlyList<INaturalPoint2D> naturalNodes = element.ElementType.NaturalCoordinatesOfNodes;
+            IReadOnlyList<NaturalPoint2D> naturalNodes = element.ElementType.NaturalCoordinatesOfNodes;
             var nodalStresses = new Dictionary<XNode2D, Tensor2D>();
             for (int i = 0; i < element.Nodes.Count; ++i)
             {

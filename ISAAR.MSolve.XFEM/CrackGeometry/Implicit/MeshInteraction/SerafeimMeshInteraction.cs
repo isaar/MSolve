@@ -6,7 +6,7 @@ using System.Text;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.MeshInteraction
@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.MeshInteraction
 
         public CrackElementPosition FindRelativePositionOf(XContinuumElement2D element)
         {
-            ICartesianPoint2D crackTip = lsm.GetCrackTip(CrackTipPosition.Single);
+            CartesianPoint2D crackTip = lsm.GetCrackTip(CrackTipPosition.Single);
             double minBodyLevelSet = double.MaxValue;
             double maxBodyLevelSet = double.MinValue;
             double minTipLevelSet = double.MaxValue;
@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.MeshInteraction
                 else if (maxTipLevelSet < 0) return CrackElementPosition.Intersected;
                 else // Stolarska's criterion marks all the next as tip elements
                 {
-                    Dictionary<ICartesianPoint2D, double> intersections = FindIntersectionsAndTipLevelSets(element);
+                    Dictionary<CartesianPoint2D, double> intersections = FindIntersectionsAndTipLevelSets(element);
                     Debug.Assert((intersections.Count == 2) || (intersections.Count == 1)); // 1 is veeeeery improbable
                     double tipLevelSetInter1 = intersections.First().Value;
                     double tipLevelSetInter2 = intersections.Last().Value;
@@ -62,11 +62,11 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.MeshInteraction
             }
         }
 
-        private Dictionary<ICartesianPoint2D, double> FindIntersectionsAndTipLevelSets(XContinuumElement2D element)
+        private Dictionary<CartesianPoint2D, double> FindIntersectionsAndTipLevelSets(XContinuumElement2D element)
         {
             // Find intersections of element with the zero body level set. 
             //TODO: abstract this procedure and reuse it here and in LSM
-            var intersections = new Dictionary<ICartesianPoint2D, double>();
+            var intersections = new Dictionary<CartesianPoint2D, double>();
             var nodes = element.Nodes;
             for (int i = 0; i < nodes.Count; ++i)
             {

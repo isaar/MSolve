@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Interpolation;
@@ -116,16 +116,16 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
         private (double positiveArea, double negativeArea) FindSignedAreasOfElement(ISingleCrack crack, 
             XContinuumElement2D element)
         {
-            SortedSet<ICartesianPoint2D> triangleVertices = crack.FindTriangleVertices(element);
+            SortedSet<CartesianPoint2D> triangleVertices = crack.FindTriangleVertices(element);
             IReadOnlyList<TriangleCartesian2D> triangles = triangulator.CreateMesh(triangleVertices);
 
             double positiveArea = 0.0;
             double negativeArea = 0.0;
             foreach (var triangle in triangles)
             {
-                ICartesianPoint2D v0 = triangle.Vertices[0];
-                ICartesianPoint2D v1 = triangle.Vertices[1];
-                ICartesianPoint2D v2 = triangle.Vertices[2];
+                CartesianPoint2D v0 = triangle.Vertices[0];
+                CartesianPoint2D v1 = triangle.Vertices[1];
+                CartesianPoint2D v2 = triangle.Vertices[2];
                 double area = 0.5 * Math.Abs(v0.X * (v1.Y - v2.Y) + v1.X * (v2.Y - v0.Y) + v2.X * (v0.Y - v1.Y));
 
                 // The sign of the area can be derived from any node with body level set != 0
@@ -159,7 +159,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
 
 
                     var centroid = new CartesianPoint2D((v0.X + v1.X + v2.X) / 3.0, (v0.Y + v1.Y + v2.Y) / 3.0);
-                    INaturalPoint2D centroidNatural = element.Interpolation.
+                    NaturalPoint2D centroidNatural = element.Interpolation.
                         CreateInverseMappingFor(element.Nodes).TransformCartesianToNatural(centroid);
                     EvaluatedInterpolation2D centroidInterpolation =
                         element.Interpolation.EvaluateAt(element.Nodes, centroidNatural);

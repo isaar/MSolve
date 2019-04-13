@@ -7,7 +7,7 @@ using TriangleNet;
 using TriangleNet.Geometry;
 using TriangleNet.Meshing;
 using TriangleNet.Meshing.Algorithm;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
 {
@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
 
         private class Element4Triangulator: ITriangulator2D
         {
-            public IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<INaturalPoint2D> points)
+            public IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<NaturalPoint2D> points)
             {
                 var triangles = new Triangle2D[4];
                 triangles[0] = new Triangle2D(
@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
                 return triangles;
             }
 
-            public IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<INaturalPoint2D> points, double maxTriangleArea)
+            public IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<NaturalPoint2D> points, double maxTriangleArea)
             {
                 throw new NotImplementedException();
             }
@@ -40,7 +40,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
 
         private class Element5Triangulator : ITriangulator2D
         {
-            public IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<INaturalPoint2D> points)
+            public IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<NaturalPoint2D> points)
             {
                 var triangles = new Triangle2D[5];
                 triangles[0] = new Triangle2D(
@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
                 return triangles;
             }
 
-            public IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<INaturalPoint2D> points, double maxTriangleArea)
+            public IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<NaturalPoint2D> points, double maxTriangleArea)
             {
                 throw new NotImplementedException();
             }

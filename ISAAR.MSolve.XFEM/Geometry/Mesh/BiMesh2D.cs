@@ -4,7 +4,7 @@ using System.Text;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Geometry.Boundaries;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 
 //TODO: make this class generic on TVertex and TCell. To do so, TCell must also be generic on TVertex, which creates a whole
@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
 
         // TODO: handle cases where more the point lies on an element edge or node.
         // TODO: Do it by spreading around the starting cell, breadth-first-search
-        public IReadOnlyList<XContinuumElement2D> FindElementsContainingPoint(ICartesianPoint2D point, 
+        public IReadOnlyList<XContinuumElement2D> FindElementsContainingPoint(CartesianPoint2D point, 
             XContinuumElement2D startingElement = null)
         {
             var containingElements = new List<XContinuumElement2D>();
@@ -114,7 +114,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
             return selectedNodes;
         }
 
-        public bool IsInsideBoundary(ICartesianPoint2D point)
+        public bool IsInsideBoundary(CartesianPoint2D point)
         {
             return boundary.IsInside(point);
         }

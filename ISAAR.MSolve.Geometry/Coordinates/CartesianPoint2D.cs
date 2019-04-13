@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Geometry.Coordinates
 {
@@ -29,6 +30,16 @@ namespace ISAAR.MSolve.Geometry.Coordinates
         /// </summary>
         /// <param name="coordinates">Vector with the coordinates of the point. Length = 2.</param>
         public CartesianPoint2D(double[] coordinates)
+        {
+            this.x = coordinates[0];
+            this.y = coordinates[1];
+        }
+
+        /// <summary>
+        /// Instantiates a <see cref="CartesianPoint2D"/>.
+        /// </summary>
+        /// <param name="coordinates">Vector with the coordinates of the point. Length = 2.</param>
+        public CartesianPoint2D(Vector2 coordinates)
         {
             this.x = coordinates[0];
             this.y = coordinates[1];

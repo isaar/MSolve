@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.Interpolation
 {
@@ -70,7 +70,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
             return nodesToCartesianDerivatives[node];
         }
 
-        public ICartesianPoint2D TransformPointNaturalToGlobalCartesian(INaturalPoint2D naturalCoordinates)
+        public CartesianPoint2D TransformPointNaturalToGlobalCartesian(NaturalPoint2D naturalCoordinates)
         {
             double x = 0, y = 0;
             foreach (var entry in nodesToValues)

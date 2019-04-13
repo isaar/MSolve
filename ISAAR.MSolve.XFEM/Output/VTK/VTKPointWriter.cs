@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.Output.VTK
 {
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             writer.Write("ASCII\n\n");
         }
 
-        public void WriteScalarField(string fieldName, IReadOnlyDictionary<ICartesianPoint2D, double> pointValues)
+        public void WriteScalarField(string fieldName, IReadOnlyDictionary<CartesianPoint2D, double> pointValues)
         {
             // Points
             writer.WriteLine("DATASET UNSTRUCTURED_GRID");

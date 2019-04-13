@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
         private readonly double ab, ac, bc;
 
         // The delegate avoids redundant checking for which case we are at 
-        private readonly Func<double, double, INaturalPoint2D> formula; 
+        private readonly Func<double, double, NaturalPoint2D> formula; 
 
         public InverseQuad4Mapping(IReadOnlyList<Node2D> nodes)
         {
@@ -67,7 +67,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
             throw new Exception("Cannot find a valid counter-clockwise node ordering. The original node order might be wrong");
         }
 
-        public INaturalPoint2D TransformCartesianToNatural(ICartesianPoint2D point)
+        public NaturalPoint2D TransformCartesianToNatural(CartesianPoint2D point)
         {
             // Point dependent coefficients
             double d1 = 4 * point.X - sum1;
@@ -77,7 +77,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
         }
 
         #region case specific code
-        private Func<double, double, INaturalPoint2D> FindQuadDependentFormula()
+        private Func<double, double, NaturalPoint2D> FindQuadDependentFormula()
         {
             // E.g. Case 1: a1*a2*ab*ac != 0. 
             // I check them individually to avoid precision errors of the multiplication.
@@ -89,7 +89,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
             else return FormulaForCase6;
         }
 
-        private INaturalPoint2D FormulaForCases123(double d1, double d2)
+        private NaturalPoint2D FormulaForCases123(double d1, double d2)
         {
             double ad = a1 * d2 - a2 * d1;
             double dc = d1 * c2 - d2 * c1;
@@ -108,7 +108,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
             return new NaturalPoint2D(xi, eta);
         }
 
-        private INaturalPoint2D FormulaForCase4(double d1, double d2)
+        private NaturalPoint2D FormulaForCase4(double d1, double d2)
         {
             double ad = a1 * d2 - a2 * d1;
             double dc = d1 * c2 - d2 * c1;
@@ -118,7 +118,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
             return new NaturalPoint2D(xi, eta);
         }
 
-        private INaturalPoint2D FormulaForCase5(double d1, double d2)
+        private NaturalPoint2D FormulaForCase5(double d1, double d2)
         {
             double ad = a1 * d2 - a2 * d1;
             double db = d1 * b2 - d2 * b1;
@@ -128,7 +128,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
             return new NaturalPoint2D(xi, eta);
         }
 
-        private INaturalPoint2D FormulaForCase6(double d1, double d2)
+        private NaturalPoint2D FormulaForCase6(double d1, double d2)
         {
             double bd = b1 * d2 - b2 * d1;
             double dc = d1 * c2 - d2 * c1;

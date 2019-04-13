@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.Geometry.Tensors;
 
@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.XFEM.Output
 {
     interface IOutputField
     {
-        Tensor2D EvaluateAt(XContinuumElement2D element, INaturalPoint2D point,
+        Tensor2D EvaluateAt(XContinuumElement2D element, NaturalPoint2D point,
             Vector standardDisplacements, Vector enrichedDisplacements);
     }
 }

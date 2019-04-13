@@ -4,7 +4,7 @@ using System.Text;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 
 //TODO: Delete this after testing. The new version is more efficient and does the same.
@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.MeshInteraction
         //TODO: replace this with the Faster~() version
         public CrackElementPosition FindRelativePositionOf(XContinuumElement2D element)
         {
-            ICartesianPoint2D crackTip = lsm.GetCrackTip(CrackTipPosition.Single);
+            CartesianPoint2D crackTip = lsm.GetCrackTip(CrackTipPosition.Single);
             double minBodyLevelSet = double.MaxValue;
             double maxBodyLevelSet = double.MinValue;
             double minTipLevelSet = double.MaxValue;

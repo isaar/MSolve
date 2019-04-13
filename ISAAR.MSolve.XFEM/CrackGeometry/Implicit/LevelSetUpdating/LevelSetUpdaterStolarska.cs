@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.LevelSetUpdating
@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.LevelSetUpdating
     {
         public LevelSetUpdaterStolarska() { }
 
-        public HashSet<XNode2D> Update(ICartesianPoint2D oldTip, double localGrowthAngle, double growthLength, double dx, double dy, 
+        public HashSet<XNode2D> Update(CartesianPoint2D oldTip, double localGrowthAngle, double growthLength, double dx, double dy, 
             IReadOnlyList<XNode2D> allNodes, ISet<XNode2D> crackBodyNodesAll,
             Dictionary<XNode2D, double> levelSetsBody, Dictionary<XNode2D, double> levelSetsTip)
         {

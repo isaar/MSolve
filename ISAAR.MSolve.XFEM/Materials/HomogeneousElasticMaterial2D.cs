@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Interpolation;
 
 namespace ISAAR.MSolve.XFEM.Materials
@@ -46,22 +46,22 @@ namespace ISAAR.MSolve.XFEM.Materials
             HomogeneousThickness = thickness;
         }
 
-        public double GetYoungModulusAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public double GetYoungModulusAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation)
         { return HomogeneousYoungModulus; }
 
-        public double GetEquivalentYoungModulusAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public double GetEquivalentYoungModulusAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation)
         { return HomogeneousEquivalentYoungModulus; }
 
-        public double GetPoissonRatioAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public double GetPoissonRatioAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation)
         { return HomogeneousPoissonRatio; }
 
-        public double GetEquivalentPoissonRatioAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public double GetEquivalentPoissonRatioAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation)
         { return HomogeneousEquivalentPoissonRatio; }
 
-        public double GetThicknessAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public double GetThicknessAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation)
         { return HomogeneousThickness; }
         
-        public Matrix CalculateConstitutiveMatrixAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public Matrix CalculateConstitutiveMatrixAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation)
         {
             var matrix = Matrix.CreateZero(3, 3);
             double eqE = HomogeneousEquivalentYoungModulus;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
 {
@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
     /// </summary>
     class Triangle2D
     {
-        public IReadOnlyList<INaturalPoint2D> Vertices { get; }
+        public IReadOnlyList<NaturalPoint2D> Vertices { get; }
 
         public Triangle2D(TriangleNet.Geometry.ITriangle triangle)
         {

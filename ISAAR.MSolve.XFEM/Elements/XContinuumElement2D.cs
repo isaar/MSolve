@@ -7,7 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.XFEM.Elements
     {
         public IsoparametricElementType2D ElementType { get; }
 
-        public IReadOnlyList<ICartesianPoint2D> Vertices { get { return Nodes; } }
+        public IReadOnlyList<CartesianPoint2D> Vertices { get { return Nodes; } }
 
         /// <summary>
         /// All nodes are enriched for now.
@@ -203,9 +203,9 @@ namespace ISAAR.MSolve.XFEM.Elements
         // BuildStiffnessMatrix() that already counted the dofs. Since it is now used by other modules 
         // (J-integral, output), it would be better to obscure it, at the cost of recounting the dofs in some cases.
         public Matrix CalculateEnrichedDeformationMatrix(int artificialDofsCount,
-            INaturalPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
+            NaturalPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
         {
-            //ICartesianPoint2D cartesianPoint = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian(gaussPoint);
+            //CartesianPoint2D cartesianPoint = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian(gaussPoint);
             var uniqueEnrichments = new Dictionary<IEnrichmentItem2D, EvaluatedFunction2D[]>();
 
             var deformationMatrix = Matrix.CreateZero(3, artificialDofsCount);
@@ -261,7 +261,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="standardNodalDisplacements"></param>
         /// <param name="enrichedNodalDisplacements"></param>
         /// <returns></returns>
-        public Vector2 CalculateDisplacementField(INaturalPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation,
+        public Vector2 CalculateDisplacementField(NaturalPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation,
             Vector standardNodalDisplacements, Vector enrichedNodalDisplacements)
         {
             #region debug
@@ -315,7 +315,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="nodalDisplacementsX"></param>
         /// <param name="nodalDisplacementsY"></param>
         /// <returns></returns>
-        public Matrix2by2 CalculateDisplacementFieldGradient(INaturalPoint2D gaussPoint, 
+        public Matrix2by2 CalculateDisplacementFieldGradient(NaturalPoint2D gaussPoint, 
             EvaluatedInterpolation2D evaluatedInterpolation, Vector standardNodalDisplacements,
             Vector enrichedNodalDisplacements) //TODO: this must only allow evaluations at Gauss points. It doesn't work for points on the crack interface
         {
@@ -434,7 +434,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         #endregion
         
         private IReadOnlyDictionary<IEnrichmentItem2D, EvaluatedFunction2D[]> EvaluateEnrichments(
-            INaturalPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
+            NaturalPoint2D gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
         {
             var cachedEvalEnrichments = new Dictionary<IEnrichmentItem2D, EvaluatedFunction2D[]>();
             foreach (XNode2D node in Nodes)

@@ -7,7 +7,7 @@ using TriangleNet;
 using TriangleNet.Geometry;
 using TriangleNet.Meshing;
 using TriangleNet.Meshing.Algorithm;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
 {
@@ -24,10 +24,10 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
             this.elementID = elementID;
         }
 
-        public IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<INaturalPoint2D> points)
+        public IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<NaturalPoint2D> points)
         {
             List<Vertex> vertices = new List<Vertex>();
-            foreach (INaturalPoint2D point in points)
+            foreach (NaturalPoint2D point in points)
             {
                 vertices.Add(new Vertex(point.Xi, point.Eta));
             }
@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
             return triangles;
         }
 
-        public IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<INaturalPoint2D> points, double maxTriangleArea)
+        public IReadOnlyList<Triangle2D> CreateMesh(IEnumerable<NaturalPoint2D> points, double maxTriangleArea)
         {
             throw new NotImplementedException();
         }

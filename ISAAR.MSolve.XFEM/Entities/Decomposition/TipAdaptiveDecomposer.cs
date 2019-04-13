@@ -1,7 +1,7 @@
 ﻿using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Exceptions;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using System;
 using System.Collections.Generic;
@@ -38,7 +38,7 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
             foreach (ISingleCrack singleCrack in crack.SingleCracks)
             {
                 // Find the subdomain that contains the crack tip
-                ICartesianPoint2D tip = singleCrack.CrackTips[0];
+                CartesianPoint2D tip = singleCrack.CrackTips[0];
                 XContinuumElement2D tipElement = singleCrack.CrackTipElements[tip][0]; // If there are more neighboring ones, we don't need them
                 XSubdomain2D tipSubdomain = cluster.FindSubdomainOfElement(tipElement);
 

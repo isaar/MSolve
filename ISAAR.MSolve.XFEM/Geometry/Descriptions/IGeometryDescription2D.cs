@@ -5,22 +5,22 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
 {
     interface IGeometryDescription2D
     {
-        double SignedDistanceOf(ICartesianPoint2D point);
-        Vector2 NormalVectorThrough(ICartesianPoint2D point);
+        double SignedDistanceOf(CartesianPoint2D point);
+        Vector2 NormalVectorThrough(CartesianPoint2D point);
 
-        ICartesianPoint2D StartPoint { get; }
+        CartesianPoint2D StartPoint { get; }
 
         // This one's orientation requires more thought, especially since the convention for determining the
         // level set value gives the opposite sign from the rest of the curve
         //double StartPointOrientation() { get; } 
 
-        ICartesianPoint2D EndPoint { get; }
+        CartesianPoint2D EndPoint { get; }
 
         /// <summary>
         /// Counter-clockwise angle from global cartesian x axis to a vector which 1) starts at the end point of the 
@@ -32,9 +32,9 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         double StartPointOrientation();
 
         // Perhaps geometry classes should be decoupled from elements and interact through polygons instead.
-        IReadOnlyList<ICartesianPoint2D> IntersectionWith(XContinuumElement2D element);
+        IReadOnlyList<CartesianPoint2D> IntersectionWith(XContinuumElement2D element);
 
         // This is the correct one but it needs constrained Delauny triangulation
-        //public void IntersectionWith(ContinuumElement2D element, out ICartesianPoint2D[] points, out LineSegment2D[] segments);
+        //public void IntersectionWith(ContinuumElement2D element, out CartesianPoint2D[] points, out LineSegment2D[] segments);
     }
 }

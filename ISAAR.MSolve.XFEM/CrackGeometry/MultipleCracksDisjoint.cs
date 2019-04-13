@@ -6,7 +6,7 @@ using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Interpolation;
@@ -106,21 +106,21 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             }
         }
 
-        public IReadOnlyList<ICartesianPoint2D> CrackTips
+        public IReadOnlyList<CartesianPoint2D> CrackTips
         {
             get
             {
-                var tips = new List<ICartesianPoint2D>();
+                var tips = new List<CartesianPoint2D>();
                 foreach (var crack in cracks) tips.AddRange(crack.CrackTips);
                 return tips;
             }
         }
 
-        public IReadOnlyDictionary<ICartesianPoint2D, IReadOnlyList<XContinuumElement2D>> CrackTipElements
+        public IReadOnlyDictionary<CartesianPoint2D, IReadOnlyList<XContinuumElement2D>> CrackTipElements
         {
             get
             {
-                var union = new Dictionary<ICartesianPoint2D, IReadOnlyList<XContinuumElement2D>>();
+                var union = new Dictionary<CartesianPoint2D, IReadOnlyList<XContinuumElement2D>>();
                 foreach (var crack in cracks)
                 {
                     foreach (var tipElements in crack.CrackTipElements)
@@ -164,11 +164,11 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             }
         }
 
-        public IReadOnlyDictionary<ICartesianPoint2D, IPropagator> CrackTipPropagators
+        public IReadOnlyDictionary<CartesianPoint2D, IPropagator> CrackTipPropagators
         {
             get
             {
-                var union = new Dictionary<ICartesianPoint2D, IPropagator>();
+                var union = new Dictionary<CartesianPoint2D, IPropagator>();
                 foreach (var crack in cracks)
                 {
                     foreach (var tipPropagator in crack.CrackTipPropagators)

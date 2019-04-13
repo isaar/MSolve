@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems;
@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         public abstract IStandardQuadrature2D StandardQuadrature { get; }
         public abstract IsoparametricInterpolation2D Interpolation { get; }
         public abstract void CheckNodes(IReadOnlyList<Node2D> nodes);
-        public abstract IReadOnlyList<INaturalPoint2D> NaturalCoordinatesOfNodes { get; }
+        public abstract IReadOnlyList<NaturalPoint2D> NaturalCoordinatesOfNodes { get; }
         public abstract IGaussPointSystem GaussPointSystem { get; }
 
         private class IsoparametricQuad4: IsoparametricElementType2D
@@ -50,11 +50,11 @@ namespace ISAAR.MSolve.XFEM.Elements
                 // TODO: Perhaps I can check the order of the nodes too or even the shape
             }
 
-            public override IReadOnlyList<INaturalPoint2D> NaturalCoordinatesOfNodes
+            public override IReadOnlyList<NaturalPoint2D> NaturalCoordinatesOfNodes
             {
                 get
                 {
-                    return new INaturalPoint2D[]
+                    return new NaturalPoint2D[]
                     {
                         new NaturalPoint2D(-1.0, -1.0),
                         new NaturalPoint2D(1.0, -1.0),
@@ -86,11 +86,11 @@ namespace ISAAR.MSolve.XFEM.Elements
                 // TODO: Perhaps I can check the order of the nodes too or even the shape
             }
 
-            public override IReadOnlyList<INaturalPoint2D> NaturalCoordinatesOfNodes
+            public override IReadOnlyList<NaturalPoint2D> NaturalCoordinatesOfNodes
             {
                 get
                 {
-                    return new INaturalPoint2D[]
+                    return new NaturalPoint2D[]
                     {
                         new NaturalPoint2D(-1.0, -1.0),
                         new NaturalPoint2D(1.0, -1.0),
@@ -128,11 +128,11 @@ namespace ISAAR.MSolve.XFEM.Elements
                 // TODO: Perhaps I can check the order of the nodes too or even the shape
             }
 
-            public override IReadOnlyList<INaturalPoint2D> NaturalCoordinatesOfNodes
+            public override IReadOnlyList<NaturalPoint2D> NaturalCoordinatesOfNodes
             {
                 get
                 {
-                    return new INaturalPoint2D[]
+                    return new NaturalPoint2D[]
                     {
                         new NaturalPoint2D(0.0, 0.0),
                         new NaturalPoint2D(1.0, 0.0),

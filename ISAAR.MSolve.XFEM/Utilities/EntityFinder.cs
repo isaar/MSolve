@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.XFEM.Elements;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 
 namespace ISAAR.MSolve.XFEM.Utilities
@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.XFEM.Utilities
             this.tolerance = tolerance;
         }
         public List<XContinuumElement2D> FindElementsThatContains(IEnumerable<XContinuumElement2D> elements, 
-            ICartesianPoint2D point)
+            CartesianPoint2D point)
         {
             var result = new List<XContinuumElement2D>();
             foreach (var element in elements)

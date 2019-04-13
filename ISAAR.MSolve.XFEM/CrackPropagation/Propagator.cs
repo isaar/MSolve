@@ -10,7 +10,7 @@ using ISAAR.MSolve.XFEM.CrackPropagation.Length;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Integration.Points;
@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
 
         public (double growthAngle, double growthLength) Propagate(
             IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements, 
-            ICartesianPoint2D crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
+            CartesianPoint2D crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
         {
             // TODO: Also check if the sifs do not violate the material toughness
             (double sifMode1, double sifMode2) = ComputeSIFS(dofOrderer, totalFreeDisplacements, totalConstrainedDisplacements, 
@@ -71,7 +71,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
 
         private (double sifMode1, double sifMode2) ComputeSIFS(
             IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements,
-            ICartesianPoint2D crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
+            CartesianPoint2D crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
         {
             double interactionIntegralMode1 = 0.0, interactionIntegralMode2 = 0.0;
             IReadOnlyDictionary<XContinuumElement2D, double[]> elementWeights = 
@@ -105,7 +105,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         }
 
         private IReadOnlyDictionary<XContinuumElement2D, double[]> FindJintegralElementsAndNodalWeights(
-            ICartesianPoint2D crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
+            CartesianPoint2D crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
         {
             Circle2D outerContour = 
                 new Circle2D(crackTip, ComputeRadiusOfJintegralOuterContour(tipSystem, tipElements));
@@ -165,7 +165,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
                 
                 EvaluatedInterpolation2D evaluatedInterpolation = 
                     element.Interpolation.EvaluateAt(element.Nodes, naturalGP);
-                ICartesianPoint2D globalGP = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian(naturalGP);
+                CartesianPoint2D globalGP = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian(naturalGP);
                 Matrix constitutive = 
                     element.Material.CalculateConstitutiveMatrixAt(naturalGP, evaluatedInterpolation);
 

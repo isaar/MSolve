@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Mesh
 {
     interface IMesh2D<TVertex, TCell> 
-        where TVertex: ICartesianPoint2D 
+        where TVertex: CartesianPoint2D 
         where TCell: class, ICell
     {
         IReadOnlyList<TVertex> Vertices { get; }
@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
         /// <param name="startingElement">An element around which to start the search. If no such element is provided 
         ///     the search will probably take longer, usually O(elementsCount).</param>
         /// <returns></returns>
-        IReadOnlyList<TCell> FindElementsContainingPoint(ICartesianPoint2D point, TCell startingElement = null);
+        IReadOnlyList<TCell> FindElementsContainingPoint(CartesianPoint2D point, TCell startingElement = null);
 
         /// <summary>
         /// Find the elements that are intersected by the provided circle. The following cases are possible:
@@ -65,6 +65,6 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
         IReadOnlyList<TVertex> FindNodesInsideCircle(Circle2D circle, 
             bool findBoundaryNodes = true, TCell startingElement = null);
 
-        bool IsInsideBoundary(ICartesianPoint2D point);
+        bool IsInsideBoundary(CartesianPoint2D point);
     }
 }

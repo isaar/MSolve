@@ -7,7 +7,7 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Utilities;
 
@@ -41,9 +41,9 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         }
 
         public abstract double[] EvaluateFunctionsAt(XNode2D node);
-        public abstract EvaluatedFunction2D[] EvaluateAllAt(INaturalPoint2D point, XContinuumElement2D element,
+        public abstract EvaluatedFunction2D[] EvaluateAllAt(NaturalPoint2D point, XContinuumElement2D element,
              EvaluatedInterpolation2D interpolation);
 
-        public abstract IReadOnlyList<ICartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element);
+        public abstract IReadOnlyList<CartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element);
     }
 }

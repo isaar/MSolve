@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
 {
@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
             det = (x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1);
         }
 
-        public INaturalPoint2D TransformCartesianToNatural(ICartesianPoint2D point)
+        public NaturalPoint2D TransformCartesianToNatural(CartesianPoint2D point)
         {
             double detXi = (point.X - x1) * (y3 - y1) - (x3 - x1) * (point.Y - y1);
             double detEta = (x2 - x1) * (point.Y - y1) - (point.X - x1) * (y2 - y1);

@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Boundaries
@@ -10,12 +8,12 @@ namespace ISAAR.MSolve.XFEM.Geometry.Boundaries
     {
         private readonly ConvexPolygon2D polygon;
 
-        public PolygonalBoundary(IReadOnlyList<ICartesianPoint2D> vertices)
+        public PolygonalBoundary(IReadOnlyList<CartesianPoint2D> vertices)
         {
             polygon = ConvexPolygon2D.CreateUnsafe(vertices); 
         }
 
-        public bool IsInside(ICartesianPoint2D point)
+        public bool IsInside(CartesianPoint2D point)
         {
             var pos = polygon.FindRelativePositionOfPoint(point);
             if (pos == PolygonPointPosition.Inside) return true;

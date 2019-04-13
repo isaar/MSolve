@@ -5,7 +5,7 @@ using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using System;
 using System.Collections.Generic;
@@ -46,9 +46,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         /// </summary>
         IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesRejected { get; }
 
-        IReadOnlyList<ICartesianPoint2D> CrackTips { get; }
-        IReadOnlyDictionary<ICartesianPoint2D, IReadOnlyList<XContinuumElement2D>> CrackTipElements { get; }
-        IReadOnlyDictionary<ICartesianPoint2D, IPropagator> CrackTipPropagators { get; }
+        IReadOnlyList<CartesianPoint2D> CrackTips { get; }
+        IReadOnlyDictionary<CartesianPoint2D, IReadOnlyList<XContinuumElement2D>> CrackTipElements { get; }
+        IReadOnlyDictionary<CartesianPoint2D, IPropagator> CrackTipPropagators { get; }
 
         /// <summary>
         /// Nodes that are currently enriched with tip functions.

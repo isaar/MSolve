@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 
@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         CrackTipEnrichments2D StartTipEnrichments { get; }
         CrackTipEnrichments2D EndTipEnrichments { get; }
 
-        void InitializeGeometry(ICartesianPoint2D startTip, ICartesianPoint2D endTip);
+        void InitializeGeometry(CartesianPoint2D startTip, CartesianPoint2D endTip);
 
         //TODO: remove it. It is obsolete and should be handled by ICrackGeometry.Propagate()
         void UpdateGeometry(double localGrowthAngleStart, double growthLengthStart,

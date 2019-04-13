@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 
@@ -95,32 +95,32 @@ namespace ISAAR.MSolve.XFEM.Materials
             this.bimaterialInterface = bimaterialInterface;
         }
 
-        public double GetYoungModulusAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public double GetYoungModulusAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation)
         {
             return IsMaterial1(point, interpolation) ? YoungModulus1 : YoungModulus2;
         }
 
-        public double GetEquivalentYoungModulusAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public double GetEquivalentYoungModulusAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation)
         {
             return IsMaterial1(point, interpolation) ? EquivalentYoungModulus1 : EquivalentYoungModulus2;
         }
 
-        public double GetPoissonRatioAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public double GetPoissonRatioAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation)
         {
             return IsMaterial1(point, interpolation) ? PoissonRatio1 : PoissonRatio2;
         }
 
-        public double GetEquivalentPoissonRatioAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public double GetEquivalentPoissonRatioAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation)
         {
             return IsMaterial1(point, interpolation) ? EquivalentPoissonRatio1 : EquivalentPoissonRatio2;
         }
 
-        public double GetThicknessAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public double GetThicknessAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation)
         {
             return IsMaterial1(point, interpolation) ? Thickness1 : Thickness2;
         }
 
-        public Matrix CalculateConstitutiveMatrixAt(INaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public Matrix CalculateConstitutiveMatrixAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation)
         {
             double eqE, eqV;
             if (IsMaterial1(point, interpolation))
@@ -147,9 +147,9 @@ namespace ISAAR.MSolve.XFEM.Materials
         public void UpdateDistributions() { } // Do nothing for homogeneous preperties
         public void UpdateStrains() { } // Do nothing for elastic properties.
 
-        private bool IsMaterial1(INaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        private bool IsMaterial1(NaturalPoint2D point, EvaluatedInterpolation2D interpolation)
         {
-            ICartesianPoint2D cartesianPoint = interpolation.TransformPointNaturalToGlobalCartesian(point);
+            CartesianPoint2D cartesianPoint = interpolation.TransformPointNaturalToGlobalCartesian(point);
             MaterialInterface2D.Subdomain subdomain = bimaterialInterface.LocatePoint(cartesianPoint);
             if (subdomain == MaterialInterface2D.Subdomain.Positive) return true;
             else if (subdomain == MaterialInterface2D.Subdomain.Negative) return false;

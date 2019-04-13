@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.Output.VTK
 {
@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             writer.Write("ASCII\n\n");
         }
 
-        public void WritePolyline(IReadOnlyList<ICartesianPoint2D> vertices)
+        public void WritePolyline(IReadOnlyList<CartesianPoint2D> vertices)
         {
             // Vertices 
             writer.WriteLine("DATASET POLYDATA");
@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             writer.WriteLine();
         }
 
-        public void WritePolylineAsUnstructured(IReadOnlyList<ICartesianPoint2D> vertices)
+        public void WritePolylineAsUnstructured(IReadOnlyList<CartesianPoint2D> vertices)
         {
             // Nodes 
             writer.WriteLine("DATASET UNSTRUCTURED_GRID");

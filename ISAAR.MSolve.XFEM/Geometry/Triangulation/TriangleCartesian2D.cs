@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
 {
@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
     // was following Nguyen's practice, which was actually incorrect.
     class TriangleCartesian2D
     {
-        public IReadOnlyList<ICartesianPoint2D> Vertices { get; }
+        public IReadOnlyList<CartesianPoint2D> Vertices { get; }
 
         public TriangleCartesian2D(TriangleNet.Geometry.ITriangle triangle)
         {

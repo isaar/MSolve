@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Interpolation.InverseMappings;
 
 namespace ISAAR.MSolve.XFEM.Interpolation
@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
 
         public int FunctionsCount { get; }
 
-        public EvaluatedInterpolation2D EvaluateAt(IReadOnlyList<Node2D> nodes, INaturalPoint2D naturalPoint)
+        public EvaluatedInterpolation2D EvaluateAt(IReadOnlyList<Node2D> nodes, NaturalPoint2D naturalPoint)
         {
             double xi = naturalPoint.Xi;
             double eta = naturalPoint.Eta;
@@ -36,14 +36,14 @@ namespace ISAAR.MSolve.XFEM.Interpolation
                 naturalDerivatives, new Jacobian2D(nodes, naturalDerivatives));
         }
 
-        public EvaluatedInterpolation2D EvaluateOnlyDerivativesAt(IReadOnlyList<Node2D> nodes, INaturalPoint2D naturalPoint)
+        public EvaluatedInterpolation2D EvaluateOnlyDerivativesAt(IReadOnlyList<Node2D> nodes, NaturalPoint2D naturalPoint)
         {
             double[,] naturalDerivatives = EvaluateDerivativesAt(naturalPoint.Xi, naturalPoint.Eta);
             // TODO: perhaps check that the nodes match the values and derivatives
             return new EvaluatedInterpolation2D(nodes, naturalDerivatives, new Jacobian2D(nodes, naturalDerivatives));
         }
 
-        public ICartesianPoint2D TransformNaturalToCartesian(IReadOnlyList<Node2D> nodes, INaturalPoint2D naturalPoint)
+        public CartesianPoint2D TransformNaturalToCartesian(IReadOnlyList<Node2D> nodes, NaturalPoint2D naturalPoint)
         {
             double[] shapeFunctionValues = EvaluateAt(naturalPoint.Xi, naturalPoint.Eta);
             double x = 0, y = 0;

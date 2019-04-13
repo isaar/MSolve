@@ -7,7 +7,7 @@ using TriangleNet;
 using TriangleNet.Geometry;
 using TriangleNet.Meshing;
 using TriangleNet.Meshing.Algorithm;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
 {
@@ -24,10 +24,10 @@ namespace ISAAR.MSolve.XFEM.Geometry.Triangulation
             this.config = new Configuration();
         }
 
-        public IReadOnlyList<TriangleCartesian2D> CreateMesh(IEnumerable<ICartesianPoint2D> points)
+        public IReadOnlyList<TriangleCartesian2D> CreateMesh(IEnumerable<CartesianPoint2D> points)
         {
             List<Vertex> vertices = new List<Vertex>();
-            foreach (ICartesianPoint2D point in points)
+            foreach (CartesianPoint2D point in points)
             {
                 vertices.Add(new Vertex(point.X, point.Y));
             }

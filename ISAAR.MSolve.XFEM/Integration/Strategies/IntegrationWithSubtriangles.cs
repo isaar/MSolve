@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.CrackGeometry;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Integration.Points;
@@ -35,8 +35,8 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
 
         public IReadOnlyList<GaussPoint2D> GenerateIntegrationPoints(XContinuumElement2D element)
         {
-            SortedSet<ICartesianPoint2D> cartesianDelaunyPoints = crack.FindTriangleVertices(element);
-            IReadOnlyList<INaturalPoint2D> naturalDelaunyPoints = 
+            SortedSet<CartesianPoint2D> cartesianDelaunyPoints = crack.FindTriangleVertices(element);
+            IReadOnlyList<NaturalPoint2D> naturalDelaunyPoints = 
                 FindNaturalPointsForTriangulation(element, cartesianDelaunyPoints);
             IReadOnlyList<Triangle2D> subtriangles;
             if (double.IsPositiveInfinity(triangleOverElementArea))
@@ -100,11 +100,11 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
             return elementGaussPoints;
         }
 
-        private static IReadOnlyList<INaturalPoint2D> FindNaturalPointsForTriangulation(XContinuumElement2D element,
-            IEnumerable<ICartesianPoint2D> cartesianDelaunyPoints)
+        private static IReadOnlyList<NaturalPoint2D> FindNaturalPointsForTriangulation(XContinuumElement2D element,
+            IEnumerable<CartesianPoint2D> cartesianDelaunyPoints)
         {
             IInverseMapping2D inverseMapping = element.Interpolation.CreateInverseMappingFor(element.Nodes);
-            var naturalDelaunyPoints = new List<INaturalPoint2D>();
+            var naturalDelaunyPoints = new List<NaturalPoint2D>();
             foreach (var cartesianPoint in cartesianDelaunyPoints)
             {
                 naturalDelaunyPoints.Add(inverseMapping.TransformCartesianToNatural(cartesianPoint));

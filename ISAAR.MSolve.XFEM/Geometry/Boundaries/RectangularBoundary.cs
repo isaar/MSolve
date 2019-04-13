@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+﻿using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Boundaries
 {
@@ -22,7 +17,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Boundaries
             this.maxY = maxY;
         }
 
-        public bool IsInside(ICartesianPoint2D point)
+        public bool IsInside(CartesianPoint2D point)
         {
             if ((point.X > minX) && (point.X < maxX) && (point.Y > minY) && (point.Y < maxY)) return true;
             else return false;

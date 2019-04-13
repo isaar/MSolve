@@ -9,17 +9,17 @@ namespace ISAAR.MSolve.Geometry.Coordinates
     /// For more see https://en.wikipedia.org/wiki/Polar_coordinate_system.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class PolarPoint : IPoint2D
+    public class PolarPoint2D : IPoint2D
     {
         protected readonly double r;
         protected readonly double theta;
 
         /// <summary>
-        /// Instantiates a <see cref="PolarPoint"/>.
+        /// Instantiates a <see cref="PolarPoint2D"/>.
         /// </summary>
         /// <param name="r">The radial coordinate of the point.</param>
         /// <param name="theta">The angular coordinate of the point.</param>
-        public PolarPoint(double r, double theta)
+        public PolarPoint2D(double r, double theta)
         {
             this.r = r;
             this.theta = theta;

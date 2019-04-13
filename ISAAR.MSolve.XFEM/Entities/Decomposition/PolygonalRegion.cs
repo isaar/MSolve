@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 
 namespace ISAAR.MSolve.XFEM.Entities.Decomposition
@@ -17,13 +17,13 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
         /// <param name="allVertices"></param>
         /// <param name="boundaryVertices">If the all vertices are boundary, then this list needs to start and end with the same 
         ///     vertex.</param>
-        public PolygonalRegion(IReadOnlyList<ICartesianPoint2D> allVertices, HashSet<LineSegment2D> boundaries)
+        public PolygonalRegion(IReadOnlyList<CartesianPoint2D> allVertices, HashSet<LineSegment2D> boundaries)
         {
             this.polygon = ConvexPolygon2D.CreateUnsafe(allVertices);
             this.boundaries = boundaries;
         }
 
-        public IReadOnlyList<ICartesianPoint2D> Outline { get { return polygon.Vertices; } }
+        public IReadOnlyList<CartesianPoint2D> Outline { get { return polygon.Vertices; } }
 
         public NodePosition FindRelativePosition(XNode2D node)
         {

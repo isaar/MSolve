@@ -7,7 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems;
 using ISAAR.MSolve.Geometry.Tensors;
 
@@ -127,7 +127,7 @@ namespace ISAAR.MSolve.XFEM.Output
             Vector enrichedDisplacements =
                 dofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
 
-            IReadOnlyList<INaturalPoint2D> naturalNodes = element.ElementType.NaturalCoordinatesOfNodes;
+            IReadOnlyList<NaturalPoint2D> naturalNodes = element.ElementType.NaturalCoordinatesOfNodes;
             var nodalTensors = new Tensor2D[element.Nodes.Count];
             for (int i = 0; i < element.Nodes.Count; ++i)
             {
@@ -146,7 +146,7 @@ namespace ISAAR.MSolve.XFEM.Output
                 dofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
 
             IGaussPointSystem gpSystem = element.ElementType.GaussPointSystem;
-            IReadOnlyList<INaturalPoint2D> gaussPoints = gpSystem.GaussPoints;
+            IReadOnlyList<NaturalPoint2D> gaussPoints = gpSystem.GaussPoints;
             var gpTensors = new Tensor2D[gaussPoints.Count];
             for (int i = 0; i < gaussPoints.Count; ++i)
             {

@@ -4,29 +4,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.Entities
 {
     // TODO: At some point I will have to override Equals() and GetHashCode(). The hash function should use 
     // the id and the number of nodes of the model
-    class Node2D : ICartesianPoint2D, IComparable<Node2D>
+    class Node2D : CartesianPoint2D, IComparable<Node2D>
     {
-        public Node2D(int id, double x, double y)
+        public Node2D(int id, double x, double y): base(x, y)
         {
             if (id < 0) throw new ArgumentException("The parameter id must be non negative, but was: " + id);
             this.ID = id;
-            this.X = x;
-            this.Y = y;
         }
 
-        public Vector2 Coordinates { get { return Vector2.Create( X, Y); } }
-
         public int ID { get; }
-
-        public double X { get; }
-
-        public double Y { get; }
 
         public int CompareTo(Node2D other)
         {

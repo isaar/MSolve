@@ -6,19 +6,19 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
-using ISAAR.MSolve.XFEM.Geometry.CoordinateSystems;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Shapes;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
 {
     class Polyline2DOLD: IGeometryDescription2D
     {
-        private readonly List<ICartesianPoint2D> vertices;
+        private readonly List<CartesianPoint2D> vertices;
         private readonly List<DirectedSegment2D> segments;
 
         public Dictionary<XContinuumElement2D, CartesianPoint2D[]> ElementIntersections { get; }
-        public ICartesianPoint2D StartPoint { get { return vertices[0]; } }
-        public ICartesianPoint2D EndPoint { get { return vertices[vertices.Count - 1]; } }
+        public CartesianPoint2D StartPoint { get { return vertices[0]; } }
+        public CartesianPoint2D EndPoint { get { return vertices[vertices.Count - 1]; } }
 
         /// <summary>
         /// Counter-clockwise angle from global cartesian x axis to a vector which 1) starts at the end point of the 
@@ -26,8 +26,8 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         /// </summary>
         public double EndPointOrientation()
         {
-            ICartesianPoint2D lastSegmentStart = vertices[vertices.Count - 2];
-            ICartesianPoint2D lastSegmentEnd = vertices[vertices.Count - 1];
+            CartesianPoint2D lastSegmentStart = vertices[vertices.Count - 2];
+            CartesianPoint2D lastSegmentEnd = vertices[vertices.Count - 1];
             double dx = lastSegmentEnd.X - lastSegmentStart.X;
             double dy = lastSegmentEnd.Y - lastSegmentStart.Y;
             return Math.Atan2(dy, dx);
@@ -39,16 +39,16 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         /// </summary>
         public double StartPointOrientation()
         {
-            ICartesianPoint2D firstSegmentStart = vertices[0];
-            ICartesianPoint2D firstSegmentEnd = vertices[1];
+            CartesianPoint2D firstSegmentStart = vertices[0];
+            CartesianPoint2D firstSegmentEnd = vertices[1];
             double dx = firstSegmentStart.X - firstSegmentEnd.X;
             double dy = firstSegmentStart.Y - firstSegmentEnd.Y;
             return Math.Atan2(dy, dx);
         }
 
-        public Polyline2DOLD(ICartesianPoint2D start, ICartesianPoint2D end)
+        public Polyline2DOLD(CartesianPoint2D start, CartesianPoint2D end)
         {
-            vertices = new List<ICartesianPoint2D>();
+            vertices = new List<CartesianPoint2D>();
             vertices.Add(start);
             vertices.Add(end);
 
@@ -63,7 +63,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         /// </summary>
         /// <param name="point"></param>
         /// <returns></returns>
-        public double SignedDistanceOf(ICartesianPoint2D point)
+        public double SignedDistanceOf(CartesianPoint2D point)
         {
             if (segments.Count == 1)
             {
@@ -73,7 +73,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
         }
 
         // The normal vector for the positive region.
-        public Vector2 NormalVectorThrough(ICartesianPoint2D point)
+        public Vector2 NormalVectorThrough(CartesianPoint2D point)
         {
             if (segments.Count == 1)
             {
@@ -82,7 +82,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Descriptions
             else throw new NotImplementedException();
         }
 
-        public IReadOnlyList<ICartesianPoint2D> IntersectionWith(XContinuumElement2D element)
+        public IReadOnlyList<CartesianPoint2D> IntersectionWith(XContinuumElement2D element)
         {
             CartesianPoint2D[] intersectionPoints;
             bool alreadyIntersected = ElementIntersections.TryGetValue(element, out intersectionPoints);
