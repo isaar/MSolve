@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Preprocessor.Meshes;
 
-namespace ISAAR.MSolve.Preprocessor.UI
+namespace ISAAR.MSolve.SamplesConsole.Preprocessing
 {
     /// <summary>
     /// Utility class to facilitate the definition of the model: nodes, elements, boundary conditions, loads, etc.
@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
 
         private readonly ElasticMaterial2D planeStrainMaterial;
         private readonly double thickness;
-        private readonly FEM.Entities.Model model;
+        private readonly Model model;
         private bool isAssembled;
 
         private PreprocessorModel(ProblemDimensions dimensions, double thickness, ElasticMaterial2D planeStrainMaterial)
@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
             this.isAssembled = false;
             this.planeStrainMaterial = planeStrainMaterial;
             this.thickness = thickness;
-            this.model = new FEM.Entities.Model();
+            this.model = new Model();
             this.model.SubdomainsDictionary.Add(0, new Subdomain(0)); //TODO: let the user decide how many subdomains there will be
             this.Dimensions = dimensions;
         }
@@ -134,7 +134,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         /// <param name="material">The common material of all elements in the mesh.</param>
         /// <param name="dynamicProperties">Optional material properties for dynamic analysis. Common for all elements in the 
         ///     mesh.</param>
-        public void AddMesh2D(IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity> elements, 
+        public void AddMesh2D(IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements, 
             IFiniteElementMaterial material, DynamicMaterial dynamicProperties = null)
         {
             if (Dimensions == ProblemDimensions.ThreeDimensional)

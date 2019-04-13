@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.Discretization.Mesh.Custom;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Preprocessor.Meshes;
-using ISAAR.MSolve.Preprocessor.Meshes.Custom;
 
 // Geometry:
 //             | 
@@ -124,9 +122,10 @@ namespace ISAAR.MSolve.Solvers.Tests
                 model.SubdomainsDictionary.Add(subdomainID, new Subdomain(subdomainID));
 
                 // Generate mesh
-                var meshGenerator = new UniformMeshGenerator2D(0.0, 0.0, Length, Height, 
+                var meshGenerator = new UniformMeshGenerator2D<Node>(0.0, 0.0, Length, Height, 
                     numElementsAlongLength, numElementsAlongHeight);
-                (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity> cells) = meshGenerator.CreateMesh();
+                (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity<Node>> cells) = 
+                    meshGenerator.CreateMesh((id, x, y, z) => new Node() { ID = id, X = x, Y = y, Z = z });
 
                 // Add nodes to the model
                 for (int n = 0; n < vertices.Count; ++n) model.NodesDictionary.Add(n, vertices[n]);

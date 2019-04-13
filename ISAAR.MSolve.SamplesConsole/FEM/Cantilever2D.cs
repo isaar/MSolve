@@ -5,15 +5,15 @@ using System.Linq;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.Discretization.Mesh.Custom;
+using ISAAR.MSolve.Discretization.Mesh.GMSH;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.VonMisesStress;
-using ISAAR.MSolve.Preprocessor.Meshes;
-using ISAAR.MSolve.Preprocessor.Meshes.Custom;
-using ISAAR.MSolve.Preprocessor.Meshes.GMSH;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
@@ -50,16 +50,16 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             //string meshPath = @"C:\Users\Serafeim\Desktop\Presentation\cantilever.msh";
 
 
-            (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity> elements) = GenerateMeshFromGmsh(meshPath);
-            //(IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity> elements) = GenerateUniformMesh();
-            //(IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity> elements) = GenerateMeshManually();
+            (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements) = GenerateMeshFromGmsh(meshPath);
+            //(IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements) = GenerateUniformMesh();
+            //(IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements) = GenerateMeshManually();
 
             Model model = CreateModel(nodes, elements);
             //PrintMeshOnly(model);
             SolveLinearStatic(model);
         }
 
-        private static Model CreateModel(IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity> elements)
+        private static Model CreateModel(IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements)
         {
             // Initialize
             int numNodes = nodes.Count;
@@ -108,7 +108,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             return model;
         }
 
-        private static (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity> elements) GenerateMeshManually()
+        private static (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements) GenerateMeshManually()
         {
             Node[] nodes =
             {
@@ -126,29 +126,29 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
 
             CellType[] cellTypes = { CellType.Quad4, CellType.Quad4, CellType.Quad4, CellType.Quad4 };
 
-            CellConnectivity[] elements =
+            CellConnectivity<Node>[] elements =
             {
-                new CellConnectivity(CellType.Quad4, new Node[] { nodes[0], nodes[1], nodes[3], nodes[2]}),
-                new CellConnectivity(CellType.Quad4, new Node[] { nodes[2], nodes[3], nodes[5], nodes[4]}),
-                new CellConnectivity(CellType.Quad4, new Node[] { nodes[4], nodes[5], nodes[7], nodes[6]}),
-                new CellConnectivity(CellType.Quad4, new Node[] { nodes[6], nodes[7], nodes[9], nodes[8]})
+                new CellConnectivity<Node>(CellType.Quad4, new Node[] { nodes[0], nodes[1], nodes[3], nodes[2]}),
+                new CellConnectivity<Node>(CellType.Quad4, new Node[] { nodes[2], nodes[3], nodes[5], nodes[4]}),
+                new CellConnectivity<Node>(CellType.Quad4, new Node[] { nodes[4], nodes[5], nodes[7], nodes[6]}),
+                new CellConnectivity<Node>(CellType.Quad4, new Node[] { nodes[6], nodes[7], nodes[9], nodes[8]})
             };
 
             return (nodes, elements);
         }
 
-        private static (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity> elements) GenerateMeshFromGmsh(string path)
+        private static (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements) GenerateMeshFromGmsh(string path)
         {
-            using (var reader = new GmshReader(path))
+            using (var reader = new GmshReader<Node>(path))
             {
-                return reader.CreateMesh();
+                return reader.CreateMesh((id, x, y, z) => new Node() { ID = id, X = x, Y = y, Z = z });
             }
         }
 
-        private static (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity> elements) GenerateUniformMesh()
+        private static (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements) GenerateUniformMesh()
         {
-            var meshGen = new UniformMeshGenerator2D(0.0, 0.0, length, height, 4, 20);
-            return meshGen.CreateMesh();
+            var meshGen = new UniformMeshGenerator2D<Node>(0.0, 0.0, length, height, 4, 20);
+            return meshGen.CreateMesh((id, x, y, z) => new Node() { ID = id, X = x, Y = y, Z = z });
         }
 
         private static void PrintMeshOnly(Model model)

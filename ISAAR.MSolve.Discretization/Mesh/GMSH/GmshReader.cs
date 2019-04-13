@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.Discretization.Interfaces;
 
-namespace ISAAR.MSolve.Preprocessor.Meshes.GMSH
+namespace ISAAR.MSolve.Discretization.Mesh.GMSH
 {
     /// <summary>
     /// Creates meshes by reading GMSH output files (.msh). Unrecognized GMSH cell types will be ignored along with any 1D cells
     /// in the .msh file, therefore some care is needed.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class GmshReader: IDisposable, IMeshProvider2D<Node, CellConnectivity>
+    public class GmshReader<TNode>: IDisposable, IMeshGenerator<TNode> where TNode: INode
     {
         private readonly StreamReader reader;
 
@@ -29,20 +28,22 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.GMSH
         /// <summary>
         /// Reads the whole .msh file and converts it to MSolve mesh data.
         /// </summary>
-        public (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity> cells) CreateMesh()
+        public (IReadOnlyList<TNode> vertices, IReadOnlyList<CellConnectivity<TNode>> cells) 
+            CreateMesh(CreateNode<TNode> createNode)
         {
             // Vertices must be listed before cells
-            Node[] vertices = ReadVertices();
-            IReadOnlyList<CellConnectivity> cells = ReadCells(vertices);
+            TNode[] vertices = ReadVertices(createNode);
+            IReadOnlyList<CellConnectivity<TNode>> cells = ReadCells(vertices);
             return (vertices, cells);
         }
+
 
         public void Dispose()
         {
             if (reader != null) reader.Dispose();
         }
 
-        private Node[] ReadVertices()
+        private TNode[] ReadVertices(CreateNode<TNode> createNode)
         {
             string line;
 
@@ -56,7 +57,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.GMSH
 
             // Read the vertices
             int numVertices = int.Parse(reader.ReadLine());
-            var vertices = new Node[numVertices];
+            var vertices = new TNode[numVertices];
             while (true)
             {
                 line = reader.ReadLine();
@@ -66,13 +67,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.GMSH
                     // Line = nodeID x y z
                     string[] words = line.Split(new char[] { ' ' });
                     int id = int.Parse(words[0]) - 1; // MSolve uses 0-based indexing
-                    vertices[id] = new Node
-                    {
-                        ID = id,
-                        X = double.Parse(words[1]),
-                        Y = double.Parse(words[2]),
-                        Z = double.Parse(words[3])
-                    };
+                    vertices[id] = createNode(id, double.Parse(words[1]), double.Parse(words[2]), double.Parse(words[3]));
                 }
             }
 
@@ -80,7 +75,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.GMSH
         }
 
         // It must be called after vertices are read.
-        private IReadOnlyList<CellConnectivity> ReadCells(Node[] vertices)
+        private IReadOnlyList<CellConnectivity<TNode>> ReadCells(TNode[] vertices)
         {
             string line;
 
@@ -94,8 +89,8 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.GMSH
 
             // Read the elements
             int numFauxCells = int.Parse(reader.ReadLine()); // not all of them are actual 2D cells
-            var cells = new List<CellConnectivity>();
-            var cellFactory = new GmshCellFactory(vertices);
+            var cells = new List<CellConnectivity<TNode>>();
+            var cellFactory = new GmshCellFactory<TNode>(vertices);
             while (true)
             {
                 line = reader.ReadLine();
@@ -115,7 +110,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.GMSH
                         vertexIDs[i] = int.Parse(words[firstVertexPos + i]) - 1; // MSolve uses 0-based indexing
                     }
 
-                    bool validCell = cellFactory.TryCreateCell(code, vertexIDs, out CellConnectivity cell);
+                    bool validCell = cellFactory.TryCreateCell(code, vertexIDs, out CellConnectivity<TNode> cell);
                     if (validCell) cells.Add(cell);
                 }
             }

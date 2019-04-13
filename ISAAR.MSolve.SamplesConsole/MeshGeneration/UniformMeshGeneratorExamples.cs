@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.Discretization.Mesh.Custom;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Preprocessor.Meshes;
-using ISAAR.MSolve.Preprocessor.Meshes.Custom;
 
 namespace ISAAR.MSolve.SamplesConsole.MeshGeneration
 {
@@ -20,9 +19,10 @@ namespace ISAAR.MSolve.SamplesConsole.MeshGeneration
             double maxX = 100.0, maxY = 100.0, maxZ = 100.0;
             int cellsPerX = 4, cellsPerY = 4, cellsPerZ = 4;
 
-            var generator = new UniformMeshGenerator3D(minX, minY, minZ, maxX, maxY, maxZ, cellsPerX, cellsPerY, cellsPerZ);
+            var generator = new UniformMeshGenerator3D<Node>(minX, minY, minZ, maxX, maxY, maxZ, cellsPerX, cellsPerY, cellsPerZ);
             generator.StartIDsAt0 = false;
-            (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity> cells) = generator.CreateMesh();
+            (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity<Node>> cells) = 
+                generator.CreateMesh((id, x, y, z) => new Node() { ID = id, X = x, Y = y, Z = z });
 
             Console.WriteLine($"{vertices.Count} vertices:");
             foreach (var vertex in vertices)

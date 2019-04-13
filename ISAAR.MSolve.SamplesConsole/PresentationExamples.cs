@@ -5,12 +5,12 @@ using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.Dynamic;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.Discretization.Mesh.GMSH;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Preprocessor.Meshes;
-using ISAAR.MSolve.Preprocessor.Meshes.GMSH;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
@@ -707,7 +707,7 @@ namespace ISAAR.MSolve.SamplesConsole
             string workingDirectory = @"C:\Users\Dimitris\Desktop\Presentation";
             string meshFileName = "wall.msh";
 
-            (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity> elements) = 
+            (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements) = 
                 GenerateMeshFromGmsh(workingDirectory, meshFileName);
             #endregion
 
@@ -803,7 +803,7 @@ namespace ISAAR.MSolve.SamplesConsole
             string workingDirectory = @"C:\Users\Dimitris\Desktop\Presentation";
             string meshFileName = "wall.msh";
 
-            (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity> elements) = GenerateMeshFromGmsh(workingDirectory, meshFileName);
+            (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements) = GenerateMeshFromGmsh(workingDirectory, meshFileName);
             #endregion
 
             #region CreateModel
@@ -900,7 +900,7 @@ namespace ISAAR.MSolve.SamplesConsole
             string workingDirectory = @"C:\Users\Dimitris\Desktop\Presentation";
             string meshFileName = "wall.msh";
 
-            (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity> elements) = 
+            (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements) = 
                 GenerateMeshFromGmsh(workingDirectory, meshFileName);
             #endregion
 
@@ -997,12 +997,12 @@ namespace ISAAR.MSolve.SamplesConsole
             #endregion
         }
 
-        private static (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity> elements) GenerateMeshFromGmsh(
+        private static (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements) GenerateMeshFromGmsh(
             string workingDirectory, string meshFileName)
         {
-            using (var reader = new GmshReader(workingDirectory + "\\" + meshFileName))
+            using (var reader = new GmshReader<Node>(workingDirectory + "\\" + meshFileName))
             {
-                return reader.CreateMesh();
+                return reader.CreateMesh((id, x, y, z) => new Node() { ID = id, X = x, Y = y, Z = z });
             }
         }
 
