@@ -4,7 +4,7 @@ using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.Materials.VonMisesStress;
 
 //TODO: this should take as input the PreprocessorModel and get the problem type and materials from there.
-namespace ISAAR.MSolve.Preprocessor.UI
+namespace ISAAR.MSolve.SamplesConsole.Preprocessing
 {
     /// <summary>
     /// Utility class to facilitate the definition the field (displacements, stresses, etc) output requests. The requested  

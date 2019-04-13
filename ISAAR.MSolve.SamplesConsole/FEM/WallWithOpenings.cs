@@ -6,7 +6,7 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Preprocessor.Meshes;
 using ISAAR.MSolve.Preprocessor.Meshes.GMSH;
-using ISAAR.MSolve.Preprocessor.UI;
+using ISAAR.MSolve.SamplesConsole.Preprocessing;
 
 namespace ISAAR.MSolve.SamplesConsole.FEM
 {
