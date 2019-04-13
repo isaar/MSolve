@@ -37,7 +37,8 @@ namespace ISAAR.MSolve.Materials
 
         public void ClearState()
         {
-            throw new NotImplementedException();
+            strains.Clear();
+            stresses.Clear();
         }
 
         public void ClearStresses()

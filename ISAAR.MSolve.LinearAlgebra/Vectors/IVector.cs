@@ -9,7 +9,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
     /// are used on sparse vector formats and the zero entries are overwritten.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public interface IVector: IVectorView
+    public interface IVector: IVectorView, IEntrywiseOperable1D<IVectorView>
     {
         /// <summary>
         /// Adds selected entries from <paramref name="otherVector"/> to this vector:
@@ -185,31 +185,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// Thrown if an entry this[i] needs to be overwritten, but that is not permitted by the vector storage format.
         /// </exception>
         void CopySubvectorFrom(int destinationIndex, IVectorView sourceVector, int sourceIndex, int length);
-
-        /// <summary>
-        /// Performs a binary operation on each pair of entries: 
-        /// this[i] = <paramref name="binaryOperation"/>(this[i], <paramref name="vector"/>[i]). 
-        /// The resulting vector overwrites the entries of this.
-        /// </summary>
-        /// <param name="vector">A vector with the same <see cref="IIndexable1D.Length"/> as this.</param>
-        /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
-        /// <exception cref="Exceptions.NonMatchingDimensionsException">
-        /// Thrown if <paramref name="vector"/> has different <see cref="IIndexable1D.Length"/> than this.
-        /// </exception>
-        /// <exception cref="Exceptions.PatternModifiedException">
-        /// Thrown if an entry this[i] needs to be overwritten, but that is not permitted by the vector storage format.
-        /// </exception> 
-        void DoEntrywiseIntoThis(IVectorView otherVector, Func<double, double, double> binaryOperation);
-
-        /// <summary>
-        /// Performs a unary operation on each entry: this[i] = <paramref name="unaryOperation"/>(this[i]).
-        /// The resulting vector overwrites the entries of this.
-        /// </summary>
-        /// <param name="unaryOperation">A method that takes 1 argument and returns 1 result.</param>
-        /// <exception cref="Exceptions.PatternModifiedException">
-        /// Thrown if an entry this[i] needs to be overwritten, but that is not permitted by the vector storage format.
-        /// </exception> 
-        void DoToAllEntriesIntoThis(Func<double, double> unaryOperation);
 
         /// <summary>
         /// Performs the following operation for all i:

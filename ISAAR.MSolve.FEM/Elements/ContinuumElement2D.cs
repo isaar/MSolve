@@ -9,6 +9,7 @@ using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
 using ISAAR.MSolve.FEM.Interpolation.Jacobians;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.LinearAlgebra;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
@@ -166,6 +167,24 @@ namespace ISAAR.MSolve.FEM.Elements
             return massMatrix.Multiply(accelerations);
         }
 
+        public double CalculateArea()
+        {
+            //TODO: Linear elements can use the more efficient rules for volume of polygons. Therefore this method should be 
+            //      delegated to the interpolation.
+            //TODO: A different integration rule should be used for integrating constant functions. For linear elements there
+            //      is only 1 Gauss point (most probably), therefore the computational cost could be the same as using the 
+            //      polygonal formulas.
+            double area = 0.0;
+            IReadOnlyList<Matrix> shapeGradientsNatural =
+                Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
+            for (int gp = 0; gp < QuadratureForStiffness.IntegrationPoints.Count; ++gp)
+            {
+                var jacobian = new IsoparametricJacobian2D(Nodes, shapeGradientsNatural[gp]);
+                area += jacobian.DirectDeterminant * QuadratureForStiffness.IntegrationPoints[gp].Weight; //TODO: this is used by all methods that integrate. I should cache it.
+            }
+            return area;
+        }
+
         public double[] CalculateForces(Element element, double[] localTotalDisplacements, double[] localdDisplacements)
         {
             throw new NotImplementedException();
@@ -206,6 +225,12 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public IElementDofEnumerator DofEnumerator { get; set; } = new GenericDofEnumerator();
 
+        /// <summary>
+        /// Calculates the coordinates of the centroid of this element.
+        /// </summary>
+        public CartesianPoint2D FindCentroid()
+            => Interpolation.TransformNaturalToCartesian(Nodes, new NaturalPoint2D(0.0, 0.0));
+
         public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
 
         /// <summary>
@@ -213,12 +238,12 @@ namespace ISAAR.MSolve.FEM.Elements
         /// a list with the dofs of the corresponding node. E.g. For node idx = 3, dof idx = 2 the IDof is result[3][2].
         /// </summary>
         /// <returns></returns>
-        public IReadOnlyList<IReadOnlyList<Discretization.FreedomDegrees.IDofType>> GetNodalDofs()
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetNodalDofs()
         {
-            var allDofs = new Discretization.FreedomDegrees.IDofType[Nodes.Count][];
+            var allDofs = new IDofType[Nodes.Count][];
             for (int i = 0; i < Nodes.Count; ++i)
             {
-                var nodalDofs = new Discretization.FreedomDegrees.IDofType[2];
+                var nodalDofs = new IDofType[2];
                 nodalDofs[0] = StructuralDof.TranslationX;
                 nodalDofs[1] = StructuralDof.TranslationY;
                 allDofs[i] = nodalDofs;
@@ -270,7 +295,7 @@ namespace ISAAR.MSolve.FEM.Elements
             foreach (ElasticMaterial2D m in materialsAtGaussPoints) m.SaveState();
         }
 
-        public IMatrix StiffnessMatrix(IElement element) => BuildStiffnessMatrix();
+        public IMatrix StiffnessMatrix(IElement element) => DofEnumerator.GetTransformedMatrix(BuildStiffnessMatrix());
 
         /// <summary>
         /// Calculate strains (exx, eyy, 2exy) and stresses (sxx, syy, sxy) at integration points, store them in the materials 

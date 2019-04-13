@@ -11,7 +11,6 @@ using MGroup.Stochastic;
 using MGroup.Stochastic.Structural;
 using MGroup.Stochastic.Structural.Example;
 
-
 namespace ISAAR.MSolve.SamplesConsole
 {
     class Program

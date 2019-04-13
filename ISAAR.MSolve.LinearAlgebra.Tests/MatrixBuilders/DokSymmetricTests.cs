@@ -57,6 +57,30 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.MatrixBuilders
         }
 
         [Fact]
+        private static void TestGetSubmatrix()
+        {
+            DokSymmetric matrix = CreateDok(new double[,]
+            {
+                {  0,  0, 20,  0,  0,  0 },
+                {  0,  1,  0, 31,  0,  0 },
+                { 20,  0,  2,  0, 42,  0 },
+                {  0, 31,  0,  3,  0, 53 },
+                {  0,  0, 42,  0,  4,  0 },
+                {  0,  0,  0, 53,  0,  5 }
+            });
+            var rowsToKeep = new int[] { 4, 2, 5 };
+            DokSymmetric submatrixExpected = CreateDok(new double[,]
+            {
+                {  4, 42, 0 }, 
+                { 42,  2, 0 }, 
+                {  0,  0, 5 }
+            });
+
+            DokSymmetric submatrixComputed = matrix.GetSubmatrix(rowsToKeep);
+            comparer.AssertEqual(submatrixExpected, submatrixComputed);
+        }
+
+        [Fact]
         private static void TestIndexer()
         {
             Matrix dense = Matrix.CreateFromArray(SparsePosDef10by10.Matrix);

@@ -128,7 +128,7 @@ namespace ISAAR.MSolve.FEM.Problems.Structural.Elements
             // WARNING: 1) No strains are computed 2) localdDisplacements are not used.
             double[] strains = null;
             double[] forces = CalculateForces(element, local_Displacements, local_d_Displacements);
-            double[] stresses = Array.ConvertAll<double, double>(forces, x => x / SectionArea);
+            double[] stresses = Array.ConvertAll(forces, x => x / SectionArea);
             return new Tuple<double[], double[]>(strains, stresses);
         }
 

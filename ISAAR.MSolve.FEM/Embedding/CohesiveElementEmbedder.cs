@@ -12,8 +12,8 @@ using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 namespace ISAAR.MSolve.FEM.Embedding
 {
     /// <summary>
-    /// Appropriate superelement dofenumerator for problems with embedding of <see cref="FEM.Elements.CohesiveShell8ToHexa20"/> elements.
-    /// update of the original <see cref="FEM.Embedding.ElementEmbedder"/> class Authors: Gerasimos Sotiropoulos     
+    /// Appropriate superelement dofenumerator for problems with embedding of <see cref="Elements.CohesiveShell8ToHexa20"/> elements.
+    /// update of the original <see cref="ElementEmbedder"/> class Authors: Gerasimos Sotiropoulos     
     /// </summary>
     public class CohesiveElementEmbedder : IElementDofEnumerator
     {

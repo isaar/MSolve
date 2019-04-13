@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+//TODO: Not sure about these static methods to access the classes. Can't I use the enum pattern here?
 namespace ISAAR.MSolve.Optimization.Convergence
 {
     public static class CompositeCriteria

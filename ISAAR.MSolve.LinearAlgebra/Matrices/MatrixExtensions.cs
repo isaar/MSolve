@@ -50,6 +50,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public static void AddIntoThis(this IMatrix matrix1, IMatrixView matrix2) => matrix1.AxpyIntoThis(matrix2, 1.0);
 
         /// <summary>
+        /// Copies the entries of the matrix into a 2-dimensional array. The returned array has length(0) = number of rows 
+        /// and length(1) = number of columns. 
+        /// </summary>
+        public static double[,] CopytoArray2D(this IMatrixView matrix)
+        {
+            var clone = new double[matrix.NumRows, matrix.NumColumns];
+            for (int i = 0; i < matrix.NumRows; ++i)
+            {
+                for (int j = 0; j < matrix.NumColumns; ++j) clone[i, j] = matrix[i, j];
+            }
+            return clone;
+        }
+
+        /// <summary>
         /// Iterates over the non-zero entries of the matrix, which are defined as the entries such that: 
         /// <paramref name="matrix"/>[i,j].
         /// </summary>
@@ -125,7 +139,41 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
             return true;
         }
-        
+
+        /// <summary>
+        /// Performs the operation: result[i, j] = <paramref name="thisMatrix"/>[i, j] * <paramref name="otherMatrix"/>[i, j],
+        /// for all valid (i, j). The resulting matrix is written in a new object and then returned.
+        /// </summary>
+        /// <param name="thisMatrix">A matrix.</param>
+        /// <param name="otherMatrix">
+        /// A matrix with the same <see cref="IIndexable2D.NumRows"/> and <see cref="IIndexable2D.NumColumns"/> as this matrix.
+        /// </param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if <paramref name="otherMatrix"/> has different <see cref="IIndexable2D.NumRows"/> or 
+        /// <see cref="IIndexable2D.NumColumns"/> than this matrix.
+        /// </exception>
+        public static Matrix MultiplyEntrywise(this Matrix thisMatrix, Matrix otherMatrix)
+            => thisMatrix.DoEntrywise(otherMatrix, (x, y) => x * y); //TODO: This should be implemented similarly to Vector.MultiplyEntrywise()
+
+        /// <summary>
+        /// Performs the operation: 
+        /// <paramref name="thisMatrix"/>[i, j] = <paramref name="thisMatrix"/>[i, j] * <paramref name="otherMatrix"/>[i, j],
+        /// for all valid (i, j). The resulting matrix overwrites the entries of this matrix.
+        /// </summary>
+        /// <param name="thisMatrix">A matrix.</param>
+        /// <param name="otherMatrix">
+        /// A matrix with the same <see cref="IIndexable2D.NumRows"/> and <see cref="IIndexable2D.NumColumns"/> as this matrix.
+        /// </param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if <paramref name="otherMatrix"/> has different <see cref="IIndexable2D.NumRows"/> or 
+        /// <see cref="IIndexable2D.NumColumns"/> than this matrix.
+        /// </exception>
+        /// <exception cref="PatternModifiedException">
+        /// Thrown if an entry this[i, j] needs to be overwritten, but that is not permitted by the matrix storage format.
+        /// </exception>
+        public static void MultiplyEntrywiseIntoThis(this Matrix thisMatrix, Matrix otherMatrix)
+            => thisMatrix.DoEntrywiseIntoThis(otherMatrix, (x, y) => x * y); //TODO: This should be implemented similarly to Vector.MultiplyEntrywiseIntoThis()
+
         /// <summary>
         /// Computes the Reduced Row Echelon Form (rref) of the matrix and finds the independent columns of the matrix.  
         /// See https://en.wikipedia.org/wiki/Row_echelon_form#Reduced_row_echelon_form.
@@ -249,6 +297,47 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
             return reordered;
         }
+
+        /// <summary>
+        /// Spreads the entries of a matrix (2D) into a vector (1D). The order could be row major (consecutive entries belong to
+        /// the same row) or column major (consecutive entries belong to the same column).
+        /// </summary>
+        /// <param name="columnMajor">
+        /// If true, the vector will contain the entries of the matrix in column major order, otherwise in row major.
+        /// </param>
+        public static Vector Reshape(this Matrix matrix, bool columnMajor)
+        {
+            if (columnMajor) return Vector.CreateFromArray(matrix.RawData, true);
+            else
+            {
+                double[] rowMajorEntries = Conversions.ColumnMajorToRowMajor(matrix.RawData, matrix.NumRows, matrix.NumColumns);
+                return Vector.CreateFromArray(rowMajorEntries, false);
+            }
+        }
+
+        /// <summary>
+        /// Performs the operation: result[i, j] = this[i, j] ^ 0.5 for all valid (i, j). 
+        /// The resulting matrix is written in a new object and then returned.
+        /// </summary>
+        public static Matrix Sqrt(this Matrix matrix) => matrix.DoToAllEntries(x => Math.Sqrt(x));
+
+        /// <summary>
+        /// Performs the operation: this[i, j] = this[i, j] ^ 0.5 for all valid (i, j). 
+        /// The resulting matrix overwrites the entries of this matrix.
+        /// </summary>
+        public static void SqrtIntoThis(this Matrix matrix) => matrix.DoToAllEntriesIntoThis(x => Math.Sqrt(x));
+
+        /// <summary>
+        /// Performs the operation: result[i, j] = this[i, j] ^ 2 for all valid (i, j). 
+        /// The resulting matrix is written in a new object and then returned.
+        /// </summary>
+        public static Matrix Square(this Matrix matrix) => matrix.DoToAllEntries(x => x * x);
+
+        /// <summary>
+        /// Performs the operation: this[i, j] = this[i, j] ^ 2 for all valid (i, j). 
+        /// The resulting matrix overwrites the entries of this matrix.
+        /// </summary>
+        public static void SquareIntoThis(this Matrix matrix) => matrix.DoToAllEntriesIntoThis(x => x * x);
 
         /// <summary>
         /// Performs the operation: result[i, j] = <paramref name="matrix1"/>[i, j] - <paramref name="matrix2"/>[i, j], 

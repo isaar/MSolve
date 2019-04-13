@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// around or allow acceess to it, consider using this interface instead of <see cref="Matrix"/> for extra safety.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public interface IMatrixView: IIndexable2D, IReducible, ISliceable2D
+    public interface IMatrixView: IIndexable2D, IReducible, IEntrywiseOperableView2D<IMatrixView, IMatrix>, ISliceable2D
     {
         /// <summary>
         /// Performs the following operation for all (i, j):
@@ -38,31 +38,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </param>
         IMatrix Copy(bool copyIndexingData = false);
 
-        /// <summary>
         /// Copies this <see cref="IMatrixView"/> object. The new matrix will have all its entries explicitly stored.
         /// </summary>
         Matrix CopyToFullMatrix();
 
-        /// <summary>
-        /// Performs a binary operation on each pair of entries: 
-        /// result[i, j] = <paramref name="binaryOperation"/>(this[i, j], <paramref name="matrix"/>[i]). 
-        /// The resulting matrix is written in a new object and then returned.
-        /// </summary>
-        /// <param name="matrix">A matrix with the same <see cref="IIndexable2D.NumRows"/> and 
-        ///     <see cref="IIndexable2D.NumColumns"/> as this.</param>
-        /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
-        /// <exception cref="Exceptions.NonMatchingDimensionsException">Thrown if <paramref name="matrix"/> has different 
-        ///     <see cref="IIndexable2D.NumRows"/> or <see cref="IIndexable2D.NumColumns"/> than this.</exception>
-        IMatrix DoEntrywise(IMatrixView matrix, Func<double, double, double> binaryOperation);
-
-        /// <summary>
-        /// Performs a unary operation on each entry: result[i] = <paramref name="unaryOperation"/>(this[i, j]).
-        /// The resulting matrix is written in a new object and then returned.
-        /// </summary>
-        /// <param name="unaryOperation">A method that takes 1 argument and returns 1 result.</param>
-        IMatrix DoToAllEntries(Func<double, double> unaryOperation);
-
-        /// <summary>
         /// Performs the following operation for all (i, j):
         /// result[i, j] = <paramref name="thisCoefficient"/> * this[i, j] + <paramref name="otherCoefficient"/> * 
         /// <paramref name="otherMatrix"/>[i, j]. 

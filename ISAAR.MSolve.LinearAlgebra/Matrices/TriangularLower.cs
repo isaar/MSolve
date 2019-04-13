@@ -227,7 +227,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrixView.DoEntrywise(IMatrixView, Func{double, double, double})"/>.
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoEntrywise(TMatrixIn, Func{double, double, double})"/>.
         /// </summary>
         public IMatrix DoEntrywise(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
@@ -235,33 +235,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrix.DoEntrywiseIntoThis(IMatrixView, Func{double, double, double})"/>.
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoEntrywiseIntoThis(TMatrixIn, Func{double, double, double})"/>.
         /// </summary>
         public void DoEntrywiseIntoThis(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
-            if (matrix is TriangularLower casted) DoEntrywiseIntoThis(casted, binaryOperation);
+            if (matrix is TriangularLower casted)
+            {
+                Preconditions.CheckSameMatrixDimensions(this, matrix);
+                for (int i = 0; i < data.Length; ++i) this.data[i] = binaryOperation(this.data[i], casted.data[i]);
+            }
             else throw new SparsityPatternModifiedException(
                 "This operation is legal only if the other matrix is also lower triangular.");
         }
 
         /// <summary>
-        /// Performs the following operation for 0 &lt;= i &lt; <see cref="Order"/>, 0 &lt;= j &lt;= i:
-        /// this[i, j] = <paramref name="binaryOperation"/>(this[i,j], <paramref name="matrix"/>[i, j]) 
-        /// The resulting matrix overwrites the entries of this <see cref="TriangularLower"/> instance.
-        /// </summary>
-        /// <param name="matrix">A matrix with the same <see cref="Order"/> as this <see cref="TriangularLower"/> 
-        ///     instance.</param>
-        /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
-        /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="matrix"/> has different 
-        ///     <see cref="Order"/> than this instance.</exception>
-        public void DoEntrywiseIntoThis(TriangularLower matrix, Func<double, double, double> binaryOperation)
-        {
-            Preconditions.CheckSameMatrixDimensions(this, matrix);
-            for (int i = 0; i < data.Length; ++i) this.data[i] = binaryOperation(this.data[i], matrix.data[i]);
-        }
-
-        /// <summary>
-        /// See <see cref="IMatrixView.DoToAllEntries(Func{double, double})"/>.
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
         public IMatrix DoToAllEntries(Func<double, double> unaryOperation)
         {
@@ -284,9 +272,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 return fullMatrix;
             }
         }
-        
+
         /// <summary>
-        /// See <see cref="IMatrix.DoToAllEntriesIntoThis(Func{double, double})"/>.
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoToAllEntriesIntoThis(Func{double, double})"/>.
         /// </summary>
         public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
         {
