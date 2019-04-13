@@ -12,7 +12,7 @@ using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
-using ISAAR.MSolve.XFEM.Geometry.Shapes;
+using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Interpolation;
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Geometry.Shapes;
+using ISAAR.MSolve.Geometry.Shapes;
 
 namespace ISAAR.MSolve.XFEM.Entities.Decomposition
 {

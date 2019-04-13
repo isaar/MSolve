@@ -1,18 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.XFEM.Geometry.Shapes
+namespace ISAAR.MSolve.Geometry.Shapes
 {
     /// <summary>
     /// I would name it Vector, but that means a gazillion of things.
     /// TODO: I don't see why I need the LineSegment2D inheritance; I override pretty much everything.
     /// </summary>
-    class DirectedSegment2D
+    public class DirectedSegment2D
     {
         /// <summary>
         /// a is the counter-clockwise angle from the global x axis to the local x axis

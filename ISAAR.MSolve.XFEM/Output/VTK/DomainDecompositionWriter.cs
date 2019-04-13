@@ -7,7 +7,7 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.Decomposition;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Geometry.Shapes;
+using ISAAR.MSolve.Geometry.Shapes;
 
 namespace ISAAR.MSolve.XFEM.Output.VTK
 {

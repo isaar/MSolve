@@ -1,19 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.XFEM.Geometry.Shapes
+namespace ISAAR.MSolve.Geometry.Shapes
 {
     // The line divides the 2D space into a positive and a negative region. Points in the positive region have positive
     // signed distance to the line, while points in the negative region have negative signed distance. Each region also
     // has a normal vector. The normal of the positive region is defined by the following CONVENTION:
     // In a local 1D coordinate system, the START point of the line is to the left, the END point is to the right and
     // the normal vector of the positive region is pointing DOWNWARDS (into the positive region). 
-    class LineSegment2D
+    public class LineSegment2D
     {
         public CartesianPoint2D Start { get; }
         public CartesianPoint2D End { get; }

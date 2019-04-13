@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Geometry.Coordinates;
 
-namespace ISAAR.MSolve.XFEM.Geometry.Shapes
+namespace ISAAR.MSolve.Geometry.Shapes
 {
-    interface IOpenCurve2D: ICurve2D
+    public interface IOpenCurve2D : ICurve2D
     {
         CartesianPoint2D Start { get; }
         CartesianPoint2D End { get; }

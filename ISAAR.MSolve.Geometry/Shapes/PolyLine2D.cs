@@ -1,22 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.Discretization.Commons;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
+using ISAAR.MSolve.Geometry.Commons;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Utilities;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-//TODO: implement all inherited methods
-//TODO: remove dependencies from classes developed for crack propagation
-namespace ISAAR.MSolve.XFEM.Geometry.Shapes
+namespace ISAAR.MSolve.Geometry.Shapes
 {
-    class PolyLine2D : IOpenCurve2D
+    public class PolyLine2D
     {
         private readonly List<double> angles;
         private readonly List<DirectedSegment2D> segments;
         private readonly List<CartesianPoint2D> vertices;
-        private TipCoordinateSystem tipSystem;
 
         public PolyLine2D(CartesianPoint2D first, CartesianPoint2D second)
         {
@@ -24,25 +18,33 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             segments = new List<DirectedSegment2D>();
             angles = new List<double>();
 
-            double dx = second.X - first.X;
-            double dy = second.Y - first.Y;
-            double tangentSlope = Math.Atan2(dy, dx);
-            tipSystem = new TipCoordinateSystem(second, tangentSlope);
-
             vertices.Add(first);
             vertices.Add(second);
             segments.Add(new DirectedSegment2D(first, second));
         }
 
-        public IReadOnlyList<DirectedSegment2D> Segments { get { return segments; } }
-        public IReadOnlyList<CartesianPoint2D> Vertices { get { return vertices; } }
-        public CartesianPoint2D Start { get { return vertices[0]; } }
         public CartesianPoint2D End { get { return vertices[vertices.Count - 1]; } }
+        public IReadOnlyList<DirectedSegment2D> Segments { get { return segments; } }
+        public CartesianPoint2D Start { get { return vertices[0]; } }
         public Vector2 TangentAtStart => throw new NotImplementedException();
         public Vector2 TangentAtEnd => throw new NotImplementedException();
+        public IReadOnlyList<CartesianPoint2D> Vertices { get { return vertices; } }
+
+        /// <summary>
+        /// Counter-clockwise angle from global cartesian x axis to a vector which 1) starts at the end point of the 
+        /// curve, 2) is tangent to the curve and 3) heads outwards from the curve.
+        /// </summary>
+        public double EndPointOrientation() // TODO: perhaps it should return a local coordinate system. I do not need the angle, but its cos and sign.
+        {
+            CartesianPoint2D lastSegmentStart = vertices[vertices.Count - 2];
+            CartesianPoint2D lastSegmentEnd = vertices[vertices.Count - 1];
+            double dx = lastSegmentEnd.X - lastSegmentStart.X;
+            double dy = lastSegmentEnd.Y - lastSegmentStart.Y;
+            return Math.Atan2(dy, dx);
+        }
 
         // The normal vector for the positive region.
-        public Vector2 NormalThrough(CartesianPoint2D point)
+        public Vector2 NormalVectorThrough(CartesianPoint2D point)
         {
             if (segments.Count == 1)
             {
@@ -56,7 +58,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         /// </summary>
         /// <param name="point"></param>
         /// <returns></returns>
-        public double SignedDistance(CartesianPoint2D point)
+        public double SignedDistanceOf(CartesianPoint2D point)
         {
             if (segments.Count == 1) return segments[0].TransformGlobalToLocalPoint(point).Y;
 
@@ -114,18 +116,25 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
             return distances[MathUtilities.IndexOfMinAbs(distances)];
         }
 
-        public void UpdateGeometry(double localGrowthAngle, double growthLength)
+        /// <summary>
+        /// Counter-clockwise angle from global cartesian x axis to a vector which 1) starts at the start point of the 
+        /// curve, 2) is tangent to the curve and 3) heads outwards from the curve.
+        /// </summary>
+        public double StartPointOrientation()
         {
-            double globalGrowthAngle = MathUtilities.WrapAngle(localGrowthAngle + tipSystem.RotationAngle);
-            double dx = growthLength * Math.Cos(globalGrowthAngle);
-            double dy = growthLength * Math.Sin(globalGrowthAngle);
-
-            var oldTip = Vertices[Vertices.Count - 1];
-            var newTip = new CartesianPoint2D(oldTip.X + dx, oldTip.Y + dy);
-            vertices.Add(newTip);
-            segments.Add(new DirectedSegment2D(oldTip, newTip));
-            angles.Add(localGrowthAngle); // These are independent of the global coordinate system
-            tipSystem = new TipCoordinateSystem(newTip, globalGrowthAngle);
+            // This one's orientation requires more thought, especially since the convention for determining the
+            // level set value gives the opposite sign from the rest of the curve.
+            CartesianPoint2D firstSegmentStart = vertices[0];
+            CartesianPoint2D firstSegmentEnd = vertices[1];
+            double dx = firstSegmentStart.X - firstSegmentEnd.X;
+            double dy = firstSegmentStart.Y - firstSegmentEnd.Y;
+            return Math.Atan2(dy, dx);
         }
+
+        // Perhaps geometry classes should be decoupled from elements and interact through polygons instead.
+        //IReadOnlyList<CartesianPoint2D> IntersectionWith(XContinuumElement2D element);
+        
+        // This is the correct one but it needs constrained Delauny triangulation
+        //public void IntersectionWith(ContinuumElement2D element, out CartesianPoint2D[] points, out LineSegment2D[] segments);
     }
 }

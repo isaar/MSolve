@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ISAAR.MSolve.Discretization.Commons;
-using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Utilities;
+using ISAAR.MSolve.XFEM.Entities;
 
 namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
 {
@@ -95,7 +90,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
             double dc = d1 * c2 - d2 * c1;
 
             // Solve quadratic equation: ab * xi^2 + (cb+da) * xi + dc = 0. 
-            double[] solutions = MathUtilities.SolveQuadraticEquation(ab, -bc - ad, dc);
+            double[] solutions = SolveQuadraticEquation(ab, -bc - ad, dc);
             CheckQuadraticEquationSolutions(solutions); // DEBUG only check
 
             double xi;
@@ -192,6 +187,27 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
             cycled[0] = nodes[nodes.Count - 1];
             for (int i = 0; i < nodes.Count - 1; ++i) cycled[i + 1] = nodes[i];
             return cycled;
+        }
+
+        /// <summary>
+        /// Solves a * x^2 + b * x + c = 0
+        /// </summary>
+        /// <param name="quadCoeff">Coefficient of quadratic term</param>
+        /// <param name="linCoeff">Coefficient of linear term</param>
+        /// <param name="constCoeff">Coeffecient of constant term</param>
+        /// <returns>The solutions in an array of size 0, 1 or 2</returns>
+        private static double[] SolveQuadraticEquation(double quadCoeff, double linCoeff, double constCoeff)
+        {
+            double discriminant = linCoeff * linCoeff - 4 * quadCoeff * constCoeff;
+            if (IsZero(discriminant)) return new double[] { -linCoeff / (2 * quadCoeff) };
+            else if (discriminant < 0) return new double[0];
+            else
+            {
+                double sqrtD = Math.Sqrt(discriminant);
+                double x1 = (-linCoeff + sqrtD) / (2 * quadCoeff);
+                double x2 = (-linCoeff - sqrtD) / (2 * quadCoeff);
+                return new double[] { x1, x2 };
+            }
         }
 
         private static bool IsZero(double value)

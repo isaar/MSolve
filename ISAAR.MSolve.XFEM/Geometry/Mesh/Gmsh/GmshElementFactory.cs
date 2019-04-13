@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Geometry.Shapes;
+using ISAAR.MSolve.Geometry.Shapes;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Mesh.Gmsh
 {

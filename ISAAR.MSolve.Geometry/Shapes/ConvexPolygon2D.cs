@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ISAAR.MSolve.Geometry.Coordinates;
 
-namespace ISAAR.MSolve.XFEM.Geometry.Shapes
+namespace ISAAR.MSolve.Geometry.Shapes
 {
     public enum CirclePolygonPosition
     {
@@ -17,7 +14,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Shapes
         Inside, Outside, OnEdge, OnVertex
     }
 
-    class ConvexPolygon2D
+    public class ConvexPolygon2D
     {
         private ConvexPolygon2D(IReadOnlyList<CartesianPoint2D> vertices)
         {

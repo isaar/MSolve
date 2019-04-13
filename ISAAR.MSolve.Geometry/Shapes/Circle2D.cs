@@ -1,18 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ISAAR.MSolve.Geometry.Coordinates;
 
-namespace ISAAR.MSolve.XFEM.Geometry.Shapes
+namespace ISAAR.MSolve.Geometry.Shapes
 {
     public enum CirclePointPosition
     {
         Inside, On, Outside
     }
 
-    class Circle2D
+    public class Circle2D
     {
         public CartesianPoint2D Center { get; }
         public double Radius { get; }

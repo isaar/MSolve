@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Geometry.Commons;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 using ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving;
@@ -15,7 +16,6 @@ using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
-using ISAAR.MSolve.XFEM.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Interpolation;
 
 //TODO: replace BasicCrackLSM with this one after testing is done
@@ -271,7 +271,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
 
             foreach (XNode2D node in Mesh.Vertices)
             {
-                levelSetsBody[node] = initialCrack.SignedDistance(node);
+                levelSetsBody[node] = initialCrack.SignedDistanceOf(node);
                 levelSetsTip[node] = (node.X - crackTip.X) * tangentX + (node.Y - crackTip.Y) * tangentY;
             }
 

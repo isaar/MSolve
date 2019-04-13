@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
-using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Geometry.Descriptions;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Utilities;
 
@@ -16,10 +16,9 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
     {
         public enum Subdomain { Positive, Negative, Boundary }   
              
-        public IGeometryDescription2D Discontinuity { get; }
         private readonly RampFunction2D enrichmentFunction;
 
-        public MaterialInterface2D(IGeometryDescription2D geometry)
+        public MaterialInterface2D(ICurve2D geometry)
         {
             this.Discontinuity = geometry;
             this.enrichmentFunction = new RampFunction2D();
@@ -27,7 +26,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
                 new EnrichedDof(enrichmentFunction, DisplacementDof.X),
                 new EnrichedDof(enrichmentFunction, DisplacementDof.Y)
             };
+            this.ElementIntersections = new Dictionary<XContinuumElement2D, CartesianPoint2D[]>();
         }
+
+        public ICurve2D Discontinuity { get; }
+        public Dictionary<XContinuumElement2D, CartesianPoint2D[]> ElementIntersections { get; }
 
         public override double[] EvaluateFunctionsAt(XNode2D node)
         {
@@ -62,7 +65,13 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
 
         public override IReadOnlyList<CartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element)
         {
-            return Discontinuity.IntersectionWith(element);
+            CartesianPoint2D[] intersectionPoints;
+            bool alreadyIntersected = ElementIntersections.TryGetValue(element, out intersectionPoints);
+            if (alreadyIntersected) return intersectionPoints;
+            else
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

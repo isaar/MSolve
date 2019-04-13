@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Geometry.Shapes;
+using ISAAR.MSolve.Geometry.Shapes;
 
 namespace ISAAR.MSolve.XFEM.Geometry.Mesh
 {

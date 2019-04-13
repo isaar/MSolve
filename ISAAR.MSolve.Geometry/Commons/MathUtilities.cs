@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ISAAR.MSolve.Discretization.Commons
+namespace ISAAR.MSolve.Geometry.Commons
 {
     public static class MathUtilities
     {
@@ -21,27 +21,6 @@ namespace ISAAR.MSolve.Discretization.Commons
                 }
             }
             return pos;
-        }
-
-        /// <summary>
-        /// Solves a * x^2 + b * x + c = 0
-        /// </summary>
-        /// <param name="quadCoeff">Coefficient of quadratic term</param>
-        /// <param name="linCoeff">Coefficient of linear term</param>
-        /// <param name="constCoeff">Coeffecient of constant term</param>
-        /// <returns>The solutions in an array of size 0, 1 or 2</returns>
-        public static double[] SolveQuadraticEquation(double quadCoeff, double linCoeff, double constCoeff)
-        {
-            double discriminant = linCoeff * linCoeff - 4 * quadCoeff * constCoeff;
-            if (IsZero(discriminant)) return new double[] { -linCoeff / (2 * quadCoeff) };
-            else if (discriminant < 0) return new double[0];
-            else
-            {
-                double sqrtD = Math.Sqrt(discriminant);
-                double x1 = (-linCoeff + sqrtD) / (2 * quadCoeff);
-                double x2 = (-linCoeff - sqrtD) / (2 * quadCoeff);
-                return new double[] { x1, x2 };
-            }
         }
 
         /// <summary>

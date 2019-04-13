@@ -5,7 +5,7 @@ using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Geometry.Shapes;
+using ISAAR.MSolve.Geometry.Shapes;
 
 //TODO: Delete this after testing. The new version is more efficient and does the same.
 namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.MeshInteraction

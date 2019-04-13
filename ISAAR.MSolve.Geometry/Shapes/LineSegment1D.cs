@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ISAAR.MSolve.XFEM.Geometry.Shapes
+﻿namespace ISAAR.MSolve.Geometry.Shapes
 {
-    class LineSegment1D
+    public class LineSegment1D
     {
         public double Start { get; }
         public double End { get; }
