@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.IGA.Elements;
 using ISAAR.MSolve.IGA.Entities;
+using ISAAR.MSolve.IGA.Problems.Structural.Elements;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -45,13 +46,13 @@ namespace ISAAR.MSolve.IGA.Tests
 			};
 		}
 
-		private double[] KnotValueVector()
+		private Vector KnotValueVector()
 		{
 			return Vector.CreateFromArray(new double[16]
 			{
 				0.0, 0.0, 0.0, 0.0, 0.111111111, 0.22222222, 0.33333333, 0.44444444, 0.55555555, 0.66666666, 0.77777777,
 				0.88888888, 1.0, 1.0, 1.0, 1.0
-			};
+			});
 		}
 
 		private NURBSElement2D Element
@@ -167,20 +168,20 @@ namespace ISAAR.MSolve.IGA.Tests
 			};
 		}
 
-		private double[] ShellKnotValueVectorKsi()
+		private Vector ShellKnotValueVectorKsi()
 		{
 			return Vector.CreateFromArray(new double[8]
 			{
 				0, 0, 0, 0, 1, 1, 1, 1
-			};
+			});
 		}
 
-		private double[] ShellKnotValueVectorHeta()
+		private Vector ShellKnotValueVectorHeta()
 		{
 			return Vector.CreateFromArray(new double[6]
 			{
 				0, 0, 0, 1, 1, 1
-			};
+			});
 		}
 
 		private NURBSKirchhoffLoveShellElement ShellElement

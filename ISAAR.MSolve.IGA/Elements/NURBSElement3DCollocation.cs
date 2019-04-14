@@ -3,16 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
-using ISAAR.MSolve.LinearAlgebra.Factorizations;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Solvers.LinearSystems;
 using Vector = ISAAR.MSolve.LinearAlgebra.Vectors.Vector;
 
@@ -23,14 +22,23 @@ namespace ISAAR.MSolve.IGA.Elements
 	/// Calculated according to "Improving the Computational Performance of Isogeometric Analysis" of Gkritzalis, Christos.
 	/// Authors: Dimitris Tsapetis.
 	/// </summary>
-	public class NURBSElement3DCollocation:Element, IStructuralIsogeometricElement
+	public class NURBSElement3DCollocation:Element, IStructuralIsogeometricElement, ICollocationElement
 	{
-		public NaturalPoint3D CollocationPoint;
 		public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
-		public IElementDofEnumerator_v2 DofEnumerator { get; set; }
+		public IElementDofEnumerator DofEnumerator { get; set; }
 		public bool MaterialModified { get; }
 
-		public Dictionary<int, double> CalculateLoadingCondition(Element element, Edge edge, NeumannBoundaryCondition neumann)
+        private CollocationPoint3D _collocationPoint;
+
+        public CollocationPoint3D CollocationPoint
+        {
+            get => _collocationPoint;
+            set => _collocationPoint = value;
+        }
+
+        INode ICollocationElement.CollocationPoint { get => _collocationPoint; set => _collocationPoint = (CollocationPoint3D)value; }
+
+        public Dictionary<int, double> CalculateLoadingCondition(Element element, Edge edge, NeumannBoundaryCondition neumann)
 		{
 			throw new NotImplementedException();
 		}
@@ -80,7 +88,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix StiffnessMatrix(IElement_v2 element)
+		public IMatrix StiffnessMatrix(IElement element)
 		{
 			var elementCollocation = (NURBSElement3DCollocation)element;
 
@@ -139,7 +147,7 @@ namespace ISAAR.MSolve.IGA.Elements
 		{
 			var ddR2 = hessianMatrix * dR;
 
-			var ddR3 = new double[3, nurbs.NurbsSecondDerivativeValueKsi.GetLength(0)];
+			var ddR3 = new double[3, nurbs.NurbsSecondDerivativeValueKsi.NumRows];
 			for (int i = 0; i < ddR3.GetLength(1); i++)
 			{
 				ddR3[0, i] = nurbs.NurbsSecondDerivativeValueKsi[i, 0] - ddR2[0, i];
@@ -151,7 +159,7 @@ namespace ISAAR.MSolve.IGA.Elements
 				ddR3[5, i] = nurbs.NurbsSecondDerivativeValueHetaZeta[i, 0] - ddR2[5, i];
 			}
 
-			var ddR = new double[3, nurbs.NurbsSecondDerivativeValueKsi.GetLength(0)];
+			var ddR = new double[3, nurbs.NurbsSecondDerivativeValueKsi.NumRows];
 
 			var LU=squareDerivatives.FactorLU();
 
@@ -174,7 +182,7 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		private Matrix CalculateNaturalDerivatives(NURBS3D nurbs, Matrix3by3 inverseJacobian)
 		{
-			var dR = Matrix.CreateZero(3, nurbs.NurbsDerivativeValuesKsi.GetLength(0));
+			var dR = Matrix.CreateZero(3, nurbs.NurbsDerivativeValuesKsi.NumRows);
 			for (int i = 0; i < dR.NumColumns; i++)
 			{
 				var dKsi = nurbs.NurbsDerivativeValuesKsi[i, 0];
@@ -301,17 +309,17 @@ namespace ISAAR.MSolve.IGA.Elements
 			return jacobianMatrix;
 		}
 
-		public IMatrix MassMatrix(IElement_v2 element)
+		public IMatrix MassMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IMatrix DampingMatrix(IElement_v2 element)
+		public IMatrix DampingMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
+		public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
 		{
 			throw new NotImplementedException();
 		}

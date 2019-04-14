@@ -8,6 +8,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
 {
     public interface IAsymmetricDofOrderer
     {
-        IGlobalFreeDofOrdering OrderDofs(IStructuralAsymmetricModel model);
+        ISubdomainConstrainedDofOrdering OrderConstrainedDofs(ISubdomain subdomain);
+        IGlobalFreeDofOrdering OrderFreeDofs(IStructuralAsymmetricModel model);
     }
 }

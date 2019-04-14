@@ -8,10 +8,10 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
 {
 	public class GlobalFreeDofAsymmetricOrderingSingle : IGlobalFreeDofOrdering
 	{
-		private readonly ISubdomain_v2 _subdomain;
+		private readonly ISubdomain _subdomain;
 		private readonly int[] _subdomainToGlobalDofMap;
 
-		public GlobalFreeDofAsymmetricOrderingSingle(ISubdomain_v2 subdomain,
+		public GlobalFreeDofAsymmetricOrderingSingle(ISubdomain subdomain,
 			ISubdomainFreeDofOrdering subdomainRowOrdering, ISubdomainFreeDofOrdering subdomainColOrdering)
 		{
 			_subdomain = subdomain;
@@ -23,27 +23,27 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
 
 		public DofTable GlobalFreeDofs { get; }
 		public int NumGlobalFreeDofs { get; }
-		public IReadOnlyDictionary<ISubdomain_v2, ISubdomainFreeDofOrdering> SubdomainDofOrderings { get; }
+		public IReadOnlyDictionary<ISubdomain, ISubdomainFreeDofOrdering> SubdomainDofOrderings { get; }
 
-		public void AddVectorSubdomainToGlobal(ISubdomain_v2 subdomain, IVectorView subdomainVector,
+		public void AddVectorSubdomainToGlobal(ISubdomain subdomain, IVectorView subdomainVector,
 			IVector globalVector)
 		{
 			throw new NotImplementedException();
 		}
 
-		public void AddVectorSubdomainToGlobalMeanValue(ISubdomain_v2 subdomain, IVectorView subdomainVector,
+		public void AddVectorSubdomainToGlobalMeanValue(ISubdomain subdomain, IVectorView subdomainVector,
 			IVector globalVector)
 		{
 			throw new NotImplementedException();
 		}
 
-		public void ExtractVectorSubdomainFromGlobal(ISubdomain_v2 subdomain, IVectorView globalVector,
+		public void ExtractVectorSubdomainFromGlobal(ISubdomain subdomain, IVectorView globalVector,
 			IVector subdomainVector)
 		{
 			throw new NotImplementedException();
 		}
 
-		public int[] MapFreeDofsSubdomainToGlobal(ISubdomain_v2 subdomain)
+		public int[] MapFreeDofsSubdomainToGlobal(ISubdomain subdomain)
 		{
 			throw new NotImplementedException();
 		}

@@ -87,7 +87,7 @@ namespace ISAAR.MSolve.Materials
 			auxMatrix1[0, 1] = surfaceBasisVector1.DotProduct(surfaceBasisVector2);
 			auxMatrix1[1, 0] = surfaceBasisVector2.DotProduct(surfaceBasisVector1);
 			auxMatrix1[1, 1] = surfaceBasisVector2.DotProduct(surfaceBasisVector2);
-			(Matrix inverse, double det) = auxMatrix1.InvertAndDetermninant();
+            (Matrix inverse, double det) = auxMatrix1.InvertAndDeterminant();
 
 			var constitutiveMatrix = Matrix.CreateFromArray(new double[3, 3]
 			{

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.IGA.Entities;
@@ -11,14 +12,13 @@ using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.IGA.Elements
 {
 	public class NURBSElement2DCollocation : Element, IStructuralIsogeometricElement, ICollocationElement
     {
-        protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X, DOFType.Y };
-        protected DOFType[][] dofTypes;
+        protected readonly static IDofType[] controlPointDOFTypes = new StructuralDof[] { StructuralDof.TranslationX, StructuralDof.TranslationY };
+        protected IDofType[][] dofTypes;
         private CollocationPoint2D _collocationPoint;
 
         public CollocationPoint2D CollocationPoint
@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.IGA.Elements
         }
         
 		public ElementDimensions ElementDimensions => ElementDimensions.TwoD;
-        public IElementDofEnumerator_v2 DofEnumerator
+        public IElementDofEnumerator DofEnumerator
         {
             get { return dofEnumerator; }
 
@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.IGA.Elements
         public bool MaterialModified { get; }
         INode ICollocationElement.CollocationPoint { get => _collocationPoint; set => _collocationPoint=(CollocationPoint2D)value; }
 
-        protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
+        protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
 
         public Dictionary<int, double> CalculateLoadingCondition(Element element, Edge edge,
 			NeumannBoundaryCondition neumann)
@@ -94,7 +94,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix StiffnessMatrix(IElement_v2 element)
+		public IMatrix StiffnessMatrix(IElement element)
 		{
 			var elementCollocation = (NURBSElement2DCollocation) element;
 
@@ -156,10 +156,10 @@ namespace ISAAR.MSolve.IGA.Elements
 			return collocationPointStiffness;
 		}
 
-		public double[,] CalculateNaturalSecondDerivatives(NURBS2D nurbs, Matrix2D hessianMatrix, double[,] dR,
+		public double[,] CalculateNaturalSecondDerivatives(NURBS2D nurbs, Matrix hessianMatrix, double[,] dR,
 			Matrix3by3 squareDerivatives)
 		{
-			var ddR2 = new double[3, nurbs.NurbsSecondDerivativeValueKsi.Rows];
+			var ddR2 = new double[3, nurbs.NurbsSecondDerivativeValueKsi.NumRows];
 			for (int i = 0; i < ddR2.GetLength(1); i++)
 			{
 				ddR2[0, i] = hessianMatrix[0, 0] * dR[0, i] + hessianMatrix[0, 1] * dR[1, i];
@@ -167,10 +167,10 @@ namespace ISAAR.MSolve.IGA.Elements
 				ddR2[2, i] = hessianMatrix[2, 0] * dR[0, i] + hessianMatrix[2, 1] * dR[1, i];
 			}
 
-			var ddR = new double[3, nurbs.NurbsSecondDerivativeValueKsi.Rows];
+			var ddR = new double[3, nurbs.NurbsSecondDerivativeValueKsi.NumRows];
 			var squareInvert = squareDerivatives.Invert();
 			
-			var ddR3 = new double[3, nurbs.NurbsSecondDerivativeValueKsi.Rows];
+			var ddR3 = new double[3, nurbs.NurbsSecondDerivativeValueKsi.NumRows];
 			for (int i = 0; i < ddR2.GetLength(1); i++)
 			{
 				ddR3[0, i] = nurbs.NurbsSecondDerivativeValueKsi[i, 0] - ddR2[0, i];
@@ -190,7 +190,7 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		public double[,] CalculateNaturalDerivatives(NURBS2D nurbs, Matrix2by2 inverseJacobian)
 		{
-			var dR = new double[2, nurbs.NurbsSecondDerivativeValueKsi.Rows];
+			var dR = new double[2, nurbs.NurbsSecondDerivativeValueKsi.NumRows];
 			for (int i = 0; i < dR.GetLength(1); i++)
 			{
 				var dKsi = nurbs.NurbsDerivativeValuesKsi[i, 0];
@@ -229,9 +229,9 @@ namespace ISAAR.MSolve.IGA.Elements
 			return cartesianCollocationPoint;
 		}
 
-		public Matrix2D CalculateHessian(NURBSElement2DCollocation shellElement, NURBS2D nurbs, int j)
+		public Matrix CalculateHessian(NURBSElement2DCollocation shellElement, NURBS2D nurbs, int j)
 		{
-			Matrix2D hessianMatrix = new Matrix2D(3, 2);
+			Matrix hessianMatrix = Matrix.CreateZero(3,2);
 			for (int k = 0; k < shellElement.ControlPoints.Count; k++)
 			{
 				hessianMatrix[0, 0] += nurbs.NurbsSecondDerivativeValueKsi[k, j] * shellElement.ControlPoints[k].X;
@@ -245,20 +245,20 @@ namespace ISAAR.MSolve.IGA.Elements
 			return hessianMatrix;
 		}
 
-		public IMatrix MassMatrix(IElement_v2 element)
+		public IMatrix MassMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IMatrix DampingMatrix(IElement_v2 element)
+		public IMatrix DampingMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
+        public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
         {
             var nurbsElement = (NURBSElement2DCollocation)element;
-            dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
+            dofTypes = new IDofType[nurbsElement.ControlPoints.Count][];
             for (int i = 0; i < nurbsElement.ControlPoints.Count; i++)
             {
                 dofTypes[i] = controlPointDOFTypes;

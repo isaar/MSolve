@@ -81,7 +81,7 @@ namespace ISAAR.MSolve.IGA.Entities
 				globalDofOrdering = value;
 				foreach (Patch patch in Patches)
 				{
-					patch.DofRowOrdering = GlobalDofOrdering.SubdomainDofOrderings[patch];
+					patch.FreeDofRowOrdering = GlobalDofOrdering.SubdomainDofOrderings[patch];
 				}
 
 				//EnumerateSubdomainLagranges();
@@ -98,8 +98,8 @@ namespace ISAAR.MSolve.IGA.Entities
                 globalRowDofOrdering = value;
                 foreach (Patch patch in Patches)
                 {
-                    patch.DofColOrdering = GlobalRowDofOrdering.SubdomainDofOrderings[patch];
-                    patch.Forces = Vector.CreateZero(patch.DofColOrdering.NumFreeDofs);
+                    patch.FreeDofColOrdering = GlobalRowDofOrdering.SubdomainDofOrderings[patch];
+                    patch.Forces = Vector.CreateZero(patch.FreeDofColOrdering.NumFreeDofs);
                 }
 
                 //EnumerateSubdomainLagranges();
@@ -116,8 +116,8 @@ namespace ISAAR.MSolve.IGA.Entities
                 globalColDofOrdering = value;
                 foreach (Patch patch in Patches)
                 {
-                    patch.DofColOrdering = GlobalColDofOrdering.SubdomainDofOrderings[patch];
-                    patch.Forces = Vector.CreateZero(patch.DofColOrdering.NumFreeDofs);
+                    patch.FreeDofColOrdering = GlobalColDofOrdering.SubdomainDofOrderings[patch];
+                    patch.Forces = Vector.CreateZero(patch.FreeDofColOrdering.NumFreeDofs);
                 }
 
                 //EnumerateSubdomainLagranges();
@@ -127,7 +127,7 @@ namespace ISAAR.MSolve.IGA.Entities
 
         public IReadOnlyList<IAsymmetricSubdomain> Subdomains => patchesDictionary.Values.ToList();
 
-        public void AssignLoads()
+        public void AssignLoads(NodalLoadsToSubdomainsDistributor distributeNodalLoads)
 		{
 			foreach (Patch patch in PatchesDictionary.Values) patch.Forces.Clear();
 			AssignControlPointLoads(distributeNodalLoads);

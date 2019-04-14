@@ -22,6 +22,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
     {
         private const string name = "CsrRectangularAssembler"; // for error messages
         private readonly bool sortColsOfEachRow;
+        private ConstrainedMatricesAssembler constrainedAssembler = new ConstrainedMatricesAssembler();
 
         bool isIndexerCached = false;
         private int[] cachedColIndices, cachedRowOffsets;
@@ -38,17 +39,21 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
             this.sortColsOfEachRow = sortColsOfEachRow;
         }
 
-        public CsrMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofRowOrdering, ISubdomainFreeDofOrdering dofColOrdering, IEnumerable<IElement_v2> elements, 
-            IElementMatrixProvider_v2 matrixProvider)
+        public CsrMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofRowOrdering,
+            ISubdomainFreeDofOrdering dofColOrdering, IEnumerable<IElement> elements,
+            IElementMatrixProvider matrixProvider)
         {
             var subdomainMatrix = DokRowMajor.CreateEmpty(dofRowOrdering.NumFreeDofs, dofColOrdering.NumFreeDofs);
 
-            foreach (IElement_v2 element in elements)
+            foreach (IElement element in elements)
             {
-                (int[] elementColumnIndices, int[] subdomainColumnIndices) = dofColOrdering.MapFreeDofsElementToSubdomain(element);
-				(int[] elementRowIndices, int[] subdomainRowIndices) = dofRowOrdering.MapFreeDofsElementToSubdomain(element);
-				IMatrix elementMatrix = matrixProvider.Matrix(element);
-                subdomainMatrix.AddSubmatrix(elementMatrix, elementRowIndices, subdomainRowIndices, elementColumnIndices, subdomainColumnIndices);
+                (int[] elementColumnIndices, int[] subdomainColumnIndices) =
+                    dofColOrdering.MapFreeDofsElementToSubdomain(element);
+                (int[] elementRowIndices, int[] subdomainRowIndices) =
+                    dofRowOrdering.MapFreeDofsElementToSubdomain(element);
+                IMatrix elementMatrix = matrixProvider.Matrix(element);
+                subdomainMatrix.AddSubmatrix(elementMatrix, elementRowIndices, subdomainRowIndices,
+                    elementColumnIndices, subdomainColumnIndices);
             }
 
             (double[] values, int[] colIndices, int[] rowOffsets) = subdomainMatrix.BuildCsrArrays(sortColsOfEachRow);
@@ -64,7 +69,65 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
                 Debug.Assert(Utilities.AreEqual(cachedColIndices, colIndices));
                 Debug.Assert(Utilities.AreEqual(cachedRowOffsets, rowOffsets));
             }
-            return CsrMatrix.CreateFromArrays(numFreeDofs, numFreeDofs, values, cachedColIndices, cachedRowOffsets, false);
+
+            return CsrMatrix.CreateFromArrays(dofRowOrdering.NumFreeDofs, dofColOrdering.NumFreeDofs, values,
+                cachedColIndices, cachedRowOffsets, false);
+        }
+
+        public (CsrMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree, IMatrixView
+            matrixConstrConstr) BuildGlobalSubmatrices(ISubdomainFreeDofOrdering freeDofRowOrdering,
+                ISubdomainFreeDofOrdering freeDofColOrdering,
+                ISubdomainConstrainedDofOrdering constrainedDofRowOrdering,
+                ISubdomainConstrainedDofOrdering constrainedDofColOrdering, IEnumerable<IElement> elements,
+                IElementMatrixProvider matrixProvider)
+        {
+            int numFreeRowDofs = freeDofRowOrdering.NumFreeDofs;
+            int numFreeColDofs = freeDofColOrdering.NumFreeDofs;
+
+            var subdomainMatrix = DokRowMajor.CreateEmpty(numFreeRowDofs, numFreeColDofs);
+
+            constrainedAssembler.InitializeNewMatrices(freeDofRowOrdering.NumFreeDofs,
+                constrainedDofRowOrdering.NumConstrainedDofs);
+
+            foreach (var element in elements)
+            {
+                (int[] elementRowDofsFree, int[] subdomainRowDofsFree) =
+                    freeDofRowOrdering.MapFreeDofsElementToSubdomain(element);
+                (int[] elementColDofsFree, int[] subdomainColDofsFree) =
+                    freeDofColOrdering.MapFreeDofsElementToSubdomain(element);
+
+                (int[] elementRowDofsConstrained, int[] subdomainRowDofsConstrained) =
+                    constrainedDofRowOrdering.MapConstrainedDofsElementToSubdomain(element);
+                (int[] elementColDofsConstrained, int[] subdomainColDofsConstrained) =
+                    constrainedDofColOrdering.MapConstrainedDofsElementToSubdomain(element);
+
+                IMatrix elementMatrix = matrixProvider.Matrix(element);
+                subdomainMatrix.AddSubmatrix(elementMatrix, elementRowDofsFree, subdomainRowDofsFree,
+                    elementColDofsFree, subdomainColDofsFree);
+                constrainedAssembler.AddElementMatrix(elementMatrix, elementRowDofsFree, subdomainRowDofsFree,
+                    elementRowDofsConstrained, subdomainRowDofsConstrained); //TODO: check validity
+            }
+
+            (double[] values, int[] colIndices, int[] rowOffsets) = subdomainMatrix.BuildCsrArrays(sortColsOfEachRow);
+            if (!isIndexerCached)
+            {
+                cachedColIndices = colIndices;
+                cachedRowOffsets = rowOffsets;
+                isIndexerCached = true;
+            }
+            else
+            {
+                Debug.Assert(Utilities.AreEqual(cachedColIndices, colIndices));
+                Debug.Assert(Utilities.AreEqual(cachedRowOffsets, rowOffsets));
+            }
+
+            subdomainMatrix = null;
+            var matrixFreeFree =
+                CsrMatrix.CreateFromArrays(numFreeRowDofs, numFreeColDofs, values, cachedColIndices, cachedRowOffsets,
+                    false);
+            (CsrMatrix matrixConstrFree, CsrMatrix matrixConstrConstr) =
+                constrainedAssembler.BuildMatrices(); // TODO: see if this work
+            return (matrixFreeFree, matrixConstrFree, matrixConstrFree.TransposeToCSC(false), matrixConstrConstr);
         }
 
         public void HandleDofOrderingWillBeModified()

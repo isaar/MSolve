@@ -2,21 +2,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Numerical.Commons;
 using ISAAR.MSolve.Solvers.Ordering;
 
 namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
 {
 	public class RowDofOrderingStrategy : IAsymmetricDofOrderingStrategy
 	{
-		private readonly IReadOnlyList<DOFType> dofsPerNode= new List<DOFType> {DOFType.X, DOFType.Y };
+		private readonly IReadOnlyList<IDofType> dofsPerNode= new List<StructuralDof> { StructuralDof.TranslationX, StructuralDof.TranslationY };
 
 		public (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderGlobalDofs(IStructuralAsymmetricModel model)
 			=> OrderFreeDofsOfElementSet(model.Elements, model.Constraints);
 
-        private (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderFreeDofsOfElementSet(IReadOnlyList<IElement_v2> elements, Table<INode, DOFType, double> constraints)
+        private (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderFreeDofsOfElementSet(IReadOnlyList<IElement> elements, Table<INode, IDofType, double> constraints)
         {
             var freeDofs = new DofTable();
             int dofCounter = 0;
@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
             {
                 var collocationPoint = ((ICollocationElement)element).CollocationPoint;
                 bool isNodeConstrained = collocationPoint.Constraints?.Count != 0;
-                foreach (DOFType dof in dofsPerNode)
+                foreach (IDofType dof in dofsPerNode)
                 {
                     bool isDofConstrained = isNodeConstrained && collocationPoint.Constraints!=null&& collocationPoint.Constraints.Any(c=>c.DOF==dof);
                     if (!isDofConstrained)
@@ -36,6 +36,6 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
 
 
 		public (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) OrderSubdomainDofs(IAsymmetricSubdomain subdomain)
-			=> OrderFreeDofsOfElementSet(((ISubdomain_v2)subdomain).Elements, ((ISubdomain_v2)subdomain).Constraints);
+			=> OrderFreeDofsOfElementSet(((ISubdomain)subdomain).Elements, ((ISubdomain)subdomain).Constraints);
 	}
 }

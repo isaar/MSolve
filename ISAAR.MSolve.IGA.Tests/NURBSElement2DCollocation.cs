@@ -18,7 +18,6 @@ using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using MathNet.Numerics.Data.Matlab;
 using MathNet.Numerics.LinearAlgebra;
 using Xunit;
-using VectorExtensions = ISAAR.MSolve.Numerical.LinearAlgebra.VectorExtensions;
 
 namespace ISAAR.MSolve.IGA.Tests
 {
@@ -83,9 +82,9 @@ namespace ISAAR.MSolve.IGA.Tests
 			};
 		}
 
-		private double[] KnotValueVectorKsi()
+		private LinearAlgebra.Vectors.Vector KnotValueVectorKsi()
 		{
-			return new double[46]
+			return LinearAlgebra.Vectors.Vector.CreateFromArray(new double[46]
 			{
 				0, 0, 0, 0, 0, 0, 0.0312500000000000, 0.0625000000000000, 0.0937500000000000, 0.125000000000000,
 				0.156250000000000, 0.187500000000000, 0.218750000000000, 0.250000000000000, .281250000000000,
@@ -95,19 +94,19 @@ namespace ISAAR.MSolve.IGA.Tests
 				0.687500000000000, 0.718750000000000, 0.750000000000000, 0.781250000000000, 0.812500000000000,
 				0.843750000000000, 0.875000000000000, 0.906250000000000, 0.937500000000000, 0.968750000000000, 1, 1, 1,
 				1, 1, 1
-			};
+			});
 
 		}
 
-		private double[] KnotValueVectorHeta()
+		private LinearAlgebra.Vectors.Vector KnotValueVectorHeta()
 		{
-			return new double[27]
+			return LinearAlgebra.Vectors.Vector.CreateFromArray(new double[27]
 			{
 				0, 0, 0, 0, 0, 0, 0.0625000000000000, 0.125000000000000, 0.187500000000000, 0.250000000000000,
 				0.312500000000000, 0.375000000000000, 0.437500000000000, 0.500000000000000, 0.562500000000000,
 				0.625000000000000, 0.687500000000000, 0.750000000000000, 0.812500000000000, 0.875000000000000,
 				0.937500000000000, 1, 1, 1, 1, 1, 1
-			};
+			});
 		}
 
 		private NURBSElement2DCollocation Element
@@ -491,7 +490,7 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			var hessianMatrix = Element.CalculateHessian(Element, nurbs, 0);
 
-			var ddR2 = new double[3, nurbs.NurbsSecondDerivativeValueKsi.Rows];
+			var ddR2 = new double[3, nurbs.NurbsSecondDerivativeValueKsi.NumRows];
 			for (int i = 0; i < ddR2.GetLength(1); i++)
 			{
 				ddR2[0, i] = hessianMatrix[0, 0] * dR[0, i] + hessianMatrix[0, 1] * dR[1, i];
@@ -499,7 +498,7 @@ namespace ISAAR.MSolve.IGA.Tests
 				ddR2[2, i] = hessianMatrix[2, 0] * dR[0, i] + hessianMatrix[2, 1] * dR[1, i];
 			}
 
-			var ddR3 = new double[3, nurbs.NurbsSecondDerivativeValueKsi.Rows];
+			var ddR3 = new double[3, nurbs.NurbsSecondDerivativeValueKsi.NumRows];
 			for (int i = 0; i < ddR2.GetLength(1); i++)
 			{
 				ddR3[0, i] = nurbs.NurbsSecondDerivativeValueKsi[i, 0] - ddR2[0, i];
@@ -802,7 +801,6 @@ namespace ISAAR.MSolve.IGA.Tests
 		[Fact]
 		private void TestCollocationPointCreation()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\PlateWithHole.txt";
@@ -812,17 +810,17 @@ namespace ISAAR.MSolve.IGA.Tests
             //var solverBuilder = new SuiteSparseSolver.Builder();
             //solverBuilder.DofOrderer = new DofOrderer(
             //    new NodeMajorDofOrderingStrategy(), new NullReordering());
-            ISolver_v2 solver = new GmresSolver(model,
+            ISolver solver = new GmresSolver(model,
                 new AsymmetricDofOrderer(new RowDofOrderingStrategy()), 
                 new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering()),
                 new CsrRectangularAssembler(), "CsrRectangularAssembler");
 
             // Structural problem provider
-            var provider = new ProblemStructural_v2(model, solver);
+            var provider = new ProblemStructural(model, solver);
 
             // Linear static analysis
-            var childAnalyzer = new LinearAnalyzer_v2(solver);
-            var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+            var childAnalyzer = new LinearAnalyzer(model,solver,provider);
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
             // Run the analysis
             parentAnalyzer.Initialize();

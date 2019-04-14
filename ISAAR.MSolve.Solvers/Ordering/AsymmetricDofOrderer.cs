@@ -17,19 +17,34 @@ namespace ISAAR.MSolve.Solvers.Ordering
 	public class AsymmetricDofOrderer: IAsymmetricDofOrderer
     {
 		private readonly IAsymmetricDofOrderingStrategy _rowOrderingStrategy;
+        private readonly ConstrainedDofOrderingStrategy _constrainedOrderingStrategy;
+        private readonly bool _cacheElementToSubdomainDofMaps = true;
 
-		public AsymmetricDofOrderer(IAsymmetricDofOrderingStrategy rowOrderingStrategy)
-		{
+        public AsymmetricDofOrderer(IAsymmetricDofOrderingStrategy rowOrderingStrategy, bool cacheElementToSubdomainMaps=true)
+        {
+            _cacheElementToSubdomainDofMaps = cacheElementToSubdomainMaps;
+            _constrainedOrderingStrategy= new ConstrainedDofOrderingStrategy();
 			_rowOrderingStrategy = rowOrderingStrategy;
 		}
 
-		public IGlobalFreeDofOrdering OrderDofs(IStructuralAsymmetricModel model)
+		public IGlobalFreeDofOrdering OrderFreeDofs(IStructuralAsymmetricModel model)
 		{
 			var subdomain = model.Subdomains.First();
 			(int numSubdomainFreeRowDofs, DofTable subdomainFreeRowDofs) = _rowOrderingStrategy.OrderSubdomainDofs(subdomain);
 			ISubdomainFreeDofOrdering subdomainRowOrdering= new SubdomainFreeRowDofOrderingGeneral(numSubdomainFreeRowDofs, subdomainFreeRowDofs);
 
-			return  new GlobalFreeDofOrderingSingle((ISubdomain_v2)subdomain, subdomainRowOrdering);
+			return  new GlobalFreeDofOrderingSingle((ISubdomain)subdomain, subdomainRowOrdering);
 		}
+
+        public ISubdomainConstrainedDofOrdering OrderConstrainedDofs(ISubdomain subdomain)
+        {
+            (int numConstrainedDofs, DofTable constrainedDofs) =
+                _constrainedOrderingStrategy.OrderSubdomainDofs(subdomain);
+            if (_cacheElementToSubdomainDofMaps)
+            {
+                return new SubdomainConstrainedDofOrderingCaching(numConstrainedDofs, constrainedDofs);
+            }
+            return new SubdomainConstrainedDofOrderingGeneral(numConstrainedDofs,constrainedDofs);
+        }
 	}
 }

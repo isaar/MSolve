@@ -2,9 +2,12 @@
 
 namespace ISAAR.MSolve.Discretization.Interfaces
 {
-	public interface IAsymmetricSubdomain:ISubdomain_v2
+	public interface IAsymmetricSubdomain:ISubdomain
 	{
-		ISubdomainFreeDofOrdering DofRowOrdering { get; set; }
-		ISubdomainFreeDofOrdering DofColOrdering { get; set; }
-	}
+		ISubdomainFreeDofOrdering FreeDofRowOrdering { get; set; }
+		ISubdomainFreeDofOrdering FreeDofColOrdering { get; set; }
+
+        ISubdomainConstrainedDofOrdering ConstrainedDofRowOrdering { get; set; }
+        ISubdomainConstrainedDofOrdering ConstrainedDofColOrdering { get; set; }
+    }
 }

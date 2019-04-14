@@ -18,10 +18,10 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         public DofTable FreeDofs { get; }
         public int NumFreeDofs { get; }
 
-        public void AddVectorElementToSubdomain(IElement_v2 element, double[] elementVector, IVector subdomainVector)
+        public void AddVectorElementToSubdomain(IElement element, double[] elementVector, IVector subdomainVector)
         {
             IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
-            IList<IList<DOFType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
+            IList<IList<IDofType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
 
             int elementDofIdx = 0;
             for (int nodeIdx = 0; nodeIdx < elementNodes.Count; ++nodeIdx)
@@ -39,19 +39,19 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             }
         }
 
-        public int CountElementDofs(IElement_v2 element)
+        public int CountElementDofs(IElement element)
         {
             IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
-            IList<IList<DOFType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
+            IList<IList<IDofType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
             int numElementDofs = 0;
             for (int nodeIdx = 0; nodeIdx < elementDofs.Count; ++nodeIdx) numElementDofs += elementDofs[nodeIdx].Count;
             return numElementDofs;
         }
 
-        public double[] ExtractVectorElementFromSubdomain(IElement_v2 element, IVectorView subdomainVector)
+        public double[] ExtractVectorElementFromSubdomain(IElement element, IVectorView subdomainVector)
         {
             IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
-            IList<IList<DOFType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
+            IList<IList<IDofType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
 
             int numElementDofs = 0;
             for (int nodeIdx = 0; nodeIdx < elementDofs.Count; ++nodeIdx) numElementDofs += elementDofs[nodeIdx].Count;
@@ -73,12 +73,12 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             return elementVector;
         }
 
-        public void ExtractVectorElementFromSubdomain(IElement_v2 element, IVectorView subdomainVector, IVector elementVector)
+        public void ExtractVectorElementFromSubdomain(IElement element, IVectorView subdomainVector, IVector elementVector)
         {
 
 
             IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
-            IList<IList<DOFType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
+            IList<IList<IDofType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
             //int numElementDofs = 0;
             //for (int nodeIdx = 0; nodeIdx < elementDofs.Count; ++nodeIdx) numElementDofs += elementDofs[nodeIdx].Count;
 
@@ -96,7 +96,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             }
         }
 
-        public (int[] elementDofIndices, int[] subdomainDofIndices) MapFreeDofsElementToSubdomain(IElement_v2 element)
+        public (int[] elementDofIndices, int[] subdomainDofIndices) MapFreeDofsElementToSubdomain(IElement element)
         {
             var collocationElement = ((ICollocationElement)element);
 
@@ -107,8 +107,8 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             int allElementDofs = 2;
             var elementDofIndices = new List<int>(allElementDofs);
             var subdomainDofIndices = new List<int>(allElementDofs);
-            var elementDofs = new DOFType[1][];
-            elementDofs[0] = new DOFType[]{ DOFType.X, DOFType.Y };
+            var elementDofs = new StructuralDof[1][];
+            elementDofs[0] = new StructuralDof[]{ StructuralDof.TranslationX, StructuralDof.TranslationY };
 
             int elementDofIdx = 0;
                 for (int dofIdx = 0; dofIdx < elementDofs[0].Length; ++dofIdx)
@@ -126,7 +126,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             return (elementDofIndices.ToArray(), subdomainDofIndices.ToArray());
         }
 
-        public void Reorder(IReorderingAlgorithm reorderingAlgorithm, ISubdomain_v2 subdomain)
+        public void Reorder(IReorderingAlgorithm reorderingAlgorithm, ISubdomain subdomain)
         {
             var pattern = SparsityPatternSymmetric.CreateEmpty(NumFreeDofs);
             foreach (var element in subdomain.Elements)

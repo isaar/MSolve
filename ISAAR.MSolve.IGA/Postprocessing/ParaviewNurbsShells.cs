@@ -20,8 +20,8 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 
 		public void CreateParaview2DFile()
 		{
-			var uniqueKnotsKsi = new Numerical.LinearAlgebra.Vector(_model.PatchesDictionary[0].KnotValueVectorKsi).RemoveDuplicatesFindMultiplicity();
-			var uniqueKnotsHeta = new Numerical.LinearAlgebra.Vector(_model.PatchesDictionary[0].KnotValueVectorHeta).RemoveDuplicatesFindMultiplicity();
+			var uniqueKnotsKsi = _model.PatchesDictionary[0].KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity();
+			var uniqueKnotsHeta = _model.PatchesDictionary[0].KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity();
 
 			var numberOfKnotsKsi = uniqueKnotsKsi[0].Length;
 			var numberOfKnotsHeta = uniqueKnotsHeta[0].Length;

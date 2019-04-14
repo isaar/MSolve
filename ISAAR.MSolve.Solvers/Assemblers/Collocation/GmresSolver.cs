@@ -29,5 +29,10 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
         {
             throw new NotImplementedException();
         }
+
+        protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
