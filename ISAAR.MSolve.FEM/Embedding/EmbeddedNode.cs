@@ -1,9 +1,7 @@
-﻿using ISAAR.MSolve.FEM.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.FEM.Entities;
 
 namespace ISAAR.MSolve.FEM.Embedding
 {
@@ -12,14 +10,14 @@ namespace ISAAR.MSolve.FEM.Embedding
         private readonly Node node;
         private readonly Element embeddedInElement;
         private readonly IList<double> coordinates = new List<double>();
-        private readonly IList<DOFType> dependentDOFs;
+        private readonly IList<IDofType> dependentDOFs;
 
-        public Node Node { get { return node; } }
-        public Element EmbeddedInElement { get { return embeddedInElement; } }
-        public IList<DOFType> DependentDOFs { get { return dependentDOFs; } }
-        public IList<double> Coordinates { get { return coordinates; } }
+        public Node Node => node; 
+        public Element EmbeddedInElement => embeddedInElement;
+        public IList<IDofType> DependentDOFs => dependentDOFs;
+        public IList<double> Coordinates => coordinates;
 
-        public EmbeddedNode(Node node, Element hostElement, IList<DOFType> dependentDOFs)
+        public EmbeddedNode(Node node, Element hostElement, IList<IDofType> dependentDOFs)
         {
             this.node = node;
             this.embeddedInElement = hostElement;

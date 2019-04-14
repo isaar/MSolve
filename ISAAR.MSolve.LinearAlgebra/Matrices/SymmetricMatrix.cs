@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
-using ISAAR.MSolve.LinearAlgebra.Factorizations;
+using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Providers;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -16,7 +16,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// major order. Uses LAPACK. Do not use this, since it is an experimantal class, which will probably be removed.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class SymmetricMatrix: IMatrix, ISymmetricMatrix
+    public class SymmetricMatrix: IMatrix, ISymmetricMatrix, IEntrywiseOperableView2D<SymmetricMatrix, SymmetricMatrix>, 
+        IEntrywiseOperable2D<SymmetricMatrix>
     {
         /// <summary>
         /// Packed storage, column major order, upper triangle: 
@@ -301,18 +302,27 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return Conversions.PackedUpperColMajorToArray2DSymm(data, Order);
         }
 
+        /// <summary>
+        /// See <see cref="IMatrixView.CopyToFullMatrix()"/>
+        /// </summary>
         public Matrix CopyToFullMatrix()
         {
             double[] fullData = Conversions.PackedUpperColMajorToFullSymmColMajor(data, Order);
             return Matrix.CreateFromArray(fullData, Order, Order, false);
         }
 
+        /// <summary>
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoEntrywise(TMatrixIn, Func{double, double, double})"/>.
+        /// </summary>
         public IMatrix DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
         {
             if (other is SymmetricMatrix casted) return DoEntrywise(casted, binaryOperation);
             else return DenseStrategies.DoEntrywise(this, other, binaryOperation); //TODO: optimize this
         }
 
+        /// <summary>
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoEntrywise(TMatrixIn, Func{double, double, double})"/>.
+        /// </summary>
         public SymmetricMatrix DoEntrywise(SymmetricMatrix other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckSameMatrixDimensions(this, other);
@@ -321,6 +331,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return new SymmetricMatrix(result, Order, DefiniteProperty.Unknown);
         }
 
+        /// <summary>
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoEntrywiseIntoThis(TMatrixIn, Func{double, double, double})"/>.
+        /// </summary>
         public void DoEntrywiseIntoThis(IMatrixView other, Func<double, double, double> binaryOperation)
         {
             if (other is SymmetricMatrix casted) DoEntrywiseIntoThis(casted, binaryOperation);
@@ -342,6 +355,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
         }
 
+        /// <summary>
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoEntrywiseIntoThis(TMatrixIn, Func{double, double, double})"/>.
+        /// </summary>
         public void DoEntrywiseIntoThis(SymmetricMatrix other, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckSameMatrixDimensions(this, other);
@@ -349,11 +365,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             Definiteness = DefiniteProperty.Unknown;
         }
 
-        IMatrix IMatrixView.DoToAllEntries(Func<double, double> unaryOperation)
+        /// <summary>
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoToAllEntries(Func{double, double})"/>.
+        /// </summary>
+        IMatrix IEntrywiseOperableView2D<IMatrixView, IMatrix>.DoToAllEntries(Func<double, double> unaryOperation)
         {
             return DoToAllEntries(unaryOperation);
         }
 
+        /// <summary>
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoToAllEntries(Func{double, double})"/>.
+        /// </summary>
         public SymmetricMatrix DoToAllEntries(Func<double, double> unaryOperation)
         {
             var result = new double[data.Length];
@@ -364,12 +386,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return new SymmetricMatrix(result, NumRows, DefiniteProperty.Unknown);
         }
 
-        void IMatrix.DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
-        {
-            DoToAllEntriesIntoThis(unaryOperation);
-        }
-
-        void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
+        /// <summary>
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoToAllEntriesIntoThis(Func{double, double})"/>.
+        /// </summary>
+        public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
         {
             for (int i = 0; i < NumRows * NumColumns; ++i)
             {
@@ -423,6 +443,41 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             Definiteness = DefiniteProperty.PositiveDefinite; // An exception would have been thrown otherwise.
             return factor;
         }
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetColumn(int)"/>.
+        /// </summary>
+        public Vector GetColumn(int colIndex)
+        {
+            Preconditions.CheckIndexCol(this, colIndex);
+            var columnVector = new double[Order];
+
+            // Upper triangle and diagonal entries of the column are stored explicitly and contiguously
+            int colOffset = (colIndex * (colIndex + 1)) / 2;
+            Array.Copy(data, colOffset, columnVector, 0, colIndex + 1);
+
+            // Lower triangle entries of the column can be found in the row with the same index
+            for (int j = colIndex + 1; j < Order; ++j) columnVector[j] = data[colIndex + (j * (j + 1)) / 2];
+
+            return Vector.CreateFromArray(columnVector);
+        }
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetRow(int)"/>.
+        /// </summary>
+        public Vector GetRow(int rowIndex) => GetColumn(rowIndex);
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetSubmatrix(int[], int[])"/>.
+        /// </summary>
+        public Matrix GetSubmatrix(int[] rowIndices, int[] colIndices)
+            => DenseStrategies.GetSubmatrix(this, rowIndices, colIndices);
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetSubmatrix(int, int, int, int)"/>.
+        /// </summary>
+        public Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
+            => DenseStrategies.GetSubmatrix(this, rowStartInclusive, rowEndExclusive, colStartInclusive, colEndExclusive);
 
         public IMatrix LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
         {

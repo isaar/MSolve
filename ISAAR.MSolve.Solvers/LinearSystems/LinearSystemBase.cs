@@ -10,23 +10,23 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 namespace ISAAR.MSolve.Solvers.LinearSystems
 {
     /// <summary>
-    /// Base implementation of <see cref="ILinearSystem_v2"/>.
+    /// Base implementation of <see cref="ILinearSystem"/>.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     /// <typeparam name="TMatrix">The type of the system's matrix.</typeparam>
     /// <typeparam name="TVector">The type of the system's right hand side and solution vectors.</typeparam>
-    public abstract class LinearSystemBase<TMatrix, TVector> : ILinearSystem_v2
+    public abstract class LinearSystemBase<TMatrix, TVector> : ILinearSystem
         where TMatrix : class, IMatrix //TODO: perhaps this should be IMatrixView
         where TVector : class, IVector
     {
         private const int initialSize = int.MinValue;
 
-        protected LinearSystemBase(ISubdomain_v2 subdomain)
+        protected LinearSystemBase(ISubdomain subdomain)
         {
             this.Subdomain = subdomain;
         }
 
-        IMatrixView ILinearSystem_v2.Matrix
+        IMatrixView ILinearSystem.Matrix
         {
             get => Matrix;
             set
@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.Solvers.LinearSystems
 
         public HashSet<ISystemMatrixObserver> MatrixObservers { get; } = new HashSet<ISystemMatrixObserver>();
 
-        IVector ILinearSystem_v2.RhsVector
+        IVector ILinearSystem.RhsVector
         {
             get => RhsVector;
             set
@@ -59,11 +59,11 @@ namespace ISAAR.MSolve.Solvers.LinearSystems
             }
         }
 
-        public int Size { get; internal set; } = int.MinValue;
+        public int Size { get; private set; } = initialSize;
 
-        public ISubdomain_v2 Subdomain { get; }
+        public ISubdomain Subdomain { get; }
 
-        IVectorView ILinearSystem_v2.Solution { get => Solution; }
+        IVectorView ILinearSystem.Solution { get => Solution; }
 
         internal TMatrix Matrix { get; set; }
 
@@ -71,7 +71,14 @@ namespace ISAAR.MSolve.Solvers.LinearSystems
 
         internal TVector Solution { get; set; }
 
-        public virtual void Clear()
+        IVector ILinearSystem.CreateZeroVector()
+        {
+            if (Size == initialSize) throw new InvalidOperationException(
+                "The linear system size must be set before creating vectors. First of all order the subdomain freedom degrees.");
+            return CreateZeroVector();
+        }
+
+        public virtual void Reset()
         {
             foreach (var observer in MatrixObservers) observer.HandleMatrixWillBeSet();
 
@@ -79,13 +86,10 @@ namespace ISAAR.MSolve.Solvers.LinearSystems
             RhsVector = null;
             Solution = null;
             Matrix = null;
-        }
 
-        IVector ILinearSystem_v2.CreateZeroVector()
-        {
-            if (Size == initialSize) throw new InvalidOperationException(
-                "The linear system size must be set before creating vectors.");
-            return CreateZeroVector();
+            if (Subdomain.FreeDofOrdering == null) throw new InvalidOperationException("The freedom degrees of a subdomain must" 
+                 + " be ordered before defining the size of its corresponding linear system.");
+            Size = Subdomain.FreeDofOrdering.NumFreeDofs;
         }
 
         internal abstract TVector CreateZeroVector();

@@ -1,18 +1,11 @@
 ﻿using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
+//TODO: Should this be in the Problems project?
 namespace ISAAR.MSolve.Discretization.Providers
 {
     public class ElementStructuralDampingProvider : IElementMatrixProvider
     {
-        #region IElementMatrixProvider Members
-
-        public IMatrix2D Matrix(IElement element)
-        {
-            //return element.M;
-            return element.IElementType.DampingMatrix(element);
-        }
-
-        #endregion
+        public IMatrix Matrix(IElement element) => element.ElementType.DampingMatrix(element);
     }
 }

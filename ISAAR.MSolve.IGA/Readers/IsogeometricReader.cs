@@ -1,13 +1,8 @@
-﻿using ISAAR.MSolve.IGA.Entities;
-using ISAAR.MSolve.IGA.Interfaces;
-using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.FEM.Materials;
+using ISAAR.MSolve.IGA.Entities;
+using ISAAR.MSolve.Materials;
 
 namespace ISAAR.MSolve.IGA.Readers
 {

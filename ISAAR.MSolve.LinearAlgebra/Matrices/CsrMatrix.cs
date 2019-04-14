@@ -15,6 +15,8 @@ using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 //      Matrix and an array instead of an output Vector.
 //TODO: perhaps optimizations if (other is Matrix) are needed, to directly index into its raw col major array.
 //      The access paterns are always the same
+//TODO: have a field: bool AreRowsSorted. Then it can be inspected to decide on more efficient algorithms (e.g. binary search 
+//      of a row to find a column index.
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
@@ -26,6 +28,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// </summary>
     public class CsrMatrix : IMatrix, ISparseMatrix
     {
+        private const int zeroEntryOffset = -1;
+
         private readonly double[] values;
         private readonly int[] colIndices;
         private readonly int[] rowOffsets;
@@ -43,6 +47,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// The number of columns of the matrix. 
         /// </summary>
         public int NumColumns { get; }
+
+        /// <summary>
+        /// The number of non zero entries of the matrix.
+        /// </summary>
+        public int NumNonZeros => rowOffsets[rowOffsets.Length - 1];
 
         /// <summary>
         /// The number of rows of the matrix.
@@ -78,9 +87,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         {
             get
             {
-                int index = FindOffsetOf(rowIdx, colIdx);
-                if (index == -1) return 0.0;
-                else return values[index];
+                int entryOffset = FindOffsetOf(rowIdx, colIdx);
+                if (entryOffset == zeroEntryOffset) return 0.0;
+                else return values[entryOffset];
             }
         }
 
@@ -224,8 +233,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Initializes a new <see cref="Matrix"/> instance by copying the entries of this <see cref="CsrMatrix"/>. 
-        /// Warning: there may not be enough memory.
+        /// See <see cref="IMatrixView.CopyToFullMatrix()"/>
         /// </summary>
         public Matrix CopyToFullMatrix()
         {
@@ -281,7 +289,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public int CountNonZeros() => values.Length;
 
         /// <summary>
-        /// See <see cref="IMatrixView.DoEntrywise(IMatrixView, Func{double, double, double})"/>.
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoEntrywise(TMatrixIn, Func{double, double, double})"/>.
         /// </summary>
         public IMatrix DoEntrywise(IMatrixView other, Func<double, double, double> binaryOperation)
         {
@@ -304,38 +312,27 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrix.DoEntrywiseIntoThis(IMatrixView, Func{double, double, double})"/>.
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoEntrywiseIntoThis(TMatrixIn, Func{double, double, double})"/>.
         /// </summary>
         public void DoEntrywiseIntoThis(IMatrixView other, Func<double, double, double> binaryOperation)
         {
-            if (other is CsrMatrix casted) DoEntrywiseIntoThis(casted, binaryOperation);
+            if (other is CsrMatrix casted)
+            {
+                //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
+                if (!HasSameIndexer(casted))
+                {
+                    throw new SparsityPatternModifiedException("Only allowed if the indexing arrays are the same");
+                }
+                for (int i = 0; i < values.Length; ++i) this.values[i] = binaryOperation(this.values[i], casted.values[i]);
+            }
             else throw new SparsityPatternModifiedException(
                 "This operation is legal only if the other matrix has the same sparsity pattern");
         }
 
         /// <summary>
-        /// Performs the following operation for 0 &lt;= i &lt; <see cref="NumRows"/>, 0 &lt;= j &lt; <see cref="NumColumns"/>:
-        /// this[i, j] = <paramref name="binaryOperation"/>(this[i,j], <paramref name="matrix"/>[i, j]). 
-        /// The resulting matrix overwrites the entries of this <see cref="CsrMatrix"/> instance.
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
-        /// <param name="matrix">A matrix with the same indexing arrays as this <see cref="CsrMatrix"/> instance.</param>
-        /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
-        /// <exception cref="SparsityPatternModifiedException">Thrown if <paramref name="otherMatrix"/> has different 
-        ///     indexing arrays than this instance.</exception>
-        public void DoEntrywiseIntoThis(CsrMatrix other, Func<double, double, double> binaryOperation)
-        {
-            //Preconditions.CheckSameMatrixDimensions(this, other); // no need if the indexing arrays are the same
-            if (!HasSameIndexer(other))
-            {
-                throw new SparsityPatternModifiedException("Only allowed if the indexing arrays are the same");
-            }
-            for (int i = 0; i < values.Length; ++i) this.values[i] = binaryOperation(this.values[i], other.values[i]);
-        }
-
-        /// <summary>
-        /// See <see cref="IMatrixView.DoToAllEntries(Func{double, double})"/>.
-        /// </summary>
-        IMatrix IMatrixView.DoToAllEntries(Func<double, double> unaryOperation)
+        public IMatrix DoToAllEntries(Func<double, double> unaryOperation)
         {
             // Only apply the operation on non zero entries
             double[] newValues = new double[values.Length];
@@ -357,7 +354,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrix.DoToAllEntriesIntoThis(Func{double, double})"/>.
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoToAllEntriesIntoThis(Func{double, double})"/>.
         /// </summary>
         public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
         {
@@ -414,6 +411,32 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
+        /// See <see cref="ISliceable2D.GetColumn(int)"/>.
+        /// </summary>
+        public Vector GetColumn(int colIndex)
+        {
+            Preconditions.CheckIndexCol(this, colIndex);
+            double[] colVector = new double[NumRows];
+            for (int i = 0; i < NumRows; ++i)
+            {
+                int entryOffset = FindOffsetOf(i, colIndex);
+                if (entryOffset != zeroEntryOffset) colVector[i] = values[entryOffset];
+            }
+            return Vector.CreateFromArray(colVector, false);
+        }
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetRow(int)"/>.
+        /// </summary>
+        public Vector GetRow(int rowIndex)
+        {
+            Preconditions.CheckIndexRow(this, rowIndex);
+            double[] rowVector = new double[NumColumns];
+            for (int k = rowOffsets[rowIndex]; k < rowOffsets[rowIndex + 1]; ++k) rowVector[colIndices[k]] = values[k];
+            return Vector.CreateFromArray(rowVector, false);
+        }
+
+        /// <summary>
         /// See <see cref="ISparseMatrix.GetSparseFormat"/>.
         /// </summary>
         public SparseFormat GetSparseFormat()
@@ -425,6 +448,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             format.RawIndexArrays.Add("Row offsets", rowOffsets);
             return format;
         }
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetSubmatrix(int[], int[])"/>.
+        /// </summary>
+        public Matrix GetSubmatrix(int[] rowIndices, int[] colIndices)
+            => DenseStrategies.GetSubmatrix(this, rowIndices, colIndices);
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetSubmatrix(int, int, int, int)"/>.
+        /// </summary>
+        public Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
+            => DenseStrategies.GetSubmatrix(this, rowStartInclusive, rowEndExclusive, colStartInclusive, colEndExclusive);
 
         /// <summary>
         /// See <see cref="IMatrixView.LinearCombination(double, IMatrixView, double)"/>.
@@ -796,9 +831,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public void SetEntryRespectingPattern(int rowIdx, int colIdx, double value)
         {
-            int index = FindOffsetOf(rowIdx, colIdx);
-            if (index == -1) throw new SparsityPatternModifiedException($"Cannot write to zero entry ({rowIdx}, {colIdx}).");
-            else values[index] = value;
+            int entryOffset = FindOffsetOf(rowIdx, colIdx);
+            if (entryOffset == zeroEntryOffset) throw new SparsityPatternModifiedException(
+                $"Cannot write to zero entry ({rowIdx}, {colIdx}).");
+            else values[entryOffset] = value;
         }
 
         /// <summary>
@@ -849,13 +885,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         /// <summary>
         /// Return the index into values and colIndices arrays, if the (rowIdx, colIdx) entry is within the pattern. 
-        /// Otherwise returns -1.
+        /// Otherwise returns <see cref="zeroEntryOffset"/>.
         /// </summary>
         /// <param name="rowIdx"></param>
         /// <param name="colIdx"></param>
-        /// <returns></returns>
         private int FindOffsetOf(int rowIdx, int colIdx)
         {
+            //TODO: if the column indices of each row are sorted, then this method is faster using binary search.
             Preconditions.CheckIndices(this, rowIdx, colIdx); //TODO: check indices?
             int rowStart = rowOffsets[rowIdx]; //inclusive
             int rowEnd = rowOffsets[rowIdx + 1]; //exclusive
@@ -863,7 +899,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             {
                 if (colIndices[k] == colIdx) return k;
             }
-            return -1;
+            return zeroEntryOffset;
         }
 
         private bool HasSameIndexer(CsrMatrix other)

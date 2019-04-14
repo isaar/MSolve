@@ -1,6 +1,5 @@
-﻿using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Materials.Interfaces;
 using System;
 
 namespace ISAAR.MSolve.Materials
@@ -19,7 +18,7 @@ namespace ISAAR.MSolve.Materials
         public double ShearCorrectionCoefficientK { get; set; }
 
         private bool modified; // opws sto MohrCoulomb gia to modified
-        private double [,] ConsCartes;
+        private Matrix ConsCartes;
         private double[] SPKvec = new double[6];
 
         object ICloneable.Clone() => Clone();
@@ -57,17 +56,18 @@ namespace ISAAR.MSolve.Materials
             return false;
         }
 
-        public double[] Stresses // opws xrhsimopoeitai sto mohrcoulomb kai hexa8
+        // as used in mohrcoulomb and hexa8
+        public double[] Stresses
         {
             get { return SPKvec; }
         }
 
-        public IMatrix2D  ConstitutiveMatrix
+        public IMatrixView ConstitutiveMatrix
         {
             get
             {
                 if (ConsCartes == null) UpdateMaterial(new double[6]);
-                return new Matrix2D(ConsCartes);
+                return ConsCartes;
             } 
         }
 
@@ -87,17 +87,11 @@ namespace ISAAR.MSolve.Materials
             get { throw new NotImplementedException(); }
         }
 
-        public void ClearState() // pithanws TODO 
-        {
-        }
-        public void ClearStresses()
-        {
-
-        }
+        public void ClearState() {}
+        public void ClearStresses() {}
 
         public double[] Coordinates
         {
-
             get { throw new NotImplementedException();  }
             set { throw new InvalidOperationException(); }
         }
@@ -106,11 +100,10 @@ namespace ISAAR.MSolve.Materials
         {
             double E = YoungModulus;
             double ni = PoissonRatio;
-            ConsCartes = new double[6, 6];
+            ConsCartes = Matrix.CreateZero(6, 6);
             double[,] Cons = new double[6, 6];
             double[,] Cons_T_e = new double[6, 6];
             double[] V2 = new double[3];
-
 
 
             for (int k = 0; k < 2; k++) { Cons[k, k] = E / (1 - Math.Pow(ni, 2)); }
@@ -122,6 +115,7 @@ namespace ISAAR.MSolve.Materials
             //for (int k = 0; k < 2; k++)
             //{ Cons[4 + k, 4 + k] = (5 / 6) * (1 - ni) * (0.5) * E / (1 - Math.Pow(ni, 2)); }
 
+            //TODO: Use the cross product of Vector instead of this
             V2[0] = V3[1] * V1[2] - V3[2] * V1[1];
             V2[1] = V3[2] * V1[0] - V3[0] * V1[2];
             V2[2] = V3[0] * V1[1] - V3[1] * V1[0];
@@ -160,7 +154,7 @@ namespace ISAAR.MSolve.Materials
 
             // multiplication [Te']*[cons]*[Te];
 
-            for (int i = 0; i < 6; i++) //TODO use if LinearAlgebra
+            for (int i = 0; i < 6; i++) //TODO use LinearAlgebra operations
             {
                 for (int k = 0; k < 6; k++)
                 {

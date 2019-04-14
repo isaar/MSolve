@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
 	    /// </summary>
 	    /// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
 	    /// <returns></returns>
-	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node_v2> node) 
+	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> node) 
             => throw new NotImplementedException("Iterative procedure required");
 
 		// based on https://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/AFEM.Ch12.d/AFEM.Ch12.pdf

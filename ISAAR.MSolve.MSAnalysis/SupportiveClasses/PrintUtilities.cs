@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using ISAAR.MSolve.Numerical.LinearAlgebra;//using ISAAR.MSolve.Matrices;
-
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses
 {
@@ -29,7 +28,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis.SupportiveClasses
             writer.Flush();
         }
 
-        public static void WriteToFile(SkylineMatrix2D Mat, int i1, int j1, string path)
+        public static void WriteToFile(SkylineMatrix Mat, int i1, int j1, string path)
         {
             var writer = new StreamWriter(path);
             for (int i = 0; i < 40; ++i)

@@ -1,37 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.IGA.Elements;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Postprocessing;
 using ISAAR.MSolve.IGA.Readers;
-using ISAAR.MSolve.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
-using ISAAR.MSolve.Solvers.Interfaces;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
-using ISAAR.MSolve.Solvers.Skyline;
 using MathNet.Numerics.Data.Matlab;
 using MathNet.Numerics.LinearAlgebra;
 using Xunit;
-using VectorExtensions = ISAAR.MSolve.Numerical.LinearAlgebra.VectorExtensions;
 
 namespace ISAAR.MSolve.IGA.Tests
 {
-	public class IsogeometricBenchmarks
+    public class IsogeometricBenchmarks
 	{
 		[Fact]
 		public void IsogeometricQuadraticCantilever2D()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\Cantilever2D.txt";
@@ -45,28 +39,28 @@ namespace ISAAR.MSolve.IGA.Tests
 				{
 					Amount = -100,
 					ControlPoint = model.ControlPoints[controlPoint.ID],
-					DOF = DOFType.Y
+					DOF = StructuralDof.TranslationY
 				});
 
 			// Boundary Conditions - Dirichlet
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[0].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = DOFType.X});
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Y });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationX});
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
 			}
 
 			var solverBuilder = new DenseMatrixSolver.Builder();
 			solverBuilder.DofOrderer = new DofOrderer(
 				new NodeMajorDofOrderingStrategy(), new NullReordering());
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -121,7 +115,6 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void IsogeometricQuadraticCantilever2DWithDistributedLoad()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			var filename = "Cantilever2D";
@@ -141,21 +134,19 @@ namespace ISAAR.MSolve.IGA.Tests
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[0].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = DOFType.X});
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Y });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationX});
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
 			}
 
-			var solverBuilder = new SuiteSparseSolver.Builder();
-			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), new NullReordering());
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			var solverBuilder = new SkylineSolver.Builder();
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -218,7 +209,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void IsogeometricPlateTension()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\PlateTension.txt";
@@ -237,22 +228,22 @@ namespace ISAAR.MSolve.IGA.Tests
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[0].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = DOFType.X});
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationX});
 			}
 
-			model.ControlPointsDictionary[0].Constrains.Add(new Constraint() { DOF = DOFType.Y });
+			model.ControlPointsDictionary[0].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
 
 			var solverBuilder = new DenseMatrixSolver.Builder();
 			solverBuilder.DofOrderer = new DofOrderer(
 				new NodeMajorDofOrderingStrategy(), new NullReordering());
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -319,7 +310,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void IsogeometricPlaneStrainMixedBC()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\SquareMixedBC.txt";
@@ -347,30 +338,28 @@ namespace ISAAR.MSolve.IGA.Tests
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[0].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = DOFType.X});
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Y });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationX});
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
 			}
 
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[2].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.X });
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Y });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationX });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
 			}
 		
 
 			// Solvers
-			var solverBuilder = new SuiteSparseSolver.Builder();
-			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), new NullReordering());
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			var solverBuilder = new SkylineSolver.Builder();
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -910,20 +899,20 @@ namespace ISAAR.MSolve.IGA.Tests
 			};
 		}
 
-		private double[] KnotValueVectorKsi()
+		private Vector KnotValueVectorKsi()
 		{
-			return new double[8]
+			return Vector.CreateFromArray(new double[8]
 			{
 				0, 0, 0, 0, 1, 1, 1, 1
-			};
+			});
 		}
 
-		private double[] KnotValueVectorHeta()
+		private Vector KnotValueVectorHeta()
 		{
-			return new double[6]
+			return Vector.CreateFromArray(new double[6]
 			{
 				0, 0, 0, 1, 1, 1
-			};
+			});
 		}
 
 		private NURBSKirchhoffLoveShellElement Element
@@ -954,13 +943,10 @@ namespace ISAAR.MSolve.IGA.Tests
 		}
 		#endregion
 		
-
-
-
 		//[Fact]
 		public void IsogeometricHorseshoe3D()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\Horseshoe.txt";
@@ -982,31 +968,29 @@ namespace ISAAR.MSolve.IGA.Tests
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].FacesDictionary[2].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = DOFType.X});
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Y });
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Z });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationX});
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationZ });
 			}
 
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].FacesDictionary[3].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.X });
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Y });
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Z });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationX });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationZ });
 			}
 
 			// Solvers
-			var solverBuilder = new SuiteSparseSolver.Builder();
-			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), new NullReordering());
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			var solverBuilder = new SkylineSolver.Builder();
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -1027,7 +1011,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		//[Fact]
 		public void IsogeometricPlaneStrainRing()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\SquareMixedBC.txt";
@@ -1055,29 +1039,27 @@ namespace ISAAR.MSolve.IGA.Tests
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[0].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = DOFType.X});
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Y });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationX});
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
 			}
 
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[2].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.X });
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Y });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationX });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
 			}
 
 			// Solvers
-			var solverBuilder = new SuiteSparseSolver.Builder();
-			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), new NullReordering());
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			var solverBuilder = new SkylineSolver.Builder();
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -1590,7 +1572,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void IsogeometricPlateWithHole()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\IGA\\InputFiles\\PlateTension.txt";
@@ -1609,23 +1591,21 @@ namespace ISAAR.MSolve.IGA.Tests
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[0].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Y });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
 			}
 
-			model.ControlPointsDictionary[0].Constrains.Add(new Constraint() {DOF = DOFType.Y});
+			model.ControlPointsDictionary[0].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationY});
 			
 			// Solvers
-			var solverBuilder = new SuiteSparseSolver.Builder();
-			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), new NullReordering());
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			var solverBuilder = new SkylineSolver.Builder();
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -1652,7 +1632,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		public void IsogeometricCurvedBeamBenchmark()
 		{
 			// Model
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\CurvedBeam.txt";
@@ -1667,27 +1647,25 @@ namespace ISAAR.MSolve.IGA.Tests
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[0].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Y });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
 			}
 
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].EdgesDictionary[1].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.X });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationX });
 			}
 
 			// Solvers
-			var solverBuilder = new SuiteSparseSolver.Builder();
-			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), new NullReordering());
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			var solverBuilder = new SkylineSolver.Builder();
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -1708,7 +1686,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		//[Fact]
 		public void IsogeometricBeam3D()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "Beam3D";
@@ -1724,7 +1702,7 @@ namespace ISAAR.MSolve.IGA.Tests
 				{
 					Amount = -100,
 					ControlPoint = model.ControlPoints[controlPoint.ID],
-					DOF = DOFType.Z
+					DOF = StructuralDof.TranslationZ
 				});
 			}
 
@@ -1733,23 +1711,21 @@ namespace ISAAR.MSolve.IGA.Tests
 			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].FacesDictionary[0].ControlPointsDictionary
 				.Values)
 			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = DOFType.X});
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Y });
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Z });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() {DOF = StructuralDof.TranslationX});
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
+				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationZ });
 			}
 
 			// Solvers
-			var solverBuilder = new SuiteSparseSolver.Builder();
-			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), new NullReordering());
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			var solverBuilder = new SkylineSolver.Builder();
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
@@ -1771,7 +1747,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		//[Fact]
 		public void TSplinesShellsBenchmark()
 		{
-			VectorExtensions.AssignTotalAffinityCount();
+			
 			Model model = new Model();
 			string filename = "..\\..\\..\\InputFiles\\surface.iga";
 			IGAFileReader modelReader = new IGAFileReader(model, filename);
@@ -1786,9 +1762,9 @@ namespace ISAAR.MSolve.IGA.Tests
 
 			for (int i = 0; i < 100; i++)
 			{
-				model.ControlPointsDictionary[i].Constrains.Add(new Constraint() { DOF = DOFType.X });
-				model.ControlPointsDictionary[i].Constrains.Add(new Constraint() { DOF = DOFType.Y });
-				model.ControlPointsDictionary[i].Constrains.Add(new Constraint() { DOF = DOFType.Z });
+				model.ControlPointsDictionary[i].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationX });
+				model.ControlPointsDictionary[i].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationY });
+				model.ControlPointsDictionary[i].Constrains.Add(new Constraint() { DOF = StructuralDof.TranslationZ });
 			}
 
 			for (int i = 0; i < model.ControlPoints.Count - 100; i++)
@@ -1797,82 +1773,25 @@ namespace ISAAR.MSolve.IGA.Tests
 				{
 					Amount = -1000,
 					ControlPoint = model.ControlPointsDictionary[i],
-					DOF = DOFType.Y
+					DOF = StructuralDof.TranslationY
 				});
 			}
 
 
 			// Solvers
-			var solverBuilder = new SuiteSparseSolver.Builder();
-			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), new NullReordering());
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
+			var solverBuilder = new SkylineSolver.Builder();
+			ISolver solver = solverBuilder.BuildSolver(model);
 
 			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
+			var provider = new ProblemStructural(model, solver);
 
 			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
+			var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+			var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
 			// Run the analysis
 			parentAnalyzer.Initialize();
 			parentAnalyzer.Solve();
-		}
-
-		[Fact]
-		public void Camshaft1()
-		{
-			LibrarySettings.LinearAlgebraProviders = LinearAlgebraProviderChoice.MKL;
-			VectorExtensions.AssignTotalAffinityCount();
-			Model model = new Model();
-			ModelCreator modelCreator = new ModelCreator(model);
-			string filename = "Camshaft1";
-			string filepath = $"..\\..\\..\\InputFiles\\{filename}.txt";
-			IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filepath);
-			modelReader.CreateModelFromFile();
-
-			// Forces and Boundary Conditions
-			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].FacesDictionary[1].ControlPointsDictionary
-				.Values)
-			{
-				model.Loads.Add(new Load()
-				{
-					Amount = 100,
-					ControlPoint = model.ControlPoints[controlPoint.ID],
-					DOF = DOFType.X
-				});
-			}
-
-
-			// Boundary Conditions - Dirichlet
-			foreach (ControlPoint controlPoint in model.PatchesDictionary[0].FacesDictionary[0].ControlPointsDictionary
-				.Values)
-			{
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.X });
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Y });
-				model.ControlPointsDictionary[controlPoint.ID].Constrains.Add(new Constraint() { DOF = DOFType.Z });
-			}
-
-			// Solvers
-			var solverBuilder = new SuiteSparseSolver.Builder();
-			solverBuilder.DofOrderer = new DofOrderer(
-				new NodeMajorDofOrderingStrategy(), new NullReordering());
-			ISolver_v2 solver = solverBuilder.BuildSolver(model);
-
-			// Structural problem provider
-			var provider = new ProblemStructural_v2(model, solver);
-
-			// Linear static analysis
-			var childAnalyzer = new LinearAnalyzer_v2(solver);
-			var parentAnalyzer = new StaticAnalyzer_v2(model, solver, provider, childAnalyzer);
-
-			// Run the analysis
-			parentAnalyzer.Initialize();
-			parentAnalyzer.Solve();
-
-			var paraview = new ParaviewNurbs3D(model, solver.LinearSystems[0].Solution, filename);
-			paraview.CreateParaviewFile();
 		}
 	}
 }

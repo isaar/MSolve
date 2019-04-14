@@ -10,7 +10,7 @@ namespace ISAAR.MSolve.Solvers.Ordering.Reordering
     /// </summary>
     public class NodeMajorReordering : IDofReorderingStrategy
     {
-        public void ReorderDofs(ISubdomain_v2 subdomain, ISubdomainFreeDofOrdering originalOrdering)
+        public void ReorderDofs(ISubdomain subdomain, ISubdomainFreeDofOrdering originalOrdering)
             => originalOrdering.ReorderNodeMajor(subdomain.Nodes);
     }
 }

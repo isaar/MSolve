@@ -10,7 +10,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// A matrix with 3 rows and 3 columns. Optimized version of <see cref="Matrix"/>.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class Matrix3by3 : IMatrix
+    public class Matrix3by3 : IMatrix, IEntrywiseOperableView2D<Matrix3by3, Matrix3by3>, IEntrywiseOperable2D<Matrix3by3>
     {
         private readonly double[,] data;
 
@@ -329,12 +329,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Performs the following operation for 0 &lt;= i, j &lt; 3:
-        /// result[i, j] = <paramref name="binaryOperation"/>(this[i,j], <paramref name="matrix"/>[i, j])
-        /// The resulting matrix is written to a new <see cref="Matrix3by3"/> and then returned.
+        /// See <see cref="IMatrixView.CopyToFullMatrix()"/>
         /// </summary>
-        /// <param name="matrix">A matrix with 3 rows and 3 columns.</param>
-        /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
+        public Matrix CopyToFullMatrix() => Matrix.CreateFromArray(data);
+
+        /// <summary>
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoEntrywise(TMatrixIn, Func{double, double, double})"/>.
+        /// </summary>
         public IMatrix DoEntrywise(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
             if (matrix is Matrix3by3 casted) return DoEntrywise(casted, binaryOperation);
@@ -363,7 +364,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrix.DoEntrywiseIntoThis(IMatrixView, Func{double, double, double})"/>.
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoEntrywise(TMatrixIn, Func{double, double, double})"/>.
         /// </summary>
         public Matrix3by3 DoEntrywise(Matrix3by3 matrix, Func<double, double, double> binaryOperation)
         {
@@ -388,12 +389,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// Performs the following operation for 0 &lt;= i, j &lt; 3:
-        /// this[i, j] = <paramref name="binaryOperation"/>(this[i,j], <paramref name="matrix"/>[i, j])
-        /// The resulting matrix overwrites the entries of this <see cref="Matrix3by3"/> instance.
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoEntrywiseIntoThis(TMatrixIn, Func{double, double, double})"/>.
         /// </summary>
-        /// <param name="matrix">A matrix with 3 rows and 3 columns.</param>
-        /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
         public void DoEntrywiseIntoThis(IMatrixView matrix, Func<double, double, double> binaryOperation)
         {
             if (matrix is Matrix3by3 casted) DoEntrywiseIntoThis(casted, binaryOperation);
@@ -413,7 +410,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrixView.DoToAllEntries(Func{double, double})"/>.
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoEntrywiseIntoThis(TMatrixIn, Func{double, double, double})"/>.
         /// </summary>
         public void DoEntrywiseIntoThis(Matrix3by3 matrix, Func<double, double, double> binaryOperation)
         {
@@ -429,16 +426,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrixView.DoToAllEntries(Func{double, double})"/>.
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
-        IMatrix IMatrixView.DoToAllEntries(Func<double, double> unaryOperation) => DoToAllEntries(unaryOperation);
+        IMatrix IEntrywiseOperableView2D<IMatrixView, IMatrix>.DoToAllEntries(Func<double, double> unaryOperation) 
+            => DoToAllEntries(unaryOperation);
 
         /// <summary>
-        /// Performs the following operation for 0 &lt;= i, j &lt; 3:
-        /// result[i, j] = <paramref name="unaryOperation"/>(this[i,j])
-        /// The resulting matrix is written to a new <see cref="Matrix3by3"/> and then returned.
+        /// See <see cref="IEntrywiseOperableView2D{TMatrixIn, TMatrixOut}.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
-        /// <param name="unaryOperation">A method that takes 1 argument and returns 1 result.</param>
         public Matrix3by3 DoToAllEntries(Func<double, double> unaryOperation)
         {
             return new Matrix3by3(new double[,]
@@ -450,7 +445,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         /// <summary>
-        /// See <see cref="IMatrix.DoToAllEntriesIntoThis(Func{double, double})"/>.
+        /// See <see cref="IEntrywiseOperable2D{TMatrixIn}.DoToAllEntriesIntoThis(Func{double, double})"/>.
         /// </summary>
         public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
         {
@@ -496,6 +491,36 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                     && comparer.AreEqual(this.data[2, 2], other[2, 2]);
             }
         }
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetColumn(int)"/>.
+        /// </summary>
+        public Vector GetColumn(int colIndex)
+        {
+            Preconditions.CheckIndexCol(this, colIndex);
+            return Vector.CreateFromArray(new double[] { data[0, colIndex], data[1, colIndex], data[2, colIndex] });
+        }
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetRow(int)"/>.
+        /// </summary>
+        public Vector GetRow(int rowIndex)
+        {
+            Preconditions.CheckIndexRow(this, rowIndex);
+            return Vector.CreateFromArray(new double[] { data[rowIndex, 0], data[rowIndex, 1], data[rowIndex, 2] });
+        }
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetSubmatrix(int[], int[])"/>.
+        /// </summary>
+        public Matrix GetSubmatrix(int[] rowIndices, int[] colIndices)
+            => DenseStrategies.GetSubmatrix(this, rowIndices, colIndices);
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetSubmatrix(int, int, int, int)"/>.
+        /// </summary>
+        public Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
+            => DenseStrategies.GetSubmatrix(this, rowStartInclusive, rowEndExclusive, colStartInclusive, colEndExclusive);
 
         /// <summary>
         /// Calculates the inverse matrix and returns it in a new <see cref="Matrix3by3"/> instance. This only works if this 

@@ -12,12 +12,12 @@ namespace ISAAR.MSolve.Logging.VTK
     /// files can be visualized in paraview.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class VtkLogFactory : ILogFactory_v2
+    public class VtkLogFactory : ILogFactory
     {
         private readonly string directory;
-        private readonly Model_v2 model;
+        private readonly Model model;
 
-        public VtkLogFactory(Model_v2 model, string directory)
+        public VtkLogFactory(Model model, string directory)
         {
             this.model = model;
             this.directory = directory;
@@ -33,10 +33,10 @@ namespace ISAAR.MSolve.Logging.VTK
         /// </summary>
         public IVonMisesStress2D VonMisesStressCalculator { get; set; } = null;
 
-        public IAnalyzerLog_v2[] CreateLogs()
+        public IAnalyzerLog[] CreateLogs()
         {
             var mesh = new VtkMesh2D(model);
-            return new IAnalyzerLog_v2[]
+            return new IAnalyzerLog[]
             {
                 new VtkLog2D(directory, Filename, model, mesh, LogDisplacements, LogStrains, LogStresses, 
                     VonMisesStressCalculator)

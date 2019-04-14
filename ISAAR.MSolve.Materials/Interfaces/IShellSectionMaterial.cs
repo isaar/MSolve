@@ -1,4 +1,4 @@
-﻿using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.Materials.Interfaces
 {
@@ -7,9 +7,9 @@ namespace ISAAR.MSolve.Materials.Interfaces
 		new IShellSectionMaterial Clone();
 		double[] MembraneForces { get; }
 		double[] Moments { get; }
-		IMatrix2D MembraneConstitutiveMatrix { get; }
-		IMatrix2D BendingConstitutiveMatrix { get; }
-		IMatrix2D CouplingConstitutiveMatrix { get; }
+		IMatrixView MembraneConstitutiveMatrix { get; }
+		IMatrixView BendingConstitutiveMatrix { get; }
+		IMatrixView CouplingConstitutiveMatrix { get; }
 		void UpdateMaterial(double[] membraneStrains, double[] bendingStrains);
 	}
 }

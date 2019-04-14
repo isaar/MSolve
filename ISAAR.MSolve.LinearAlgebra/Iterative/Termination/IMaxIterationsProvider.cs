@@ -7,9 +7,9 @@
     public interface IMaxIterationsProvider
     {
         /// <summary>
-        /// Returns the max number of iterations appropriate for the specified <paramref name="matrix"/> of the linear system.
+        /// Returns the max number of iterations appropriate for the specified order of the linear system's matrix.
         /// </summary>
-        /// <param name="matrix">The linear system's matrix. Must be square matrix.</param>
-        int GetMaxIterationsForMatrix(ILinearTransformation matrix);
+        /// <param name="matrix">The order of the linear system's matrix.</param>
+        int GetMaxIterations(int matrixOrder);
     }
 }

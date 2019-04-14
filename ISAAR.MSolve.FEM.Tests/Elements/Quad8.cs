@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
     {
         private static double thickness = 1.0;
 
-        private static readonly ElasticMaterial2D_v2 material0 = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
+        private static readonly ElasticMaterial2D material0 = new ElasticMaterial2D(StressState2D.PlaneStress)
         {
             YoungModulus = 2.1e5,
             PoissonRatio = 0.3
@@ -33,17 +33,17 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         /// <summary>
         /// Random shape, not too distorted.
         /// </summary>
-        private static readonly IReadOnlyList<Node_v2> nodeSet0 = new Node_v2[]
+        private static readonly IReadOnlyList<Node> nodeSet0 = new Node[]
         {
-            new Node_v2 { ID = 0, X = 0.7, Y = 2.0 },
-            new Node_v2 { ID = 1, X = 0.2, Y = 0.3 },
-            new Node_v2 { ID = 2, X = 2.0, Y = 0.9 },
-            new Node_v2 { ID = 3, X = 3.0, Y = 2.7 },
+            new Node { ID = 0, X = 0.7, Y = 2.0 },
+            new Node { ID = 1, X = 0.2, Y = 0.3 },
+            new Node { ID = 2, X = 2.0, Y = 0.9 },
+            new Node { ID = 3, X = 3.0, Y = 2.7 },
 
-            new Node_v2 { ID = 4, X = 0.7, Y = 1.1 },
-            new Node_v2 { ID = 5, X = 1.3, Y = 0.1 },
-            new Node_v2 { ID = 6, X = 2.1, Y = 1.9 },
-            new Node_v2 { ID = 7, X = 1.8, Y = 2.5 },
+            new Node { ID = 4, X = 0.7, Y = 1.1 },
+            new Node { ID = 5, X = 1.3, Y = 0.1 },
+            new Node { ID = 6, X = 2.1, Y = 1.9 },
+            new Node { ID = 7, X = 1.8, Y = 2.5 },
         };
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         {
             IQuadrature2D quadratureForMass = GaussLegendre2D.GetQuadratureWithOrder(3, 3);
 
-            var materialsAtGaussPoints = new List<ElasticMaterial2D_v2>();
+            var materialsAtGaussPoints = new List<ElasticMaterial2D>();
             foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
             {
                 materialsAtGaussPoints.Add(material0.Clone());
@@ -96,7 +96,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         private static void TestStiffness0()
         {
             var factory = new ContinuumElement2DFactory(thickness, material0, dynamicMaterial);
-            ContinuumElement2D quad8 = factory.CreateElement(CellType2D.Quad8, nodeSet0);
+            ContinuumElement2D quad8 = factory.CreateElement(CellType.Quad8, nodeSet0);
             IMatrix K = quad8.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
@@ -128,7 +128,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         public static void TestStrainsStresses0()
         {
             var factory = new ContinuumElement2DFactory(thickness, material0, null);
-            ContinuumElement2D quad8 = factory.CreateElement(CellType2D.Quad8, nodeSet0);
+            ContinuumElement2D quad8 = factory.CreateElement(CellType.Quad8, nodeSet0);
 
             // Abaqus results
             double[] displacements =

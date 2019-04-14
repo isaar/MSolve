@@ -1,12 +1,13 @@
 ﻿using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using System;
 using System.Collections.Generic;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
-    public class InterpolationHexa8Reverse: IsoparametricInterpolation3DBase_OLD
+    public class InterpolationHexa8Reverse: IsoparametricInterpolation3DBase
     {
         private static readonly InterpolationHexa8Reverse uniqueInstance = new InterpolationHexa8Reverse();
 
@@ -29,7 +30,8 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
         public static InterpolationHexa8Reverse UniqueInstance => uniqueInstance;
 
-        public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> nodes) => throw new NotImplementedException();
+        public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> nodes) 
+            => throw new NotImplementedException();
 
         protected override double[] EvaluateAt(double xi, double eta, double zeta)
         {
@@ -45,9 +47,9 @@ namespace ISAAR.MSolve.FEM.Interpolation
             //shapeFunctions[7] = ;
         }
 
-        protected override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
+        protected override Matrix EvaluateGradientsAt(double xi, double eta, double zeta)
         {
-            var naturalDerivatives = new double[3, 8]; //TODO: perhaps transpose this and the client code that uses it
+            var naturalDerivatives = Matrix.CreateZero(3, 8);
 
             // Derivatives with respect to Xi
             naturalDerivatives[0, 0] = +0.125 * (1 + eta) * (1 + zeta);

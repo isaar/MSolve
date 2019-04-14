@@ -30,6 +30,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             return matrix.Multiply(asVector, transposeThis).RawData;
         }
 
+        public static Matrix ThisTimesOtherTimesThisTranspose(this IMatrixView thisMatrix, IMatrixView other)
+        {
+            return thisMatrix.MultiplyLeft(thisMatrix.MultiplyRight(other, false, false), true, false);
+        }
+
         /// <summary>
         /// Performs the operation: result = transpose(<paramref name="csr"/>) * <paramref name="other"/> * <paramref name="csr"/>
         /// in an efficient way, by appropriately selecting which methods should be called for these matrices and in what order. 

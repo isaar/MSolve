@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ISAAR.MSolve.Discretization;
 
 namespace ISAAR.MSolve.FEM.Entities
 {
@@ -12,7 +11,7 @@ namespace ISAAR.MSolve.FEM.Entities
 	{
         private readonly List<Constraint> constraints = new List<Constraint>();
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
-        private readonly Dictionary<int, Subdomain> subdomainsDictionary = new Dictionary<int, Subdomain>();
+        private readonly Dictionary<int, ISubdomain> subdomainsDictionary = new Dictionary<int, ISubdomain>();
         private readonly Dictionary<int, Subdomain> nonMatchingSubdomainsDictionary = new Dictionary<int, Subdomain>();
 
         public override string ToString()
@@ -54,37 +53,20 @@ namespace ISAAR.MSolve.FEM.Entities
             //    constraintsDescripton += c.ToString() + ", ";
             //}
             #endregion
-            constraintsDescripton = constraintsDescripton.Length > 1 ? constraintsDescripton.Substring(0, constraintsDescripton.Length - 2) : constraintsDescripton;
+            constraintsDescripton = constraintsDescripton.Length > 1 
+                ? constraintsDescripton.Substring(0, constraintsDescripton.Length - 2) 
+                : constraintsDescripton;
 
             return String.Format("{0} - Con ({1})", header, constraintsDescripton);
         }
 
-        #region removeMaria
-        //public List<DOFType> Constraints
-        //{
-        //    get { return constraints; }
-        //}
-        #endregion
+        public List<Constraint> Constraints => constraints;
 
-        public List<Constraint> Constraints
-        {
-            get { return constraints; }
-        }
+        public Dictionary<int, Element> ElementsDictionary => elementsDictionary;
 
-        public Dictionary<int, Element> ElementsDictionary
-        {
-            get { return elementsDictionary; }
-        }
+        public Dictionary<int, ISubdomain> SubdomainsDictionary => subdomainsDictionary;
 
-        public Dictionary<int, Subdomain> SubdomainsDictionary
-        {
-            get { return subdomainsDictionary; }
-        }
-
-        public Dictionary<int, Subdomain> NonMatchingSubdomainsDictionary
-        {
-            get { return nonMatchingSubdomainsDictionary; }
-        }
+        public Dictionary<int, Subdomain> NonMatchingSubdomainsDictionary => nonMatchingSubdomainsDictionary;
 
         //public Element EmbeddedInElement { get; set; }
         public int ID { get; set; }

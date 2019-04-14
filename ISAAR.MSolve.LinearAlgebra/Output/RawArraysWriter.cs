@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
@@ -33,6 +34,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
         /// Describes how the array entries will be formatted and justified.
         /// </summary>
         public INumericFormat NumericFormat { get; set; } = new GeneralNumericFormat();
+
+        /// <summary>
+        /// Use Environment.NewLine (the default) if you plan to read the file using <see cref="Input.RawArraysReader"/>  
+        /// </summary>
+        public string EntrySeparator { get; set; } = Environment.NewLine;
 
         /// <summary>
         /// Writes the internal arrays of the provided sparse matrix to Console.
@@ -121,7 +127,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
             int last = array.Count - 1;
             for (int i = 0; i < last; ++i)
             {
-                writer.Write(array[i] + " ");
+                writer.Write(array[i] + EntrySeparator);
             }
             writer.Write(array[last]);
         }
@@ -133,7 +139,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
             int last = array.Count - 1;
             for (int i = 0; i < last; ++i)
             {
-                writer.Write(string.Format(numberFormat, array[i]) + " ");
+                writer.Write(string.Format(numberFormat, array[i]) + EntrySeparator);
             }
             writer.Write(array[last]);
         }

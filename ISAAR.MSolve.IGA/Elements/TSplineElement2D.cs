@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
@@ -9,22 +9,21 @@ using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.IGA.SupportiveClasses;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Elements
 {
-	public class TSplineElement2D : Element, IStructuralIsogeometricElement
+    public class TSplineElement2D : Element, IStructuralIsogeometricElement
 	{
-		protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X, DOFType.Y };
-		protected DOFType[][] dofTypes;
+		protected readonly static IDofType[] controlPointDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY };
+		protected IDofType[][] dofTypes;
 		private IReadOnlyList<IContinuumMaterial2D> materialsAtGaussPoints;
 		private DynamicMaterial dynamicProperties;
 
-		protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
-		public IElementDofEnumerator_v2 DofEnumerator
+		protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
+		public IElementDofEnumerator DofEnumerator
 		{
 			get
 			{
@@ -47,7 +46,7 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		public bool MaterialModified => throw new NotImplementedException();
 
-		public Matrix2D ExtractionOperator { get; set; }
+		public Matrix ExtractionOperator { get; set; }
 
 		public int DegreeKsi { get; set; }
 		public int DegreeHeta { get; set; }
@@ -91,15 +90,15 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix DampingMatrix(IElement_v2 element)
+		public IMatrix DampingMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
+		public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
 		{
 			var nurbsElement = (TSplineElement2D)element;
-			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
+			dofTypes = new IDofType[nurbsElement.ControlPoints.Count][];
 			for (int i = 0; i < nurbsElement.ControlPoints.Count; i++)
 			{
 				dofTypes[i] = controlPointDOFTypes;
@@ -107,7 +106,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			return dofTypes;
 		}
 
-		public IMatrix MassMatrix(IElement_v2 element)
+		public IMatrix MassMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
@@ -117,11 +116,11 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix StiffnessMatrix(IElement_v2 element)
+		public IMatrix StiffnessMatrix(IElement element)
 		{
 			var tsplineElement = (TSplineElement2D)element;
 			IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(tsplineElement);
-			Matrix2D stiffnessMatrixElement = new Matrix2D(tsplineElement.ControlPointsDictionary.Count * 2, tsplineElement.ControlPointsDictionary.Count * 2);
+			var stiffnessMatrixElement = Matrix.CreateZero(tsplineElement.ControlPointsDictionary.Count * 2, tsplineElement.ControlPointsDictionary.Count * 2);
 
 			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(tsplineElement, tsplineElement.ControlPoints);
 
@@ -135,10 +134,9 @@ namespace ISAAR.MSolve.IGA.Elements
 
 				var B2 = CalculateDeformationMatrix2(tsplineElement, tsplines, j);
 
-				Matrix2D B = B1 * B2;
-				Matrix2D ElasticityMatrix = materialsAtGaussPoints[j].ConstitutiveMatrix;
-				Matrix2D stiffnessMatrixGaussPoint = B.Transpose() * ElasticityMatrix;
-				stiffnessMatrixGaussPoint = stiffnessMatrixGaussPoint * B;
+				Matrix B = B1 * B2;
+				IMatrixView ElasticityMatrix = materialsAtGaussPoints[j].ConstitutiveMatrix;
+				Matrix stiffnessMatrixGaussPoint = B.ThisTransposeTimesOtherTimesThis(ElasticityMatrix);
 				stiffnessMatrixGaussPoint = stiffnessMatrixGaussPoint * (jacdet * gaussPoints[j].WeightFactor * tsplineElement.Patch.Thickness);
 
 				for (int m = 0; m < tsplineElement.ControlPoints.Count * 2; m++)
@@ -149,13 +147,13 @@ namespace ISAAR.MSolve.IGA.Elements
 					}
 				}
 			}
-			return Matrix.CreateFromArray(stiffnessMatrixElement.Data);
+			return stiffnessMatrixElement;
 		}
 
-		private static Matrix2D CalculateDeformationMatrix2(TSplineElement2D tsplineElement,
+		private static Matrix CalculateDeformationMatrix2(TSplineElement2D tsplineElement,
 			ShapeTSplines2DFromBezierExtraction tsplines, int j)
 		{
-			Matrix2D B2 = new Matrix2D(4, 2 * tsplineElement.ControlPoints.Count);
+			var B2 = Matrix.CreateZero(4, 2 * tsplineElement.ControlPoints.Count);
 			for (int column = 0; column < 2 * tsplineElement.ControlPoints.Count; column += 2)
 			{
 				B2[0, column] += tsplines.TSplineDerivativeValuesKsi[column / 2, j];
@@ -167,9 +165,9 @@ namespace ISAAR.MSolve.IGA.Elements
 			return B2;
 		}
 
-		private static Matrix2D CalculateDeformationMatrix1(Matrix2D jacobianMatrix, double jacdet)
+		private static Matrix CalculateDeformationMatrix1(Matrix jacobianMatrix, double jacdet)
 		{
-			Matrix2D B1 = new Matrix2D(3, 4);
+			var B1 = Matrix.CreateZero(3, 4);
 
 			B1[0, 0] += jacobianMatrix[1, 1] / jacdet;
 			B1[0, 1] += -jacobianMatrix[0, 1] / jacdet;
@@ -182,17 +180,17 @@ namespace ISAAR.MSolve.IGA.Elements
 			return B1;
 		}
 
-		private static double CalculateJacobianDeterminant(Matrix2D jacobianMatrix)
+		private static double CalculateJacobianDeterminant(Matrix jacobianMatrix)
 		{
 			double jacdet = jacobianMatrix[0, 0] * jacobianMatrix[1, 1]
 			                - jacobianMatrix[1, 0] * jacobianMatrix[0, 1];
 			return jacdet;
 		}
 
-		private static Matrix2D CalculateJacobianMatrix(TSplineElement2D tsplineElement,
+		private static Matrix CalculateJacobianMatrix(TSplineElement2D tsplineElement,
 			ShapeTSplines2DFromBezierExtraction tsplines, int j)
 		{
-			Matrix2D jacobianMatrix = new Matrix2D(2, 2);
+			var jacobianMatrix = Matrix.CreateZero(2, 2);
 
 			for (int k = 0; k < tsplineElement.ControlPoints.Count; k++)
 			{
@@ -220,10 +218,10 @@ namespace ISAAR.MSolve.IGA.Elements
 		public double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements)
 		{
 			var tsplineElement = (TSplineElement2D)element;
-			var knotParametricCoordinatesKsi = new double[] { -1, 1 };
-			var knotParametricCoordinatesHeta = new double[] { -1, 1 };
+			var knotParametricCoordinatesKsi = Vector.CreateFromArray(new double[] { -1, 1 });
+			var knotParametricCoordinatesHeta = Vector.CreateFromArray(new double[] { -1, 1 });
 
-			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(tsplineElement, tsplineElement.ControlPoints, knotParametricCoordinatesKsi, knotParametricCoordinatesHeta);
+			var tsplines = new ShapeTSplines2DFromBezierExtraction(tsplineElement, tsplineElement.ControlPoints, knotParametricCoordinatesKsi, knotParametricCoordinatesHeta);
 
 			var knotDisplacements = new double[4, 3];
 			var paraviewKnotRenumbering = new int[] { 0, 3, 1, 2 };
@@ -250,10 +248,10 @@ namespace ISAAR.MSolve.IGA.Elements
 				{1, 1}
 			};
 
-			var knotParametricCoordinatesKsi = new double[] { -1, 1 };
-			var knotParametricCoordinatesHeta = new double[] { -1, 1 };
+			var knotParametricCoordinatesKsi = Vector.CreateFromArray(new double[] { -1, 1 });
+			var knotParametricCoordinatesHeta = Vector.CreateFromArray(new double[] { -1, 1 });
 
-			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(element, element.ControlPoints, knotParametricCoordinatesKsi, knotParametricCoordinatesHeta);
+			var tsplines = new ShapeTSplines2DFromBezierExtraction(element, element.ControlPoints, knotParametricCoordinatesKsi, knotParametricCoordinatesHeta);
 
 			var knotDisplacements = new double[4, 3];
 			var paraviewKnotRenumbering = new int[] { 0, 3, 1, 2 };

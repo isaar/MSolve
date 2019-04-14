@@ -45,6 +45,19 @@ namespace ISAAR.MSolve.LinearAlgebra
             => Vector.CreateFromArray(thisVector).Axpy(Vector.CreateFromArray(otherVector), otherCoefficient).RawData;
 
         /// <summary>
+        /// Performs the following operation for all i:
+        /// this[i] = <paramref name="otherCoefficient"/> * <paramref name="otherVector"/>[i] + this[i]. 
+        /// The resulting vector overwrites the entries of this.
+        /// </summary>
+        /// <param name="otherVector">A vector with the same Length as this.</param>
+        /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherVector"/>.</param>
+        /// <exception cref="Exceptions.NonMatchingDimensionsException">
+        /// Thrown if <paramref name="otherVector"/> has different Length than this.
+        /// </exception>
+        public static void AxpyIntoThis(this double[] thisVector, double[] otherVector, double otherCoefficient)
+            => Vector.CreateFromArray(thisVector).AxpyIntoThis(Vector.CreateFromArray(otherVector), otherCoefficient);
+
+        /// <summary>
         /// Sets all entries of this vector to 0. 
         /// </summary>
         public static void Clear(this double[] thisVector) => Array.Clear(thisVector, 0, thisVector.Length);
@@ -98,25 +111,35 @@ namespace ISAAR.MSolve.LinearAlgebra
         }
 
         /// <summary>
-        /// Performs the following operation for all i:
-        /// this[i] = <paramref name="otherCoefficient"/> * <paramref name="otherVector"/>[i] + this[i]. 
-        /// The resulting vector overwrites the entries of this.
-        /// </summary>
-        /// <param name="otherVector">A vector with the same Length as this.</param>
-        /// <param name="otherCoefficient">A scalar that multiplies each entry of <paramref name="otherVector"/>.</param>
-        /// <exception cref="Exceptions.NonMatchingDimensionsException">
-        /// Thrown if <paramref name="otherVector"/> has different Length than this.
-        /// </exception>
-        public static void AxpyIntoThis(this double[] thisVector, double[] otherVector, double otherCoefficient)
-            => Vector.CreateFromArray(thisVector).AxpyIntoThis(Vector.CreateFromArray(otherVector), otherCoefficient);
-
-        /// <summary>
         /// Calculates the dot (or inner/scalar) product of this vector with <paramref name="vector"/>:
         /// result = sum over all i of this[i] * <paramref name="vector"/>[i]).
         /// </summary>
         /// <param name="vector">A vector with the same Length as this.</param>
         public static double DotProduct(this double[] thisVector, double[] otherVector)
             => Vector.CreateFromArray(thisVector).DotProduct(Vector.CreateFromArray(otherVector));
+
+        /// <summary>
+        /// Returns true if <paramref name="matrix"/>[i, j] and <paramref name="matrix"/>[j, i] are equal or at least within the 
+        /// specified <paramref name="tolerance"/> for all 0 &lt;= i &lt; numRows, 0 &lt;= j &lt; numColumns. 
+        /// </summary>
+        /// <param name="matrix">The matrix that will be checked for symmetry.</param>
+        /// <param name="tolerance">The entries at (i, j), (j, i) the matrix will be considered equal, if
+        ///     (<paramref name="matrix"/>[i, j] - <paramref name="matrix"/>[i, j]) / <paramref name="matrix"/>[i, j] 
+        ///         &lt;= <paramref name="tolerance"/>. 
+        ///     Setting <paramref name="tolerance"/> = 0, will check if these entries are exactly the same.</param>
+        public static bool IsSymmetric(this double[,] matrix, double tolerance = double.Epsilon) //TODO: Move this to the array extensions file.
+        {
+            var comparer = new ValueComparer(tolerance);
+            if (matrix.GetLength(0) != matrix.GetLength(1)) return false;
+            for (int i = 0; i < matrix.GetLength(0); ++i)
+            {
+                for (int j = 0; j < i; ++j)
+                {
+                    if (!comparer.AreEqual(matrix[i, j], matrix[j, i])) return false;
+                }
+            }
+            return true;
+        }
 
         /// <summary>
         /// Performs the matrix-vector multiplication: oper(this) * <paramref name="vector"/>.

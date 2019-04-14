@@ -9,15 +9,16 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Compute.Bindings.IntelMKL" Version="0.1.5" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\ISAAR.MSolve.Materials\ISAAR.MSolve.Materials.csproj" />
-    <ProjectReference Include="..\ISAAR.MSolve.Numerical\ISAAR.MSolve.Numerical.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.Optimization.Structural\ISAAR.MSolve.Optimization.Structural.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.Optimization\ISAAR.MSolve.Optimization.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Preprocessor\ISAAR.MSolve.Preprocessor.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Problems\ISAAR.MSolve.Problems.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Tests\ISAAR.MSolve.Tests.csproj" />
+    <ProjectReference Include="..\MGroup.Stochastic.Structural.Example\MGroup.Stochastic.Structural.Example.csproj" />
+    <ProjectReference Include="..\MGroup.Stochastic.Structural\MGroup.Stochastic.Structural.csproj" />
+    <ProjectReference Include="..\MGroup.Stochastic\MGroup.Stochastic.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="SupportiveClasses\" />

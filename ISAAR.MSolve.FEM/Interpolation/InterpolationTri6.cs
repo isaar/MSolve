@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
     {
         private static readonly InterpolationTri6 uniqueInstance = new InterpolationTri6();
 
-        private InterpolationTri6() : base(CellType2D.Tri6, 6)
+        private InterpolationTri6() : base(CellType.Tri6, 6)
         {
             NodalNaturalCoordinates = new NaturalPoint2D[]
             {
@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <returns></returns>
-        public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node_v2> nodes)
+        public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node> nodes)
             => throw new NotImplementedException("Requires an iterative procedure.");
 
         protected override sealed double[] EvaluateAt(double xi, double eta)
@@ -85,19 +85,21 @@ namespace ISAAR.MSolve.FEM.Interpolation
             double s3 = 1 - xi - eta;
 
             var derivatives = Matrix.CreateZero(6, 2);
-            derivatives[0, 0] = 4 * s1 - 1;
-            derivatives[0, 1] = 0.0;
-            derivatives[1, 0] = 0.0;
-            derivatives[1, 1] = 4 * s2 - 1;
-            derivatives[2, 0] = -4 * s3 + 1;
-            derivatives[2, 1] = -4 * s3 + 1;
 
+            derivatives[0, 0] = 4 * s1 - 1;
+            derivatives[1, 0] = 0.0;
+            derivatives[2, 0] = -4 * s3 + 1;
             derivatives[3, 0] = 4 * s2;
-            derivatives[3, 1] = 4 * s1;
             derivatives[4, 0] = -4 * s2;
-            derivatives[4, 1] = 4 * (s3 - s2);
             derivatives[5, 0] = 4 * (s3 - s1);
+
+            derivatives[0, 1] = 0.0;
+            derivatives[1, 1] = 4 * s2 - 1;
+            derivatives[2, 1] = -4 * s3 + 1;
+            derivatives[3, 1] = 4 * s1;
+            derivatives[4, 1] = 4 * (s3 - s2);
             derivatives[5, 1] = -4 * s1;
+
             return derivatives;
         }
     }

@@ -14,6 +14,6 @@ namespace ISAAR.MSolve.Solvers.Ordering.Reordering
         /// </summary>
         /// <param name="subdomain">The subdomain whose freedom degrees will be reordered.</param>
         /// <param name="originalOrdering">The current ordering of the subdomain's freedom degrees. It will be modified.</param>
-        void ReorderDofs(ISubdomain_v2 subdomain, ISubdomainFreeDofOrdering originalOrdering);
+        void ReorderDofs(ISubdomain subdomain, ISubdomainFreeDofOrdering originalOrdering);
     }
 }

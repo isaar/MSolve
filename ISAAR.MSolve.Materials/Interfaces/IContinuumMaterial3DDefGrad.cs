@@ -1,13 +1,12 @@
-﻿
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
+
 
 namespace ISAAR.MSolve.Materials.Interfaces
 {
     public interface IContinuumMaterial3DDefGrad : IFiniteElementMaterial
     {
-        Vector Stresses { get; }
-        Matrix2D ConstitutiveMatrix { get; }
+        double[] Stresses { get; }
+        IMatrixView ConstitutiveMatrix { get; }
         void UpdateMaterial(double[] strains);
         void ClearState();
         void SaveState();

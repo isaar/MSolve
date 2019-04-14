@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
     {
         private static double thickness = 1.0;
 
-        private static readonly ElasticMaterial2D_v2 material0 = new ElasticMaterial2D_v2(StressState2D.PlaneStress)
+        private static readonly ElasticMaterial2D material0 = new ElasticMaterial2D(StressState2D.PlaneStress)
         {
             YoungModulus = 2.1e5,
             PoissonRatio = 0.3
@@ -34,21 +34,21 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         /// <summary>
         /// Random shape, not too distorted.
         /// </summary>
-        private static readonly IReadOnlyList<Node_v2> nodeSet0 = new Node_v2[]
+        private static readonly IReadOnlyList<Node> nodeSet0 = new Node[]
         {
-            new Node_v2 { ID = 0, X = 1.5, Y = 3.8 },
-            new Node_v2 { ID = 1, X = 1.0, Y = 1.0 },
-            new Node_v2 { ID = 2, X = 4.0, Y = 0.8 }            
+            new Node { ID = 0, X = 1.5, Y = 3.8 },
+            new Node { ID = 1, X = 1.0, Y = 1.0 },
+            new Node { ID = 2, X = 4.0, Y = 0.8 }            
         };
 
         /// <summary>
         /// Right triangle.
         /// </summary>
-        private static readonly IReadOnlyList<Node_v2> nodeSet1 = new Node_v2[]
+        private static readonly IReadOnlyList<Node> nodeSet1 = new Node[]
         {
-            new Node_v2 { ID = 0, X = 0.0, Y = 0.0 },
-            new Node_v2 { ID = 1, X = 1.0, Y = 0.0 },
-            new Node_v2 { ID = 2, X = 0.0, Y = 1.0 }
+            new Node { ID = 0, X = 0.0, Y = 0.0 },
+            new Node { ID = 1, X = 1.0, Y = 0.0 },
+            new Node { ID = 2, X = 0.0, Y = 1.0 }
         };
 
         /// <summary>
@@ -71,10 +71,10 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
             TestConsistentMassParametric(nodeSet1, TriangleQuadratureSymmetricGaussian.Order1Point1, true);
         }
 
-        private static void TestConsistentMassParametric(IReadOnlyList<Node_v2> nodeSet, IQuadrature2D quadratureForMass,
+        private static void TestConsistentMassParametric(IReadOnlyList<Node> nodeSet, IQuadrature2D quadratureForMass,
             bool reducedQuadrature)
         {
-            var materialsAtGaussPoints = new List<ElasticMaterial2D_v2>();
+            var materialsAtGaussPoints = new List<ElasticMaterial2D>();
             foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
             {
                 materialsAtGaussPoints.Add(material0.Clone());
@@ -112,7 +112,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         private static void TestStiffness0()
         {
             var factory = new ContinuumElement2DFactory(thickness, material0, dynamicMaterial);
-            ContinuumElement2D tri3 = factory.CreateElement(CellType2D.Tri3, nodeSet0);
+            ContinuumElement2D tri3 = factory.CreateElement(CellType.Tri3, nodeSet0);
             IMatrix K = tri3.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
@@ -135,7 +135,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         public static void TestStrainsStresses0()
         {
             var factory = new ContinuumElement2DFactory(thickness, material0, null);
-            ContinuumElement2D tri3 = factory.CreateElement(CellType2D.Tri3, nodeSet0);
+            ContinuumElement2D tri3 = factory.CreateElement(CellType.Tri3, nodeSet0);
 
             // Abaqus results
             double[] displacements =
@@ -182,7 +182,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
             Assert.True(Utilities.AreTensorsEqual(expectedStressesAtNodes, stressesAtNodes, 1e-3));
         }
 
-        private static double CalcTriangleArea(IReadOnlyList<Node_v2> nodes)
+        private static double CalcTriangleArea(IReadOnlyList<Node> nodes)
         {
             return (nodes[0].X * (nodes[1].Y - nodes[2].Y)
                 + nodes[1].X * (nodes[2].Y - nodes[0].Y)

@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
+﻿using System.IO;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Solvers.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Postprocessing
 {
-	public class ParaviewNurbsShells
+    public class ParaviewNurbsShells
 	{
 		private Model _model;
 		private IVectorView _solution;
@@ -66,17 +62,17 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 				foreach (var controlPoint in element.ControlPoints)
 				{
 					localDisplacements[counterCP, 0] =
-						(!_model.GlobalDofOrdering.GlobalFreeDofs.Contains(controlPoint, DOFType.X))
+						(!_model.GlobalDofOrdering.GlobalFreeDofs.Contains(controlPoint, StructuralDof.TranslationX))
 							? 0.0
-							: _solution[_model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, DOFType.X]];
+							: _solution[_model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, StructuralDof.TranslationX]];
 					localDisplacements[counterCP, 1] =
-						(!_model.GlobalDofOrdering.GlobalFreeDofs.Contains(controlPoint, DOFType.Y))
+						(!_model.GlobalDofOrdering.GlobalFreeDofs.Contains(controlPoint, StructuralDof.TranslationY))
 							? 0.0
-							: _solution[_model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, DOFType.Y]];
+							: _solution[_model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, StructuralDof.TranslationY]];
 					localDisplacements[counterCP++, 2] =
-						(!_model.GlobalDofOrdering.GlobalFreeDofs.Contains(controlPoint, DOFType.Z))
+						(!_model.GlobalDofOrdering.GlobalFreeDofs.Contains(controlPoint, StructuralDof.TranslationZ))
 							? 0.0
-							: _solution[_model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, DOFType.Z]];
+							: _solution[_model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, StructuralDof.TranslationZ]];
 				}
 				var elementKnotDisplacements = element.ElementType.CalculateDisplacementsForPostProcessing(element, localDisplacements);
 				for (int i = 0; i < elementConnectivity.GetLength(1); i++)

@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Solvers.LinearSystems;
 
 namespace ISAAR.MSolve.Analyzers.Interfaces
 {
-    public interface INonLinearParentAnalyzer : IAnalyzer
+    //TODO: Confusing name. The child analyzer of this is a nonlinear analyzer.
+    public interface INonLinearParentAnalyzer : IParentAnalyzer
     {
-        double[] GetOtherRHSComponents(ILinearSystem subdomain, IVector currentSolution);
+        IVector GetOtherRhsComponents(ILinearSystem linearSystem, IVector currentSolution);
     }
 }

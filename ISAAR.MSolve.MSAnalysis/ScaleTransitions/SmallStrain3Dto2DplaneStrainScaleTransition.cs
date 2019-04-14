@@ -1,17 +1,9 @@
-﻿using ISAAR.MSolve.PreProcessor;
-using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Solvers.Skyline;
-using ISAAR.MSolve.FEM;
-using ISAAR.MSolve.FEM.Elements;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
-using ISAAR.MSolve.FEM.Interfaces;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
 
 namespace ISAAR.MSolve.MultiscaleAnalysis
 {
@@ -19,12 +11,12 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
     /// Micro to macro transitions for (3D degenerate to) 2D plane strain problems
     /// Authors: Gerasimos Sotiropoulos
     /// </summary>
-    public class SmallStrain3Dto2DplaneStrainScaleTransition : IScaleTransitions_v2
+    public class SmallStrain3Dto2DplaneStrainScaleTransition : IScaleTransitions
     {
         public SmallStrain3Dto2DplaneStrainScaleTransition()
         { }
 
-        public double[] MacroToMicroTransition(Node_v2 boundaryNode, double[] MacroScaleVariable)
+        public double[] MacroToMicroTransition(Node boundaryNode, double[] MacroScaleVariable)
         {
             double[,] Dq_nodal = new double[3,2]; // Prosoxh: pithanes diorthoseis eis triploun
             Dq_nodal[0, +0] = boundaryNode.X;
@@ -77,8 +69,8 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             return 3;
         }
 
-        public void ModifyMicrostructureTotalPrescribedBoundaryDisplacementsVectorForMacroStrainVariable(Node_v2 boundaryNode,
-            double[] smallStrain2Dmacro, Dictionary<int, Dictionary<DOFType, double>> totalPrescribedBoundaryDisplacements)
+        public void ModifyMicrostructureTotalPrescribedBoundaryDisplacementsVectorForMacroStrainVariable(Node boundaryNode,
+            double[] smallStrain2Dmacro, Dictionary<int, Dictionary<IDofType, double>> totalPrescribedBoundaryDisplacements)
         {
             //double[,] Dq_nodal = new double[9, 3];
             double[,] Dq_nodal = new double[3, 2];
@@ -104,22 +96,22 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             //pou tha vrei sto totalBoundaryNodalDIsplacements. an ekei den exoume valei timh (dld logw u_prescr_xyz_sunol[3] ==0
             //sto  DOFType.Z tou Dictionary) den tha peiraxei to mhden tou localsolution opote einai to idio.
 
-            Dictionary<DOFType, double> totalBoundaryNodalDisplacements = new Dictionary<DOFType, double>();
-            totalBoundaryNodalDisplacements.Add(DOFType.X, u_prescr_xyz_sunol[0]);
-            totalBoundaryNodalDisplacements.Add(DOFType.Y, u_prescr_xyz_sunol[1]);
+            Dictionary<IDofType, double> totalBoundaryNodalDisplacements = new Dictionary<IDofType, double>();
+            totalBoundaryNodalDisplacements.Add(StructuralDof.TranslationX, u_prescr_xyz_sunol[0]);
+            totalBoundaryNodalDisplacements.Add(StructuralDof.TranslationY, u_prescr_xyz_sunol[1]);
             //totalBoundaryNodalDisplacements.Add(DOFType.Z, u_prescr_xyz_sunol[2]); (OPOTE plane strain mporoume na ton valiume ton periorismo apla tha epanaupologizetai)
 
             totalPrescribedBoundaryDisplacements.Add(boundaryNode.ID, totalBoundaryNodalDisplacements);
         }
 
-        public void ImposeAppropriateAndRigidBodyConstraintsPerBoundaryNode(Model_v2 model, Node_v2 boundaryNode, Dictionary<Node_v2, IList<DOFType>> RigidBodyNodeConstraints)
+        public void ImposeAppropriateAndRigidBodyConstraintsPerBoundaryNode(Model model, Node boundaryNode, Dictionary<Node, IList<IDofType>> RigidBodyNodeConstraints)
         {
-                model.NodesDictionary[boundaryNode.ID].Constraints.Add(new Constraint() {DOF=DOFType.X});
-                model.NodesDictionary[boundaryNode.ID].Constraints.Add(new Constraint() { DOF = DOFType.Y });
-                model.NodesDictionary[boundaryNode.ID].Constraints.Add(new Constraint() { DOF = DOFType.Z });           
+                model.NodesDictionary[boundaryNode.ID].Constraints.Add(new Constraint() {DOF=StructuralDof.TranslationX});
+                model.NodesDictionary[boundaryNode.ID].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationY });
+                model.NodesDictionary[boundaryNode.ID].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationZ });           
         }
 
-        public void ImposeAppropriateConstraintsPerBoundaryNode(Model_v2 model, Node_v2 boundaryNode)
+        public void ImposeAppropriateConstraintsPerBoundaryNode(Model model, Node boundaryNode)
         {
             throw new System.NotSupportedException();
         }

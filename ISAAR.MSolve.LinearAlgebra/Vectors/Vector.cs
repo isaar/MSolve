@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
     /// General purpose vector class with more functionality than other vectors. No sparsity is assumed.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class Vector : IVector, ISliceable1D
+    public class Vector : IVector, ISliceable1D, IEntrywiseOperableView1D<Vector, Vector>, IEntrywiseOperable1D<Vector>
     {
         private readonly double[] data;
 
@@ -272,6 +272,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                 Preconditions.CheckVectorDimensions(this, otherVector);
                 if (otherVector is SparseVector sparse)
                 {
+                    //TODO: should I check whether the sparse vector is all 0, in order to avoid the BLAS call?
                     SparseBlas.Daxpyi(sparse.RawIndices.Length, otherCoefficient, sparse.RawValues,
                         sparse.RawIndices, 0, data, 0);
                 }
@@ -441,23 +442,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         public IVector CreateZeroVectorWithSameFormat() => new Vector(new double[Length]);
 
         /// <summary>
-        /// See <see cref="IVectorView.DoEntrywise(IVectorView, Func{double, double, double})"/>.
+        /// See <see cref="IEntrywiseOperableView1D{TVectorIn, TVectorOut}.DoEntrywise(TVectorIn, Func{double, double, double})"/>.
         /// </summary>
         public IVector DoEntrywise(IVectorView vector, Func<double, double, double> binaryOperation)
         {
             if (vector is Vector casted) return DoEntrywise(vector, binaryOperation);
-            else return vector.DoEntrywise(this, binaryOperation);
+            else return vector.DoEntrywise(this, (x, y) => binaryOperation(y, x)); // To avoid accessing zero entries.
         }
 
         /// <summary>
-        /// Performs a binary operation on each pair of entries, for 0 &lt;= i &lt; this.<see cref="Length"/>:
-        /// result[i] = <paramref name="binaryOperation"/>(this[i], <paramref name="vector"/>[i]). 
-        /// The resulting vector is written to a new <see cref="Vector"/> and then returned.
+        /// See <see cref="IEntrywiseOperableView1D{TVectorIn, TVectorOut}.DoEntrywise(TVectorIn, Func{double, double, double})"/>
         /// </summary>
-        /// <param name="vector">A vector with the same <see cref="Length"/> as this <see cref="Vector"/> instance.</param>
-        /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
-        /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="vector"/> has different 
-        ///     <see cref="Length"/> than this.</exception>
         public Vector DoEntrywise(Vector vector, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckVectorDimensions(this, vector);
@@ -467,7 +462,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// See <see cref="IVector.DoEntrywiseIntoThis(IVectorView, Func{double, double, double})"/>.
+        /// See <see cref="IEntrywiseOperable1D{TVectorIn}.DoEntrywiseIntoThis(TVectorIn, Func{double, double, double})"/>
         /// </summary>
         public void DoEntrywiseIntoThis(IVectorView vector, Func<double, double, double> binaryOperation)
         {
@@ -480,14 +475,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// Performs a binary operation on each pair of entries, for 0 &lt;= i &lt; this.<see cref="Length"/>:
-        /// result[i] = <paramref name="binaryOperation"/>(this[i], <paramref name="vector"/>[i]). 
-        /// The resulting vector overwrites the entries of this <see cref="Vector"/> instance.
+        /// See <see cref="IEntrywiseOperable1D{TVectorIn}.DoEntrywiseIntoThis(TVectorIn, Func{double, double, double})"/>
         /// </summary>
-        /// <param name="vector">A vector with the same <see cref="Length"/> as this <see cref="Vector"/> instance.</param>
-        /// <param name="binaryOperation">A method that takes 2 arguments and returns 1 result.</param>
-        /// <exception cref="NonMatchingDimensionsException">Thrown if <paramref name="vector"/> has different 
-        ///     <see cref="Length"/> than this.</exception>
         public void DoEntrywiseIntoThis(Vector vector, Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckVectorDimensions(this, vector);
@@ -495,15 +484,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// See <see cref="IVectorView.DoToAllEntries(Func{double, double})"/>.
+        /// See <see cref="IEntrywiseOperableView1D{TVectorIn, TVectorOut}.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
-        IVector IVectorView.DoToAllEntries(Func<double, double> unaryOperation) => DoToAllEntries(unaryOperation);
+        IVector IEntrywiseOperableView1D<IVectorView, IVector>.DoToAllEntries(Func<double, double> unaryOperation) 
+            => DoToAllEntries(unaryOperation);
 
         /// <summary>
-        /// Performs a unary operation on each entry: result[i] = <paramref name="unaryOperation"/>(this[i]), for 0 &lt;=
-        /// i &lt; this.<see cref="Length"/>. The resulting vector is written to a new <see cref="Vector"/> and then returned.
+        /// See <see cref="IEntrywiseOperableView1D{TVectorIn, TVectorOut}.DoToAllEntries(Func{double, double})"/>.
         /// </summary>
-        /// <param name="unaryOperation">A method that takes 1 argument and returns 1 result.</param>
         public Vector DoToAllEntries(Func<double, double> unaryOperation)
         {
             double[] result = new double[data.Length];
@@ -512,15 +500,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// See <see cref="IVector.DoToAllEntriesIntoThis(Func{double, double})"/>.
+        /// See <see cref="IEntrywiseOperable1D{TVectorIn}.DoToAllEntriesIntoThis(Func{double, double})"/>.
         /// </summary>
-        void IVector.DoToAllEntriesIntoThis(Func<double, double> unaryOperation) => DoToAllEntriesIntoThis(unaryOperation);
-
-        /// <summary>
-        /// Performs a unary operation on each entry: this[i] = <paramref name="unaryOperation"/>(this[i]), for 0 &lt;= i
-        /// &lt; this.<see cref="Length"/>. The resulting vector overwrites the entries of this <see cref= "Vector" /> instance.
-        /// </summary>
-        /// <param name="unaryOperation">A method that takes 1 argument and returns 1 result.</param>
         public void DoToAllEntriesIntoThis(Func<double, double> unaryOperation)
         {
             for (int i = 0; i < data.Length; ++i) data[i] = unaryOperation(data[i]);

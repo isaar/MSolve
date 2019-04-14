@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.IGA.Elements;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Numerical.Commons;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
@@ -20,23 +19,24 @@ namespace ISAAR.MSolve.IGA.Entities
 		
 		private readonly List<ControlPoint> controlPoints = new List<ControlPoint>();
 
-		public Table<INode, DOFType, double> Constraints { get; } = new Table<INode, DOFType, double>();
+		public Table<INode, IDofType, double> Constraints { get; } = new Table<INode, IDofType, double>();
 
-		IReadOnlyList<IElement_v2> ISubdomain_v2.Elements => Elements;
+		IReadOnlyList<IElement> ISubdomain.Elements => Elements;
 		public List<Element> Elements { get; } = new List<Element>();
 		
 		public int ID { get; }
 
-		IReadOnlyList<INode> ISubdomain_v2.Nodes => controlPoints;
+		IReadOnlyList<INode> ISubdomain.Nodes => controlPoints;
 		public IReadOnlyList<ControlPoint> ControlPoints => controlPoints;
 
-		public ISubdomainFreeDofOrdering DofOrdering { get; set; }
+        public ISubdomainConstrainedDofOrdering ConstrainedDofOrdering { get; set; }
+        public ISubdomainFreeDofOrdering FreeDofOrdering { get; set; }
 
 		public Vector Forces { get; set; }
 
 		public bool MaterialsModified { get; set; }
 
-		public Table<ControlPoint, DOFType, double> ControlPointLoads { get; set; }
+		public Table<ControlPoint, IDofType, double> ControlPointLoads { get; set; }
 
 		public Dictionary<int, Edge> EdgesDictionary
 		{
@@ -48,34 +48,34 @@ namespace ISAAR.MSolve.IGA.Entities
 			get { return facesDictionary; }
 		}
 
-		public double[] CalculateElementIncrementalConstraintDisplacements(IElement_v2 element, double constraintScalingFactor)
+		public double[] CalculateElementIncrementalConstraintDisplacements(IElement element, double constraintScalingFactor)
 		{
-			var elementNodalDisplacements = new double[DofOrdering.CountElementDofs(element)];
+			var elementNodalDisplacements = new double[FreeDofOrdering.CountElementDofs(element)];
 			ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
 			return elementNodalDisplacements;
 		}
 
-		private static void ApplyConstraintDisplacements(IElement_v2 element, double[] elementNodalDisplacements,
-			Table<INode, DOFType, double> constraints)
+		private static void ApplyConstraintDisplacements(IElement element, double[] elementNodalDisplacements,
+			Table<INode, IDofType, double> constraints)
 		{
 			int elementDofIdx = 0;
 			IList<INode> nodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
-			IList<IList<DOFType>> dofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
+            IList<IList<IDofType>> dofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
 			for (int i = 0; i < nodes.Count; ++i)
 			{
 				//bool isConstrainedNode = constraintsDictionary.TryGetValue(nodes[i].ID, 
 				//    out Dictionary<DOFType, double> constrainedDOFs);
 				bool isConstrainedNode = constraints.TryGetDataOfRow(nodes[i],
-					out IReadOnlyDictionary<DOFType, double> constrainedDOFs);
+					out IReadOnlyDictionary<IDofType, double> constrainedDOFs);
 				if (isConstrainedNode)
 				{
-					foreach (DOFType dofType in dofs[i])
+					foreach (IDofType dofType in dofs[i])
 					{
 						bool isConstrainedDof = constrainedDOFs.TryGetValue(dofType, out double constraintDisplacement);
 						//if (isConstrainedNode && isConstrainedDof)
 						if (isConstrainedDof)
 						{
-							Debug.Assert(elementNodalDisplacements[elementDofIdx] == 0); // TODO: and why is this an assumption?
+                            Debug.Assert(elementNodalDisplacements[elementDofIdx] == 0); // TODO: and why is this an assumption?
 							elementNodalDisplacements[elementDofIdx] = constraintDisplacement;
 						}
 						++elementDofIdx;
@@ -87,8 +87,8 @@ namespace ISAAR.MSolve.IGA.Entities
 
 		public double[] CalculateElementDisplacements(Element element, IVectorView globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
 		{
-			var elementNodalDisplacements = new double[DofOrdering.CountElementDofs(element)];
-			DofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector);
+			var elementNodalDisplacements = new double[FreeDofOrdering.CountElementDofs(element)];
+			FreeDofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector);
 			ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
 			return elementNodalDisplacements;
 		}
@@ -109,12 +109,12 @@ namespace ISAAR.MSolve.IGA.Entities
 			controlPoints.AddRange(cpSet);
 		}
 
-		public void ExtractConstraintsFromGlobal(Table<INode, DOFType, double> globalConstraints)
+		public void ExtractConstraintsFromGlobal(Table<INode, IDofType, double> globalConstraints)
 		{
 			foreach (ControlPoint controlPoint in ControlPoints)
 			{
 				bool isControlPointConstrained = globalConstraints.TryGetDataOfRow(controlPoint,
-					out IReadOnlyDictionary<DOFType, double> constraintsOfNode);
+					out IReadOnlyDictionary<IDofType, double> constraintsOfNode);
 				if (isControlPointConstrained)
 				{
 					foreach (var dofDisplacementPair in constraintsOfNode)
@@ -134,7 +134,7 @@ namespace ISAAR.MSolve.IGA.Entities
 
 		public IVector GetRhsFromSolution(IVectorView solution, IVectorView dSolution)
 		{
-			var forces = Vector.CreateZero(DofOrdering.NumFreeDofs); //TODO: use Vector
+			var forces = Vector.CreateZero(FreeDofOrdering.NumFreeDofs); //TODO: use Vector
 			foreach (Element element in Elements)
 			{
 				double[] localSolution = CalculateElementDisplacements(element, solution);
@@ -143,7 +143,7 @@ namespace ISAAR.MSolve.IGA.Entities
 				if (element.ElementType.MaterialModified)
 					element.Patch.MaterialsModified = true;
 				var f = element.ElementType.CalculateForces(element, localSolution, localdSolution);
-				DofOrdering.AddVectorElementToSubdomain(element, f, forces);
+				FreeDofOrdering.AddVectorElementToSubdomain(element, f, forces);
 			}
 			return forces;
 		}
@@ -175,9 +175,9 @@ namespace ISAAR.MSolve.IGA.Entities
 		public int DegreeHeta { get; set; }
 		public int DegreeZeta { get; set; }
 
-		public double[] KnotValueVectorKsi { get; set; }
-		public double[] KnotValueVectorHeta { get; set; }
-		public double[] KnotValueVectorZeta { get; set; }
+		public Vector KnotValueVectorKsi { get; set; }
+		public Vector KnotValueVectorHeta { get; set; }
+		public Vector KnotValueVectorZeta { get; set; }
         public ISubdomainFreeDofOrdering DofRowOrdering { get; set; }
         public ISubdomainFreeDofOrdering DofColOrdering { get; set; }
         #endregion
@@ -339,8 +339,8 @@ namespace ISAAR.MSolve.IGA.Entities
 		private void CreateNURBSElements2D()
 		{
 			#region Knots
-			Numerical.LinearAlgebra.Vector singleKnotValuesKsi = new Numerical.LinearAlgebra.Vector(KnotValueVectorKsi).RemoveDuplicatesFindMultiplicity()[0];
-			Numerical.LinearAlgebra.Vector singleKnotValuesHeta = new Numerical.LinearAlgebra.Vector(KnotValueVectorHeta).RemoveDuplicatesFindMultiplicity()[0];
+			Vector singleKnotValuesKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
+			Vector singleKnotValuesHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
 
 			List<Knot> knots = new List<Knot>();
 
@@ -356,8 +356,8 @@ namespace ISAAR.MSolve.IGA.Entities
 			#endregion
 
 			#region Elements
-			Numerical.LinearAlgebra.Vector multiplicityKsi = new Numerical.LinearAlgebra.Vector(KnotValueVectorKsi).RemoveDuplicatesFindMultiplicity()[1];
-			Numerical.LinearAlgebra.Vector multiplicityHeta = new Numerical.LinearAlgebra.Vector(KnotValueVectorHeta).RemoveDuplicatesFindMultiplicity()[1];
+			Vector multiplicityKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[1];
+			Vector multiplicityHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[1];
 
 			int numberOfElementsKsi = singleKnotValuesKsi.Length - 1;
 			int numberOfElementsHeta = singleKnotValuesHeta.Length - 1;
@@ -421,8 +421,8 @@ namespace ISAAR.MSolve.IGA.Entities
 		private void CreateNURBSShells()
 		{
 			#region Knots
-			Numerical.LinearAlgebra.Vector singleKnotValuesKsi = new Numerical.LinearAlgebra.Vector(KnotValueVectorKsi).RemoveDuplicatesFindMultiplicity()[0];
-			Numerical.LinearAlgebra.Vector singleKnotValuesHeta = new Numerical.LinearAlgebra.Vector(KnotValueVectorHeta).RemoveDuplicatesFindMultiplicity()[0];
+			Vector singleKnotValuesKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
+			Vector singleKnotValuesHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
 
 			List<Knot> knots = new List<Knot>();
 
@@ -438,8 +438,8 @@ namespace ISAAR.MSolve.IGA.Entities
 			#endregion
 
 			#region Elements
-			Numerical.LinearAlgebra.Vector multiplicityKsi = new Numerical.LinearAlgebra.Vector(KnotValueVectorKsi).RemoveDuplicatesFindMultiplicity()[1];
-			Numerical.LinearAlgebra.Vector multiplicityHeta = new Numerical.LinearAlgebra.Vector(KnotValueVectorHeta).RemoveDuplicatesFindMultiplicity()[1];
+			Vector multiplicityKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[1];
+			Vector multiplicityHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[1];
 
 			int numberOfElementsKsi = singleKnotValuesKsi.Length - 1;
 			int numberOfElementsHeta = singleKnotValuesHeta.Length - 1;
@@ -510,9 +510,9 @@ namespace ISAAR.MSolve.IGA.Entities
 		private void CreateNURBSElements3D()
 		{
 			#region Knots
-			Numerical.LinearAlgebra.Vector singleKnotValuesKsi = new Numerical.LinearAlgebra.Vector(KnotValueVectorKsi).RemoveDuplicatesFindMultiplicity()[0];
-			Numerical.LinearAlgebra.Vector singleKnotValuesHeta = new Numerical.LinearAlgebra.Vector(KnotValueVectorHeta).RemoveDuplicatesFindMultiplicity()[0];
-			Numerical.LinearAlgebra.Vector singleKnotValuesZeta = new Numerical.LinearAlgebra.Vector(KnotValueVectorZeta).RemoveDuplicatesFindMultiplicity()[0];
+			Vector singleKnotValuesKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
+			Vector singleKnotValuesHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
+			Vector singleKnotValuesZeta = KnotValueVectorZeta.RemoveDuplicatesFindMultiplicity()[0];
 
 			List<Knot> knots = new List<Knot>();
 
@@ -532,12 +532,12 @@ namespace ISAAR.MSolve.IGA.Entities
 			#endregion
 
 			#region Elements
-			Numerical.LinearAlgebra.Vector singlesKnotValuesKsi = new Numerical.LinearAlgebra.Vector(KnotValueVectorKsi).RemoveDuplicatesFindMultiplicity()[0];
-			Numerical.LinearAlgebra.Vector multiplicityKsi = new Numerical.LinearAlgebra.Vector(KnotValueVectorKsi).RemoveDuplicatesFindMultiplicity()[1];
-			Numerical.LinearAlgebra.Vector singlesKnotValuesHeta = new Numerical.LinearAlgebra.Vector(KnotValueVectorHeta).RemoveDuplicatesFindMultiplicity()[0];
-			Numerical.LinearAlgebra.Vector multiplicityHeta = new Numerical.LinearAlgebra.Vector(KnotValueVectorHeta).RemoveDuplicatesFindMultiplicity()[1];
-			Numerical.LinearAlgebra.Vector singlesKnotValuesZeta = new Numerical.LinearAlgebra.Vector(KnotValueVectorZeta).RemoveDuplicatesFindMultiplicity()[0];
-			Numerical.LinearAlgebra.Vector multiplicityZeta = new Numerical.LinearAlgebra.Vector(KnotValueVectorZeta).RemoveDuplicatesFindMultiplicity()[1];
+			Vector singlesKnotValuesKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
+			Vector multiplicityKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[1];
+			Vector singlesKnotValuesHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
+			Vector multiplicityHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[1];
+			Vector singlesKnotValuesZeta = KnotValueVectorZeta.RemoveDuplicatesFindMultiplicity()[0];
+			Vector multiplicityZeta = KnotValueVectorZeta.RemoveDuplicatesFindMultiplicity()[1];
 
 			int numberOfElementsKsi = singlesKnotValuesKsi.Length - 1;
 			int numberOfElementsHeta = singlesKnotValuesHeta.Length - 1;

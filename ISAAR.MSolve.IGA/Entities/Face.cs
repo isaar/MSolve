@@ -1,13 +1,10 @@
-﻿using ISAAR.MSolve.IGA.Entities.Loads;
-using ISAAR.MSolve.IGA.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.IGA.Elements;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.IGA.Entities.Loads;
+using ISAAR.MSolve.IGA.Interfaces;
+using ISAAR.MSolve.IGA.Problems.Structural.Elements;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
@@ -23,13 +20,13 @@ namespace ISAAR.MSolve.IGA.Entities
 
         public Patch Patch { get; set; }
 
-		public Dictionary<int,IVector> KnotValueVectors =new Dictionary<int, IVector>();
+		public Dictionary<int, Vector> KnotValueVectors = new Dictionary<int, Vector>();
 
         private readonly Dictionary<int, ControlPoint> controlPointsDictionary = new Dictionary<int, ControlPoint>();
 
         private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
 
-        private readonly Dictionary< int , Dictionary<DOFType,int>> controlPointsDOFsDictionary = new Dictionary<int, Dictionary<DOFType, int>>();
+        private readonly Dictionary< int , Dictionary<IDofType,int>> controlPointsDOFsDictionary = new Dictionary<int, Dictionary<IDofType, int>>();
 
         private readonly List<IBoundaryCondition> boundaryConditions = new List<IBoundaryCondition>();
         
@@ -46,7 +43,7 @@ namespace ISAAR.MSolve.IGA.Entities
             get { return elementsDictionary; }
         }
 
-        public Dictionary<int, Dictionary<DOFType, int>> ControlPointDOFsDictionary
+        public Dictionary<int, Dictionary<IDofType, int>> ControlPointDOFsDictionary
         {
             get { return controlPointsDOFsDictionary; }
         }

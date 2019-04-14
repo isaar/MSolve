@@ -1,4 +1,7 @@
-﻿using ISAAR.MSolve.Discretization;
+﻿using System;
+using System.Collections.Generic;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
@@ -6,22 +9,23 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.Jacobians;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System;
-using System.Collections.Generic;
 
 //TODO: move stuff to Shell8DirectionVectorUtilities
 namespace ISAAR.MSolve.FEM.Elements
 {
+    /// <summary>
+    /// Shell elements for 3d problems with material and geometric nonlinearities. Out of plane shear deformation of the modeled shell structure is assumpted.
+    /// Authors: Gerasimos Sotiropoulos
+    /// </summary>
     public class Shell8NonLinear : IStructuralFiniteElement
     {
-        protected readonly static DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z, DOFType.RotX, DOFType.RotY };
-        protected readonly static DOFType[][] dofTypes = new DOFType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
+        protected readonly static IDofType[] nodalDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ, StructuralDof.RotationX, StructuralDof.RotationY };
+        protected readonly static IDofType[][] dofTypes = new IDofType[][] { nodalDOFTypes, nodalDOFTypes, nodalDOFTypes,
             nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes, nodalDOFTypes };
         protected readonly IShellMaterial[] materialsAtGaussPoints; 
-        protected IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
         
         public double[][] oVn_i { get; set; }
         public double[] tk { get; set; } 
@@ -37,7 +41,8 @@ namespace ISAAR.MSolve.FEM.Elements
         private double[] bk_total = new double[8];
 
         private double[][] GLvec; // TODO possibly gl_vec_last_converged can be saved too if strains aren't handled in tthe current way by shell material classes
-        
+        private int stiffnessCase = 1;
+
         public Shell8NonLinear(IShellMaterial material, IQuadrature3D quadratureForStiffness)
         {
             this.Interpolation = InterpolationShell8.UniqueInstance;
@@ -49,13 +54,32 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public InterpolationShell8 Interpolation { get; }
         public IQuadrature3D QuadratureForStiffness { get; }
-        
-        private Matrix2D[] GetBL11a(Matrix2D[] J_0inv)
+
+        public int ID => 12;
+
+        public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
+        public IElementDofEnumerator DofEnumerator
         {
-            Matrix2D[] BL11a;
-            BL11a = new Matrix2D[nGaussPoints];
+            get { return dofEnumerator; }
+            set { dofEnumerator = value; }
+        }
+
+        public bool MaterialModified
+        {
+            get
+            {
+                foreach (IShellMaterial material in materialsAtGaussPoints)
+                    if (material.Modified) return true;
+                return false;
+            }
+        }
+
+        private Matrix[] GetBL11a(Matrix[] J_0inv)
+        {
+            Matrix[] BL11a;
+            BL11a = new Matrix[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
-            { BL11a[j] = new Matrix2D(6, 9); }
+            { BL11a[j] = Matrix.CreateZero(6, 9); }
             for (int j = 0; j < nGaussPoints; j++)
             {
                 for (int k = 0; k < 6; k++)
@@ -94,12 +118,12 @@ namespace ISAAR.MSolve.FEM.Elements
             return BL11a;
         }
 
-        private Matrix2D[] GetBL12(Matrix2D[] J_0inv)
+        private Matrix[] GetBL12(Matrix[] J_0inv)
         {
-            Matrix2D[] BL12;
-            BL12 = new Matrix2D[nGaussPoints];
+            Matrix[] BL12;
+            BL12 = new Matrix[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
-            { BL12[j] = new Matrix2D( 9, 9); }
+            { BL12[j] = Matrix.CreateZero( 9, 9); }
             for (int j = 0; j < nGaussPoints; j++)
             {
                 for (int k = 0; k < 9; k++)
@@ -129,12 +153,12 @@ namespace ISAAR.MSolve.FEM.Elements
             return BL12;
         }
 
-        private Matrix2D[] GetBL13(IReadOnlyList<Matrix2D> shapeFunctionDerivatives,double [][] tUvec , Matrix2D[] J_0a)
+        private Matrix[] GetBL13(IReadOnlyList<Matrix> shapeFunctionDerivatives,double [][] tUvec , Matrix[] J_0a)
         {
-            Matrix2D[] BL13;
-            BL13 = new Matrix2D[nGaussPoints];
+            Matrix[] BL13;
+            BL13 = new Matrix[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
-            { BL13[j] = new Matrix2D(9, 40); }
+            { BL13[j] = Matrix.CreateZero(9, 40); }
             for (int j = 0; j < nGaussPoints; j++)
             {
                
@@ -167,12 +191,12 @@ namespace ISAAR.MSolve.FEM.Elements
             return BL13;
         }
 
-        private Matrix2D[] GetBNL1(Matrix2D[] J_0inv)
+        private Matrix[] GetBNL1(Matrix[] J_0inv)
         {
-            Matrix2D[] BNL1;
-            BNL1 = new Matrix2D[nGaussPoints];
+            Matrix[] BNL1;
+            BNL1 = new Matrix[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
-            { BNL1[j] = new Matrix2D(9, 9); }
+            { BNL1[j] = Matrix.CreateZero(9, 9); }
             for (int j = 0; j < nGaussPoints; j++)
             {
                 for (int m = 0; m < 3; m++)
@@ -193,10 +217,10 @@ namespace ISAAR.MSolve.FEM.Elements
             double[] E;
             double[] ni;
 
-
-            IReadOnlyList<Vector> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
-            IReadOnlyList<Matrix2D> shapeFunctionsDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);            
-            (Matrix2D[] ll1, Matrix2D[] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
+            IReadOnlyList<double[]> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
+            IReadOnlyList<Matrix> shapeFunctionsDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);            
+            (Matrix[] ll1, Matrix[] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(
+                QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
             //TODO J_0, J_0b etc. can be cached for not large scale models
 
             tx_i = new double[8][];
@@ -204,7 +228,7 @@ namespace ISAAR.MSolve.FEM.Elements
             double[][] oV1_i = new double[8][]; //tangent vector ''1'' initial configuration
             for (int j = 0; j < 8; j++)
             {
-                tx_i[j] = new double[] { element.INodes[j].X, element.INodes[j].Y, element.INodes[j].Z, };
+                tx_i[j] = new double[] { element.Nodes[j].X, element.Nodes[j].Y, element.Nodes[j].Z, };
                 oV1_i[j] = new double[3];
 
                 oV1_i[j][0] = tUvec[j][0];
@@ -213,8 +237,8 @@ namespace ISAAR.MSolve.FEM.Elements
 
             }
 
-            (Matrix2D[] J_0inv, double[] detJ_0) =
-                JacobianShell8Calculations.GetJ_0invAndDetJ_0(J_0a, element.INodes, oVn_i, nGaussPoints);
+            (Matrix[] J_0inv, double[] detJ_0) =
+                JacobianShell8Calculations.GetJ_0invAndDetJ_0(J_0a, element.Nodes, oVn_i, nGaussPoints);
 
             for (int j = 0; j < nGaussPoints; j++)
             {
@@ -254,9 +278,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         }
 
-       
-
-        private double [][,] CalculateCk(Matrix2D[] J_0a,double [][] tU )
+        private double [][,] CalculateCk(Matrix[] J_0a,double [][] tU )
         {
             double[][,] ck;
             ck = new double[nGaussPoints][,];
@@ -282,24 +304,24 @@ namespace ISAAR.MSolve.FEM.Elements
 
         private void CalculateStrains(IElement element, double[][] tx_i)
         {
-            IReadOnlyList<Vector> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
-            IReadOnlyList<Matrix2D> shapeFunctionsDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
-            (Matrix2D[] ll1, Matrix2D[] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
+            IReadOnlyList<double[]> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
+            IReadOnlyList<Matrix> shapeFunctionsDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
+            (Matrix[] ll1, Matrix[] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
 
-            (Matrix2D[] J_0inv, double[] detJ_0) =
-                JacobianShell8Calculations.GetJ_0invAndDetJ_0(J_0a, element.INodes, oVn_i, nGaussPoints);
+            (Matrix[] J_0inv, double[] detJ_0) =
+                JacobianShell8Calculations.GetJ_0invAndDetJ_0(J_0a, element.Nodes, oVn_i, nGaussPoints);
 
-            Matrix2D[] J_1 = JacobianShell8Calculations.Get_J_1(nGaussPoints, tx_i, tU, J_0a);
-            Matrix2D[] DefGradTr;
-            Matrix2D[] GL;
+            Matrix[] J_1 = JacobianShell8Calculations.Get_J_1(nGaussPoints, tx_i, tU, J_0a);
+            Matrix[] DefGradTr;
+            Matrix[] GL;
             
-            DefGradTr = new Matrix2D[nGaussPoints];
-            GL = new Matrix2D[nGaussPoints];
+            DefGradTr = new Matrix[nGaussPoints];
+            GL = new Matrix[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
             {
                 
-                DefGradTr[j] = new Matrix2D(3, 3);
-                GL[j] = new Matrix2D(3, 3);
+                DefGradTr[j] = Matrix.CreateZero(3, 3);
+                GL[j] = Matrix.CreateZero(3, 3);
             }
 
             GLvec = new double[nGaussPoints][]; 
@@ -314,7 +336,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 {
                     GL[j][k, k] = GL[j][k, k] - 1;
                 }
-                GL[j].Scale(0.5);                
+                GL[j].ScaleIntoThis(0.5);                
 
                 GLvec[j] = new double[6];
                 for (int k = 0; k < 3; k++)
@@ -328,29 +350,28 @@ namespace ISAAR.MSolve.FEM.Elements
 
         private double [] UpdateForces(IElement element)
         {
-
-            IReadOnlyList<Vector> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
-            IReadOnlyList<Matrix2D> shapeFunctionsDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
-            (Matrix2D[] ll1, Matrix2D[] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
+            IReadOnlyList<double[]> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
+            IReadOnlyList<Matrix> shapeFunctionsDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
+            (Matrix[] ll1, Matrix[] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
             
             //BL11a etc. are not cached currently(declare here)
-            (Matrix2D[] J_0inv, double[] detJ_0) =
-                JacobianShell8Calculations.GetJ_0invAndDetJ_0(J_0a, element.INodes, oVn_i, nGaussPoints);
-            Matrix2D[] BL11a;
+            (Matrix[] J_0inv, double[] detJ_0) =
+                JacobianShell8Calculations.GetJ_0invAndDetJ_0(J_0a, element.Nodes, oVn_i, nGaussPoints);
+            Matrix[] BL11a;
             BL11a = GetBL11a(J_0inv);
-            Matrix2D[] BL12;
+            Matrix[] BL12;
             BL12 = GetBL12(J_0inv);
-            Matrix2D[] BL13;
+            Matrix[] BL13;
             BL13 = GetBL13(shapeFunctionsDerivatives, tUvec, J_0a);
 
-            Matrix2D[] BL;
-            BL = new Matrix2D[nGaussPoints];
-            Matrix2D[] BL01plus1_2;
-            BL01plus1_2 = new Matrix2D[nGaussPoints];
+            Matrix[] BL;
+            BL = new Matrix[nGaussPoints];
+            Matrix[] BL01plus1_2;
+            BL01plus1_2 = new Matrix[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
             {
-                BL[j] = new Matrix2D(6, 40);
-                BL01plus1_2[j] = new Matrix2D(6, 9);
+                BL[j] = Matrix.CreateZero(6, 40);
+                BL01plus1_2[j] = Matrix.CreateZero(6, 9);
             }
 
 
@@ -360,8 +381,8 @@ namespace ISAAR.MSolve.FEM.Elements
                 Fxk[j] = new double[40];
             }
 
-            Matrix2D ll2;
-            ll2 = new Matrix2D(24, 3);                 
+            Matrix ll2;
+            ll2 = Matrix.CreateZero(24, 3);                 
             for (int j = 0; j < 8; j++)
             {
                 for (int k = 0; k < 3; k++)
@@ -372,19 +393,19 @@ namespace ISAAR.MSolve.FEM.Elements
                 }
             }
 
-            Matrix2D[] l_circumflex;
-            l_circumflex = new Matrix2D[nGaussPoints];
+            Matrix[] l_circumflex;
+            l_circumflex = new Matrix[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
-            { l_circumflex[j] = new Matrix2D(3, 3); }
+            { l_circumflex[j] = Matrix.CreateZero(3, 3); }
             for (int j = 0; j < nGaussPoints; j++)
             {
                 l_circumflex[j] = ll1[j] * ll2;                
             }
 
-            Matrix2D[] BL11b;
-            BL11b = new Matrix2D[nGaussPoints];
+            Matrix[] BL11b;
+            BL11b = new Matrix[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
-            { BL11b[j] = new Matrix2D(9, 9); }
+            { BL11b[j] = Matrix.CreateZero(9, 9); }
             for (int j = 0; j < nGaussPoints; j++)
             {
                 
@@ -398,16 +419,16 @@ namespace ISAAR.MSolve.FEM.Elements
                 }
             }
 
-            Matrix2D[] BL11;
-            BL11 = new Matrix2D[nGaussPoints];            
+            Matrix[] BL11;
+            BL11 = new Matrix[nGaussPoints];            
             for (int j = 0; j < nGaussPoints; j++)
             {
                 BL11[j] = BL11a[j] * BL11b[j];           
             }
 
             
-            Matrix2D[] BL1_2;
-            BL1_2 = new Matrix2D[nGaussPoints];
+            Matrix[] BL1_2;
+            BL1_2 = new Matrix[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
             {
                 BL1_2[j] = BL11[j] * BL12[j];
@@ -442,43 +463,43 @@ namespace ISAAR.MSolve.FEM.Elements
             return Fxk[nGaussPoints];
         }
 
-        private Matrix2D UpdateKmatrices(IElement element)
+        private Matrix UpdateKmatrices(IElement element)
         {            
             double[][] kck;// 1 per node and (one per Gauss point+1 for the addition) -->[GP][8 dofs_per_node*nodes]
-            Matrix2D[] KNL;
-            Matrix2D[] KL;
+            Matrix[] KNL;
+            Matrix[] KL;
             double[][] BL01plus1_2tSPKvec;
 
 
-            IReadOnlyList<Vector> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
-            IReadOnlyList<Matrix2D> shapeFunctionsDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
-            (Matrix2D[] ll1, Matrix2D[] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
-            (Matrix2D[] J_0inv, double[] detJ_0) =
-                JacobianShell8Calculations.GetJ_0invAndDetJ_0(J_0a, element.INodes, oVn_i, nGaussPoints);
-            Matrix2D[] BNL1;
+            IReadOnlyList<double[]> shapeFunctions = Interpolation.EvaluateFunctionsAtGaussPoints(QuadratureForStiffness);
+            IReadOnlyList<Matrix> shapeFunctionsDerivatives = Interpolation.EvaluateNaturalGradientsAtGaussPoints(QuadratureForStiffness);
+            (Matrix[] ll1, Matrix[] J_0a) = JacobianShell8Calculations.Getll1AndJ_0a(QuadratureForStiffness, tk, shapeFunctions, shapeFunctionsDerivatives);
+            (Matrix[] J_0inv, double[] detJ_0) =
+                JacobianShell8Calculations.GetJ_0invAndDetJ_0(J_0a, element.Nodes, oVn_i, nGaussPoints);
+            Matrix[] BNL1;
             BNL1 = GetBNL1(J_0inv);
-            Matrix2D[] BL13;
+            Matrix[] BL13;
             BL13 = GetBL13(shapeFunctionsDerivatives, tUvec, J_0a); //TODO: maybe cached from calcForces for problems of normal memory requirements
             double[][,] ck;
             ck = CalculateCk(J_0a, tU);
 
             //
-            Matrix2D[] BL11a; //TODO: maybe cached from calcForces for problems of normal memory
+            Matrix[] BL11a; //TODO: maybe cached from calcForces for problems of normal memory
             BL11a = GetBL11a(J_0inv);
-            Matrix2D[] BL12;
+            Matrix[] BL12;
             BL12 = GetBL12(J_0inv);
             //
-            Matrix2D[] BL; //TODO: maybe cached from calcForces for problems of normal memory
-            BL = new Matrix2D[nGaussPoints];
-            Matrix2D[] BL01plus1_2;
-            BL01plus1_2 = new Matrix2D[nGaussPoints];
+            Matrix[] BL; //TODO: maybe cached from calcForces for problems of normal memory
+            BL = new Matrix[nGaussPoints];
+            Matrix[] BL01plus1_2;
+            BL01plus1_2 = new Matrix[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
             {
-                BL[j] = new Matrix2D(6, 40);
-                BL01plus1_2[j] = new Matrix2D(6, 9);
+                BL[j] = Matrix.CreateZero(6, 40);
+                BL01plus1_2[j] = Matrix.CreateZero(6, 9);
             }
             //
-            var ll2 = new Matrix2D(24, 3);
+            var ll2 = Matrix.CreateZero(24, 3);
             for (int j = 0; j < 8; j++)
             {
                 for (int k = 0; k < 3; k++)
@@ -489,19 +510,19 @@ namespace ISAAR.MSolve.FEM.Elements
                 }
             }
 
-            Matrix2D[] l_circumflex;
-            l_circumflex = new Matrix2D[nGaussPoints];
+            Matrix[] l_circumflex;
+            l_circumflex = new Matrix[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
-            { l_circumflex[j] = new Matrix2D(3, 3); }
+            { l_circumflex[j] = Matrix.CreateZero(3, 3); }
             for (int j = 0; j < nGaussPoints; j++)
             {
                 l_circumflex[j] = ll1[j] * ll2;                           
             }
 
-            Matrix2D[] BL11b;
-            BL11b = new Matrix2D[nGaussPoints];
+            Matrix[] BL11b;
+            BL11b = new Matrix[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
-            { BL11b[j] = new Matrix2D(9, 9); }
+            { BL11b[j] = Matrix.CreateZero(9, 9); }
             for (int j = 0; j < nGaussPoints; j++)
             {
                 for (int k = 0; k < 3; k++)
@@ -514,21 +535,21 @@ namespace ISAAR.MSolve.FEM.Elements
                 }
             }
 
-            Matrix2D[] BL11;
-            BL11 = new Matrix2D[nGaussPoints];
+            Matrix[] BL11;
+            BL11 = new Matrix[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
-            { BL11[j] = new Matrix2D(6, 9); }
+            { BL11[j] = Matrix.CreateZero(6, 9); }
             for (int j = 0; j < nGaussPoints; j++)
             {
                 BL11[j] = BL11a[j] * BL11b[j];                
             }
 
 
-            Matrix2D[] BL1_2;
-            BL1_2 = new Matrix2D[nGaussPoints];
+            Matrix[] BL1_2;
+            BL1_2 = new Matrix[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
             {
-                BL1_2[j] = new Matrix2D(6, 9);
+                BL1_2[j] = Matrix.CreateZero(6, 9);
             }
             for (int j = 0; j < nGaussPoints; j++)
             {
@@ -545,20 +566,20 @@ namespace ISAAR.MSolve.FEM.Elements
                 BL[j] = BL01plus1_2[j] * BL13[j];               
             }
 
-            KL= new Matrix2D[nGaussPoints + 1];
-            KNL = new Matrix2D[nGaussPoints + 1];
+            KL= new Matrix[nGaussPoints + 1];
+            KNL = new Matrix[nGaussPoints + 1];
             kck = new double[nGaussPoints + 1][];
             BL01plus1_2tSPKvec = new double[nGaussPoints][];
             for (int j = 0; j < nGaussPoints + 1; j++)
             {
                 
-                KL[j] = new Matrix2D(40, 40);
-                KNL[j] = new Matrix2D(40, 40);
+                KL[j] = Matrix.CreateZero(40, 40);
+                KNL[j] = Matrix.CreateZero(40, 40);
             }
             
            for (int j = 0; j < nGaussPoints; j++)
             {
-                var SPK_circumflex = new Matrix2D(9, 9);                
+                var SPK_circumflex = Matrix.CreateZero(9, 9);                
                 for (int k = 0; k < 3; k++) 
                 {
                     for (int l = 0; l < 3; l++)
@@ -595,7 +616,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 }
 
                 
-                var ConsBL = new Matrix2D(6, 40);
+                var ConsBL = Matrix.CreateZero(6, 40);
                 for (int k = 0; k < 6; k++)
                 {
                     for (int l = 0; l < 40; l++)
@@ -613,7 +634,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 
             }
 
-            var Kt = new Matrix2D(40, 40);
+            var Kt = Matrix.CreateZero(40, 40);
             for (int j = 0; j < nGaussPoints; j++)
             {
 
@@ -633,12 +654,12 @@ namespace ISAAR.MSolve.FEM.Elements
             return Kt;
         }
 
-        private void UpdateCoordinateData(double[] localdisplacements, IList<INode> elementNodes, out double[][] tx_i)
+        private void UpdateCoordinateData(double[] localdisplacements, Element element, out double[][] tx_i)
         {
             double[][] ox_i = new double[8][]; // this should be allocated in the constructor
             for (int j = 0; j < 8; j++)
             {
-                ox_i[j] = new double[] { elementNodes[j].X, elementNodes[j].Y, elementNodes[j].Z, };
+                ox_i[j] = new double[] { element.Nodes[j].X, element.Nodes[j].Y, element.Nodes[j].Z, };
             }
 
             double ak;
@@ -662,35 +683,17 @@ namespace ISAAR.MSolve.FEM.Elements
                 Shell8DirectionVectorUtilities.RotateNodalDirectionVectors(ak, bk, k,tU,tUvec);                
             }            
         }
-       
+
         // region IstructuralFiniteElement
 
-        public int ID
-        {
-            get { return 12; }
-        }
-
-        public ElementDimensions ElementDimensions
-        {
-            get { return ElementDimensions.ThreeD; }
-        }
-
-        public virtual IList<IList<DOFType>> GetElementDOFTypes(IElement element)
-        {
-            return dofTypes;
-        }
-
-        public IElementDOFEnumerator DOFEnumerator
-        {
-            get { return dofEnumerator; }
-            set { dofEnumerator = value; }
-        }
+        public virtual IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
 
         //IstructuralElement concerning material
         public void ClearMaterialState()
         {
             foreach (IShellMaterial m in materialsAtGaussPoints) m.ClearState();
         }
+
         public void SaveMaterialState()
         {
             foreach (IShellMaterial m in materialsAtGaussPoints) m.SaveState();
@@ -701,16 +704,6 @@ namespace ISAAR.MSolve.FEM.Elements
             foreach (IShellMaterial m in materialsAtGaussPoints) m.ClearStresses();
         }
 
-        public bool MaterialModified
-        {
-            get
-            {
-                foreach (IShellMaterial material in materialsAtGaussPoints)
-                    if (material.Modified) return true;
-                return false;
-            }
-        }
-
         public void ResetMaterialModified()
         {
             foreach (IShellMaterial material in materialsAtGaussPoints) material.ResetModified();
@@ -718,7 +711,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public Tuple<double[], double[]> CalculateStresses(Element element, double[] localTotalDisplacements, double[] localdDisplacements)
         {
-            this.UpdateCoordinateData(localTotalDisplacements, element.INodes, out double[][] tx_i);
+            this.UpdateCoordinateData(localTotalDisplacements, element, out double[][] tx_i);
             this.CalculateStrains(element, tx_i);
             for (int npoint = 0; npoint < materialsAtGaussPoints.Length; npoint++)
             {
@@ -734,26 +727,27 @@ namespace ISAAR.MSolve.FEM.Elements
             return new double[123];
         }
 
-        public virtual IMatrix2D MassMatrix(IElement element)
+        public virtual IMatrix MassMatrix(IElement element)
         {
             throw new NotImplementedException();
         }
 
-        public virtual IMatrix2D DampingMatrix(IElement element)
+        public virtual IMatrix DampingMatrix(IElement element)
         {
             throw new NotImplementedException();
         }        
 
         public double[] CalculateForces(Element element, double[] localTotalDisplacements, double[] localdDisplacements)
         {
-            return UpdateForces(element);
+            double[] Fxk;
+            Fxk =this.UpdateForces(element);
+            return Fxk;
         }
 
-        private int endeixiStiffness = 1;
-        public virtual IMatrix2D StiffnessMatrix(IElement element)
+        public virtual IMatrix StiffnessMatrix(IElement element)
         {
-            var Kt = new Matrix2D(40, 40);
-            if (endeixiStiffness == 1)
+            var Kt = Matrix.CreateZero(40, 40);
+            if (stiffnessCase == 1)
             {
                 this.CalculateInitialConfigurationData(element, out double[][] tx_i);
                 this.CalculateStrains(element, tx_i);
@@ -767,7 +761,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
 
                 Kt = this.UpdateKmatrices(element);
-                endeixiStiffness = 2;
+                stiffnessCase = 2;
                 return dofEnumerator.GetTransformedMatrix(Kt);
             }
             else
@@ -777,24 +771,7 @@ namespace ISAAR.MSolve.FEM.Elements
             }
         }
 
-        public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
-        {
-            return CalculateForces(element, localDisplacements, new double[localDisplacements.Length]);
-        }
-
-
+        public double[] CalculateForcesForLogging(Element element, double[] localDisplacements) 
+            => CalculateForces(element, localDisplacements, new double[localDisplacements.Length]);
     }
-
-
-
-
 }
-
-
-
-
-
-
-
-
-

@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         private readonly Dictionary<IQuadrature2D, IReadOnlyList<double[]>> cachedFunctionsAtGPs;
         private readonly Dictionary<IQuadrature2D, IReadOnlyList<Matrix>> cachedNaturalGradientsAtGPs;
 
-        protected IsoparametricInterpolation2DBase(CellType2D cellType, int numFunctions)
+        protected IsoparametricInterpolation2DBase(CellType cellType, int numFunctions)
         {
             this.CellType = cellType;
             this.NumFunctions = numFunctions;
@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <summary>
         /// See <see cref="IIsoparametricInterpolation2D.CellType"/>.
         /// </summary>
-        public CellType2D CellType { get; }
+        public CellType CellType { get; }
 
         /// <summary>
         /// See <see cref="IIsoparametricInterpolation2D.NumFunctions"/>.
@@ -43,14 +43,14 @@ namespace ISAAR.MSolve.FEM.Interpolation
         public abstract IReadOnlyList<NaturalPoint2D> NodalNaturalCoordinates { get; }
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation2D.CreateInverseMappingFor(IReadOnlyList{Node_v2})"/>.
+        /// See <see cref="IIsoparametricInterpolation2D.CreateInverseMappingFor(IReadOnlyList{Node})"/>.
         /// </summary>
-        public abstract IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node_v2> nodes);
+        public abstract IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node> nodes);
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation2D.EvaluateAllAt(IReadOnlyList{Node_v2}, NaturalPoint2D)"/>.
+        /// See <see cref="IIsoparametricInterpolation2D.EvaluateAllAt(IReadOnlyList{Node}, NaturalPoint2D)"/>.
         /// </summary>
-        public EvalInterpolation2D EvaluateAllAt(IReadOnlyList<Node_v2> nodes, NaturalPoint2D naturalPoint)
+        public EvalInterpolation2D EvaluateAllAt(IReadOnlyList<Node> nodes, NaturalPoint2D naturalPoint)
         {
             double xi = naturalPoint.Xi;
             double eta = naturalPoint.Eta;
@@ -61,9 +61,9 @@ namespace ISAAR.MSolve.FEM.Interpolation
         }
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation2D.EvaluateAllAtGaussPoints(IReadOnlyList{Node_v2}, IQuadrature2D)"/>.
+        /// See <see cref="IIsoparametricInterpolation2D.EvaluateAllAtGaussPoints(IReadOnlyList{Node}, IQuadrature2D)"/>.
         /// </summary>
-        public IReadOnlyList<EvalInterpolation2D> EvaluateAllAtGaussPoints(IReadOnlyList<Node_v2> nodes, IQuadrature2D quadrature)
+        public IReadOnlyList<EvalInterpolation2D> EvaluateAllAtGaussPoints(IReadOnlyList<Node> nodes, IQuadrature2D quadrature)
         {
             // The shape functions and natural derivatives at each Gauss point are probably cached from previous calls
             IReadOnlyList<double[]> shapeFunctionsAtGPs = EvaluateFunctionsAtGaussPoints(quadrature);
@@ -138,9 +138,9 @@ namespace ISAAR.MSolve.FEM.Interpolation
         }
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation2D.TransformNaturalToCartesian(IReadOnlyList{Node_v2}, NaturalPoint2D)"/>.
+        /// See <see cref="IIsoparametricInterpolation2D.TransformNaturalToCartesian(IReadOnlyList{Node}, NaturalPoint2D)"/>.
         /// </summary>
-        public CartesianPoint2D TransformNaturalToCartesian(IReadOnlyList<Node_v2> nodes, NaturalPoint2D naturalPoint)
+        public CartesianPoint2D TransformNaturalToCartesian(IReadOnlyList<Node> nodes, NaturalPoint2D naturalPoint)
         {
             double[] shapeFunctionValues = EvaluateAt(naturalPoint.Xi, naturalPoint.Eta);
             double x = 0, y = 0;

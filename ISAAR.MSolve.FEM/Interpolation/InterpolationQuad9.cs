@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
     {
         private static readonly InterpolationQuad9 uniqueInstance = new InterpolationQuad9();
 
-        private InterpolationQuad9() : base(CellType2D.Quad9, 9)
+        private InterpolationQuad9() : base(CellType.Quad9, 9)
         {
             NodalNaturalCoordinates = new NaturalPoint2D[]
             {
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <returns></returns>
-        public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node_v2> nodes)
+        public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node> nodes)
             => throw new NotImplementedException("Requires an iterative procedure.");
 
         protected override sealed double[] EvaluateAt(double xi, double eta)

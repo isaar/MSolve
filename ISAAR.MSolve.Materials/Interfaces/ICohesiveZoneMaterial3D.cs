@@ -1,13 +1,11 @@
-﻿
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.Materials.Interfaces
 {
     public interface ICohesiveZoneMaterial3D  
     {
         double[] Tractions { get; }
-        IMatrix2D ConstitutiveMatrix { get; }
+        IMatrixView ConstitutiveMatrix { get; }
         void UpdateMaterial(double[] strains);
         int ID { get; }
         bool Modified { get; }

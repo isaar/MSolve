@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.FEM.Providers
 {
@@ -17,39 +17,39 @@ namespace ISAAR.MSolve.FEM.Providers
             this.massCoefficient = massCoefficient;
         }
 
-        private IMatrix2D PorousMatrix(IElement element)
+        private IMatrix PorousMatrix(IElement element)
         {
-            IPorousFiniteElement elementType = (IPorousFiniteElement)element.IElementType;
+            IPorousFiniteElement elementType = (IPorousFiniteElement)element.ElementType;
             int dofs = 0;
-            foreach (IList<DOFType> dofTypes in elementType.DOFEnumerator.GetDOFTypes(element))
-                foreach (DOFType dofType in dofTypes) dofs++;
-            SymmetricMatrix2D poreMass = new SymmetricMatrix2D(dofs);
+            foreach (IList<IDofType> dofTypes in elementType.DofEnumerator.GetDOFTypes(element))
+                foreach (IDofType dofType in dofTypes) dofs++;
+            var poreMass = SymmetricMatrix.CreateZero(dofs);
 
-            IMatrix2D mass = solidMassProvider.Matrix(element);
+            IMatrix mass = solidMassProvider.Matrix(element);
 
             int matrixRow = 0;
             int solidRow = 0;
-            foreach (IList<DOFType> dofTypesRow in elementType.DOFEnumerator.GetDOFTypes(element))
-                foreach (DOFType dofTypeRow in dofTypesRow)
+            foreach (IList<IDofType> dofTypesRow in elementType.DofEnumerator.GetDOFTypes(element))
+                foreach (IDofType dofTypeRow in dofTypesRow)
                 {
                     int matrixCol = 0;
                     int solidCol = 0;
-                    foreach (IList<DOFType> dofTypesCol in elementType.DOFEnumerator.GetDOFTypes(element))
-                        foreach (DOFType dofTypeCol in dofTypesCol)
+                    foreach (IList<IDofType> dofTypesCol in elementType.DofEnumerator.GetDOFTypes(element))
+                        foreach (IDofType dofTypeCol in dofTypesCol)
                         {
-                            if (dofTypeCol == DOFType.Pore)
+                            if (dofTypeCol == PorousMediaDof.Pressure)
                             {
                             }
                             else
                             {
-                                if (dofTypeRow != DOFType.Pore)
+                                if (dofTypeRow != PorousMediaDof.Pressure)
                                     poreMass[matrixRow, matrixCol] = mass[solidRow, solidCol] * massCoefficient;
                                 solidCol++;
                             }
                             matrixCol++;
                         }
 
-                    if (dofTypeRow != DOFType.Pore) solidRow++;
+                    if (dofTypeRow != PorousMediaDof.Pressure) solidRow++;
                     matrixRow++;
                 }
 
@@ -58,13 +58,13 @@ namespace ISAAR.MSolve.FEM.Providers
 
         #region IElementMatrixProvider Members
 
-        public IMatrix2D Matrix(IElement element)
+        public IMatrix Matrix(IElement element)
         {
-            if (element.IElementType is IPorousFiniteElement)
+            if (element.ElementType is IPorousFiniteElement)
                 return PorousMatrix(element);
             else
             {
-                IMatrix2D massMatrix = solidMassProvider.Matrix(element);
+                IMatrix massMatrix = solidMassProvider.Matrix(element);
                 massMatrix.Scale(massCoefficient);
                 return massMatrix;
             }

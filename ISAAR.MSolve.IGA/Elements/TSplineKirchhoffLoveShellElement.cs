@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
@@ -9,22 +9,21 @@ using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.IGA.SupportiveClasses;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Elements
 {
     public class TSplineKirchhoffLoveShellElement: Element, IStructuralIsogeometricElement
 	{
-	    public Matrix2D ExtractionOperator { get; set; } 
+	    public Matrix ExtractionOperator { get; set; } 
 		public int DegreeKsi { get; set; }
 		public int DegreeHeta { get; set; }
-		protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
-		protected DOFType[][] dofTypes;
-		protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
+		protected readonly static IDofType[] controlPointDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ };
+		protected IDofType[][] dofTypes;
+		protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
 
-		public IElementDofEnumerator_v2 DofEnumerator
+		public IElementDofEnumerator DofEnumerator
 		{
 			get
 			{
@@ -87,15 +86,15 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix DampingMatrix(IElement_v2 element)
+		public IMatrix DampingMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
+		public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
 		{
 			var nurbsElement = (TSplineKirchhoffLoveShellElement)element;
-			dofTypes = new DOFType[nurbsElement.ControlPoints.Count][];
+			dofTypes = new IDofType[nurbsElement.ControlPoints.Count][];
 			for (int i = 0; i < nurbsElement.ControlPoints.Count; i++)
 			{
 				dofTypes[i] = controlPointDOFTypes;
@@ -103,7 +102,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			return dofTypes;
 		}
 
-		public IMatrix MassMatrix(IElement_v2 element)
+		public IMatrix MassMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
@@ -113,11 +112,11 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IMatrix StiffnessMatrix(IElement_v2 element)
+		public IMatrix StiffnessMatrix(IElement element)
 		{
 			var shellElement = (TSplineKirchhoffLoveShellElement)element;
             IList<GaussLegendrePoint3D> gaussPoints = CreateElementGaussPoints(shellElement);
-			Matrix2D stiffnessMatrixElement = new Matrix2D(shellElement.ControlPointsDictionary.Count * 3, shellElement.ControlPointsDictionary.Count * 3);
+			Matrix stiffnessMatrixElement = Matrix.CreateZero(shellElement.ControlPointsDictionary.Count * 3, shellElement.ControlPointsDictionary.Count * 3);
 
 			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(shellElement, shellElement.ControlPoints);
 
@@ -131,15 +130,15 @@ namespace ISAAR.MSolve.IGA.Elements
 
 				var surfaceBasisVector2 = CalculateSurfaceBasisVector1(jacobianMatrix, 1);
 
-				var surfaceBasisVector3 = surfaceBasisVector1^surfaceBasisVector2;
-				var J1 = surfaceBasisVector3.Norm;
-				surfaceBasisVector3.Multiply(1 / J1);
+				var surfaceBasisVector3 = surfaceBasisVector1.CrossProduct(surfaceBasisVector2);
+				var J1 = surfaceBasisVector3.Norm2();
+				surfaceBasisVector3.ScaleIntoThis(1 / J1);
 
 				var surfaceBasisVectorDerivative1 = CalculateSurfaceBasisVector1(hessianMatrix, 0);
 				var surfaceBasisVectorDerivative2 = CalculateSurfaceBasisVector1(hessianMatrix, 1);
 				var surfaceBasisVectorDerivative12 = CalculateSurfaceBasisVector1(hessianMatrix, 2);
 
-				Matrix2D constitutiveMatrix = CalculateConstitutiveMatrix(shellElement, surfaceBasisVector1,surfaceBasisVector2);
+				Matrix constitutiveMatrix = CalculateConstitutiveMatrix(shellElement, surfaceBasisVector1,surfaceBasisVector2);
 
 				var Bmembrane = CalculateMembraneDeformationMatrix(tsplines, j, surfaceBasisVector1, surfaceBasisVector2, shellElement);
 
@@ -158,23 +157,23 @@ namespace ISAAR.MSolve.IGA.Elements
 							   gaussPoints[j].WeightFactor;
 
 
-				stiffnessMatrixElement.Add(Kmembrane);
-				stiffnessMatrixElement.Add(Kbending);
+				stiffnessMatrixElement.AddIntoThis(Kmembrane);
+				stiffnessMatrixElement.AddIntoThis(Kbending);
 			}
-			return Matrix.CreateFromArray(stiffnessMatrixElement.Data);
+			return stiffnessMatrixElement;
 		}
 
-		private Matrix2D CalculateConstitutiveMatrix(TSplineKirchhoffLoveShellElement element, Vector surfaceBasisVector1, Vector surfaceBasisVector2)
+		private Matrix CalculateConstitutiveMatrix(TSplineKirchhoffLoveShellElement element, Vector surfaceBasisVector1, Vector surfaceBasisVector2)
 		{
-            var auxMatrix1 = new Matrix2D(2, 2);
+            var auxMatrix1 = Matrix.CreateZero(2, 2);
             auxMatrix1[0, 0] = surfaceBasisVector1.DotProduct(surfaceBasisVector1);
 			auxMatrix1[0, 1] = surfaceBasisVector1.DotProduct(surfaceBasisVector2);
 			auxMatrix1[1, 0] = surfaceBasisVector2.DotProduct(surfaceBasisVector1);
             auxMatrix1[1, 1] = surfaceBasisVector2.DotProduct(surfaceBasisVector2);
-            (Matrix2D inverse, double det) = auxMatrix1.Invert2x2AndDeterminant(1e-20);
+            (Matrix inverse, double det) = auxMatrix1.InvertAndDetermninant();
 
 			var material = ((IContinuumMaterial2D)element.Patch.Material);
-			var constitutiveMatrix = new Matrix2D(new double[3, 3]
+			var constitutiveMatrix = Matrix.CreateFromArray(new double[3, 3]
 			{
 				{
                     inverse[0,0]*inverse[0,0],
@@ -195,76 +194,76 @@ namespace ISAAR.MSolve.IGA.Elements
 			return constitutiveMatrix;
 		}
 
-		private Matrix2D CalculateBendingDeformationMatrix(Vector surfaceBasisVector3, ShapeTSplines2DFromBezierExtraction tsplines, int j,
+		private Matrix CalculateBendingDeformationMatrix(Vector surfaceBasisVector3, ShapeTSplines2DFromBezierExtraction tsplines, int j,
 			Vector surfaceBasisVector2, Vector surfaceBasisVectorDerivative1, Vector surfaceBasisVector1, double J1,
 			Vector surfaceBasisVectorDerivative2, Vector surfaceBasisVectorDerivative12, TSplineKirchhoffLoveShellElement element)
 		{
-			Matrix2D Bbending = new Matrix2D(3, element.ControlPoints.Count * 3);
+			Matrix Bbending = Matrix.CreateZero(3, element.ControlPoints.Count * 3);
 			for (int column = 0; column < element.ControlPoints.Count * 3; column+=3)
 			{
 				#region BI1
 
-				var BI1 = surfaceBasisVector3^surfaceBasisVector3;
-				BI1.Multiply(tsplines.TSplineDerivativeValuesHeta[column / 3, j]);
-				var auxVector = surfaceBasisVector2^surfaceBasisVector3;
-				auxVector.Multiply(tsplines.TSplineDerivativeValuesKsi[column / 3, j]);
-				BI1.Add(auxVector);
-				BI1.Multiply(surfaceBasisVector3.DotProduct(surfaceBasisVectorDerivative1));
-				auxVector = surfaceBasisVector1^surfaceBasisVectorDerivative1;
-				auxVector.Multiply(tsplines.TSplineDerivativeValuesHeta[column / 3, j]);
-				BI1.Add(auxVector);
-				BI1.Multiply(1 / J1);
+				var BI1 = surfaceBasisVector3.CrossProduct(surfaceBasisVector3);
+				BI1.ScaleIntoThis(tsplines.TSplineDerivativeValuesHeta[column / 3, j]);
+				var auxVector = surfaceBasisVector2.CrossProduct(surfaceBasisVector3);
+				auxVector.ScaleIntoThis(tsplines.TSplineDerivativeValuesKsi[column / 3, j]);
+				BI1.AddIntoThis(auxVector);
+				BI1.ScaleIntoThis(surfaceBasisVector3.DotProduct(surfaceBasisVectorDerivative1));
+				auxVector = surfaceBasisVector1.CrossProduct(surfaceBasisVectorDerivative1);
+				auxVector.ScaleIntoThis(tsplines.TSplineDerivativeValuesHeta[column / 3, j]);
+				BI1.AddIntoThis(auxVector);
+				BI1.ScaleIntoThis(1 / J1);
 				auxVector[0] = surfaceBasisVector3[0];
 				auxVector[1] = surfaceBasisVector3[1];
 				auxVector[2] = surfaceBasisVector3[2];
-				auxVector.Multiply(-tsplines.TSplineSecondDerivativesValueKsi[column / 3, j]);
-				BI1.Add(auxVector);
+				auxVector.ScaleIntoThis(-tsplines.TSplineSecondDerivativesValueKsi[column / 3, j]);
+				BI1.AddIntoThis(auxVector);
 
 				#endregion
 
 				#region BI2
 
-				Vector BI2 = surfaceBasisVector3^surfaceBasisVector3;
-				BI2.Multiply(tsplines.TSplineDerivativeValuesHeta[column / 3, j]);
-				auxVector = surfaceBasisVector2^surfaceBasisVector3;
-				auxVector.Multiply(tsplines.TSplineDerivativeValuesKsi[column / 3, j]);
-				BI2.Add(auxVector);
-				BI2.Multiply(surfaceBasisVector3.DotProduct(surfaceBasisVectorDerivative2));
-				auxVector = surfaceBasisVector1^surfaceBasisVectorDerivative2;
-				auxVector.Multiply(tsplines.TSplineDerivativeValuesHeta[column / 3, j]);
-				BI2.Add(auxVector);
-				auxVector = surfaceBasisVectorDerivative2^surfaceBasisVector2;
-				auxVector.Multiply(tsplines.TSplineDerivativeValuesKsi[column / 3, j]);
-				BI2.Add(auxVector);
-				BI2.Multiply(1 / J1);
+				Vector BI2 = surfaceBasisVector3.CrossProduct(surfaceBasisVector3);
+				BI2.ScaleIntoThis(tsplines.TSplineDerivativeValuesHeta[column / 3, j]);
+				auxVector = surfaceBasisVector2.CrossProduct(surfaceBasisVector3);
+				auxVector.ScaleIntoThis(tsplines.TSplineDerivativeValuesKsi[column / 3, j]);
+				BI2.AddIntoThis(auxVector);
+				BI2.ScaleIntoThis(surfaceBasisVector3.DotProduct(surfaceBasisVectorDerivative2));
+				auxVector = surfaceBasisVector1.CrossProduct(surfaceBasisVectorDerivative2);
+				auxVector.ScaleIntoThis(tsplines.TSplineDerivativeValuesHeta[column / 3, j]);
+				BI2.AddIntoThis(auxVector);
+				auxVector = surfaceBasisVectorDerivative2.CrossProduct(surfaceBasisVector2);
+				auxVector.ScaleIntoThis(tsplines.TSplineDerivativeValuesKsi[column / 3, j]);
+				BI2.AddIntoThis(auxVector);
+				BI2.ScaleIntoThis(1 / J1);
 				auxVector[0] = surfaceBasisVector3[0];
 				auxVector[1] = surfaceBasisVector3[1];
 				auxVector[2] = surfaceBasisVector3[2];
-				auxVector.Multiply(-tsplines.TSplineSecondDerivativesValueHeta[column / 3, j]);
-				BI2.Add(auxVector);
+				auxVector.ScaleIntoThis(-tsplines.TSplineSecondDerivativesValueHeta[column / 3, j]);
+				BI2.AddIntoThis(auxVector);
 
 				#endregion
 
 				#region BI3
 
-				Vector BI3 = surfaceBasisVector3^surfaceBasisVector3;
-				BI3.Multiply(tsplines.TSplineDerivativeValuesHeta[column / 3, j]);
-				auxVector = surfaceBasisVector2^surfaceBasisVector3;
-				auxVector.Multiply(tsplines.TSplineDerivativeValuesKsi[column / 3, j]);
-				BI3.Add(auxVector);
-				BI3.Multiply(surfaceBasisVector3.DotProduct(surfaceBasisVectorDerivative12));
-				auxVector = surfaceBasisVector1^surfaceBasisVectorDerivative12;
-				auxVector.Multiply(tsplines.TSplineDerivativeValuesHeta[column / 3, j]);
-				BI3.Add(auxVector);
-				auxVector = surfaceBasisVectorDerivative2^surfaceBasisVector2;
-				auxVector.Multiply(tsplines.TSplineDerivativeValuesKsi[column / 3, j]);
-				BI3.Add(auxVector);
-				BI3.Multiply(1 / J1);
+				Vector BI3 = surfaceBasisVector3.CrossProduct(surfaceBasisVector3);
+				BI3.ScaleIntoThis(tsplines.TSplineDerivativeValuesHeta[column / 3, j]);
+				auxVector = surfaceBasisVector2.CrossProduct(surfaceBasisVector3);
+				auxVector.ScaleIntoThis(tsplines.TSplineDerivativeValuesKsi[column / 3, j]);
+				BI3.AddIntoThis(auxVector);
+				BI3.ScaleIntoThis(surfaceBasisVector3.DotProduct(surfaceBasisVectorDerivative12));
+				auxVector = surfaceBasisVector1.CrossProduct(surfaceBasisVectorDerivative12);
+				auxVector.ScaleIntoThis(tsplines.TSplineDerivativeValuesHeta[column / 3, j]);
+				BI3.AddIntoThis(auxVector);
+				auxVector = surfaceBasisVectorDerivative2.CrossProduct(surfaceBasisVector2);
+				auxVector.ScaleIntoThis(tsplines.TSplineDerivativeValuesKsi[column / 3, j]);
+				BI3.AddIntoThis(auxVector);
+				BI3.ScaleIntoThis(1 / J1);
 				auxVector[0] = surfaceBasisVector3[0];
 				auxVector[1] = surfaceBasisVector3[1];
 				auxVector[2] = surfaceBasisVector3[2];
-				auxVector.Multiply(-tsplines.TSplineSecondDerivativesValueKsiHeta[column / 3, j]);
-				BI3.Add(auxVector);
+				auxVector.ScaleIntoThis(-tsplines.TSplineSecondDerivativesValueKsiHeta[column / 3, j]);
+				BI3.AddIntoThis(auxVector);
 
 				#endregion
 
@@ -284,10 +283,10 @@ namespace ISAAR.MSolve.IGA.Elements
 			return Bbending;
 		}
 
-		private Matrix2D CalculateMembraneDeformationMatrix(ShapeTSplines2DFromBezierExtraction tsplines, int j, Vector surfaceBasisVector1,
+		private Matrix CalculateMembraneDeformationMatrix(ShapeTSplines2DFromBezierExtraction tsplines, int j, Vector surfaceBasisVector1,
 			Vector surfaceBasisVector2, TSplineKirchhoffLoveShellElement element)
 		{
-			Matrix2D dRIa = new Matrix2D(3, element.ControlPoints.Count * 3);
+			Matrix dRIa = Matrix.CreateZero(3, element.ControlPoints.Count * 3);
 			for (int i = 0; i < element.ControlPoints.Count; i++)
 			{
 				for (int m = 0; m < 3; m++)
@@ -297,7 +296,7 @@ namespace ISAAR.MSolve.IGA.Elements
 				}
 			}
 
-			Matrix2D Bmembrane = new Matrix2D(3, element.ControlPoints.Count * 3);
+			Matrix Bmembrane = Matrix.CreateZero(3, element.ControlPoints.Count * 3);
 			for (int column = 0; column < element.ControlPoints.Count * 3; column+=3)
 			{
 				Bmembrane[0, column] = tsplines.TSplineDerivativeValuesKsi[column / 3, j] * surfaceBasisVector1[0];
@@ -316,18 +315,18 @@ namespace ISAAR.MSolve.IGA.Elements
 			return Bmembrane;
 		}
 
-		private static Vector CalculateSurfaceBasisVector1(Matrix2D Matrix, int row)
+		private static Vector CalculateSurfaceBasisVector1(Matrix Matrix, int row)
 		{
-			Vector surfaceBasisVector1 = new Vector(3);
+			Vector surfaceBasisVector1 = Vector.CreateZero(3);
 			surfaceBasisVector1[0] = Matrix[row, 0];
 			surfaceBasisVector1[1] = Matrix[row, 1];
 			surfaceBasisVector1[2] = Matrix[row, 2];
 			return surfaceBasisVector1;
 		}
 
-		private static Matrix2D CalculateHessian(TSplineKirchhoffLoveShellElement shellElement, ShapeTSplines2DFromBezierExtraction tsplines, int j)
+		private static Matrix CalculateHessian(TSplineKirchhoffLoveShellElement shellElement, ShapeTSplines2DFromBezierExtraction tsplines, int j)
 		{
-			Matrix2D hessianMatrix = new Matrix2D(3, 3);
+			Matrix hessianMatrix = Matrix.CreateZero(3, 3);
 			for (int k = 0; k < shellElement.ControlPoints.Count; k++)
 			{
 				hessianMatrix[0, 0] += tsplines.TSplineSecondDerivativesValueKsi[k, j] * shellElement.ControlPoints[k].X;
@@ -344,9 +343,9 @@ namespace ISAAR.MSolve.IGA.Elements
 			return hessianMatrix;
 		}
 
-		private static Matrix2D CalculateJacobian(TSplineKirchhoffLoveShellElement shellElement, ShapeTSplines2DFromBezierExtraction tsplines, int j)
+		private static Matrix CalculateJacobian(TSplineKirchhoffLoveShellElement shellElement, ShapeTSplines2DFromBezierExtraction tsplines, int j)
 		{
-			Matrix2D jacobianMatrix = new Matrix2D(2, 3);
+			Matrix jacobianMatrix = Matrix.CreateZero(2, 3);
 			for (int k = 0; k < shellElement.ControlPoints.Count; k++)
 			{
 				jacobianMatrix[0, 0] += tsplines.TSplineDerivativeValuesKsi[k, j] * shellElement.ControlPoints[k].X;
@@ -375,8 +374,8 @@ namespace ISAAR.MSolve.IGA.Elements
 		public double[,] CalculateDisplacementsForPostProcessing(Element element, double[,] localDisplacements)
 		{
 			var tsplineElement = (TSplineKirchhoffLoveShellElement)element;
-			var knotParametricCoordinatesKsi = new double[] {-1, 1};
-			var knotParametricCoordinatesHeta = new double[] {-1, 1};
+			var knotParametricCoordinatesKsi = Vector.CreateFromArray(new double[] { -1, 1 });
+			var knotParametricCoordinatesHeta = Vector.CreateFromArray(new double[] { -1, 1 });
 
 			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(tsplineElement, tsplineElement.ControlPoints, knotParametricCoordinatesKsi, knotParametricCoordinatesHeta);
 
@@ -405,8 +404,8 @@ namespace ISAAR.MSolve.IGA.Elements
 				{1, 1}
 			};
 
-			var knotParametricCoordinatesKsi = new double[] { -1, 1 };
-			var knotParametricCoordinatesHeta = new double[] { -1, 1 };
+			var knotParametricCoordinatesKsi = Vector.CreateFromArray(new double[] { -1, 1 });
+			var knotParametricCoordinatesHeta = Vector.CreateFromArray(new double[] { -1, 1 });
 
 			ShapeTSplines2DFromBezierExtraction tsplines = new ShapeTSplines2DFromBezierExtraction(element, element.ControlPoints, knotParametricCoordinatesKsi, knotParametricCoordinatesHeta);
 

@@ -51,24 +51,24 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
             SignedBooleanMatrix A1 = CreateMatrix(SignedBoolean5by10.A1);
             Vector x10 = Vector.CreateFromArray(SignedBoolean5by10.X10, true);
             Vector A1TimesX10Expected = Vector.CreateFromArray(SignedBoolean5by10.A1TimesX10, true);
-            Vector A1TimesX10Computed = A1.MultiplyRight(x10, false);
+            Vector A1TimesX10Computed = A1.Multiply(x10, false);
             comparer.AssertEqual(A1TimesX10Expected, A1TimesX10Computed);
 
             // matrix 1 - transposed
             Vector x5 = Vector.CreateFromArray(SignedBoolean5by10.X5, true);
             Vector transpA1TimesX5Expected = Vector.CreateFromArray(SignedBoolean5by10.TranspA1TimesX5, true);
-            Vector transpA1TimesX5Computed = A1.MultiplyRight(x5, true);
+            Vector transpA1TimesX5Computed = A1.Multiply(x5, true);
             comparer.AssertEqual(transpA1TimesX5Expected, transpA1TimesX5Computed);
 
             // matrix 2 - untransposed
             SignedBooleanMatrix A2 = CreateMatrix(SignedBoolean5by10.A2);
             Vector A2TimesX10Expected = Vector.CreateFromArray(SignedBoolean5by10.A2TimesX10, true);
-            Vector A2TimesX10Computed = A2.MultiplyRight(x10, false);
+            Vector A2TimesX10Computed = A2.Multiply(x10, false);
             comparer.AssertEqual(A2TimesX10Expected, A2TimesX10Computed);
 
             // matrix 2 - transposed
             Vector transpA2TimesX5Expected = Vector.CreateFromArray(SignedBoolean5by10.TranspA2TimesX5, true);
-            Vector transpA2TimesX5Computed = A2.MultiplyRight(x5, true);
+            Vector transpA2TimesX5Computed = A2.Multiply(x5, true);
             comparer.AssertEqual(transpA2TimesX5Expected, transpA2TimesX5Computed);
         }
     }

@@ -8,6 +8,8 @@ using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: Add a create from dense method to facilitate testing.
+//TODO: Also provide a method GetSubmatrixWithout that would remove rows/cols. Actually that would be better as Remove(int[])
+//      in a DOK with a Dictionary<Dictionary<int, double>> as a backing storage to easily remove stuff.
 namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
 {
     /// <summary>
@@ -563,6 +565,34 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
             format.RawIndexArrays.Add("Row indices", rowIndices);
             format.RawIndexArrays.Add("Column offsets", colOffsets);
             return format;
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="DokSymmetric"/> by copying only the entries whose row and column index belongs to 
+        /// <paramref name="rowsColsToKeep"/>.
+        /// </summary>
+        /// <param name="rowsColsToKeep">
+        /// Only the entries (i, j) where i and j belongs to <paramref name="rowsColsToKeep"/> will be copied to the new matrix.
+        /// The order of the indices is important. E.g. if <paramref name="rowsColsToKeep"/> = [1, 0], then the resulting 
+        /// submatrix will be {{ this[1,1], this[1,0] }, { this[0,1], this[0,0] }}
+        /// </param>
+        public DokSymmetric GetSubmatrix(int[] rowsColsToKeep)
+        {
+            //TODO: work with the stored dictionaries to speed this up. However keep in mind that if keep = {2, 1} then some 
+            //      transposition is necessary. 
+            int subOrder = rowsColsToKeep.Length;
+            var submatrix = DokSymmetric.CreateEmpty(subOrder);
+            for (int subJ = 0; subJ < subOrder; ++subJ)
+            {
+                int thisJ = rowsColsToKeep[subJ];
+                for (int subI = 0; subI <= subJ; ++subI)
+                {
+                    int thisI = rowsColsToKeep[subI];
+                    double value = this[thisI, thisJ];
+                    if (value != 0.0) submatrix[subI, subJ] = value;
+                }
+            }
+            return submatrix;
         }
 
         /// <summary>

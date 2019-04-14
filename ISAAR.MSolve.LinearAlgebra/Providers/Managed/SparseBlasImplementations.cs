@@ -67,7 +67,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.Managed
             for (int j = 0; j < order; ++j)
             {
                 int diagOffset = diagOffsetsA[j];
-                int columnTop = j - diagOffsetsA[j + 1] + diagOffset + 1;
+                int columnTop = j - (diagOffsetsA[j + 1] - diagOffset - 1);
                 double linearCombinationCoeff = vectorX[j];
                 // Dot product of the (L+D) part of the row * vector
                 double dotLower = valuesA[diagOffset] * linearCombinationCoeff; // Contribution of diagonal entry: A[j,j] * x[j]
@@ -92,50 +92,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.Managed
         internal static void SkylineSystemSolution(int order, double[] valuesA, int[] diagOffsetsA, double[] vectorB, 
             double[] vectorX)
         {
-            // Copied from Stavroulakis code.
-
-            // Copy the y vector
-            Array.Copy(vectorB, vectorX, order);
-
-            // RHS vector reduction
-            int n;
-            for (n = 0; n < order; n++)
-            {
-                int KL = diagOffsetsA[n] + 1;
-                int KU = diagOffsetsA[n + 1] - 1;
-                if (KU >= KL)
-                {
-                    int k = n;
-                    double C = 0;
-                    for (int KK = KL; KK <= KU; KK++)
-                    {
-                        k--;
-                        C += valuesA[KK] * vectorX[k];
-                    }
-                    vectorX[n] -= C;
-                }
-            }
-
-            // Back substitution
-            for (n = 0; n < order; n++) vectorX[n] /= valuesA[diagOffsetsA[n]];
-
-            n = order - 1;
-            for (int l = 1; l < order; l++)
-            {
-                int KL = diagOffsetsA[n] + 1;
-                int KU = diagOffsetsA[n + 1] - 1;
-                if (KU >= KL)
-                {
-                    int k = n;
-                    double xn = vectorX[n];
-                    for (int KK = KL; KK <= KU; KK++)
-                    {
-                        k--;
-                        vectorX[k] -= valuesA[KK] * xn;
-                    }
-                }
-                n--;
-            }
+            throw new NotImplementedException(); // SparseBLAS should specify L*x = b, L ^T*x = b, unit or non unit.
         }
 
         //TODO: this is the same method as above, but without the offsets, to avoid the extra computations. Perhaps I can 
@@ -144,50 +101,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Providers.Managed
         internal static void SkylineSystemSolutionWithOffsets(int order, double[] valuesA, int[] diagOffsetsA, 
             double[] vectorB, int offsetB, double[] vectorX, int offsetX)
         {
-            // Copied from Stavroulakis code.
-
-            // Copy the y vector
-            Array.Copy(vectorB, offsetB, vectorX, offsetX, order);
-
-            // RHS vector reduction
-            int n;
-            for (n = 0; n < order; n++)
-            {
-                int KL = diagOffsetsA[n] + 1;
-                int KU = diagOffsetsA[n + 1] - 1;
-                if (KU >= KL) //TODO: can't I avoid this check, by accessing the entries in a smarter way?
-                {
-                    int k = offsetX + n;
-                    double C = 0;
-                    for (int KK = KL; KK <= KU; KK++)
-                    {
-                        k--;
-                        C += valuesA[KK] * vectorX[k];
-                    }
-                    vectorX[offsetX + n] -= C;
-                }
-            }
-
-            // Back substitution
-            for (n = 0; n < order; n++) vectorX[offsetX + n] /= valuesA[diagOffsetsA[n]];
-
-            n = order - 1;
-            for (int l = 1; l < order; l++)
-            {
-                int KL = diagOffsetsA[n] + 1;
-                int KU = diagOffsetsA[n + 1] - 1;
-                if (KU >= KL) //TODO: can't I avoid this check, by accessing the entries in a smarter way?
-                {
-                    int k = offsetX + n;
-                    double xn = vectorX[k];
-                    for (int KK = KL; KK <= KU; KK++)
-                    {
-                        k--;
-                        vectorX[k] -= valuesA[KK] * xn;
-                    }
-                }
-                n--;
-            }
+            throw new NotImplementedException(); // SparseBLAS should specify L*x = b, L ^T*x = b, unit or non unit.
         }
 
         internal static double SparseDotDenseVector(int nnz, double[] x, int[] indicesX, int offsetX, double[] y, int offsetY)

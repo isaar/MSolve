@@ -1,6 +1,7 @@
 ﻿using System;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Analyzers.Dynamic;
+using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
@@ -161,7 +162,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
         public void Submit()
         {
             // Linear system solver
-            ISolver_v2 solver;
+            ISolver solver;
             if (Solver == SolverOptions.DirectSkyline)
             {
                 var solverBuilder = new SkylineSolver.Builder();
@@ -178,13 +179,13 @@ namespace ISAAR.MSolve.Preprocessor.UI
             }
 
             // Provider of the problem
-            var provider = new ProblemStructural_v2(model.CoreModel, solver); //TODO: extend this
+            var provider = new ProblemStructural(model.CoreModel, solver); //TODO: extend this
 
             // (Non) linear analyzer
             IChildAnalyzer childAnalyzer;
             if (Integrator == IntegratorOptions.Linear)
             {
-                var linearAnalyzer = new LinearAnalyzer_v2(solver);
+                var linearAnalyzer = new LinearAnalyzer(model.CoreModel, solver, provider);
 
                 // Field output requests 
                 //TODO: this should work for all analyzers
@@ -216,14 +217,14 @@ namespace ISAAR.MSolve.Preprocessor.UI
             }
 
             // Parent analyzer
-            IAnalyzer_v2 parentAnalyzer;
+            IAnalyzer parentAnalyzer;
             if (Procedure == ProcedureOptions.Static)
             {
-                parentAnalyzer = new StaticAnalyzer_v2(model.CoreModel, solver, provider, childAnalyzer);
+                parentAnalyzer = new StaticAnalyzer(model.CoreModel, solver, provider, childAnalyzer);
             }
             else if (Procedure == ProcedureOptions.DynamicImplicit)
             {
-                var analyzerBuilder = new NewmarkDynamicAnalyzer_v2.Builder(model.CoreModel, solver, provider, childAnalyzer,
+                var analyzerBuilder = new NewmarkDynamicAnalyzer.Builder(model.CoreModel, solver, provider, childAnalyzer,
                     model.TimeStep, model.TotalDuration);
                 analyzerBuilder.SetNewmarkParameters(0.6, 1); //TODO: Use the defaults.
                 parentAnalyzer = analyzerBuilder.Build();
@@ -234,7 +235,7 @@ namespace ISAAR.MSolve.Preprocessor.UI
             }
 
             // Run the analysis
-            parentAnalyzer.Initialize();
+            parentAnalyzer.Initialize(true);
             parentAnalyzer.Solve();
         }
     }

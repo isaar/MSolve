@@ -70,13 +70,13 @@ namespace ISAAR.MSolve.FEM.Embedding
                                 if (!currentElementType.EmbeddedNodes.Contains(embeddedNode))
                                 {
                                     currentElementType.EmbeddedNodes.Add(embeddedNode);
-                                    element.ElementType.DOFEnumerator = new ElementEmbedder(model, element, transformer);
+                                    element.ElementType.DofEnumerator = new ElementEmbedder(model, element, transformer);
                                 }
                             }
                     }
                 }
 
-                embeddedElement.ElementType.DOFEnumerator = new ElementEmbedder(model, embeddedElement, transformer);
+                embeddedElement.ElementType.DofEnumerator = new ElementEmbedder(model, embeddedElement, transformer);
             }
         }
     }

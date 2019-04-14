@@ -70,7 +70,7 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.GeneticAlgorithms
         public double BestFitness { get; private set; }
         public double[] BestPosition { get; private set; }
         public int CurrentIteration { get; private set; }
-        public double CurrentFunctionEvaluations { get; private set; }
+        public int CurrentFunctionEvaluations { get; private set; }
         #endregion
 
         #region public methods

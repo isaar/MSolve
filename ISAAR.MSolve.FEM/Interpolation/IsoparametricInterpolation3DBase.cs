@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <summary>
         /// See <see cref="IIsoparametricInterpolation3D.CellType"/>.
         /// </summary>
-        public CellType3D CellType { get; }
+        public CellType CellType { get; }
 
         /// <summary>
         /// See <see cref="IIsoparametricInterpolation3D.NumFunctions"/>.
@@ -42,14 +42,14 @@ namespace ISAAR.MSolve.FEM.Interpolation
         public abstract IReadOnlyList<NaturalPoint3D> NodalNaturalCoordinates { get; }
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation3D.CreateInverseMappingFor(IReadOnlyList{Node_v2})"/>.
+        /// See <see cref="IIsoparametricInterpolation3D.CreateInverseMappingFor(IReadOnlyList{Node})"/>.
         /// </summary>
-        public abstract IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node_v2> nodes);
+        public abstract IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> nodes);
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation3D.EvaluateAllAt(IReadOnlyList{Node_v2}, NaturalPoint3D)"/>.
+        /// See <see cref="IIsoparametricInterpolation3D.EvaluateAllAt(IReadOnlyList{Node}, NaturalPoint3D)"/>.
         /// </summary>
-        public EvalInterpolation3D EvaluateAllAt(IReadOnlyList<Node_v2> nodes, NaturalPoint3D naturalPoint)
+        public EvalInterpolation3D EvaluateAllAt(IReadOnlyList<Node> nodes, NaturalPoint3D naturalPoint)
         {
             double xi = naturalPoint.Xi;
             double eta = naturalPoint.Eta;
@@ -61,9 +61,9 @@ namespace ISAAR.MSolve.FEM.Interpolation
         }
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation3D.EvaluateAllAtGaussPoints(IReadOnlyList{Node_v2}, IQuadrature3D)"/>
+        /// See <see cref="IIsoparametricInterpolation3D.EvaluateAllAtGaussPoints(IReadOnlyList{Node}, IQuadrature3D)"/>
         /// </summary>
-        public IReadOnlyList<EvalInterpolation3D> EvaluateAllAtGaussPoints(IReadOnlyList<Node_v2> nodes, IQuadrature3D quadrature)
+        public IReadOnlyList<EvalInterpolation3D> EvaluateAllAtGaussPoints(IReadOnlyList<Node> nodes, IQuadrature3D quadrature)
         {
             // The shape functions and natural derivatives at each Gauss point are probably cached from previous calls
             IReadOnlyList<double[]> shapeFunctionsAtGPs = EvaluateFunctionsAtGaussPoints(quadrature);
@@ -138,9 +138,9 @@ namespace ISAAR.MSolve.FEM.Interpolation
         }
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation3D.TransformNaturalToCartesian(IReadOnlyList{Node_v2}, NaturalPoint3D)"/>.
+        /// See <see cref="IIsoparametricInterpolation3D.TransformNaturalToCartesian(IReadOnlyList{Node}, NaturalPoint3D)"/>.
         /// </summary>
-        public CartesianPoint3D TransformNaturalToCartesian(IReadOnlyList<Node_v2> nodes, NaturalPoint3D naturalPoint)
+        public CartesianPoint3D TransformNaturalToCartesian(IReadOnlyList<Node> nodes, NaturalPoint3D naturalPoint)
         {
             double[] shapeFunctionValues = EvaluateAt(naturalPoint.Xi, naturalPoint.Eta, naturalPoint.Zeta);
             double x = 0, y = 0, z = 0;

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Logging.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Logging
 {
@@ -41,15 +41,16 @@ namespace ISAAR.MSolve.Logging
 
         #region IResultStorage Members
 
-        public void StoreResults(DateTime startTime, DateTime endTime, IVector solutionVector)
+        public void StoreResults(DateTime startTime, DateTime endTime, IVectorView solutionVector)
         {
             StartTime = startTime;
             EndTime = endTime;
             //double[] solution = ((Vector<double>)solutionVector).Data;
             foreach (Element e in elements)
             {
-                var localVector = e.Subdomain.GetLocalVectorFromGlobal(e, solutionVector);
-                var strainStresses = e.ElementType.CalculateStresses(e, localVector, new double[e.ElementType.GetElementDOFTypes(e).SelectMany(x => x).Count()]);
+                double[] localVector = e.Subdomain.FreeDofOrdering.ExtractVectorElementFromSubdomain(e, solutionVector);
+                var strainStresses = e.ElementType.CalculateStresses(e, localVector, 
+                    new double[e.ElementType.GetElementDOFTypes(e).SelectMany(x => x).Count()]);
                 strains[e.ID] = new double[strainStresses.Item1.Length];
                 stresses[e.ID] = new double[strainStresses.Item2.Length];
                 Array.Copy(strainStresses.Item1, strains[e.ID], strains[e.ID].Length);

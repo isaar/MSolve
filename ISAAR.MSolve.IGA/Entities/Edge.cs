@@ -1,17 +1,14 @@
-﻿using ISAAR.MSolve.IGA.Entities.Loads;
-using ISAAR.MSolve.IGA.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.IGA.Elements;
+using ISAAR.MSolve.IGA.Entities.Loads;
+using ISAAR.MSolve.IGA.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-	public class Edge : Boundary
+    public class Edge : Boundary
 	{
 		public int ID { get; set; }
 
@@ -22,16 +19,16 @@ namespace ISAAR.MSolve.IGA.Entities
 		public int Degree { get; set; }
 
 		public Patch Patch { get; set; }
-		//public Patch_v2 Patch_v2 { get; set; }
+		//public Patch Patch { get; set; }
 
-		public double[] KnotValueVector { get; set; }
+		public Vector KnotValueVector { get; set; }
 
 		private readonly Dictionary<int, ControlPoint> controlPointsDictionary = new Dictionary<int, ControlPoint>();
 
 		private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
 
-		private readonly Dictionary<int, Dictionary<DOFType, int>> controlPointsDOFsDictionary =
-			new Dictionary<int, Dictionary<DOFType, int>>();
+		private readonly Dictionary<int, Dictionary<IDofType, int>> controlPointsDOFsDictionary =
+			new Dictionary<int, Dictionary<IDofType, int>>();
 
 		private readonly List<IBoundaryCondition> boundaryConditions = new List<IBoundaryCondition>();
 
@@ -50,7 +47,7 @@ namespace ISAAR.MSolve.IGA.Entities
 			get { return elementsDictionary; }
 		}
 
-		public Dictionary<int, Dictionary<DOFType, int>> ControlPointDOFsDictionary
+		public Dictionary<int, Dictionary<IDofType, int>> ControlPointDOFsDictionary
 		{
 			get { return controlPointsDOFsDictionary; }
 		}
@@ -135,7 +132,7 @@ namespace ISAAR.MSolve.IGA.Entities
 		{
 			#region Knots
 
-			Vector singleKnotValuesKsi = new Vector(KnotValueVector).RemoveDuplicatesFindMultiplicity()[0];
+			Vector singleKnotValuesKsi = KnotValueVector.RemoveDuplicatesFindMultiplicity()[0];
 
 			List<Knot> knots = new List<Knot>();
 
@@ -150,7 +147,7 @@ namespace ISAAR.MSolve.IGA.Entities
 
 			#region Elements
 
-			Vector multiplicityKsi = new Vector(KnotValueVector).RemoveDuplicatesFindMultiplicity()[1];
+			Vector multiplicityKsi = KnotValueVector.RemoveDuplicatesFindMultiplicity()[1];
 
 			int numberOfElementsKsi = singleKnotValuesKsi.Length - 1;
 			if (numberOfElementsKsi == 0)

@@ -9,12 +9,13 @@ using System.Threading.Tasks;
     /// <summary>
     /// An <see cref="IOptimizationLogger"/> that logs the best values of the objective function and the corresponding design 
     /// variables found at each iteration of the <see cref="IOptimizationAlgorithm"/>.
+    /// Authors: Serafeim Bakalakos
     /// </summary>
     public class BestOfIterationLogger: IOptimizationLogger
     {
-        private List<double[]> bestContinuousVariables;
-        private List<int[]> bestIntegerVariables;
-        private List<double> bestObjectives;
+        private readonly List<double[]> bestContinuousVariables;
+        private readonly List<int[]> bestIntegerVariables;
+        private readonly List<double> bestObjectives;
 
         /// <summary>
         /// Creates a new instance of <see cref="BestOfIterationLogger"/>.

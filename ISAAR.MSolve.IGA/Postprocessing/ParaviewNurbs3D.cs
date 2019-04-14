@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
+﻿using System.IO;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Solvers.Interfaces;
-using IVector = ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces.IVector;
-using Vector = ISAAR.MSolve.Numerical.LinearAlgebra.Vector;
 
 namespace ISAAR.MSolve.IGA.Postprocessing
 {
-	public class ParaviewNurbs3D
+    public class ParaviewNurbs3D
 	{
 		private Model _model;
 		private IVectorView _solution;
@@ -25,9 +19,9 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 
 		public void CreateParaviewFile()
 		{
-			var uniqueKnotsKsi = new Vector(_model.PatchesDictionary[0].KnotValueVectorKsi).RemoveDuplicatesFindMultiplicity();
-			var uniqueKnotsHeta = new Vector(_model.PatchesDictionary[0].KnotValueVectorHeta).RemoveDuplicatesFindMultiplicity();
-			var uniqueKnotsZeta = new Vector(_model.PatchesDictionary[0].KnotValueVectorZeta).RemoveDuplicatesFindMultiplicity();
+			var uniqueKnotsKsi = _model.PatchesDictionary[0].KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity();
+			var uniqueKnotsHeta = _model.PatchesDictionary[0].KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity();
+			var uniqueKnotsZeta = _model.PatchesDictionary[0].KnotValueVectorZeta.RemoveDuplicatesFindMultiplicity();
 
 			var numberOfKnotsKsi = uniqueKnotsKsi[0].Length;
 			var numberOfKnotsHeta = uniqueKnotsHeta[0].Length;
@@ -76,18 +70,17 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 				var counterCP = 0;
 				foreach (var controlPoint in element.ControlPoints)
 				{
-					localDisplacements[counterCP, 0] =
-						(!_model.GlobalDofOrdering.GlobalFreeDofs.Contains(controlPoint, DOFType.X))
-							? 0.0
-							: _solution[_model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, DOFType.X]];
-					localDisplacements[counterCP, 1] =
-						(!_model.GlobalDofOrdering.GlobalFreeDofs.Contains(controlPoint, DOFType.Y))
-							? 0.0
-							: _solution[_model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, DOFType.Y]];
-					localDisplacements[counterCP++, 2] =
-						(!_model.GlobalDofOrdering.GlobalFreeDofs.Contains(controlPoint, DOFType.Z))
-							? 0.0
-							: _solution[_model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, DOFType.Z]];
+					//var dofX = _model.ControlPointDOFsDictionary[controlPoint.ID][DOFType.X];
+					//var dofY = _model.ControlPointDOFsDictionary[controlPoint.ID][DOFType.Y];
+					//var dofZ = _model.ControlPointDOFsDictionary[controlPoint.ID][DOFType.Z];
+
+
+					var dofX = _model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, StructuralDof.TranslationX];
+					var dofY = _model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, StructuralDof.TranslationY];
+					var dofZ = _model.GlobalDofOrdering.GlobalFreeDofs[controlPoint, StructuralDof.TranslationY];
+					localDisplacements[counterCP, 0] = (dofX == -1) ? 0.0 : _solution[dofX];
+					localDisplacements[counterCP, 1] = (dofY == -1) ? 0.0 : _solution[dofY];
+					localDisplacements[counterCP++, 2] = (dofZ == -1) ? 0.0 : _solution[dofZ];
 				}
 				var elementKnotDisplacements = element.ElementType.CalculateDisplacementsForPostProcessing(element, localDisplacements);
 				for (int i = 0; i < elementConnectivity.GetLength(1); i++)
@@ -106,9 +99,9 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 		{
 			var patch = _model.PatchesDictionary[0];
 
-			var numberOfKnotsKsi = new Vector(patch.KnotValueVectorKsi).RemoveDuplicatesFindMultiplicity()[0].Length;
-			var numberOfKnotsHeta = new Vector(patch.KnotValueVectorHeta).RemoveDuplicatesFindMultiplicity()[0].Length;
-			var numberOfKnotZeta = new Vector(patch.KnotValueVectorZeta).RemoveDuplicatesFindMultiplicity()[0].Length;
+			var numberOfKnotsKsi = patch.KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0].Length;
+			var numberOfKnotsHeta = patch.KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0].Length;
+			var numberOfKnotZeta = patch.KnotValueVectorZeta.RemoveDuplicatesFindMultiplicity()[0].Length;
 
 			var numberOfNodes = nodeCoordinates.GetLength(0);
 
@@ -143,9 +136,9 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 
 		}
 
-		public static Vector SolidPoint3D(int numberOfCPKsi, int degreeKsi, double[] knotValueVectorKsi,
-			int numberOfCPHeta, int degreeHeta, double[] knotValueVectorHeta, int numberOfCPZeta, int degreeZeta,
-			double[] knotValueVectorZeta, double[,] projectiveControlPointCoordinates, double ksiCoordinate, double hetaCoordinate,
+		public static Vector SolidPoint3D(int numberOfCPKsi, int degreeKsi, IVector knotValueVectorKsi,
+			int numberOfCPHeta, int degreeHeta, IVector knotValueVectorHeta, int numberOfCPZeta, int degreeZeta,
+			IVector knotValueVectorZeta, double[,] projectiveControlPointCoordinates, double ksiCoordinate, double hetaCoordinate,
 			double zetaCoordinate)
 		{
 			var spanKsi = ParaviewNurbs2D.FindSpan(numberOfCPKsi, degreeKsi, ksiCoordinate, knotValueVectorKsi);
@@ -156,7 +149,7 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 			var pointFunctionsHeta = ParaviewNurbs2D.BasisFunctions(spanHeta, hetaCoordinate, degreeHeta, knotValueVectorHeta);
 			var pointFunctionsZeta = ParaviewNurbs2D.BasisFunctions(spanZeta, zetaCoordinate, degreeZeta, knotValueVectorZeta);
 
-			var cartesianPoint = new Vector(4);
+			var cartesianPoint = Vector.CreateZero(4);
 			var indexKsi = spanKsi - degreeKsi;
 
 			for (int k = 0; k <= degreeZeta; k++)
@@ -170,7 +163,7 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 						var cpIndex = (indexKsi + i) * (numberOfCPHeta + 1) * (numberOfCPZeta + 1) +
 						              indexHeta * (numberOfCPZeta + 1) + indexZeta;
 
-						var cpCoordinates = new Vector(new double[]
+						var cpCoordinates = Vector.CreateFromArray(new double[]
 						{
 							projectiveControlPointCoordinates[cpIndex, 0],
 							projectiveControlPointCoordinates[cpIndex, 1],
@@ -180,7 +173,7 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 						cpCoordinates.Scale(pointFunctionsKsi[i]);
 						cpCoordinates.Scale(pointFunctionsHeta[j]);
 						cpCoordinates.Scale(pointFunctionsZeta[k]);
-						cartesianPoint= new Vector(cartesianPoint+cpCoordinates);
+						cartesianPoint = cartesianPoint+cpCoordinates;
 					}
 				}
 			}

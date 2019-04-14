@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.Optimization
             get; 
         }
 
-        double CurrentFunctionEvaluations
+        int CurrentFunctionEvaluations
         {
             get;
         }

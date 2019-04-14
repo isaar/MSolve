@@ -1,31 +1,28 @@
-﻿using ISAAR.MSolve.IGA.Entities;
-using ISAAR.MSolve.IGA.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 
 namespace ISAAR.MSolve.IGA.Elements
 {
     public class NURBSElement1D : Element, IStructuralIsogeometricElement
     {
 
-        protected readonly static DOFType[] controlPointDOFTypes = new DOFType[] { DOFType.X};
-        protected DOFType[][] dofTypes;
-        protected IElementDofEnumerator_v2 dofEnumerator = new GenericDofEnumerator_v2();
+        protected readonly static IDofType[] controlPointDOFTypes = new IDofType[] { StructuralDof.TranslationX};
+        protected IDofType[][] dofTypes;
+        protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
         public  int Degree { get; set; }
 
         #region IStructuralIsogeometricElement
         public ElementDimensions ElementDimensions { get { return ElementDimensions.OneD; } }
 
-        public IElementDofEnumerator_v2 DofEnumerator { get { return dofEnumerator; } set { this.dofEnumerator = value; } }
+        public IElementDofEnumerator DofEnumerator { get { return dofEnumerator; } set { this.dofEnumerator = value; } }
 
         public bool MaterialModified => throw new NotImplementedException();
 
@@ -124,18 +121,18 @@ namespace ISAAR.MSolve.IGA.Elements
 
                 for (int k = 0; k < element.ControlPoints.Count; k++)
                 {
-	                if (element.Model.GlobalDofOrdering.GlobalFreeDofs.Contains(element.ControlPoints[k], DOFType.X))
+	                if (element.Model.GlobalDofOrdering.GlobalFreeDofs.Contains(element.ControlPoints[k], StructuralDof.TranslationX))
 	                {
-		                int dofIDX = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], DOFType.X];
+		                int dofIDX = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], StructuralDof.TranslationX];
 		                if (neumannLoad.ContainsKey(dofIDX))
 			                neumannLoad[dofIDX] += jacdet * gaussPoints[j].WeightFactor * nurbs.NurbsValues[k, j] * loadGaussPoint[0];
 		                else
 			                neumannLoad.Add(dofIDX, jacdet * gaussPoints[j].WeightFactor * nurbs.NurbsValues[k, j] * loadGaussPoint[0]);
 					}
 
-	                if (element.Model.GlobalDofOrdering.GlobalFreeDofs.Contains(element.ControlPoints[k], DOFType.Y))
+	                if (element.Model.GlobalDofOrdering.GlobalFreeDofs.Contains(element.ControlPoints[k], StructuralDof.TranslationY))
 	                {
-		                int dofIDY = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], DOFType.Y];
+		                int dofIDY = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], StructuralDof.TranslationY];
 		                if (neumannLoad.ContainsKey(dofIDY))
 			                neumannLoad[dofIDY] += jacdet * gaussPoints[j].WeightFactor * nurbs.NurbsValues[k, j] * loadGaussPoint[1];
 		                else
@@ -233,8 +230,8 @@ namespace ISAAR.MSolve.IGA.Elements
 
 				for (int k = 0; k < element.ControlPoints.Count; k++)
                 {
-					int dofIDX = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], DOFType.X];
-					int dofIDY = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], DOFType.Y];
+					int dofIDX = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], StructuralDof.TranslationX];
+					int dofIDY = element.Model.GlobalDofOrdering.GlobalFreeDofs[element.ControlPoints[k], StructuralDof.TranslationY];
 					if (pressureLoad.ContainsKey(dofIDX))
                         pressureLoad[dofIDX] += jacdet * gaussPoints[j].WeightFactor * nurbs.NurbsValues[k, j] * loadGaussPointX;
                     else
@@ -267,14 +264,14 @@ namespace ISAAR.MSolve.IGA.Elements
             throw new NotImplementedException();
         }
 
-        public IMatrix2D DampingMatrix(Element element)
+        public IMatrix DampingMatrix(Element element)
         {
             throw new NotImplementedException();
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(Element element)
+        public IList<IList<IDofType>> GetElementDOFTypes(Element element)
         {
-            dofTypes = new DOFType[element.ControlPoints.Count][];
+            dofTypes = new IDofType[element.ControlPoints.Count][];
             for (int i = 0; i < element.ControlPoints.Count; i++)
             {
                 dofTypes[i] = controlPointDOFTypes;
@@ -282,7 +279,7 @@ namespace ISAAR.MSolve.IGA.Elements
             return dofTypes;
         }
 
-        public IMatrix2D MassMatrix(Element element)
+        public IMatrix MassMatrix(Element element)
         {
             throw new NotImplementedException();
         }
@@ -292,7 +289,7 @@ namespace ISAAR.MSolve.IGA.Elements
             throw new NotImplementedException();
         }
 
-        public IMatrix StiffnessMatrix(IElement_v2 element)
+        public IMatrix StiffnessMatrix(IElement element)
         {
             throw new NotImplementedException();
         }
@@ -307,22 +304,22 @@ namespace ISAAR.MSolve.IGA.Elements
             throw new NotSupportedException();
         }
 
-		public IMatrix2D StiffnessMatrix(Element element)
+		public IMatrix StiffnessMatrix(Element element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IMatrix MassMatrix(IElement_v2 element)
+		public IMatrix MassMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IMatrix DampingMatrix(IElement_v2 element)
+		public IMatrix DampingMatrix(IElement element)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<DOFType>> GetElementDOFTypes(IElement_v2 element)
+		public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
 		{
 			throw new NotImplementedException();
 		}
