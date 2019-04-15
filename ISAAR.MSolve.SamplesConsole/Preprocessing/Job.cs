@@ -13,7 +13,7 @@ using ISAAR.MSolve.Solvers.Iterative;
 //TODO: output requests should be appliable to all (child) analyzers
 //TODO: time steps and total time should be accessed from the dynamic loads. Ideally the dynamic analyzer itself should access 
 //      them from the dynamic loads.
-namespace ISAAR.MSolve.Preprocessor.UI
+namespace ISAAR.MSolve.SamplesConsole.Preprocessing
 {
     /// <summary>
     /// Utility class for setting up common analyses. Eventually the analyzers should be user-friendly enough to not need this 

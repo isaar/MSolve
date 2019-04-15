@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 
 //TODO: abstract this in order to be used with points in various coordinate systems
 //TODO: perhaps the origin should be (0.0, 0.0) and the meshes could then be transformed. Abaqus does something similar with its
 //      meshed parts during assembly
-namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
+namespace ISAAR.MSolve.Discretization.Mesh.Custom
 {
     /// <summary>
     /// Creates 3D meshes based on uniform rectilinear grids: the distance between two consecutive vertices for the same axis is 
@@ -16,7 +14,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
     /// (bricks in particular).
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class UniformMeshGenerator3D : IMeshProvider2D<Node, CellConnectivity>
+    public class UniformMeshGenerator3D<TNode> : IMeshGenerator<TNode> where TNode: INode
     {
         private readonly double minX, minY, minZ;
         private readonly double dx, dy, dz;
@@ -46,16 +44,17 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
         /// Generates a uniform mesh with the dimensions and density defined in the constructor.
         /// </summary>
         /// <returns></returns>
-        public (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity> cells) CreateMesh()
+        public (IReadOnlyList<TNode> vertices, IReadOnlyList<CellConnectivity<TNode>> cells) 
+            CreateMesh(CreateNode<TNode> createNode)
         {
-            Node[] vertices = CreateVertices();
-            CellConnectivity[] cells = CreateCells(vertices);
+            TNode[] vertices = CreateVertices(createNode);
+            CellConnectivity<TNode>[] cells = CreateCells(vertices);
             return (vertices, cells);
         }
 
-        private Node[] CreateVertices()
+        private TNode[] CreateVertices(CreateNode<TNode> createNode)
         {
-            var vertices = new Node[verticesPerX * verticesPerY * verticesPerZ];
+            var vertices = new TNode[verticesPerX * verticesPerY * verticesPerZ];
             int id = 0;
             int start = StartIDsAt0 ? 0 : 1;
             for (int k = 0; k < verticesPerZ; ++k)
@@ -64,7 +63,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
                 {
                     for (int i = 0; i < verticesPerX; ++i)
                     {
-                        vertices[id] = new Node { ID = start + id, X = minX + i * dx, Y = minY + j * dy, Z = minZ + k * dz };
+                        vertices[id] = createNode(start + id, minX + i * dx, minY + j * dy, minZ + k * dz);
                         ++id;
                     }
                 }
@@ -72,9 +71,9 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
             return vertices;
         }
 
-        private CellConnectivity[] CreateCells(Node[] allVertices)
+        private CellConnectivity<TNode>[] CreateCells(TNode[] allVertices)
         {
-            var cells = new CellConnectivity[cellsPerX * cellsPerY * cellsPerZ];
+            var cells = new CellConnectivity<TNode>[cellsPerX * cellsPerY * cellsPerZ];
             for (int k = 0; k < cellsPerZ; ++k)
             {
                 for (int j = 0; j < cellsPerY; ++j)
@@ -94,7 +93,7 @@ namespace ISAAR.MSolve.Preprocessor.Meshes.Custom
                             firstVertex + verticesPerX * verticesPerY + verticesPerY + 1,   // ( 1,  1,  1)
                             firstVertex + verticesPerX * verticesPerY + verticesPerY        // (-1,  1,  1)
                         };
-                        cells[cell] = new CellConnectivity(CellType.Hexa8, 
+                        cells[cell] = new CellConnectivity<TNode>(CellType.Hexa8, 
                             verticesOfCell.Select(idx => allVertices[idx]).ToArray()); // row major
                     }
                 }

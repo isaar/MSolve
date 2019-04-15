@@ -2,14 +2,14 @@
 using System.Diagnostics;
 using System.Linq;
 using ISAAR.MSolve.Analyzers.Multiscale;
+using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.Discretization.Mesh.Custom;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Preprocessor.Meshes;
-using ISAAR.MSolve.Preprocessor.Meshes.Custom;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 using Xunit;
@@ -56,8 +56,9 @@ namespace ISAAR.MSolve.Tests.FEM
             double c = 1.0;
 
             // Generate mesh
-            var meshGenerator = new UniformMeshGenerator2D(minX, minY, maxX, maxY, numElementsX, numElementsY);
-            (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity> cells) = meshGenerator.CreateMesh();
+            var meshGenerator = new UniformMeshGenerator2D<Node>(minX, minY, maxX, maxY, numElementsX, numElementsY);
+            (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity<Node>> cells) = 
+                meshGenerator.CreateMesh((id, x, y, z) => new Node() { ID = id, X = x, Y = y, Z = z });
 
             // Add nodes to the model
             for (int n = 0; n < vertices.Count; ++n) model.NodesDictionary.Add(n, vertices[n]);
