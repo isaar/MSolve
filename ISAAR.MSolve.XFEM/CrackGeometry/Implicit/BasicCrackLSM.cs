@@ -4,6 +4,7 @@ using System.Diagnostics;
 using ISAAR.MSolve.Geometry.Commons;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.Geometry.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 using ISAAR.MSolve.XFEM.Elements;
@@ -11,7 +12,6 @@ using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
-using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Interpolation;
 
 // TODO: Consider removing the bookkeeping of enrichment items in elements. It creates a lot of opportunities for mistakes.
@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         private static readonly IComparer<CartesianPoint2D> pointComparer = new Point2DComparerXMajor();
 
         private readonly double tipEnrichmentAreaRadius;
-        private readonly CartesianTriangulator triangulator;
+        private readonly Triangulator2D<CartesianPoint2D> triangulator;
 
         public CartesianPoint2D CrackMouth { get; private set; }
 
@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         public BasicCrackLSM(double tipEnrichmentAreaRadius = 0.0)
         {
             this.tipEnrichmentAreaRadius = tipEnrichmentAreaRadius;
-            this.triangulator = new CartesianTriangulator();
+            this.triangulator = new Triangulator2D<CartesianPoint2D>((x, y) => new CartesianPoint2D(x, y));
             this.tipElements = new List<XContinuumElement2D>();
             levelSetsBody = new Dictionary<XNode2D, double>();
             levelSetsTip = new Dictionary<XNode2D, double>();
@@ -336,7 +336,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             out double positiveArea, out double negativeArea)
         {
             SortedSet<CartesianPoint2D> triangleVertices = FindTriangleVertices(element);
-            IReadOnlyList<TriangleCartesian2D> triangles = triangulator.CreateMesh(triangleVertices);
+            IReadOnlyList<Triangle2D<CartesianPoint2D>> triangles = triangulator.CreateMesh(triangleVertices);
 
             positiveArea = 0.0;
             negativeArea = 0.0;

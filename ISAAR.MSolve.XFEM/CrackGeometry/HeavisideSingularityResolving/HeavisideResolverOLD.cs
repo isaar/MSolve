@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
-using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Interpolation;
 
 //TODO: I suspect this is method is responsible for singular global matrices popping up randomly for many configurations.
@@ -18,12 +17,12 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
     class HeavisideResolverOLD: IHeavisideSingularityResolver
     {
         private readonly double relativeAreaTolerance;
-        private readonly CartesianTriangulator triangulator;
+        private readonly Triangulator2D<CartesianPoint2D> triangulator;
 
         public HeavisideResolverOLD(double relativeAreaTolerance = 1e-4)
         {
             this.relativeAreaTolerance = relativeAreaTolerance;
-            this.triangulator = new CartesianTriangulator();
+            this.triangulator = new Triangulator2D<CartesianPoint2D>((x, y) => new CartesianPoint2D(x, y));
         }
 
         /// <summary>
@@ -87,7 +86,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
             #endregion
 
             SortedSet<CartesianPoint2D> triangleVertices = crack.FindTriangleVertices(element);
-            IReadOnlyList<TriangleCartesian2D> triangles = triangulator.CreateMesh(triangleVertices);
+            IReadOnlyList<Triangle2D<CartesianPoint2D>> triangles = triangulator.CreateMesh(triangleVertices);
 
             double positiveArea = 0.0;
             double negativeArea = 0.0;

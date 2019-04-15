@@ -22,18 +22,17 @@ namespace ISAAR.MSolve.Geometry.Coordinates
         }
 
         /// <summary>
-        /// The coordinate of the point along the single axis Xi. 
-        /// </summary>
-        public double Xi { get { return xi; } }
-
-        /// <summary>
         /// Vector with the coordinates of the point. Length = 1.
         /// </summary>
-        public double[] Coordinates { get { return new double[] { xi }; } }
+        public double[] Coordinates => new double[] { xi };
 
-        public override string ToString()
-        {
-            return $"(xi) = ({xi})";
-        }
+        /// <summary>
+        /// The coordinate of the point along the single axis Xi. 
+        /// </summary>
+        public double Xi => xi;
+
+        public double X => xi;
+
+        public override string ToString() => $"(xi) = ({xi})";
     }
 }

@@ -9,7 +9,7 @@ using ISAAR.MSolve.Geometry.Shapes;
 namespace ISAAR.MSolve.XFEM.Geometry.Mesh
 {
     interface IMesh2D<TVertex, TCell> 
-        where TVertex: CartesianPoint2D 
+        where TVertex: IPoint2D 
         where TCell: class, ICell
     {
         IReadOnlyList<TVertex> Vertices { get; }

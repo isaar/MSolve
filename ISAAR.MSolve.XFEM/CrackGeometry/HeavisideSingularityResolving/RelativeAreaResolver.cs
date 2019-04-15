@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Geometry.Mesh;
-using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Interpolation;
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
@@ -13,12 +12,12 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
     class RelativeAreaResolver : IHeavisideSingularityResolver
     {
         private readonly double relativeAreaTolerance;
-        private readonly CartesianTriangulator triangulator;
+        private readonly Triangulator2D<CartesianPoint2D> triangulator;
 
         public RelativeAreaResolver(double relativeAreaTolerance = 1e-4)
         {
             this.relativeAreaTolerance = relativeAreaTolerance;
-            this.triangulator = new CartesianTriangulator();
+            this.triangulator = new Triangulator2D<CartesianPoint2D>((x, y) => new CartesianPoint2D(x, y));
         }
 
         /// <summary>
@@ -117,7 +116,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
             XContinuumElement2D element)
         {
             SortedSet<CartesianPoint2D> triangleVertices = crack.FindTriangleVertices(element);
-            IReadOnlyList<TriangleCartesian2D> triangles = triangulator.CreateMesh(triangleVertices);
+            IReadOnlyList<Triangle2D<CartesianPoint2D>> triangles = triangulator.CreateMesh(triangleVertices);
 
             double positiveArea = 0.0;
             double negativeArea = 0.0;

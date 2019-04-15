@@ -46,19 +46,23 @@ namespace ISAAR.MSolve.Geometry.Coordinates
         }
 
         /// <summary>
+        /// Vector with the coordinates of the point. Length = 2.
+        /// </summary>
+        public double[] Coordinates => new double[] { x, y };
+
+        /// <summary>
         /// The coordinate of the point along axis X.
         /// </summary>
-        public double X { get { return x; } }
+        public double X => x;
 
         /// <summary>
         /// The coordinate of the point along axis Y.
         /// </summary>
-        public double Y { get { return y; } }
+        public double Y => y;
 
-        /// <summary>
-        /// Vector with the coordinates of the point. Length = 2.
-        /// </summary>
-        public double[] Coordinates { get { return new double[] { x, y }; } }
+        public double X1 => x;
+
+        public double X2 => y;
 
         /// <summary>
         /// Calculates the Euclidian distance between a <see cref="CartesianPoint2D"/> named <paramref name="other"/> and this 
@@ -72,9 +76,6 @@ namespace ISAAR.MSolve.Geometry.Coordinates
             return Math.Sqrt(dx * dx + dy * dy);
         }
 
-        public override string ToString()
-        {
-            return $"(x, y) = ({x}, {y})";
-        }
+        public override string ToString() => $"(x, y) = ({x}, {y})";
     }
 }

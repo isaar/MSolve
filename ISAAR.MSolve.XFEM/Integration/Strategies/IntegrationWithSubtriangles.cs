@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Elements;
-using ISAAR.MSolve.XFEM.Enrichments.Items;
-using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
-using ISAAR.MSolve.XFEM.Geometry.Triangulation;
+using ISAAR.MSolve.Geometry.Triangulation;
+using ISAAR.MSolve.XFEM.CrackGeometry;
+using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Interpolation.InverseMappings;
-using ISAAR.MSolve.XFEM.Materials;
 
 namespace ISAAR.MSolve.XFEM.Integration.Strategies
 {
@@ -20,12 +15,12 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
     class IntegrationWithSubtriangles: IIntegrationStrategy2D<XContinuumElement2D>
     {
         private readonly GaussQuadratureForTriangle triangleIntegrationRule;
-        private readonly ITriangulator2D triangulator;
+        private readonly ITriangulator2D<NaturalPoint2D> triangulator;
         private readonly ISingleCrack crack;
         private readonly double triangleOverElementArea;
 
         public IntegrationWithSubtriangles(GaussQuadratureForTriangle triangleIntegrationRule, ISingleCrack crack, 
-            ITriangulator2D triangulator, double triangleOverElementArea = double.PositiveInfinity)
+            ITriangulator2D<NaturalPoint2D> triangulator, double triangleOverElementArea = double.PositiveInfinity)
         {
             this.triangleIntegrationRule = triangleIntegrationRule;
             this.crack = crack;
@@ -38,7 +33,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
             SortedSet<CartesianPoint2D> cartesianDelaunyPoints = crack.FindTriangleVertices(element);
             IReadOnlyList<NaturalPoint2D> naturalDelaunyPoints = 
                 FindNaturalPointsForTriangulation(element, cartesianDelaunyPoints);
-            IReadOnlyList<Triangle2D> subtriangles;
+            IReadOnlyList<Triangle2D<NaturalPoint2D>> subtriangles;
             if (double.IsPositiveInfinity(triangleOverElementArea))
             {
                 subtriangles = triangulator.CreateMesh(naturalDelaunyPoints);
@@ -50,7 +45,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
             }
 
             var integrationPoints = new List<GaussPoint2D>();
-            foreach (Triangle2D triangle in subtriangles)
+            foreach (Triangle2D<NaturalPoint2D> triangle in subtriangles)
             {
                 integrationPoints.AddRange(GenerateIntegrationPointsOfTriangle(triangle));
             }
@@ -60,7 +55,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
         // These triangles are output by the delauny triangulation and the order of their nodes might be 
         // counter-clockwise or clockwise. In the second case the jacobian will be negative, 
         // but it doesn't matter otherwise. 
-        private IReadOnlyList<GaussPoint2D> GenerateIntegrationPointsOfTriangle(Triangle2D triangle)
+        private IReadOnlyList<GaussPoint2D> GenerateIntegrationPointsOfTriangle(Triangle2D<NaturalPoint2D> triangle)
         {
             // Coordinates of the triangle's nodes in the natural system of the element
             double xi1 = triangle.Vertices[0].Xi;

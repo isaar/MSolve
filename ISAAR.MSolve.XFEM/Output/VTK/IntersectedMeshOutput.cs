@@ -1,21 +1,19 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
+﻿using System;
+using System.Collections.Generic;
+using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.Geometry.Tensors;
+using ISAAR.MSolve.Geometry.Triangulation;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.CrackGeometry;
-using ISAAR.MSolve.XFEM.CrackGeometry.Implicit;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems;
 using ISAAR.MSolve.XFEM.Interpolation.InverseMappings;
-using ISAAR.MSolve.Geometry.Tensors;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 //TODO: the extrapolations from Gauss points to nodes of the subtriangles does not work near the tip, where the displacement 
 //      field contains interpolated tip functions. This could be fixed (for the subtriangle nodes only) by basing the 
@@ -34,14 +32,14 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
         private readonly ICrackDescription crackGeometry;
         private readonly Model2D model;
         private readonly string pathNoExtension;
-        private readonly CartesianTriangulator triangulator;
+        private readonly Triangulator2D<CartesianPoint2D> triangulator;
 
         public IntersectedMeshOutput(Model2D model, ICrackDescription crackGeometry, string pathNoExtension)
         {
             this.crackGeometry = crackGeometry;
             this.model = model;
             this.pathNoExtension = pathNoExtension;
-            this.triangulator = new CartesianTriangulator();
+            this.triangulator = new Triangulator2D<CartesianPoint2D>((x, y) => new CartesianPoint2D(x, y));
         }
 
         public void WriteOutputData(IDofOrderer dofOrderer, Vector freeDisplacements, Vector constrainedDisplacements, int step)
@@ -109,9 +107,9 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                 {
                     // Triangulate and then operate on each triangle
                     SortedSet<CartesianPoint2D> triangleVertices = intersectingCrack.FindTriangleVertices(element);
-                    IReadOnlyList<TriangleCartesian2D> triangles = triangulator.CreateMesh(triangleVertices);
+                    IReadOnlyList<Triangle2D<CartesianPoint2D>> triangles = triangulator.CreateMesh(triangleVertices);
 
-                    foreach (TriangleCartesian2D triangle in triangles)
+                    foreach (Triangle2D<CartesianPoint2D> triangle in triangles)
                     {
                         // Mesh
                         int numTriangleNodes = 3;

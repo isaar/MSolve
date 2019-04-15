@@ -39,10 +39,15 @@ namespace ISAAR.MSolve.Geometry.Coordinates
 			this.zeta = coordinates[2];
 		}
 
-		/// <summary>
-		/// The coordinate of the point along local axis Xi.
-		/// </summary>
-		public double Xi => xi;
+        /// <summary>
+        /// Vector with the coordinates of the point. Length = 3.
+        /// </summary>
+        public double[] Coordinates => new double[] { xi, eta, zeta };
+
+        /// <summary>
+        /// The coordinate of the point along local axis Xi.
+        /// </summary>
+        public double Xi => xi;
 
 		/// <summary>
 		/// The coordinate of the point along local axis Eta.
@@ -54,14 +59,12 @@ namespace ISAAR.MSolve.Geometry.Coordinates
 		/// </summary>
 		public double Zeta => zeta;
 
-		/// <summary>
-		/// Vector with the coordinates of the point. Length = 3.
-		/// </summary>
-		public double[] Coordinates => new double[] {xi, eta, zeta};
+        public double X1 => xi;
 
-		public override string ToString()
-		{
-			return $"(xi, eta, zeta)=({xi}, {eta}, {zeta})";
-		}
-	}
+        public double X2 => eta;
+
+        public double X3 => zeta;
+
+        public override string ToString() => $"(xi, eta, zeta)=({xi}, {eta}, {zeta})";
+    }
 }

@@ -14,5 +14,15 @@ namespace ISAAR.MSolve.Geometry.Coordinates
         /// Vector with the coordinates of the point. Length = 2.
         /// </summary>
         double[] Coordinates { get; }
+
+        /// <summary>
+        /// The first coordinate of the point.
+        /// </summary>
+        double X1 { get; }
+
+        /// <summary>
+        /// The second coordinate of the point.
+        /// </summary>
+        double X2 { get; }
     }
 }

@@ -24,16 +24,13 @@ namespace ISAAR.MSolve.Geometry.Coordinates
         /// <summary>
         /// The coordinate of the point along the single axis X.
         /// </summary>
-        public double X { get { return x; } }
+        public double X => x;
 
         /// <summary>
         /// Vector with the coordinates of the point. Length = 1.
         /// </summary>
-        public double[] Coordinates { get { return new double[] { x }; } }
+        public double[] Coordinates => new double[] { x };
 
-        public override string ToString()
-        {
-            return $"(x) = ({x})";
-        }
+        public override string ToString() => $"(x) = ({x})";
     }
 }

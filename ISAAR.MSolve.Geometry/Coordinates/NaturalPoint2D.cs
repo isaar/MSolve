@@ -35,23 +35,24 @@ namespace ISAAR.MSolve.Geometry.Coordinates
         }
 
         /// <summary>
+        /// Vector with the coordinates of the point. Length = 2.
+        /// </summary>
+        public double[] Coordinates => new double[] { xi, eta };
+
+        /// <summary>
         /// The coordinate of the point along local axis Xi.
         /// </summary>
-        public double Xi { get { return xi; } }
+        public double Xi => xi;
 
         /// <summary>
         /// The coordinate of the point along local axis Eta.
         /// </summary>
-        public double Eta { get { return eta; } }
+        public double Eta => eta;
 
-        /// <summary>
-        /// Vector with the coordinates of the point. Length = 2.
-        /// </summary>
-        public double[] Coordinates { get { return new double[] { xi, eta }; } }
+        public double X1 => xi;
 
-        public override string ToString()
-        {
-            return $"(xi, eta) = ({xi}, {eta})";
-        }
+        public double X2 => eta;
+
+        public override string ToString() => $"(xi, eta) = ({xi}, {eta})";
     }
 }

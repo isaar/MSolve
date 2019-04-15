@@ -26,23 +26,24 @@ namespace ISAAR.MSolve.Geometry.Coordinates
         }
 
         /// <summary>
+        /// Vector with the coordinates of the point. Length = 2.
+        /// </summary>
+        public double[] Coordinates => new double[] { r, theta };
+
+        /// <summary>
         /// The radial coordinate of the point.
         /// </summary>
-        public double R { get { return r; } }
+        public double R => r;
 
         /// <summary>
         /// The angular coordinate of the point.
         /// </summary>
-        public double Theta { get { return theta; } }
+        public double Theta => theta;
 
-        /// <summary>
-        /// Vector with the coordinates of the point. Length = 2.
-        /// </summary>
-        public double[] Coordinates { get { return new double[] { r, theta }; } }
+        public double X1 => r;
 
-        public override string ToString()
-        {
-            return $"(r, theta) = ({r}, {theta})";
-        }
+        public double X2 => theta;
+
+        public override string ToString() => $"(r, theta) = ({r}, {theta})";
     }
 }

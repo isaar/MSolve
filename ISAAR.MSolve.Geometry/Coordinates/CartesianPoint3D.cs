@@ -8,7 +8,7 @@ namespace ISAAR.MSolve.Geometry.Coordinates
 	/// Point in a 3-dimensional cartesian coordinate system. Immutable
 	/// Authors: Dimitris Tsapetis
 	/// </summary>
-    public class CartesianPoint3D
+    public class CartesianPoint3D : IPoint3D
 	{
 		protected readonly double x;
 		protected readonly double y;
@@ -36,12 +36,17 @@ namespace ISAAR.MSolve.Geometry.Coordinates
 			this.x = coordinates[0];
 			this.y = coordinates[1];
 			this.z = coordinates[2];
-		}
+        }
 
-		/// <summary>
-		/// The coordinate of the point along axis X.
-		/// </summary>
-		public double X=>x;
+        /// <summary>
+        /// Vector with the coordinates of the point. Length = 3.
+        /// </summary>
+        public double[] Coordinates => new double[] { x, y, z };
+
+        /// <summary>
+        /// The coordinate of the point along axis X.
+        /// </summary>
+        public double X => x;
 
 		/// <summary>
 		/// The coordinate of the point along axis Y.
@@ -53,10 +58,11 @@ namespace ISAAR.MSolve.Geometry.Coordinates
 		/// </summary>
 		public double Z => z;
 
-		/// <summary>
-		/// Vector with the coordinates of the point. Length = 3.
-		/// </summary>
-		public double[] Coordinates => new double[] {x, y, z};
+        public double X1 => x;
+
+        public double X2 => y;
+
+        public double X3 => z;
 
         /// <summary>
         /// Calculates the Euclidian distance between a <see cref="CartesianPoint3D"/> named <paramref name="other"/> and this 
@@ -71,9 +77,6 @@ namespace ISAAR.MSolve.Geometry.Coordinates
             return Math.Sqrt(dx * dx + dy * dy + dz * dz);
         }
 
-        public override string ToString()
-		{
-			return $"(x, y, z) = ({x}, {y}, {z})";
-		}
-	}
+        public override string ToString() => $"(x, y, z) = ({x}, {y}, {z})";
+    }
 }

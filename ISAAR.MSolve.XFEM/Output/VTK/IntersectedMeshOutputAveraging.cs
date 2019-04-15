@@ -7,7 +7,7 @@ using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Geometry.Triangulation;
+using ISAAR.MSolve.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems;
@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
         private readonly ICrackDescription crackGeometry;
         private readonly Model2D model;
         private readonly string pathNoExtension;
-        private readonly CartesianTriangulator triangulator;
+        private readonly Triangulator2D<CartesianPoint2D> triangulator;
 
 
         public IntersectedMeshOutputAveraging(Model2D model, ICrackDescription crackGeometry, string pathNoExtension)
@@ -41,7 +41,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             this.crackGeometry = crackGeometry;
             this.model = model;
             this.pathNoExtension = pathNoExtension;
-            this.triangulator = new CartesianTriangulator();
+            this.triangulator = new Triangulator2D<CartesianPoint2D>((x, y) => new CartesianPoint2D(x, y));
         }
 
         public void WriteOutputData(IDofOrderer dofOrderer, Vector freeDisplacements, Vector constrainedDisplacements, int step)
@@ -109,9 +109,9 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                 {
                     // Triangulate and then operate on each triangle
                     SortedSet<CartesianPoint2D> triangleVertices = intersectingCrack.FindTriangleVertices(element);
-                    IReadOnlyList<TriangleCartesian2D> triangles = triangulator.CreateMesh(triangleVertices);
+                    IReadOnlyList<Triangle2D<CartesianPoint2D>> triangles = triangulator.CreateMesh(triangleVertices);
 
-                    foreach (TriangleCartesian2D triangle in triangles)
+                    foreach (Triangle2D<CartesianPoint2D> triangle in triangles)
                     {
                         // Mesh
                         int numTriangleNodes = 3;
