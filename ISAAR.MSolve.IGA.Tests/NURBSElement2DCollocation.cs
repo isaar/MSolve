@@ -798,7 +798,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			}
 		}
 
-		[Fact]
+		//[Fact]
 		private void TestCollocationPointCreation()
 		{
 			Model model = new Model();
