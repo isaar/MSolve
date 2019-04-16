@@ -87,9 +87,21 @@ namespace ISAAR.MSolve.Solvers.LinearSystems
             Solution = null;
             Matrix = null;
 
-            if (Subdomain.FreeDofOrdering == null) throw new InvalidOperationException("The freedom degrees of a subdomain must" 
-                 + " be ordered before defining the size of its corresponding linear system.");
-            Size = Subdomain.FreeDofOrdering.NumFreeDofs;
+            if (Subdomain is IAsymmetricSubdomain asymmetricSubdomain)
+            {
+                if (asymmetricSubdomain.FreeDofRowOrdering == null) throw new InvalidOperationException("The freedom degrees of a subdomain must"
+                                                                                           + " be ordered before defining the size of its corresponding linear system.");
+                if (asymmetricSubdomain.FreeDofColOrdering == null) throw new InvalidOperationException("The freedom degrees of a subdomain must"
+                                                                                                        + " be ordered before defining the size of its corresponding linear system.");
+                Size = asymmetricSubdomain.FreeDofColOrdering.NumFreeDofs;
+            }
+            else
+            {
+                if (Subdomain.FreeDofOrdering == null) throw new InvalidOperationException("The freedom degrees of a subdomain must"
+                                                                                           + " be ordered before defining the size of its corresponding linear system.");
+                Size = Subdomain.FreeDofOrdering.NumFreeDofs;
+            }
+            
         }
 
         internal abstract TVector CreateZeroVector();
