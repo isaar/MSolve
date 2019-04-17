@@ -596,7 +596,7 @@ namespace ISAAR.MSolve.FEM.Elements
                     GLvec[npoint][5]- GLvec_last_converged[npoint][5]
                 };
                 materialsAtGaussPoints[npoint].UpdateMaterial(GLvec_strain_minus_last_converged_value); 
-                //To update with total strain simply: materialsAtGaussPoints[npoint].UpdateMaterial(GLvec[npoint]);
+                //To update with total strain simplY = materialsAtGaussPoints[npoint].UpdateMaterial(GLvec[npoint]);
             }
             return new Tuple<double[], double[]>(GLvec_strain_minus_last_converged_value, 
                 materialsAtGaussPoints[materialsAtGaussPoints.Length - 1].Stresses);

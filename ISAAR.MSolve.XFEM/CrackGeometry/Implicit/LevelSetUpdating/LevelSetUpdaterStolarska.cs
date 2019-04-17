@@ -11,17 +11,17 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.LevelSetUpdating
     {
         public LevelSetUpdaterStolarska() { }
 
-        public HashSet<XNode2D> Update(CartesianPoint2D oldTip, double localGrowthAngle, double growthLength, double dx, double dy, 
-            IReadOnlyList<XNode2D> allNodes, ISet<XNode2D> crackBodyNodesAll,
-            Dictionary<XNode2D, double> levelSetsBody, Dictionary<XNode2D, double> levelSetsTip)
+        public HashSet<XNode> Update(CartesianPoint oldTip, double localGrowthAngle, double growthLength, double dx, double dy, 
+            IReadOnlyList<XNode> allNodes, ISet<XNode> crackBodyNodesAll,
+            Dictionary<XNode, double> levelSetsBody, Dictionary<XNode, double> levelSetsTip)
         {
             double unitDx = dx / growthLength;
             double unitDy = dy / growthLength;
-            var newTip = new CartesianPoint2D(oldTip.X + dx, oldTip.Y + dy);
+            var newTip = new CartesianPoint(oldTip.X + dx, oldTip.Y + dy);
             var newSegment = new DirectedSegment2D(oldTip, newTip);
 
-            var crackBodyNodesModified = new HashSet<XNode2D>();
-            foreach (XNode2D node in allNodes)
+            var crackBodyNodesModified = new HashSet<XNode>();
+            foreach (XNode node in allNodes)
             {
                 // Rotate the ALL tip level sets towards the new tip and then advance them
                 double rotatedTipLevelSet = (node.X - oldTip.X) * unitDx + (node.Y - oldTip.Y) * unitDy;

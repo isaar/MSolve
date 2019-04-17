@@ -10,16 +10,16 @@ namespace ISAAR.MSolve.Geometry.Shapes
 
     public class Circle2D
     {
-        public CartesianPoint2D Center { get; }
+        public CartesianPoint Center { get; }
         public double Radius { get; }
 
-        public Circle2D(CartesianPoint2D center, double radius)
+        public Circle2D(CartesianPoint center, double radius)
         {
-            this.Center = new CartesianPoint2D(center.X, center.Y); // Copy it for extra safety
+            this.Center = new CartesianPoint(center.X, center.Y); // Copy it for extra safety
             this.Radius = radius;
         }
 
-        public CirclePointPosition FindRelativePositionOfPoint(CartesianPoint2D point)
+        public CirclePointPosition FindRelativePositionOfPoint(CartesianPoint point)
         {
             double distanceX = point.X - Center.X;
             double distanceY = point.Y - Center.Y;

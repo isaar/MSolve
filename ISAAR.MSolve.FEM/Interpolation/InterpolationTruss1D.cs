@@ -24,10 +24,10 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
         private InterpolationTruss1D()
         {
-            NodalNaturalCoordinates = new NaturalPoint1D[]
+            NodalNaturalCoordinates = new NaturalPoint[]
             {
-                new NaturalPoint1D(-1.0),
-                new NaturalPoint1D(+1.0)
+                new NaturalPoint(-1.0),
+                new NaturalPoint(+1.0)
             };
         }
 
@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// The coordinates of the finite element's nodes in the natural (element local) coordinate system. The order of these
         /// nodes matches the order of the shape functions and is always the same for each element.
         /// </summary>
-        public IReadOnlyList<NaturalPoint1D> NodalNaturalCoordinates { get; }
+        public IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
         /// <summary>
         /// Get the unique <see cref="InterpolationTruss1D"/> object for the whole program. Thread safe.
@@ -94,7 +94,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
                 var naturalGradientsAtGPsArray = new Matrix[numGPs];
                 for (int gp = 0; gp < numGPs; ++gp)
                 {
-                    GaussPoint1D gaussPoint = quadrature.IntegrationPoints[gp];
+                    GaussPoint gaussPoint = quadrature.IntegrationPoints[gp];
                     naturalGradientsAtGPsArray[gp] = EvaluateGradientsAt();
                 }
                 cachedNaturalGradientsAtGPs.Add(quadrature, naturalGradientsAtGPsArray);
@@ -113,7 +113,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
                 var shapeFunctionsAtGPsArray = new Vector[numGPs];
                 for (int gp = 0; gp < numGPs; ++gp)
                 {
-                    GaussPoint1D gaussPoint = quadrature.IntegrationPoints[gp];
+                    GaussPoint gaussPoint = quadrature.IntegrationPoints[gp];
                     shapeFunctionsAtGPsArray[gp] = Vector.CreateFromArray(EvaluateAt(gaussPoint.Xi));
                 }
                 cachedFunctionsAtGPs.Add(quadrature, shapeFunctionsAtGPsArray);

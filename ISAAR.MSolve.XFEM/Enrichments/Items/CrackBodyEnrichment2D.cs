@@ -32,23 +32,23 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             };
         }
         
-        public double[] EvaluateFunctionsAt(XNode2D node)
+        public double[] EvaluateFunctionsAt(XNode node)
         {
             double signedDistance = crackDescription.SignedDistanceOf(node);
             return new double[] { enrichmentFunction.EvaluateAt(signedDistance) };
         }
 
-        public EvaluatedFunction2D[] EvaluateAllAt(NaturalPoint2D point, XContinuumElement2D element,
+        public EvaluatedFunction2D[] EvaluateAllAt(NaturalPoint point, XContinuumElement2D element,
              EvaluatedInterpolation2D interpolation)
         {
-            CartesianPoint2D cartesianPoint = interpolation.TransformPointNaturalToGlobalCartesian(point);
+            CartesianPoint cartesianPoint = interpolation.TransformPointNaturalToGlobalCartesian(point);
             double signedDistance = crackDescription.SignedDistanceOf(point, element, interpolation);
             return new EvaluatedFunction2D[] { enrichmentFunction.EvaluateAllAt(signedDistance) };
         }
 
 
         // TODO: delete this
-        public IReadOnlyList<CartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element)
+        public IReadOnlyList<CartesianPoint> IntersectionPointsForIntegration(XContinuumElement2D element)
         {
             throw new NotImplementedException();
         }

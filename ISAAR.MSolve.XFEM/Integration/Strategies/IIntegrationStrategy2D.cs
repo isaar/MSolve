@@ -20,6 +20,6 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
     /// <typeparam name="TElement"></typeparam>
     interface IIntegrationStrategy2D<TElement>
     {
-        IReadOnlyList<GaussPoint2D> GenerateIntegrationPoints(TElement element);
+        IReadOnlyList<GaussPoint> GenerateIntegrationPoints(TElement element);
     }
 }

@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
 {
     class Propagator: IPropagator
     {
-        private readonly IMesh2D<XNode2D, XContinuumElement2D> mesh;
+        private readonly IMesh2D<XNode, XContinuumElement2D> mesh;
         private readonly double magnificationOfJintegralRadius;
         private readonly IAuxiliaryStates auxiliaryStatesStrategy;
         private readonly ISIFCalculator sifCalculationStrategy;
@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         ///     (see Ahmed thesis, 2009).</param>
         /// <param name="auxiliaryStatesStrategy"></param>
         /// <param name="sifCalculationStrategy"></param>
-        public Propagator(IMesh2D<XNode2D, XContinuumElement2D> mesh, double magnificationOfJintegralRadius,
+        public Propagator(IMesh2D<XNode, XContinuumElement2D> mesh, double magnificationOfJintegralRadius,
             IAuxiliaryStates auxiliaryStatesStrategy, ISIFCalculator sifCalculationStrategy,
             ICrackGrowthDirectionLaw2D growthDirectionLaw, ICrackGrowthLengthLaw2D growthLengthLaw)
         {
@@ -57,7 +57,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
 
         public (double growthAngle, double growthLength) Propagate(
             IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements, 
-            CartesianPoint2D crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
+            CartesianPoint crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
         {
             // TODO: Also check if the sifs do not violate the material toughness
             (double sifMode1, double sifMode2) = ComputeSIFS(dofOrderer, totalFreeDisplacements, totalConstrainedDisplacements, 
@@ -72,7 +72,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
 
         private (double sifMode1, double sifMode2) ComputeSIFS(
             IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements,
-            CartesianPoint2D crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
+            CartesianPoint crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
         {
             double interactionIntegralMode1 = 0.0, interactionIntegralMode2 = 0.0;
             IReadOnlyDictionary<XContinuumElement2D, double[]> elementWeights = 
@@ -106,7 +106,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         }
 
         private IReadOnlyDictionary<XContinuumElement2D, double[]> FindJintegralElementsAndNodalWeights(
-            CartesianPoint2D crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
+            CartesianPoint crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
         {
             Circle2D outerContour = 
                 new Circle2D(crackTip, ComputeRadiusOfJintegralOuterContour(tipSystem, tipElements));
@@ -124,7 +124,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
                 double[] nodalWeights = new double[element.Nodes.Count];
                 for (int nodeIdx = 0; nodeIdx < element.Nodes.Count; ++nodeIdx)
                 {
-                    CirclePointPosition pos = outerContour.FindRelativePositionOfPoint((CartesianPoint2D)element.Nodes[nodeIdx]);
+                    CirclePointPosition pos = outerContour.FindRelativePositionOfPoint((CartesianPoint)element.Nodes[nodeIdx]);
                     if (pos == CirclePointPosition.Outside)
                     {
                         nodalWeights[nodeIdx] = 0.0;
@@ -147,7 +147,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             double maxTipElementArea = -1.0;
             foreach (var element in tipElements)
             {
-                var outline = ConvexPolygon2D.CreateUnsafe(element.Nodes.Select(node => (CartesianPoint2D)node).ToArray());
+                var outline = ConvexPolygon2D.CreateUnsafe(element.Nodes.Select(node => (CartesianPoint)node).ToArray());
                 double elementArea = outline.ComputeArea();
                 if (elementArea > maxTipElementArea) maxTipElementArea = elementArea;
             }
@@ -160,14 +160,14 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         {
             integralMode1 = 0.0;
             integralMode2 = 0.0;
-            foreach (GaussPoint2D naturalGP in element.JintegralStrategy.GenerateIntegrationPoints(element))
+            foreach (GaussPoint naturalGP in element.JintegralStrategy.GenerateIntegrationPoints(element))
             {
                 // Nomenclature: global = global cartesian system, natural = element natural system, 
                 // local = tip local cartesian system  
                 
                 EvaluatedInterpolation2D evaluatedInterpolation = 
                     element.Interpolation.EvaluateAt(element.Nodes, naturalGP);
-                CartesianPoint2D globalGP = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian(naturalGP);
+                CartesianPoint globalGP = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian(naturalGP);
                 Matrix constitutive = 
                     element.Material.CalculateConstitutiveMatrixAt(naturalGP, evaluatedInterpolation);
 

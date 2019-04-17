@@ -35,44 +35,44 @@ namespace ISAAR.MSolve.SamplesConsole
             model.SubdomainsDictionary.Add(0, new Subdomain(0));
 
             #region Nodes
-            model.NodesDictionary.Add(0, new Node { ID = 0, X = 0.0, Y = 0.0, Z = 0.0 });
-            model.NodesDictionary.Add(1, new Node { ID = 1, X = 0.6, Y = 0.0, Z = 0.0 });
+            model.NodesDictionary.Add(0, new Node( id: 0, x: 0.0, y:  0.0, z: 0.0 ));
+            model.NodesDictionary.Add(1, new Node( id: 1, x: 0.6, y:  0.0, z: 0.0 ));
 
-            model.NodesDictionary.Add(2, new Node { ID = 2, X = 0.0, Y = 0.5, Z = 0.0 });
-            model.NodesDictionary.Add(3, new Node { ID = 3, X = 0.6, Y = 0.5, Z = 0.0 });
-            model.NodesDictionary.Add(4, new Node { ID = 4, X = 1.2, Y = 0.5, Z = 0.0 });
-            model.NodesDictionary.Add(5, new Node { ID = 5, X = 1.8, Y = 0.5, Z = 0.0 });
-            model.NodesDictionary.Add(6, new Node { ID = 6, X = 2.4, Y = 0.5, Z = 0.0 });
-            model.NodesDictionary.Add(7, new Node { ID = 7, X = 3.0, Y = 0.5, Z = 0.0 });
-            model.NodesDictionary.Add(8, new Node { ID = 8, X = 3.6, Y = 0.5, Z = 0.0 });
-            model.NodesDictionary.Add(9, new Node { ID = 9, X = 4.3, Y = 0.5, Z = 0.0 });
+            model.NodesDictionary.Add(2, new Node( id: 2, x: 0.0, y:  0.5, z: 0.0 ));
+            model.NodesDictionary.Add(3, new Node( id: 3, x: 0.6, y:  0.5, z: 0.0 ));
+            model.NodesDictionary.Add(4, new Node( id: 4, x: 1.2, y:  0.5, z: 0.0 ));
+            model.NodesDictionary.Add(5, new Node( id: 5, x: 1.8, y:  0.5, z: 0.0 ));
+            model.NodesDictionary.Add(6, new Node( id: 6, x: 2.4, y:  0.5, z: 0.0 ));
+            model.NodesDictionary.Add(7, new Node( id: 7, x: 3.0, y:  0.5, z: 0.0 ));
+            model.NodesDictionary.Add(8, new Node( id: 8, x: 3.6, y:  0.5, z: 0.0 ));
+            model.NodesDictionary.Add(9, new Node( id: 9, x: 4.3, y:  0.5, z: 0.0 ));
 
-            model.NodesDictionary.Add(10, new Node { ID = 10, X = 0.0, Y = 1.2, Z = 0.0 });
-            model.NodesDictionary.Add(11, new Node { ID = 11, X = 0.6, Y = 1.2, Z = 0.0 });
-            model.NodesDictionary.Add(12, new Node { ID = 12, X = 1.2, Y = 1.2, Z = 0.0 });
-            model.NodesDictionary.Add(13, new Node { ID = 13, X = 1.8, Y = 1.2, Z = 0.0 });
-            model.NodesDictionary.Add(14, new Node { ID = 14, X = 2.4, Y = 1.2, Z = 0.0 });
-            model.NodesDictionary.Add(15, new Node { ID = 15, X = 3.0, Y = 1.2, Z = 0.0 });
-            model.NodesDictionary.Add(16, new Node { ID = 16, X = 3.6, Y = 1.2, Z = 0.0 });
-            model.NodesDictionary.Add(17, new Node { ID = 17, X = 4.3, Y = 1.2, Z = 0.0 });
+            model.NodesDictionary.Add(10, new Node( id: 10, x: 0.0, y:  1.2, z: 0.0 ));
+            model.NodesDictionary.Add(11, new Node( id: 11, x: 0.6, y:  1.2, z: 0.0 ));
+            model.NodesDictionary.Add(12, new Node( id: 12, x: 1.2, y:  1.2, z: 0.0 ));
+            model.NodesDictionary.Add(13, new Node( id: 13, x: 1.8, y:  1.2, z: 0.0 ));
+            model.NodesDictionary.Add(14, new Node( id: 14, x: 2.4, y:  1.2, z: 0.0 ));
+            model.NodesDictionary.Add(15, new Node( id: 15, x: 3.0, y:  1.2, z: 0.0 ));
+            model.NodesDictionary.Add(16, new Node( id: 16, x: 3.6, y:  1.2, z: 0.0 ));
+            model.NodesDictionary.Add(17, new Node( id: 17, x: 4.3, y:  1.2, z: 0.0 ));
 
-            model.NodesDictionary.Add(18, new Node { ID = 18, X = 3, Y = 1.9, Z = 0.0 });
-            model.NodesDictionary.Add(19, new Node { ID = 19, X = 3.5756, Y = 1.9, Z = 0.0 });
+            model.NodesDictionary.Add(18, new Node( id: 18, x: 3, y:  1.9, z: 0.0 ));
+            model.NodesDictionary.Add(19, new Node( id: 19, x: 3.5756, y:  1.9, z: 0.0 ));
 
-            model.NodesDictionary.Add(20, new Node { ID = 20, X = 3, Y = 2.6, Z = 0.0 });
-            model.NodesDictionary.Add(21, new Node { ID = 21, X = 3.5512, Y = 2.6, Z = 0.0 });
+            model.NodesDictionary.Add(20, new Node( id: 20, x: 3, y:  2.6, z: 0.0 ));
+            model.NodesDictionary.Add(21, new Node( id: 21, x: 3.5512, y:  2.6, z: 0.0 ));
 
-            model.NodesDictionary.Add(22, new Node { ID = 22, X = 3, Y = 3.3, Z = 0.0 });
-            model.NodesDictionary.Add(23, new Node { ID = 23, X = 3.5267, Y = 3.3, Z = 0.0 });
+            model.NodesDictionary.Add(22, new Node( id: 22, x: 3, y:  3.3, z: 0.0 ));
+            model.NodesDictionary.Add(23, new Node( id: 23, x: 3.5267, y:  3.3, z: 0.0 ));
 
-            model.NodesDictionary.Add(24, new Node { ID = 24, X = 3, Y = 4.0, Z = 0.0 });
-            model.NodesDictionary.Add(25, new Node { ID = 25, X = 3.5023, Y = 4.0, Z = 0.0 });
+            model.NodesDictionary.Add(24, new Node( id: 24, x: 3, y:  4.0, z: 0.0 ));
+            model.NodesDictionary.Add(25, new Node( id: 25, x: 3.5023, y:  4.0, z: 0.0 ));
 
-            model.NodesDictionary.Add(26, new Node { ID = 26, X = 3, Y = 4.7, Z = 0.0 });
-            model.NodesDictionary.Add(27, new Node { ID = 27, X = 3.4779, Y = 4.7, Z = 0.0 });
+            model.NodesDictionary.Add(26, new Node( id: 26, x: 3, y:  4.7, z: 0.0 ));
+            model.NodesDictionary.Add(27, new Node( id: 27, x: 3.4779, y:  4.7, z: 0.0 ));
 
-            model.NodesDictionary.Add(28, new Node { ID = 28, X = 3, Y = 5.5, Z = 0.0 });
-            model.NodesDictionary.Add(29, new Node { ID = 29, X = 3.45, Y = 5.5, Z = 0.0 });
+            model.NodesDictionary.Add(28, new Node( id: 28, x: 3, y:  5.5, z: 0.0 ));
+            model.NodesDictionary.Add(29, new Node( id: 29, x: 3.45, y:  5.5, z: 0.0 ));
             #endregion
 
             #region Elements
@@ -339,44 +339,44 @@ namespace ISAAR.MSolve.SamplesConsole
             model.SubdomainsDictionary.Add(0, new Subdomain(0));
 
             #region Nodes
-            model.NodesDictionary.Add(0, new Node { ID = 0, X = 0.0, Y = 0.0, Z = 0.0 });
-            model.NodesDictionary.Add(1, new Node { ID = 1, X = 0.6, Y = 0.0, Z = 0.0 });
+            model.NodesDictionary.Add(0, new Node(id: 0, x: 0.0, y: 0.0, z: 0.0));
+            model.NodesDictionary.Add(1, new Node(id: 1, x: 0.6, y: 0.0, z: 0.0));
 
-            model.NodesDictionary.Add(2, new Node { ID = 2, X = 0.0, Y = 0.5, Z = 0.0 });
-            model.NodesDictionary.Add(3, new Node { ID = 3, X = 0.6, Y = 0.5, Z = 0.0 });
-            model.NodesDictionary.Add(4, new Node { ID = 4, X = 1.2, Y = 0.5, Z = 0.0 });
-            model.NodesDictionary.Add(5, new Node { ID = 5, X = 1.8, Y = 0.5, Z = 0.0 });
-            model.NodesDictionary.Add(6, new Node { ID = 6, X = 2.4, Y = 0.5, Z = 0.0 });
-            model.NodesDictionary.Add(7, new Node { ID = 7, X = 3.0, Y = 0.5, Z = 0.0 });
-            model.NodesDictionary.Add(8, new Node { ID = 8, X = 3.6, Y = 0.5, Z = 0.0 });
-            model.NodesDictionary.Add(9, new Node { ID = 9, X = 4.3, Y = 0.5, Z = 0.0 });
+            model.NodesDictionary.Add(2, new Node(id: 2, x: 0.0, y: 0.5, z: 0.0));
+            model.NodesDictionary.Add(3, new Node(id: 3, x: 0.6, y: 0.5, z: 0.0));
+            model.NodesDictionary.Add(4, new Node(id: 4, x: 1.2, y: 0.5, z: 0.0));
+            model.NodesDictionary.Add(5, new Node(id: 5, x: 1.8, y: 0.5, z: 0.0));
+            model.NodesDictionary.Add(6, new Node(id: 6, x: 2.4, y: 0.5, z: 0.0));
+            model.NodesDictionary.Add(7, new Node(id: 7, x: 3.0, y: 0.5, z: 0.0));
+            model.NodesDictionary.Add(8, new Node(id: 8, x: 3.6, y: 0.5, z: 0.0));
+            model.NodesDictionary.Add(9, new Node(id: 9, x: 4.3, y: 0.5, z: 0.0));
 
-            model.NodesDictionary.Add(10, new Node { ID = 10, X = 0.0, Y = 1.2, Z = 0.0 });
-            model.NodesDictionary.Add(11, new Node { ID = 11, X = 0.6, Y = 1.2, Z = 0.0 });
-            model.NodesDictionary.Add(12, new Node { ID = 12, X = 1.2, Y = 1.2, Z = 0.0 });
-            model.NodesDictionary.Add(13, new Node { ID = 13, X = 1.8, Y = 1.2, Z = 0.0 });
-            model.NodesDictionary.Add(14, new Node { ID = 14, X = 2.4, Y = 1.2, Z = 0.0 });
-            model.NodesDictionary.Add(15, new Node { ID = 15, X = 3.0, Y = 1.2, Z = 0.0 });
-            model.NodesDictionary.Add(16, new Node { ID = 16, X = 3.6, Y = 1.2, Z = 0.0 });
-            model.NodesDictionary.Add(17, new Node { ID = 17, X = 4.3, Y = 1.2, Z = 0.0 });
+            model.NodesDictionary.Add(10, new Node(id: 10, x: 0.0, y: 1.2, z: 0.0));
+            model.NodesDictionary.Add(11, new Node(id: 11, x: 0.6, y: 1.2, z: 0.0));
+            model.NodesDictionary.Add(12, new Node(id: 12, x: 1.2, y: 1.2, z: 0.0));
+            model.NodesDictionary.Add(13, new Node(id: 13, x: 1.8, y: 1.2, z: 0.0));
+            model.NodesDictionary.Add(14, new Node(id: 14, x: 2.4, y: 1.2, z: 0.0));
+            model.NodesDictionary.Add(15, new Node(id: 15, x: 3.0, y: 1.2, z: 0.0));
+            model.NodesDictionary.Add(16, new Node(id: 16, x: 3.6, y: 1.2, z: 0.0));
+            model.NodesDictionary.Add(17, new Node(id: 17, x: 4.3, y: 1.2, z: 0.0));
 
-            model.NodesDictionary.Add(18, new Node { ID = 18, X = 3, Y = 1.9, Z = 0.0 });
-            model.NodesDictionary.Add(19, new Node { ID = 19, X = 3.5756, Y = 1.9, Z = 0.0 });
+            model.NodesDictionary.Add(18, new Node(id: 18, x: 3, y: 1.9, z: 0.0));
+            model.NodesDictionary.Add(19, new Node(id: 19, x: 3.5756, y: 1.9, z: 0.0));
 
-            model.NodesDictionary.Add(20, new Node { ID = 20, X = 3, Y = 2.6, Z = 0.0 });
-            model.NodesDictionary.Add(21, new Node { ID = 21, X = 3.5512, Y = 2.6, Z = 0.0 });
+            model.NodesDictionary.Add(20, new Node(id: 20, x: 3, y: 2.6, z: 0.0));
+            model.NodesDictionary.Add(21, new Node(id: 21, x: 3.5512, y: 2.6, z: 0.0));
 
-            model.NodesDictionary.Add(22, new Node { ID = 22, X = 3, Y = 3.3, Z = 0.0 });
-            model.NodesDictionary.Add(23, new Node { ID = 23, X = 3.5267, Y = 3.3, Z = 0.0 });
+            model.NodesDictionary.Add(22, new Node(id: 22, x: 3, y: 3.3, z: 0.0));
+            model.NodesDictionary.Add(23, new Node(id: 23, x: 3.5267, y: 3.3, z: 0.0));
 
-            model.NodesDictionary.Add(24, new Node { ID = 24, X = 3, Y = 4.0, Z = 0.0 });
-            model.NodesDictionary.Add(25, new Node { ID = 25, X = 3.5023, Y = 4.0, Z = 0.0 });
+            model.NodesDictionary.Add(24, new Node(id: 24, x: 3, y: 4.0, z: 0.0));
+            model.NodesDictionary.Add(25, new Node(id: 25, x: 3.5023, y: 4.0, z: 0.0));
 
-            model.NodesDictionary.Add(26, new Node { ID = 26, X = 3, Y = 4.7, Z = 0.0 });
-            model.NodesDictionary.Add(27, new Node { ID = 27, X = 3.4779, Y = 4.7, Z = 0.0 });
+            model.NodesDictionary.Add(26, new Node(id: 26, x: 3, y: 4.7, z: 0.0));
+            model.NodesDictionary.Add(27, new Node(id: 27, x: 3.4779, y: 4.7, z: 0.0));
 
-            model.NodesDictionary.Add(28, new Node { ID = 28, X = 3, Y = 5.5, Z = 0.0 });
-            model.NodesDictionary.Add(29, new Node { ID = 29, X = 3.45, Y = 5.5, Z = 0.0 });
+            model.NodesDictionary.Add(28, new Node(id: 28, x: 3, y: 5.5, z: 0.0));
+            model.NodesDictionary.Add(29, new Node(id: 29, x: 3.45, y: 5.5, z: 0.0));
             #endregion
 
             #region Elements
@@ -668,7 +668,7 @@ namespace ISAAR.MSolve.SamplesConsole
             model.Loads.Add(new Load() { Amount = -25800 * 2, Node = model.NodesDictionary[15], DOF = StructuralDof.TranslationY });
 
             //ground horizontal loads
-            model.Loads.Add(new Load() { Amount = -2130, Node = model.NodesDictionary[28], DOF = StructuralDof.TranslationX });
+            model.Loads.Add(new Load() { Amount = -2130, Node = model.NodesDictionary[28], DOF = StructuralDof.TranslationX  });
             model.Loads.Add(new Load() { Amount = -11490, Node = model.NodesDictionary[26], DOF = StructuralDof.TranslationX });
             model.Loads.Add(new Load() { Amount = -20990, Node = model.NodesDictionary[24], DOF = StructuralDof.TranslationX });
             model.Loads.Add(new Load() { Amount = -30790, Node = model.NodesDictionary[22], DOF = StructuralDof.TranslationX });
@@ -1002,7 +1002,7 @@ namespace ISAAR.MSolve.SamplesConsole
         {
             using (var reader = new GmshReader<Node>(workingDirectory + "\\" + meshFileName))
             {
-                return reader.CreateMesh((id, x, y, z) => new Node() { ID = id, X = x, Y = y, Z = z });
+                return reader.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
             }
         }
 
@@ -1010,15 +1010,15 @@ namespace ISAAR.MSolve.SamplesConsole
         {
 
             #region Nodes
-            var node0 = new Node { ID = 0, X = 0.0, Y = 0.0 };
-            var node1 = new Node { ID = 1, X = 2.0, Y = 0.0 };
-            var node2 = new Node { ID = 2, X = 4.0, Y = 0.0 };
-            var node3 = new Node { ID = 3, X = 0.0, Y = 2.0 };
-            var node4 = new Node { ID = 4, X = 2.0, Y = 2.0 };
-            var node5 = new Node { ID = 5, X = 4.0, Y = 2.0 };
-            var node6 = new Node { ID = 6, X = 0.0, Y = 4.0 };
-            var node7 = new Node { ID = 7, X = 2.0, Y = 4.0 };
-            var node8 = new Node { ID = 8, X = 4.0, Y = 4.0 };
+            var node0 = new Node( id: 0, x: 0.0, y:  0.0 );
+            var node1 = new Node( id: 1, x: 2.0, y:  0.0 );
+            var node2 = new Node( id: 2, x: 4.0, y:  0.0 );
+            var node3 = new Node( id: 3, x: 0.0, y:  2.0 );
+            var node4 = new Node( id: 4, x: 2.0, y:  2.0 );
+            var node5 = new Node( id: 5, x: 4.0, y:  2.0 );
+            var node6 = new Node( id: 6, x: 0.0, y:  4.0 );
+            var node7 = new Node( id: 7, x: 2.0, y:  4.0 );
+            var node8 = new Node( id: 8, x: 4.0, y:  4.0 );
             #endregion
 
             #region material

@@ -13,6 +13,6 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
 
     interface IRegion2D
     {
-        NodePosition FindRelativePosition(XNode2D node);
+        NodePosition FindRelativePosition(XNode node);
     }
 }

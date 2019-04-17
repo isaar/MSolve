@@ -64,14 +64,14 @@ namespace ISAAR.MSolve.Tests
             public static void HostElementsBuilder(Model model)
             {
                 // Nodes Geometry
-                model.NodesDictionary.Add(1, new Node() { ID = 1, X = 10.00, Y = 2.50, Z = 2.50 });
-                model.NodesDictionary.Add(2, new Node() { ID = 2, X = 0.00, Y = 2.50, Z = 2.50 });
-                model.NodesDictionary.Add(3, new Node() { ID = 3, X = 0.00, Y = -2.50, Z = 2.50 });
-                model.NodesDictionary.Add(4, new Node() { ID = 4, X = 10.00, Y = -2.50, Z = 2.50 });
-                model.NodesDictionary.Add(5, new Node() { ID = 5, X = 10.00, Y = 2.50, Z = -2.50 });
-                model.NodesDictionary.Add(6, new Node() { ID = 6, X = 0.00, Y = 2.50, Z = -2.50 });
-                model.NodesDictionary.Add(7, new Node() { ID = 7, X = 0.00, Y = -2.50, Z = -2.50 });
-                model.NodesDictionary.Add(8, new Node() { ID = 8, X = 10.00, Y = -2.50, Z = -2.50 });
+                model.NodesDictionary.Add(1, new Node(id: 1, x: 10.00, y:   2.50, z:  2.50 ));
+                model.NodesDictionary.Add(2, new Node(id: 2, x:  0.00, y:   2.50, z:  2.50 ));
+                model.NodesDictionary.Add(3, new Node(id: 3, x:  0.00, y:  -2.50, z:  2.50 ));
+                model.NodesDictionary.Add(4, new Node(id: 4, x: 10.00, y:  -2.50, z:  2.50 ));
+                model.NodesDictionary.Add(5, new Node(id: 5, x: 10.00, y:   2.50, z: -2.50 ));
+                model.NodesDictionary.Add(6, new Node(id: 6, x:  0.00, y:   2.50, z: -2.50 ));
+                model.NodesDictionary.Add(7, new Node(id: 7, x:  0.00, y:  -2.50, z: -2.50 ));
+                model.NodesDictionary.Add(8, new Node(id: 8, x: 10.00, y:  -2.50, z: -2.50 ));
 
                 // Boundary Conditions
                 model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
@@ -136,8 +136,8 @@ namespace ISAAR.MSolve.Tests
                 double effectiveAreaZ = area;
 
                 // Geometry
-                model.NodesDictionary.Add(9, new Node() { ID = 9, X = 0.00, Y = 0.00, Z = 0.00 });
-                model.NodesDictionary.Add(10, new Node() { ID = 10, X = 10.00, Y = 0.00, Z = 0.00 });
+                model.NodesDictionary.Add(9,  new Node(id:  9, x: 0.00,  y:  0.00, z: 0.00 ));
+                model.NodesDictionary.Add(10, new Node(id: 10, x: 10.00, y:  0.00, z: 0.00 ));
 
                 // Create new 3D material
                 var beamMaterial = new ElasticMaterial3D

@@ -27,13 +27,13 @@ namespace ISAAR.MSolve.XFEM.Output
 
         public IReadOnlyList<Tensor2D> ComputeSmoothedNodalStresses(Vector solution)
         {
-            var stressesFromAllElements = new Dictionary<XNode2D, List<Tensor2D>>();
+            var stressesFromAllElements = new Dictionary<XNode, List<Tensor2D>>();
             foreach (var node in model.Nodes) stressesFromAllElements[node] = new List<Tensor2D>();
             Vector constrainedDisplacements = model.CalculateConstrainedDisplacements(dofOrderer);
 
             foreach (var element in model.Elements)
             {
-                IReadOnlyDictionary<XNode2D, Tensor2D> elementStresses =
+                IReadOnlyDictionary<XNode, Tensor2D> elementStresses =
                     ComputeNodalStressesOfElement(element, solution, constrainedDisplacements);
                 foreach (var nodeStressPair in elementStresses)
                 {
@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.XFEM.Output
             var nodalStresses = new Tensor2D[model.Nodes.Count];
             for (int i = 0; i < model.Nodes.Count; ++i)
             {
-                XNode2D node = model.Nodes[i];
+                XNode node = model.Nodes[i];
                 double stressXX = 0.0, stressYY = 0.0, stressXY = 0.0;
                 foreach (var tensor in stressesFromAllElements[node])
                 {
@@ -70,7 +70,7 @@ namespace ISAAR.MSolve.XFEM.Output
             var allStresses = new Dictionary<XContinuumElement2D, IReadOnlyList<Tensor2D>>();
             foreach (var element in model.Elements)
             {
-                IReadOnlyDictionary<XNode2D, Tensor2D> elementStresses =
+                IReadOnlyDictionary<XNode, Tensor2D> elementStresses =
                     ComputeNodalStressesOfElement(element, solution, constrainedDisplacements);
                 allStresses[element] = elementStresses.Values.ToArray();
             }
@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.XFEM.Output
         }
 
         // Computes stresses directly at the nodes. The other approach is to compute them at Gauss points and then extrapolate
-        private IReadOnlyDictionary<XNode2D, Tensor2D> ComputeNodalStressesOfElement(XContinuumElement2D element,
+        private IReadOnlyDictionary<XNode, Tensor2D> ComputeNodalStressesOfElement(XContinuumElement2D element,
             Vector freeDisplacements, Vector constrainedDisplacements)
         {
             Vector standardDisplacements = dofOrderer.ExtractDisplacementVectorOfElementFromGlobal(element, 
@@ -86,8 +86,8 @@ namespace ISAAR.MSolve.XFEM.Output
             Vector enrichedDisplacements = 
                 dofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
 
-            IReadOnlyList<NaturalPoint2D> naturalNodes = element.ElementType.NaturalCoordinatesOfNodes;
-            var nodalStresses = new Dictionary<XNode2D, Tensor2D>();
+            IReadOnlyList<NaturalPoint> naturalNodes = element.ElementType.NaturalCoordinatesOfNodes;
+            var nodalStresses = new Dictionary<XNode, Tensor2D>();
             for (int i = 0; i < element.Nodes.Count; ++i)
             {
                 EvaluatedInterpolation2D evaluatedInterpolation =

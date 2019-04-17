@@ -14,21 +14,21 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
         private InterpolationShell8() : base(8)
         {
-            NodalNaturalCoordinates = new NaturalPoint3D[]
+            NodalNaturalCoordinates = new NaturalPoint[]
             {
                 //TODO: validate this
-                new NaturalPoint3D(1, 1, 0),
-                new NaturalPoint3D(-1, 1, 0),
-                new NaturalPoint3D(-1, -1, 0),
-                new NaturalPoint3D(1, -1, 0),
-                new NaturalPoint3D(0, 1, 0),
-                new NaturalPoint3D(-1, 0, 0),
-                new NaturalPoint3D(0, -1, 0),
-                new NaturalPoint3D(1, 0, 0)
+                new NaturalPoint(1, 1, 0),
+                new NaturalPoint(-1, 1, 0),
+                new NaturalPoint(-1, -1, 0),
+                new NaturalPoint(1, -1, 0),
+                new NaturalPoint(0, 1, 0),
+                new NaturalPoint(-1, 0, 0),
+                new NaturalPoint(0, -1, 0),
+                new NaturalPoint(1, 0, 0)
             };
         }
 
-        public override IReadOnlyList<NaturalPoint3D> NodalNaturalCoordinates { get; }
+        public override IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
         public static InterpolationShell8 UniqueInstance => uniqueInstance;
 

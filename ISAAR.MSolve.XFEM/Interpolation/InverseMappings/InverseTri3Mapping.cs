@@ -26,11 +26,11 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
             det = (x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1);
         }
 
-        public NaturalPoint2D TransformCartesianToNatural(CartesianPoint2D point)
+        public NaturalPoint TransformCartesianToNatural(CartesianPoint point)
         {
             double detXi = (point.X - x1) * (y3 - y1) - (x3 - x1) * (point.Y - y1);
             double detEta = (x2 - x1) * (point.Y - y1) - (point.X - x1) * (y2 - y1);
-            return new NaturalPoint2D(detXi / det, detEta / det);
+            return new NaturalPoint(detXi / det, detEta / det);
         }
     }
 }

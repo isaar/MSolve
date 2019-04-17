@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
         {
         }
 
-        public IReadOnlyList<GaussPoint2D> GenerateIntegrationPoints(ContinuumElement2D element)
+        public IReadOnlyList<GaussPoint> GenerateIntegrationPoints(ContinuumElement2D element)
         {
             return element.StandardQuadrature.IntegrationPoints;
         }

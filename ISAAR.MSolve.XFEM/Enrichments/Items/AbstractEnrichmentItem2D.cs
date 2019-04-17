@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             this.affectedElements = new List<XContinuumElement2D>();
         }
 
-        public void EnrichNode(XNode2D node) // TODO: this should not be done manually
+        public void EnrichNode(XNode node) // TODO: this should not be done manually
         {
             double[] enrichmentValues = EvaluateFunctionsAt(node);
             node.EnrichmentItems.Add(this, enrichmentValues);
@@ -40,10 +40,10 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             }
         }
 
-        public abstract double[] EvaluateFunctionsAt(XNode2D node);
-        public abstract EvaluatedFunction2D[] EvaluateAllAt(NaturalPoint2D point, XContinuumElement2D element,
+        public abstract double[] EvaluateFunctionsAt(XNode node);
+        public abstract EvaluatedFunction2D[] EvaluateAllAt(NaturalPoint point, XContinuumElement2D element,
              EvaluatedInterpolation2D interpolation);
 
-        public abstract IReadOnlyList<CartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element);
+        public abstract IReadOnlyList<CartesianPoint> IntersectionPointsForIntegration(XContinuumElement2D element);
     }
 }

@@ -47,7 +47,7 @@ namespace ISAAR.MSolve.Discretization.Mesh
 
         // TODO: handle cases where more the point lies on an element edge or node.
         // TODO: Do it by spreading around the starting cell, breadth-first-search
-        public IReadOnlyList<TElement> FindElementsContainingPoint(CartesianPoint2D point,
+        public IReadOnlyList<TElement> FindElementsContainingPoint(CartesianPoint point,
             TElement startingElement = null)
         {
             var containingElements = new List<TElement>();
@@ -101,7 +101,7 @@ namespace ISAAR.MSolve.Discretization.Mesh
             var selectedNodes = new List<TNode>();
             foreach (var node in Nodes) // O(nodesCount)
             {
-                CirclePointPosition relativePosition = circle.FindRelativePositionOfPoint(new CartesianPoint2D(node.X, node.Y));
+                CirclePointPosition relativePosition = circle.FindRelativePositionOfPoint(new CartesianPoint(node.X, node.Y));
                 if ((relativePosition == CirclePointPosition.Inside) ||
                     (findBoundaryNodes && (relativePosition == CirclePointPosition.On)))
                 {
@@ -111,7 +111,7 @@ namespace ISAAR.MSolve.Discretization.Mesh
             return selectedNodes;
         }
 
-        public bool IsInsideBoundary(CartesianPoint2D point)
+        public bool IsInsideBoundary(CartesianPoint point)
         {
             return boundary.IsInside(point);
         }

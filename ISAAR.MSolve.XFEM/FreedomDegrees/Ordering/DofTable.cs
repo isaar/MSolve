@@ -5,18 +5,18 @@ using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 {
-    class DofTable<TDof> : Table<XNode2D, TDof, int> where TDof : IDof
+    class DofTable<TDof> : Table<XNode, TDof, int> where TDof : IDof
     {
         public DofTable() : base()
         { }
 
-        private DofTable(Dictionary<XNode2D, Dictionary<TDof, int>> data) : base(data)
+        private DofTable(Dictionary<XNode, Dictionary<TDof, int>> data) : base(data)
         { }
 
         //TODO: this would be nice to have in Table too.
         public DofTable<TDof> DeepCopy()
         {
-            var dataCopy = new Dictionary<XNode2D, Dictionary<TDof, int>>();
+            var dataCopy = new Dictionary<XNode, Dictionary<TDof, int>>();
             foreach (var wholeRow in this.data)
             {
                 // IDof and int are immutable, thus I can just copy the nested dictionary.

@@ -19,20 +19,20 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
     class BasicExplicitInteriorCrack
     {
         private static readonly bool reports = false;
-        private static readonly IComparer<CartesianPoint2D> pointComparer = new Point2DComparerXMajor();
+        private static readonly IComparer<CartesianPoint> pointComparer = new Point2DComparerXMajor();
 
         private readonly double enrichmentRadiusOverElementSize;
-        private readonly Triangulator2D<CartesianPoint2D> triangulator;
+        private readonly Triangulator2D<CartesianPoint> triangulator;
 
         // TODO: Not too fond of the setters, but at least the enrichments are immutable. Perhaps I can pass their
         // parameters to a CrackDescription builder and construct them there, without involving the user 
         // (given how easy it is to forget the setters, it is a must).
-        public IMesh2D<XNode2D, XContinuumElement2D> Mesh { get; set; }
+        public IMesh2D<XNode, XContinuumElement2D> Mesh { get; set; }
         public CrackBodyEnrichment2D CrackBodyEnrichment { get; set; }
         public CrackTipEnrichments2D StartTipEnrichments { get; set; }
         public CrackTipEnrichments2D EndTipEnrichments { get; set; }
 
-        private LinkedList<CartesianPoint2D> Vertices { get; }
+        private LinkedList<CartesianPoint> Vertices { get; }
         private LinkedList<DirectedSegment2D> Segments { get; }
         // Angles[i-1] is the angle of segment i w.r.t segment i-1, aka the crack growth angle.
         private LinkedList<double> Angles { get; }
@@ -45,16 +45,16 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
         public BasicExplicitInteriorCrack(double enrichmentRadiusOverElementSize = 0.0)
         {
             this.enrichmentRadiusOverElementSize = enrichmentRadiusOverElementSize;
-            this.triangulator = new Triangulator2D<CartesianPoint2D>((x, y) => new CartesianPoint2D(x, y));
+            this.triangulator = new Triangulator2D<CartesianPoint>((x, y) => new CartesianPoint(x, y));
             this.startTipElements = new List<XContinuumElement2D>();
             this.endTipElements = new List<XContinuumElement2D>();
 
-            Vertices = new LinkedList<CartesianPoint2D>();
+            Vertices = new LinkedList<CartesianPoint>();
             Segments = new LinkedList<DirectedSegment2D>();
             Angles = new LinkedList<double>();
         }
 
-        public CartesianPoint2D GetCrackTip(CrackTipPosition tipPosition)
+        public CartesianPoint GetCrackTip(CrackTipPosition tipPosition)
         {
             if (tipPosition == CrackTipPosition.Start) return Vertices.First.Value;
             else if (tipPosition == CrackTipPosition.End) return Vertices.Last.Value;
@@ -75,7 +75,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             else throw new ArgumentException("Invalid tip position");
         }
 
-        public void InitializeGeometry(CartesianPoint2D startTip, CartesianPoint2D endTip)
+        public void InitializeGeometry(CartesianPoint startTip, CartesianPoint endTip)
         {
             double dx = endTip.X - startTip.X;
             double dy = endTip.Y - startTip.Y;
@@ -96,7 +96,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             double dxEnd = growthLengthEnd * Math.Cos(globalAngleEnd);
             double dyEnd = growthLengthEnd * Math.Sin(globalAngleEnd);
             var oldEndTip = Vertices.Last.Value; ;
-            var newEndTip = new CartesianPoint2D(oldEndTip.X + dxEnd, oldEndTip.Y + dyEnd);
+            var newEndTip = new CartesianPoint(oldEndTip.X + dxEnd, oldEndTip.Y + dyEnd);
             Vertices.AddLast(newEndTip);
             Segments.AddLast(new DirectedSegment2D(oldEndTip, newEndTip));
             Angles.AddLast(localGrowthAngleEnd); // These are independent of the global coordinate system
@@ -107,28 +107,28 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             double dxStart = growthLengthStart * Math.Cos(globalAngleStart);
             double dyStart = growthLengthStart * Math.Sin(globalAngleStart);
             var oldStartTip = Vertices.First.Value;
-            var newStartTip = new CartesianPoint2D(oldStartTip.X + dxEnd, oldStartTip.Y + dyEnd);
+            var newStartTip = new CartesianPoint(oldStartTip.X + dxEnd, oldStartTip.Y + dyEnd);
             Vertices.AddFirst(newStartTip);
             Segments.AddFirst(new DirectedSegment2D(newStartTip, oldStartTip));
             Angles.AddFirst(-localGrowthAngleEnd); // From new to old start segment, use the opposite angle
             endTipSystem = new TipCoordinateSystem(newStartTip, globalAngleStart);
         }
 
-        public double SignedDistanceOf(XNode2D node)
+        public double SignedDistanceOf(XNode node)
         {
             return SignedDistanceOfPoint(node);
         }
 
-        public double SignedDistanceOf(NaturalPoint2D point, XContinuumElement2D element,
+        public double SignedDistanceOf(NaturalPoint point, XContinuumElement2D element,
              EvaluatedInterpolation2D interpolation)
         {
             return SignedDistanceOfPoint(interpolation.TransformPointNaturalToGlobalCartesian(point));
         }
 
-        public SortedSet<CartesianPoint2D> FindTriangleVertices(XContinuumElement2D element)
+        public SortedSet<CartesianPoint> FindTriangleVertices(XContinuumElement2D element)
         {
             var polygon = ConvexPolygon2D.CreateUnsafe(element.Nodes);
-            var triangleVertices = new SortedSet<CartesianPoint2D>(element.Nodes, pointComparer);
+            var triangleVertices = new SortedSet<CartesianPoint>(element.Nodes, pointComparer);
             int nodesCount = element.Nodes.Count;
 
             foreach (var vertex in Vertices)
@@ -141,7 +141,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             foreach (var crackSegment in Segments)
             {
                 var segment = new LineSegment2D(crackSegment.Start, crackSegment.End);
-                IReadOnlyList<CartesianPoint2D> intersections = segment.IntersectionWith(polygon);
+                IReadOnlyList<CartesianPoint> intersections = segment.IntersectionWith(polygon);
                 foreach (var point in intersections)
                 {
                     triangleVertices.Add(point);
@@ -153,9 +153,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
 
         public void UpdateEnrichments()
         {
-            var bodyNodes = new HashSet<XNode2D>();
-            var startTipNodes = new HashSet<XNode2D>();
-            var endTipNodes = new HashSet<XNode2D>();
+            var bodyNodes = new HashSet<XNode>();
+            var startTipNodes = new HashSet<XNode>();
+            var endTipNodes = new HashSet<XNode>();
             startTipElements.Clear();
             endTipElements.Clear();
 
@@ -167,8 +167,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             ApplyEnrichmentFunctions(bodyNodes, startTipNodes, endTipNodes);
         }
 
-        private void ApplyEnrichmentFunctions(HashSet<XNode2D> bodyNodes, HashSet<XNode2D> startTipNodes, 
-            HashSet<XNode2D> endTipNodes)
+        private void ApplyEnrichmentFunctions(HashSet<XNode> bodyNodes, HashSet<XNode> startTipNodes, 
+            HashSet<XNode> endTipNodes)
         {
             // O(n) operation. TODO: This could be sped up by tracking the tip enriched nodes of each step.
             foreach (var node in Mesh.Nodes)
@@ -207,8 +207,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
         /// </summary>
         /// <param name="tipNodes"></param>
         /// <param name="tipElement"></param>
-        private void ApplyFixedEnrichmentArea(CartesianPoint2D crackTip, XContinuumElement2D tipElement, 
-            HashSet<XNode2D> tipNodes, IEnrichmentItem2D tipEnrichments)
+        private void ApplyFixedEnrichmentArea(CartesianPoint crackTip, XContinuumElement2D tipElement, 
+            HashSet<XNode> tipNodes, IEnrichmentItem2D tipEnrichments)
         {
             if (enrichmentRadiusOverElementSize > 0)
             {
@@ -234,8 +234,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             }
         }
 
-        private void FindBodyAndTipNodesAndElements(HashSet<XNode2D> bodyNodes, HashSet<XNode2D> startTipNodes, 
-            HashSet<XNode2D> endTipNodes)
+        private void FindBodyAndTipNodesAndElements(HashSet<XNode> bodyNodes, HashSet<XNode> startTipNodes, 
+            HashSet<XNode> endTipNodes)
         {
             var bodyElements = new HashSet<XContinuumElement2D>();
             foreach (var element in Mesh.Elements)
@@ -280,7 +280,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
 
         private bool IsTipElement(XContinuumElement2D element, CrackTipPosition tipPosition)
         {
-            CartesianPoint2D crackTip, adjacentVertex;
+            CartesianPoint crackTip, adjacentVertex;
             if (tipPosition == CrackTipPosition.Start)
             {
                 crackTip = Vertices.First.Value;
@@ -321,7 +321,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             foreach (var crackSegment in Segments)
             {
                 var segment = new LineSegment2D(crackSegment.Start, crackSegment.End);
-                CartesianPoint2D intersectionPoint;
+                CartesianPoint intersectionPoint;
                 foreach (var edge in polygon.Edges)
                 {
                     LineSegment2D.SegmentSegmentPosition position = segment.IntersectionWith(edge, out intersectionPoint);
@@ -343,8 +343,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             // Look at the vertices 
             // (if a segment is entirely inside an element, it will not be caught by checking the segment itself)
             bool previousVertexOnEdge = false;
-            LinkedListNode<CartesianPoint2D> currentNode = Vertices.First.Next;
-            LinkedListNode<CartesianPoint2D> lastNode = Vertices.Last;
+            LinkedListNode<CartesianPoint> currentNode = Vertices.First.Next;
+            LinkedListNode<CartesianPoint> lastNode = Vertices.Last;
             while(currentNode != lastNode)
             {
                 PolygonPointPosition position = polygon.FindRelativePositionOfPoint(currentNode.Value);
@@ -361,20 +361,20 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             return false;
         }
 
-        private double SignedDistanceOfPoint(CartesianPoint2D globalPoint)
+        private double SignedDistanceOfPoint(CartesianPoint globalPoint)
         {
             if (Segments.Count == 1) return Segments.First.Value.TransformGlobalToLocalPoint(globalPoint).Y;
 
             var distances = new List<double>();
             bool afterPreviousSegment = false;
             LinkedList<DirectedSegment2D>.Enumerator segmentEnumerator = Segments.GetEnumerator();
-            LinkedList<CartesianPoint2D>.Enumerator vertexEnumerator = Vertices.GetEnumerator();
+            LinkedList<CartesianPoint>.Enumerator vertexEnumerator = Vertices.GetEnumerator();
             LinkedList<double>.Enumerator angleEnumerator = Angles.GetEnumerator();
 
             // First segment
             segmentEnumerator.MoveNext(); // Do not advance angleEnumerator yet, since there is 1 less angle than segments.
             vertexEnumerator.MoveNext();
-            CartesianPoint2D localPoint = segmentEnumerator.Current.TransformGlobalToLocalPoint(globalPoint);
+            CartesianPoint localPoint = segmentEnumerator.Current.TransformGlobalToLocalPoint(globalPoint);
             if (localPoint.X < segmentEnumerator.Current.Length) distances.Add(localPoint.Y);
             else afterPreviousSegment = true;
 
@@ -432,16 +432,16 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
         private void FindSignedAreasOfElement(XContinuumElement2D element,
             out double positiveArea, out double negativeArea)
         {
-            SortedSet<CartesianPoint2D> triangleVertices = FindTriangleVertices(element);
-            IReadOnlyList<Triangle2D<CartesianPoint2D>> triangles = triangulator.CreateMesh(triangleVertices);
+            SortedSet<CartesianPoint> triangleVertices = FindTriangleVertices(element);
+            IReadOnlyList<Triangle2D<CartesianPoint>> triangles = triangulator.CreateMesh(triangleVertices);
 
             positiveArea = 0.0;
             negativeArea = 0.0;
             foreach (var triangle in triangles)
             {
-                CartesianPoint2D v0 = triangle.Vertices[0];
-                CartesianPoint2D v1 = triangle.Vertices[1];
-                CartesianPoint2D v2 = triangle.Vertices[2];
+                CartesianPoint v0 = triangle.Vertices[0];
+                CartesianPoint v1 = triangle.Vertices[1];
+                CartesianPoint v2 = triangle.Vertices[2];
                 double area = 0.5 * Math.Abs(v0.X * (v1.Y - v2.Y) + v1.X * (v2.Y - v0.Y) + v2.X * (v0.Y - v1.Y));
 
                 // The sign of the area can be derived from any node with signed distance != 0
@@ -457,7 +457,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
                 {
                     // Report this instance in DEBUG messages. It should not happen.
                     Console.WriteLine("--- DEBUG: Triangulation resulted in a triangle where all vertices are on the crack. ---");
-                    var centroid = new CartesianPoint2D((v0.X + v1.X + v2.X) / 3.0, (v0.Y + v1.Y + v2.Y) / 3.0);
+                    var centroid = new CartesianPoint((v0.X + v1.X + v2.X) / 3.0, (v0.Y + v1.Y + v2.Y) / 3.0);
                     sign = Math.Sign(SignedDistanceOfPoint(centroid));
                 }
 
@@ -468,11 +468,11 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             }
         }
 
-        private void ResolveHeavisideEnrichmentDependencies(HashSet<XNode2D> bodyNodes)
+        private void ResolveHeavisideEnrichmentDependencies(HashSet<XNode> bodyNodes)
         {
             const double toleranceHeavisideEnrichmentArea = 1e-4;
             var processedElements = new Dictionary<XContinuumElement2D, Tuple<double, double>>();
-            var nodesToRemove = new List<XNode2D>(); // Can't remove them while iterating the collection.
+            var nodesToRemove = new List<XNode>(); // Can't remove them while iterating the collection.
             foreach (var node in bodyNodes)
             {
                 double nodePositiveArea = 0.0;
@@ -542,7 +542,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             Console.WriteLine("------ /DEBUG ------");
         }
 
-        public IReadOnlyList<CartesianPoint2D> GetCrackTips()
+        public IReadOnlyList<CartesianPoint> GetCrackTips()
         {
             throw new NotImplementedException();
         }

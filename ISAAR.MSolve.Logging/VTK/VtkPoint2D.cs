@@ -9,7 +9,7 @@ namespace ISAAR.MSolve.Logging.VTK
     /// Vertex used to represent VTK grids.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class VtkPoint2D: CartesianPoint2D
+    public class VtkPoint2D: CartesianPoint
     {
         public VtkPoint2D(int id, double x, double y): base(x, y)
         {

@@ -13,20 +13,20 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
         private InterpolationHexa8Reverse() : base(8)
         {
-            NodalNaturalCoordinates = new NaturalPoint3D[]
+            NodalNaturalCoordinates = new NaturalPoint[]
             {
-                new NaturalPoint3D(1, 1, 1),
-                new NaturalPoint3D(-1, 1, 1),
-                new NaturalPoint3D(-1, -1, 1),
-                new NaturalPoint3D(1, -1, 1),
-                new NaturalPoint3D(1, 1, -1),
-                new NaturalPoint3D(-1, 1, -1),
-                new NaturalPoint3D(-1, -1, -1),
-                new NaturalPoint3D(1, -1, -1)
+                new NaturalPoint(1, 1, 1),
+                new NaturalPoint(-1, 1, 1),
+                new NaturalPoint(-1, -1, 1),
+                new NaturalPoint(1, -1, 1),
+                new NaturalPoint(1, 1, -1),
+                new NaturalPoint(-1, 1, -1),
+                new NaturalPoint(-1, -1, -1),
+                new NaturalPoint(1, -1, -1)
             };
         }
 
-        public override IReadOnlyList<NaturalPoint3D> NodalNaturalCoordinates { get; }
+        public override IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
         public static InterpolationHexa8Reverse UniqueInstance => uniqueInstance;
 

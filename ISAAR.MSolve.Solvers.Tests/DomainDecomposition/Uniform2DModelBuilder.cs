@@ -59,7 +59,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
             var meshGenerator = new UniformMeshGenerator2D<Node>(0, 0, DomainLengthX, DomainLengthY,
                 NumTotalElementsX, NumTotalElementsY);
             (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity<Node>> cells) = 
-                meshGenerator.CreateMesh((id, x, y, z) => new Node() { ID = id, X = x, Y = y, Z = z });
+                meshGenerator.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
 
             // Define subdomain boundaries
             int numTotalSubdomains = NumSubdomainsX * NumSubdomainsY;

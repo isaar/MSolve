@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
             boundaries[edge] = true;
         }
 
-        public NodePosition FindRelativePosition(XNode2D node)
+        public NodePosition FindRelativePosition(XNode node)
         {
             //TODO: there might be a faster way to check these
             if ( (node.X >= extendedMinX) && (node.X <= extendedMaxX) )
@@ -68,25 +68,25 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
             return NodePosition.External;
         }
 
-        private bool IsBoundaryLeft(XNode2D node)
+        private bool IsBoundaryLeft(XNode node)
         {
             if (boundaries[RectangleEdge.Left]) return Math.Abs(node.X - minX) <= tolerance;
             return false;
         }
 
-        private bool IsBoundaryRight(XNode2D node)
+        private bool IsBoundaryRight(XNode node)
         {
             if (boundaries[RectangleEdge.Right]) return Math.Abs(node.X - maxX) <= tolerance;
             return false;
         }
 
-        private bool IsBoundaryUp(XNode2D node)
+        private bool IsBoundaryUp(XNode node)
         {
             if (boundaries[RectangleEdge.Up]) return Math.Abs(node.Y - maxY) <= tolerance;
             return false;
         }
 
-        private bool IsBoundaryDown(XNode2D node)
+        private bool IsBoundaryDown(XNode node)
         {
             if (boundaries[RectangleEdge.Down]) return Math.Abs(node.Y - minY) <= tolerance;
             return false;

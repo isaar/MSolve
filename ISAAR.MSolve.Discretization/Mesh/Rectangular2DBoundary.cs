@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.Discretization.Mesh
             this.maxY = maxY;
         }
 
-        public bool IsInside(CartesianPoint2D point)
+        public bool IsInside(CartesianPoint point)
         {
             if ((point.X > minX) && (point.X < maxX) && (point.Y > minY) && (point.Y < maxY)) return true;
             else return false;

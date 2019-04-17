@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
 
         public int FunctionsCount { get; }
 
-        public EvaluatedInterpolation2D EvaluateAt(IReadOnlyList<XNode2D> nodes, NaturalPoint2D naturalPoint)
+        public EvaluatedInterpolation2D EvaluateAt(IReadOnlyList<XNode> nodes, NaturalPoint naturalPoint)
         {
             double xi = naturalPoint.Xi;
             double eta = naturalPoint.Eta;
@@ -38,14 +38,14 @@ namespace ISAAR.MSolve.XFEM.Interpolation
                 naturalDerivatives, new Jacobian2D(nodes, naturalDerivatives));
         }
 
-        public EvaluatedInterpolation2D EvaluateOnlyDerivativesAt(IReadOnlyList<XNode2D> nodes, NaturalPoint2D naturalPoint)
+        public EvaluatedInterpolation2D EvaluateOnlyDerivativesAt(IReadOnlyList<XNode> nodes, NaturalPoint naturalPoint)
         {
             double[,] naturalDerivatives = EvaluateDerivativesAt(naturalPoint.Xi, naturalPoint.Eta);
             // TODO: perhaps check that the nodes match the values and derivatives
             return new EvaluatedInterpolation2D(nodes, naturalDerivatives, new Jacobian2D(nodes, naturalDerivatives));
         }
 
-        public CartesianPoint2D TransformNaturalToCartesian(IReadOnlyList<XNode2D> nodes, NaturalPoint2D naturalPoint)
+        public CartesianPoint TransformNaturalToCartesian(IReadOnlyList<XNode> nodes, NaturalPoint naturalPoint)
         {
             double[] shapeFunctionValues = EvaluateAt(naturalPoint.Xi, naturalPoint.Eta);
             double x = 0, y = 0;
@@ -54,14 +54,14 @@ namespace ISAAR.MSolve.XFEM.Interpolation
                 x += shapeFunctionValues[i] * nodes[i].X;
                 y += shapeFunctionValues[i] * nodes[i].Y;
             }
-            return new CartesianPoint2D(x, y);
+            return new CartesianPoint(x, y);
         }
         #endregion
 
         #region abstract members
         protected abstract double[] EvaluateAt(double xi, double eta);
         protected abstract double[,] EvaluateDerivativesAt(double xi, double eta);
-        internal abstract IInverseMapping2D CreateInverseMappingFor(IReadOnlyList<XNode2D> nodes);
+        internal abstract IInverseMapping2D CreateInverseMappingFor(IReadOnlyList<XNode> nodes);
         #endregion
 
         #region concrete (private) classes
@@ -93,7 +93,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
                 return derivatives;
             }
 
-            internal override IInverseMapping2D CreateInverseMappingFor(IReadOnlyList<XNode2D> nodes)
+            internal override IInverseMapping2D CreateInverseMappingFor(IReadOnlyList<XNode> nodes)
             {
                 return new InverseQuad4Mapping(nodes);
             }
@@ -152,7 +152,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
                 return derivatives;
             }
 
-            internal override IInverseMapping2D CreateInverseMappingFor(IReadOnlyList<XNode2D> nodes)
+            internal override IInverseMapping2D CreateInverseMappingFor(IReadOnlyList<XNode> nodes)
             {
                 throw new NotImplementedException("Probably requires an iterative procedure");
             }
@@ -186,7 +186,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
                 return derivatives;
             }
 
-            internal override IInverseMapping2D CreateInverseMappingFor(IReadOnlyList<XNode2D> nodes)
+            internal override IInverseMapping2D CreateInverseMappingFor(IReadOnlyList<XNode> nodes)
             {
                 return new InverseTri3Mapping(nodes);
             }

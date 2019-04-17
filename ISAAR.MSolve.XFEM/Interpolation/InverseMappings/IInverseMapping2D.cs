@@ -9,6 +9,6 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
 {
     interface IInverseMapping2D
     {
-        NaturalPoint2D TransformCartesianToNatural(CartesianPoint2D point);
+        NaturalPoint TransformCartesianToNatural(CartesianPoint point);
     }
 }

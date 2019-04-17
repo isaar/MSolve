@@ -38,10 +38,10 @@ namespace ISAAR.MSolve.Tests
             // Nodes
             var nodes = new Node[]
             {
-                new Node { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 },
-                new Node { ID = 2, X = 10.0, Y = 0.0, Z = 0.0 },
-                new Node { ID = 3, X = 10.0, Y = 10.0, Z = 0.0 },
-                new Node { ID = 4, X = 0.0, Y = 10.0, Z = 0.0 }
+                new Node( id: 1, x:  0.0, y:   0.0, z: 0.0 ),
+                new Node( id: 2, x: 10.0, y:   0.0, z: 0.0 ),
+                new Node( id: 3, x: 10.0, y:  10.0, z: 0.0 ),
+                new Node( id: 4, x:  0.0, y:  10.0, z: 0.0 )
             };
             for (int i = 0; i < nodes.Length; ++i) model.NodesDictionary.Add(i, nodes[i]);
 

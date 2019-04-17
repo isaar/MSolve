@@ -77,7 +77,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         {
             DofTable<DisplacementDof> elementDofs = element.GetStandardDofs();
             double[] elementVector = new double[elementDofs.EntryCount];
-            foreach ((XNode2D node, DisplacementDof dofType, int dofIdx) in elementDofs)
+            foreach ((XNode node, DisplacementDof dofType, int dofIdx) in elementDofs)
             {
                 bool isStandard = this.standardDofs.TryGetValue(node, dofType, out int globalStandardDof);
                 if (isStandard) elementVector[dofIdx] = globalFreeVector[globalStandardDof];
@@ -101,7 +101,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             return subdomain.DofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(cluster, element, globalFreeVector);
         }
 
-        public ITable<XNode2D, EnrichedDof, double> GatherEnrichedNodalDisplacements(Model2D model, Vector solution)
+        public ITable<XNode, EnrichedDof, double> GatherEnrichedNodalDisplacements(Model2D model, Vector solution)
         {
             throw new InvalidOperationException("This method does not make sense for this dofOrderer. Refactor them.");
         }
@@ -117,7 +117,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             double[,] result = new double[model.Nodes.Count, 2];
             for (int i = 0; i < model.Nodes.Count; ++i)
             {
-                XNode2D node = model.Nodes[i];
+                XNode node = model.Nodes[i];
 
                 bool isXStandard = standardDofs.TryGetValue(node, DisplacementDof.X, out int globalStandardDofX);
                 if (isXStandard) result[i, 0] = solution[globalStandardDofX];
@@ -130,12 +130,12 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             return result;
         }
 
-        public int GetConstrainedDofOf(XNode2D node, DisplacementDof dofType)
+        public int GetConstrainedDofOf(XNode node, DisplacementDof dofType)
         {
             return constrainedDofs[node, dofType];
         }
 
-        public IEnumerable<int> GetConstrainedDofsOf(XNode2D node)
+        public IEnumerable<int> GetConstrainedDofsOf(XNode node)
         {
             // Perhaps it would be more efficient for the client to traverse all (dofType, dofIdx) pairs 
             // than assembling the dofIdx collection beforehand.
@@ -149,12 +149,12 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             }
         }
 
-        public int GetEnrichedDofOf(XNode2D node, EnrichedDof dofType)
+        public int GetEnrichedDofOf(XNode node, EnrichedDof dofType)
         {
             throw new InvalidOperationException("This method does not make sense for this dofOrderer. Refactor them.");
         }
 
-        public IEnumerable<int> GetEnrichedDofsOf(XNode2D node)
+        public IEnumerable<int> GetEnrichedDofsOf(XNode node)
         {
             throw new InvalidOperationException("This method does not make sense for this dofOrderer. Refactor them.");
         }
@@ -175,12 +175,12 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             return globalDofs;
         }
 
-        public int GetStandardDofOf(XNode2D node, DisplacementDof dofType)
+        public int GetStandardDofOf(XNode node, DisplacementDof dofType)
         {
             return standardDofs[node, dofType];
         }
 
-        public IEnumerable<int> GetStandardDofsOf(XNode2D node)
+        public IEnumerable<int> GetStandardDofsOf(XNode node)
         {
             // Perhaps it would be more efficient for the client to traverse all (dofType, dofIdx) pairs 
             // than assembling the dofIdx collection beforehand.
@@ -228,7 +228,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             DofTable<DisplacementDof> elementDofs = element.GetStandardDofs();
             var globalStandardDofs = new Dictionary<int, int>();
             var globalConstrainedDofs = new Dictionary<int, int>();
-            foreach ((XNode2D node, DisplacementDof dofType, int dofIdx) in elementDofs)
+            foreach ((XNode node, DisplacementDof dofType, int dofIdx) in elementDofs)
             {
                 bool isStandard = this.standardDofs.TryGetValue(node, dofType, out int standardGlobalDof);
                 if (isStandard) globalStandardDofs[dofIdx] = standardGlobalDof;
@@ -286,11 +286,11 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         }
 
         private static (int numConstrainedDofs, DofTable<DisplacementDof> constrainedDofs) OrderConstrainedDofs(
-            ITable<XNode2D, DisplacementDof, double> constraints)
+            ITable<XNode, DisplacementDof, double> constraints)
         {
             var constrainedDofs = new DofTable<DisplacementDof>();
             int counter = 0;
-            foreach ((XNode2D node, DisplacementDof dofType, double displacement) in constraints)
+            foreach ((XNode node, DisplacementDof dofType, double displacement) in constraints)
             {
                 constrainedDofs[node, dofType] = counter++;
             }
@@ -299,7 +299,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 
         private static (int numStandardDofs, DofTable<DisplacementDof> standardDofs) OrderStandardDofs(Model2D model)
         {
-            ITable<XNode2D, DisplacementDof, double> constraints = model.Constraints;
+            ITable<XNode, DisplacementDof, double> constraints = model.Constraints;
             var standardDofs = new DofTable<DisplacementDof>();
             int counter = 0;
             foreach (var node in model.Nodes)

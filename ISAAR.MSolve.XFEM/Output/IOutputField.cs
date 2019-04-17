@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.XFEM.Output
 {
     interface IOutputField
     {
-        Tensor2D EvaluateAt(XContinuumElement2D element, NaturalPoint2D point,
+        Tensor2D EvaluateAt(XContinuumElement2D element, NaturalPoint point,
             Vector standardDisplacements, Vector enrichedDisplacements);
     }
 }

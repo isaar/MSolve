@@ -1,10 +1,11 @@
 ﻿namespace ISAAR.MSolve.Geometry.Coordinates
 {
 	/// <summary>
-	/// Point in a 3-dimensional space. Immutable
-	/// Authors: Dimitris Tsapetis
+	/// Point in a 3-dimensional space. It can also represent points in 1-dimensional or 2-dimension spaces, but not all 
+    /// coordinates will be used. Immutable.
+	/// Authors: Serafeim Bakalakos, Dimitris Tsapetis
 	/// </summary>
-	public interface IPoint3D
+	public interface IPoint
 	{
 		/// <summary>
 		/// Vector with the coordinates of the point. Length = 3.

@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             IReadOnlyList<CellConnectivity<Node>> elements;
             using (var reader = new GmshReader<Node>(meshPath))
             {
-                (nodes, elements) = reader.CreateMesh((id, x, y, z) => new Node() { ID = id, X = x, Y = y, Z = z });
+                (nodes, elements) = reader.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
             }
             model.AddMesh2D(nodes, elements, material);
 
@@ -103,7 +103,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             IReadOnlyList<CellConnectivity<Node>> elements;
             using (var reader = new GmshReader<Node>(meshPath))
             {
-                (nodes, elements) = reader.CreateMesh((id, x, y, z) => new Node() { ID = id, X = x, Y = y, Z = z });
+                (nodes, elements) = reader.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
             }
             model.AddMesh2D(nodes, elements, material, dynamicProperties);
 

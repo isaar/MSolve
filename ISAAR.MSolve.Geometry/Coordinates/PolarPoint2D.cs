@@ -9,7 +9,7 @@ namespace ISAAR.MSolve.Geometry.Coordinates
     /// For more see https://en.wikipedia.org/wiki/Polar_coordinate_system.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class PolarPoint2D : IPoint2D
+    public class PolarPoint2D : IPoint
     {
         protected readonly double r;
         protected readonly double theta;
@@ -43,6 +43,8 @@ namespace ISAAR.MSolve.Geometry.Coordinates
         public double X1 => r;
 
         public double X2 => theta;
+
+        public double X3 => throw new NotImplementedException();
 
         public override string ToString() => $"(r, theta) = ({r}, {theta})";
     }

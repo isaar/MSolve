@@ -22,13 +22,13 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.MeshInteraction
         //TODO: replace this with the Faster~() version
         public CrackElementPosition FindRelativePositionOf(XContinuumElement2D element)
         {
-            CartesianPoint2D crackTip = lsm.GetCrackTip(CrackTipPosition.Single);
+            CartesianPoint crackTip = lsm.GetCrackTip(CrackTipPosition.Single);
             double minBodyLevelSet = double.MaxValue;
             double maxBodyLevelSet = double.MinValue;
             double minTipLevelSet = double.MaxValue;
             double maxTipLevelSet = double.MinValue;
 
-            foreach (XNode2D node in element.Nodes)
+            foreach (XNode node in element.Nodes)
             {
                 double bodyLevelSet = lsm.LevelSetsBody[node];
                 double tipLevelSet = lsm.LevelSetsTip[node];

@@ -18,20 +18,20 @@ namespace ISAAR.MSolve.FEM.Interpolation
         private InterpolationShell8Cohesive() : base(CellType.Quad8,8)
         {
             cachedN3AtGPs = new Dictionary<IQuadrature2D, IReadOnlyList<Matrix>>();
-            NodalNaturalCoordinates = new NaturalPoint2D[]
+            NodalNaturalCoordinates = new NaturalPoint[]
             {
                 //TODO: validate this
-                new NaturalPoint2D(1, 1),
-                new NaturalPoint2D(-1, 1),
-                new NaturalPoint2D(-1, -1),
-                new NaturalPoint2D(1, -1),
-                new NaturalPoint2D(0, 1),
-                new NaturalPoint2D(-1, 0),
-                new NaturalPoint2D(0, -1),
-                new NaturalPoint2D(1, 0)
+                new NaturalPoint(1, 1),
+                new NaturalPoint(-1, 1),
+                new NaturalPoint(-1, -1),
+                new NaturalPoint(1, -1),
+                new NaturalPoint(0, 1),
+                new NaturalPoint(-1, 0),
+                new NaturalPoint(0, -1),
+                new NaturalPoint(1, 0)
             };
         }
-        public override IReadOnlyList<NaturalPoint2D> NodalNaturalCoordinates { get; }
+        public override IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
         public static InterpolationShell8Cohesive UniqueInstance => uniqueInstance;
 

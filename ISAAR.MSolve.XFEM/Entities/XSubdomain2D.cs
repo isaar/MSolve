@@ -18,38 +18,38 @@ namespace ISAAR.MSolve.XFEM.Entities
     class XSubdomain2D: IComparable<XSubdomain2D>
     {
         private readonly HashSet<XContinuumElement2D> elements;
-        private readonly SortedSet<XNode2D> allNodes; // Having it sorted is better for ordering
-        private readonly HashSet<XNode2D> boundaryNodes;
-        private readonly HashSet<XNode2D> internalNodes;
+        private readonly SortedSet<XNode> allNodes; // Having it sorted is better for ordering
+        private readonly HashSet<XNode> boundaryNodes;
+        private readonly HashSet<XNode> internalNodes;
 
         public XSubdomain2D(int id)
         {
             this.ID = id;
-            this.allNodes = new SortedSet<XNode2D>();
+            this.allNodes = new SortedSet<XNode>();
             this.elements = new HashSet<XContinuumElement2D>();
-            this.boundaryNodes = new HashSet<XNode2D>();
-            this.internalNodes = new HashSet<XNode2D>();
+            this.boundaryNodes = new HashSet<XNode>();
+            this.internalNodes = new HashSet<XNode>();
         }
 
-        public XSubdomain2D(int id, HashSet<XContinuumElement2D> elements, HashSet<XNode2D> internalNodes, 
-            HashSet<XNode2D> boundaryNodes)
+        public XSubdomain2D(int id, HashSet<XContinuumElement2D> elements, HashSet<XNode> internalNodes, 
+            HashSet<XNode> boundaryNodes)
         {
             this.ID = id;
             this.elements = elements;
             this.internalNodes = internalNodes;
             this.boundaryNodes = boundaryNodes;
-            this.allNodes = new SortedSet<XNode2D>(internalNodes);
+            this.allNodes = new SortedSet<XNode>(internalNodes);
             this.allNodes.UnionWith(boundaryNodes);
         }
 
         public int ID { get; }
         public ISet<XContinuumElement2D> Elements { get { return elements; } }
-        public ISet<XNode2D> AllNodes { get { return allNodes; } }
-        public ISet<XNode2D> BoundaryNodes { get { return boundaryNodes; } } 
-        public ISet<XNode2D> InternalNodes { get { return internalNodes; } }
+        public ISet<XNode> AllNodes { get { return allNodes; } }
+        public ISet<XNode> BoundaryNodes { get { return boundaryNodes; } } 
+        public ISet<XNode> InternalNodes { get { return internalNodes; } }
         public XSubdomainDofOrderer DofOrderer { get; set; }
 
-        public void AddBoundaryNode(XNode2D node)
+        public void AddBoundaryNode(XNode node)
         { //TODO: perhaps I should check if it has already been added
             boundaryNodes.Add(node);
             allNodes.Add(node);
@@ -72,7 +72,7 @@ namespace ISAAR.MSolve.XFEM.Entities
             return true;
         }
 
-        public void AddInternalNode(XNode2D node)
+        public void AddInternalNode(XNode node)
         {  //TODO: perhaps I should check if it has already been added
             internalNodes.Add(node);
             allNodes.Add(node);

@@ -9,11 +9,11 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
     // Can be abstracted for any vertices, cells
     class NonOverlappingRegionDecomposer2D: IDomainDecomposer
     {
-        private readonly IReadOnlyList<XNode2D> nodes;
+        private readonly IReadOnlyList<XNode> nodes;
         private readonly IReadOnlyList<XContinuumElement2D> elements;
         private readonly IReadOnlyList<IRegion2D> regions;
 
-        public NonOverlappingRegionDecomposer2D(IReadOnlyList<XNode2D> nodes, IReadOnlyList<XContinuumElement2D> elements,
+        public NonOverlappingRegionDecomposer2D(IReadOnlyList<XNode> nodes, IReadOnlyList<XContinuumElement2D> elements,
             IReadOnlyList<IRegion2D> regions)
         {
             this.nodes = nodes;
@@ -50,7 +50,7 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
             }
         }
 
-        private XSubdomain2D[] AssignNodesToSubdomains(IReadOnlyList<XNode2D> nodes, IReadOnlyList<IRegion2D> regions)
+        private XSubdomain2D[] AssignNodesToSubdomains(IReadOnlyList<XNode> nodes, IReadOnlyList<IRegion2D> regions)
         {
             var subdomains = new XSubdomain2D[regions.Count];
             for (int s = 0; s < regions.Count; ++s) subdomains[s] = new XSubdomain2D(s);

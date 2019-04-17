@@ -15,6 +15,6 @@ namespace ISAAR.MSolve.XFEM.Integration.Quadratures
     /// </summary>
     interface IStandardQuadrature1D
     {
-        IReadOnlyList<GaussPoint1D> IntegrationPoints { get; }
+        IReadOnlyList<GaussPoint> IntegrationPoints { get; }
     }
 }

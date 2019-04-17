@@ -20,17 +20,17 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         IHeavisideSingularityResolver SingularityResolver { get; }
 
-        double SignedDistanceOf(XNode2D node);
-        double SignedDistanceOf(NaturalPoint2D point, XContinuumElement2D element,
+        double SignedDistanceOf(XNode node);
+        double SignedDistanceOf(NaturalPoint point, XContinuumElement2D element,
             EvaluatedInterpolation2D interpolation);
 
-        //CartesianPoint2D GetCrackTip(CrackTipPosition tipPosition);
+        //CartesianPoint GetCrackTip(CrackTipPosition tipPosition);
         /// TODO: an interface is needed for TipSystems. Then the explicit (global, local, polar) systems or the level 
         /// sets could be used for the transformations (points, vectors, derivatives)
         //TipCoordinateSystem GetTipSystem(CrackTipPosition tipPosition);
         //IReadOnlyList<XContinuumElement2D> GetTipElements(CrackTipPosition tipPosition);
 
         void InitializeGeometry(PolyLine2D initialCrack);
-        SortedSet<CartesianPoint2D> FindTriangleVertices(XContinuumElement2D element);
+        SortedSet<CartesianPoint> FindTriangleVertices(XContinuumElement2D element);
     }
 }

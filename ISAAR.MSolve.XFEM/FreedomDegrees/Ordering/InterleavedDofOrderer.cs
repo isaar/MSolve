@@ -40,11 +40,11 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         }
 
         private static (int constrainedDofsCount, DofTable<DisplacementDof> constrainedDofs) OrderConstrainedDofs(
-            ITable<XNode2D, DisplacementDof, double> constraints)
+            ITable<XNode, DisplacementDof, double> constraints)
         {
             var constrainedDofs = new DofTable<DisplacementDof>();
             int dofCounter = 0;
-            foreach ((XNode2D node, DisplacementDof dofType, double displacement) in constraints)
+            foreach ((XNode node, DisplacementDof dofType, double displacement) in constraints)
             {
                 constrainedDofs[node, dofType] = dofCounter++;
             }
@@ -61,11 +61,11 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         private static (DofTable<DisplacementDof> standardDofs, DofTable<EnrichedDof> enrichedDofs) 
             OrderUnconstrainedDofs(Model2D model)
         {
-            ITable<XNode2D, DisplacementDof, double> constraints = model.Constraints;
+            ITable<XNode, DisplacementDof, double> constraints = model.Constraints;
             var standardDofs = new DofTable<DisplacementDof>();
             var enrichedDofs = new DofTable<EnrichedDof>();
             int dofCounter = 0;
-            foreach (XNode2D node in model.Nodes)
+            foreach (XNode node in model.Nodes)
             {
                 // Standard free dofs. No rotational dofs. They can be X or Y. One or both of them may be constrained. 
                 if (!constraints.Contains(node, DisplacementDof.X)) standardDofs[node, DisplacementDof.X] = dofCounter++;

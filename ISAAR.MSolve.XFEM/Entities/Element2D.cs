@@ -10,7 +10,7 @@ namespace ISAAR.MSolve.XFEM.Entities
     class Element2D
     {
         public int ID { get; }
-        public IReadOnlyList<XNode2D> Nodes { get { return ElementType.Nodes; } }
+        public IReadOnlyList<XNode> Nodes { get { return ElementType.Nodes; } }
         public XContinuumElement2D ElementType { get; }
 
         public Element2D(int id, XContinuumElement2D elementType)

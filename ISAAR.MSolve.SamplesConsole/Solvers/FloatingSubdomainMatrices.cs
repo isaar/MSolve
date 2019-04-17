@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.SamplesConsole.Solvers
             double domainHeight = 2.4;
             var meshGenerator = new UniformMeshGenerator2D<Node>(0.0, 0.0, domainLength, domainHeight, 10, 10);
             (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity<Node>> cells) = 
-                meshGenerator.CreateMesh((id, x, y, z) => new Node() { ID = id, X = x, Y = y, Z = z });
+                meshGenerator.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
 
             // Add nodes to the model
             for (int n = 0; n < vertices.Count; ++n) model.NodesDictionary.Add(n, vertices[n]);
@@ -110,7 +110,7 @@ namespace ISAAR.MSolve.SamplesConsole.Solvers
             double lengthZ = 2.2;
             var meshGenerator = new UniformMeshGenerator3D<Node>(0.0, 0.0, 0.0, lengthX, lengthY, lengthZ, 10, 10, 10);
             (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity<Node>> cells) = 
-                meshGenerator.CreateMesh((id, x, y, z) => new Node() { ID = id, X = x, Y = y, Z = z });
+                meshGenerator.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
 
             // Add nodes to the model
             for (int n = 0; n < vertices.Count; ++n) model.NodesDictionary.Add(n, vertices[n]);

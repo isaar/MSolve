@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.Geometry.Triangulation
 {
     // TODO: All triangulators should be for cartesian system. They were previously for the Natural because I was 
     // following Nguyen's practice, which was actually incorrect.
-    public class Triangulator2D<TVertex> : ITriangulator2D<TVertex> where TVertex : IPoint2D
+    public class Triangulator2D<TVertex> : ITriangulator2D<TVertex> where TVertex : IPoint
     {
         private readonly CreateVertex2D<TVertex> createVertex;
         private readonly Configuration config;

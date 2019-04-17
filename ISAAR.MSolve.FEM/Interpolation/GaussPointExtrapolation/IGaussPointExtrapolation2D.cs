@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         /// <param name="point">The point where the scalar will be computed. Its coordinates are expressed in the natural
         ///     (element local) system, instead of the coordinate system defined by the integration points.</param>
         /// <returns></returns>
-        double ExtrapolateScalarFromGaussPoints(IReadOnlyList<double> scalarsAtGaussPoints, NaturalPoint2D point);
+        double ExtrapolateScalarFromGaussPoints(IReadOnlyList<double> scalarsAtGaussPoints, NaturalPoint point);
 
         /// <summary>
         /// Calculates a scalar quantity at the nodes of a finite element by extrapolating its known values at the integration 
@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         /// <param name="point">The point where the tensor will be computed. Its coordinates are expressed in the natural
         ///     (element local) system, instead of the coordinate system defined by the integration points.</param>
         /// <returns></returns>
-        double[] ExtrapolateTensorFromGaussPoints(IReadOnlyList<double[]> tensorsAtGaussPoints, NaturalPoint2D point);
+        double[] ExtrapolateTensorFromGaussPoints(IReadOnlyList<double[]> tensorsAtGaussPoints, NaturalPoint point);
 
         /// <summary>
         /// Calculates a tensor quantity at the nodes of a finite element by extrapolating its known values at the integration 
@@ -75,7 +75,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         /// <param name="point">The point where the tensor will be computed. Its coordinates are expressed in the natural
         ///     (element local) system, instead of the coordinate system defined by the integration points.</param>
         /// <returns></returns>
-        double[] ExtrapolateVectorFromGaussPoints(IReadOnlyList<double[]> vectorsAtGaussPoints, NaturalPoint2D point);
+        double[] ExtrapolateVectorFromGaussPoints(IReadOnlyList<double[]> vectorsAtGaussPoints, NaturalPoint point);
 
         /// <summary>
         /// Calculates a vector quantity at the nodes of a finite element by extrapolating its known values at the integration 

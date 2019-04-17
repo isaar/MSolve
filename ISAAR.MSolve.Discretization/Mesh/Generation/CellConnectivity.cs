@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
 
-//TODO: this should be moved to Geometry.Shapes once Node2D has been replaced with a generic IPoint2D
+//TODO: this should be moved to Geometry.Shapes once Node2D has been replaced with a generic IPoint
 namespace ISAAR.MSolve.Discretization.Mesh.Generation
 {
     /// <summary>

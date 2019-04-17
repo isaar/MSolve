@@ -23,18 +23,18 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 
         double[,] GatherNodalDisplacements(Model2D model, Vector solution);
 
-        ITable<XNode2D, EnrichedDof, double> GatherEnrichedNodalDisplacements(Model2D model, Vector solution);
+        ITable<XNode, EnrichedDof, double> GatherEnrichedNodalDisplacements(Model2D model, Vector solution);
 
-        int GetConstrainedDofOf(XNode2D node, DisplacementDof dofType);
-        IEnumerable<int> GetConstrainedDofsOf(XNode2D node);
+        int GetConstrainedDofOf(XNode node, DisplacementDof dofType);
+        IEnumerable<int> GetConstrainedDofsOf(XNode node);
         List<int> GetConstrainedDofsOf(XContinuumElement2D element); // Also add a method that simultaneously returns free+constrained
 
-        int GetEnrichedDofOf(XNode2D node, EnrichedDof dofType);
-        IEnumerable<int> GetEnrichedDofsOf(XNode2D node);
+        int GetEnrichedDofOf(XNode node, EnrichedDof dofType);
+        IEnumerable<int> GetEnrichedDofsOf(XNode node);
         List<int> GetEnrichedDofsOf(XContinuumElement2D element);
 
-        int GetStandardDofOf(XNode2D node, DisplacementDof dofType);
-        IEnumerable<int> GetStandardDofsOf(XNode2D node);
+        int GetStandardDofOf(XNode node, DisplacementDof dofType);
+        IEnumerable<int> GetStandardDofsOf(XNode node);
         List<int> GetStandardDofsOf(XContinuumElement2D element);
 
         void MatchElementToGlobalStandardDofsOf(XContinuumElement2D element,

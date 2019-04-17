@@ -14,8 +14,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.LevelSetUpdating
         /// Returns nodes that were previously enriched with Heaviside and now their body level set changes.
         /// </summary>
         /// <returns></returns>
-        HashSet<XNode2D> Update(CartesianPoint2D oldTip, double localGrowthAngle, double growthLength, double dx, double dy,
-            IReadOnlyList<XNode2D> allNodes, ISet<XNode2D> crackBodyNodesAll, 
-            Dictionary<XNode2D, double> levelSetsBody, Dictionary<XNode2D, double> levelSetsTip);
+        HashSet<XNode> Update(CartesianPoint oldTip, double localGrowthAngle, double growthLength, double dx, double dy,
+            IReadOnlyList<XNode> allNodes, ISet<XNode> crackBodyNodesAll, 
+            Dictionary<XNode, double> levelSetsBody, Dictionary<XNode, double> levelSetsTip);
     }
 }

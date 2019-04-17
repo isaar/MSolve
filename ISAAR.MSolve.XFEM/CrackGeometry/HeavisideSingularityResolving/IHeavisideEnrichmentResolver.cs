@@ -7,10 +7,10 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
 {
     interface IHeavisideSingularityResolver
     {
-        ISet<XNode2D> FindHeavisideNodesToRemove(ISingleCrack crack, IMesh2D<XNode2D, XContinuumElement2D> mesh, 
-            ISet<XNode2D> heavisideNodes);
+        ISet<XNode> FindHeavisideNodesToRemove(ISingleCrack crack, IMesh2D<XNode, XContinuumElement2D> mesh, 
+            ISet<XNode> heavisideNodes);
 
-        ISet<XNode2D> FindHeavisideNodesToRemove(ISingleCrack crack, IReadOnlyList<XNode2D> heavisideNodes,
+        ISet<XNode> FindHeavisideNodesToRemove(ISingleCrack crack, IReadOnlyList<XNode> heavisideNodes,
             IReadOnlyList<ISet<XContinuumElement2D>> nodalSupports);
     }
 }

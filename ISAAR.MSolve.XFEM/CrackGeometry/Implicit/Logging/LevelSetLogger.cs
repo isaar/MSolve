@@ -44,13 +44,13 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
             var lsWriter = new VTKWriter(model);
             lsWriter.InitializeFile($"{outputDirectory}\\level_sets_{iteration}", true);
 
-            IReadOnlyDictionary<XNode2D, double> levelSetsBody = lsm.LevelSetsBody;
-            IReadOnlyDictionary<XNode2D, double> levelSetsTip = lsm.LevelSetsTip;
+            IReadOnlyDictionary<XNode, double> levelSetsBody = lsm.LevelSetsBody;
+            IReadOnlyDictionary<XNode, double> levelSetsTip = lsm.LevelSetsTip;
             var bodyArray = new double[levelSetsBody.Count];
             var tipArray = new double[levelSetsTip.Count];
             for (int i = 0; i < model.Nodes.Count; ++i)
             {
-                XNode2D node = model.Nodes[i];
+                XNode node = model.Nodes[i];
                 bodyArray[i] = levelSetsBody[node];
                 tipArray[i] = levelSetsTip[node];
             }

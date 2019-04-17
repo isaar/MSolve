@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.Discretization.Mesh
         /// <param name="startingElement">An element around which to start the search. If no such element is provided 
         ///     the search will probably take longer, usually O(elementsCount).</param>
         /// <returns></returns>
-        IReadOnlyList<TElement> FindElementsContainingPoint(CartesianPoint2D point, TElement startingElement = null);
+        IReadOnlyList<TElement> FindElementsContainingPoint(CartesianPoint point, TElement startingElement = null);
 
         /// <summary>
         /// Find the elements that are intersected by the provided circle. The following cases are possible:
@@ -62,6 +62,6 @@ namespace ISAAR.MSolve.Discretization.Mesh
         IReadOnlyList<TNode> FindNodesInsideCircle(Circle2D circle, 
             bool findBoundaryNodes = true, TElement startingElement = null);
 
-        bool IsInsideBoundary(CartesianPoint2D point);
+        bool IsInsideBoundary(CartesianPoint point);
     }
 }

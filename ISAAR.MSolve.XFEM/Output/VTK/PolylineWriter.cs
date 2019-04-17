@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             writer.Write("ASCII\n\n");
         }
 
-        public void WritePolyline(IReadOnlyList<CartesianPoint2D> vertices)
+        public void WritePolyline(IReadOnlyList<CartesianPoint> vertices)
         {
             // Vertices 
             writer.WriteLine("DATASET POLYDATA");
@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             writer.WriteLine();
         }
 
-        public void WritePolylineAsUnstructured(IReadOnlyList<CartesianPoint2D> vertices)
+        public void WritePolylineAsUnstructured(IReadOnlyList<CartesianPoint> vertices)
         {
             // Nodes 
             writer.WriteLine("DATASET UNSTRUCTURED_GRID");

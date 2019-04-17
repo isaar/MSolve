@@ -32,14 +32,14 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
         private readonly ICrackDescription crackGeometry;
         private readonly Model2D model;
         private readonly string pathNoExtension;
-        private readonly Triangulator2D<CartesianPoint2D> triangulator;
+        private readonly Triangulator2D<CartesianPoint> triangulator;
 
         public IntersectedMeshOutput(Model2D model, ICrackDescription crackGeometry, string pathNoExtension)
         {
             this.crackGeometry = crackGeometry;
             this.model = model;
             this.pathNoExtension = pathNoExtension;
-            this.triangulator = new Triangulator2D<CartesianPoint2D>((x, y) => new CartesianPoint2D(x, y));
+            this.triangulator = new Triangulator2D<CartesianPoint>((x, y) => new CartesianPoint(x, y));
         }
 
         public void WriteOutputData(IDofOrderer dofOrderer, Vector freeDisplacements, Vector constrainedDisplacements, int step)
@@ -79,7 +79,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
 
                     // Strains and stresses at Gauss points of element
                     // WARNING: do not use the quadrature object, since GPs are sorted differently.
-                    IReadOnlyList<GaussPoint2D> gaussPoints = element.ElementType.GaussPointSystem.GaussPoints;
+                    IReadOnlyList<GaussPoint> gaussPoints = element.ElementType.GaussPointSystem.GaussPoints;
                     var strainsAtGPs = new Tensor2D[gaussPoints.Count];
                     var stressesAtGPs = new Tensor2D[gaussPoints.Count];
                     for (int gp = 0; gp < gaussPoints.Count; ++gp)
@@ -106,10 +106,10 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                 else
                 {
                     // Triangulate and then operate on each triangle
-                    SortedSet<CartesianPoint2D> triangleVertices = intersectingCrack.FindTriangleVertices(element);
-                    IReadOnlyList<Triangle2D<CartesianPoint2D>> triangles = triangulator.CreateMesh(triangleVertices);
+                    SortedSet<CartesianPoint> triangleVertices = intersectingCrack.FindTriangleVertices(element);
+                    IReadOnlyList<Triangle2D<CartesianPoint>> triangles = triangulator.CreateMesh(triangleVertices);
 
-                    foreach (Triangle2D<CartesianPoint2D> triangle in triangles)
+                    foreach (Triangle2D<CartesianPoint> triangle in triangles)
                     {
                         // Mesh
                         int numTriangleNodes = 3;
@@ -117,7 +117,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                         for (int p = 0; p < numTriangleNodes; ++p)
                         {
                             cellPoints[p] = 
-                                new VtkPoint2D(pointCounter++, new CartesianPoint2D(triangle.Vertices[p].Coordinates));
+                                new VtkPoint2D(pointCounter++, new CartesianPoint(triangle.Vertices[p].Coordinates));
                             allPoints.Add(cellPoints[p]);
                         }
                         allCells.Add(new VtkCell2D(triangleVtkCode, cellPoints));
@@ -129,12 +129,12 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
 
                         // Find the Gauss points of the triangle in the natural system of the element
                         IInverseMapping2D inverseMapping = element.Interpolation.CreateInverseMappingFor(element.Nodes);
-                        var triangleNodesNatural = new NaturalPoint2D[numTriangleNodes];
+                        var triangleNodesNatural = new NaturalPoint[numTriangleNodes];
                         for (int p = 0; p < numTriangleNodes; ++p)
                         {
                             triangleNodesNatural[p] = inverseMapping.TransformCartesianToNatural(cellPoints[p]);
                         }
-                        NaturalPoint2D[] triangleGPsNatural = 
+                        NaturalPoint[] triangleGPsNatural = 
                             FindTriangleGPsNatural(triangleNodesNatural, extrapolation.GaussPoints);
 
                         // Find the field values at the Gauss points of the triangle (their coordinates are in the natural 
@@ -189,7 +189,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
 
 
             var enrichments = new HashSet<IEnrichmentItem2D>();
-            foreach (XNode2D node in element.Nodes)
+            foreach (XNode node in element.Nodes)
             {
                 foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
                 {
@@ -224,7 +224,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                 {
                     int positiveNodes = 0;
                     int negativeNodes = 0;
-                    foreach (XNode2D node in element.Nodes)
+                    foreach (XNode node in element.Nodes)
                     {
                         if (singleCracks[0].SignedDistanceOf(node) > 0.0) ++positiveNodes;
                         else if (singleCracks[0].SignedDistanceOf(node) < 0.0) ++negativeNodes;
@@ -253,33 +253,33 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             }
         }
 
-        private NaturalPoint2D[] FindTriangleGPsNatural(IReadOnlyList<NaturalPoint2D> triangleNodesNatural, 
-            IReadOnlyList<GaussPoint2D> triangleGPsAuxiliary)
+        private NaturalPoint[] FindTriangleGPsNatural(IReadOnlyList<NaturalPoint> triangleNodesNatural, 
+            IReadOnlyList<GaussPoint> triangleGPsAuxiliary)
         {
             //TODO: consider removing all this type safety in the coordinate systems or use generics
             // Copy the triangle nodes' natural coordinates to pseudo-cartesian nodes, so that interpolations can be used. 
-            var nodesPseudoCartesian = new XNode2D[3];
+            var nodesPseudoCartesian = new XNode[3];
             for (int i = 0; i < 3; ++i)
             {
-                nodesPseudoCartesian[i] = new XNode2D(i, triangleNodesNatural[i].Xi, triangleNodesNatural[i].Eta);
+                nodesPseudoCartesian[i] = new XNode(i, triangleNodesNatural[i].Xi, triangleNodesNatural[i].Eta);
             }
 
-            var triangleGPsNatural = new NaturalPoint2D[triangleGPsAuxiliary.Count];
+            var triangleGPsNatural = new NaturalPoint[triangleGPsAuxiliary.Count];
             for (int i = 0; i < triangleGPsAuxiliary.Count; ++i)
             {
                 // Map the triangle's Gauss points from the auxiliary system (natural system of the triangle) to the natural system
                 // (pseudo Cartesian system of the triangle)
-                CartesianPoint2D pseudoCartesian = IsoparametricInterpolation2D.Tri3.TransformNaturalToCartesian(
+                CartesianPoint pseudoCartesian = IsoparametricInterpolation2D.Tri3.TransformNaturalToCartesian(
                     nodesPseudoCartesian, triangleGPsAuxiliary[i]);
 
                 // Copy the pseudo cartesian coordinates to natural system
-                triangleGPsNatural[i] = new NaturalPoint2D(pseudoCartesian.X, pseudoCartesian.Y);
+                triangleGPsNatural[i] = new NaturalPoint(pseudoCartesian.X, pseudoCartesian.Y);
             }
 
             return triangleGPsNatural;
         }
 
-        private (Tensor2D strain, Tensor2D stress) ComputeStrainStress(XContinuumElement2D element, NaturalPoint2D gaussPoint,
+        private (Tensor2D strain, Tensor2D stress) ComputeStrainStress(XContinuumElement2D element, NaturalPoint gaussPoint,
             EvaluatedInterpolation2D evaluatedInterpolation, Vector standardNodalDisplacements,
             Vector enrichedNodalDisplacements)
         {

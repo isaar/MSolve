@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.Tests
             int subdomainID = 0;
             model.SubdomainsDictionary.Add(subdomainID, new Subdomain(subdomainID));
 
-            var n = new Node() { ID = 0 };
+            var n = new Node(id: 0, x: double.NaN );
             var e = new Element() { ID = 0 };
             e.NodesDictionary.Add(0, n);
             var m = new Mock<IFiniteElement>();

@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.XFEM.Output
     //TODO: Would be better to do it with deformation matrices, but requires unification of vectors and matrices
     class StrainField : IOutputField
     {
-        public Tensor2D EvaluateAt(XContinuumElement2D element, NaturalPoint2D point,
+        public Tensor2D EvaluateAt(XContinuumElement2D element, NaturalPoint point,
             Vector standardDisplacements, Vector enrichedDisplacements)
         {
             EvaluatedInterpolation2D evaluatedInterpolation =

@@ -5,23 +5,24 @@ using System.Xml;
 
 namespace ISAAR.MSolve.Geometry.Coordinates
 {
-	/// <summary>
-	/// Point in a 3-dimensional cartesian coordinate system, which is local to the finite element. Immutable
-	/// Authors: Dimitris Tsapetis
-	/// </summary>
-	public class NaturalPoint3D : IPoint3D
+    /// <summary>
+    /// Point in a 3-dimensional cartesian coordinate system, which is local to the finite element. It can also represent points 
+    /// in 1-dimensional or 2-dimension spaces, but not all coordinates will be used. Immutable
+    /// Authors: Serafeim Bakalakos, Dimitris Tsapetis
+    /// </summary>
+    public class NaturalPoint : IPoint
 	{
 		protected readonly double xi;
 		protected readonly double eta;
 		protected readonly double zeta;
 
 		/// <summary>
-		/// Instantiates a <see cref="NaturalPoint3D"/>
+		/// Instantiates a <see cref="NaturalPoint"/>
 		/// </summary>
 		/// <param name="xi">The coordinate of the point along local axis Xi</param>
 		/// <param name="eta">The coordinate of the point along local axis Eta</param>
 		/// <param name="zeta">The coordinate of the point along local axis Zeta</param>
-		public NaturalPoint3D(double xi, double eta, double zeta)
+		public NaturalPoint(double xi, double eta = 0.0, double zeta = 0.0)
 		{
 			this.xi = xi;
 			this.eta = eta;
@@ -29,15 +30,21 @@ namespace ISAAR.MSolve.Geometry.Coordinates
 		}
 
 		/// <summary>
-		/// Instantiates a <see cref="NaturalPoint3D"/>
+		/// Instantiates a <see cref="NaturalPoint"/>
 		/// </summary>
 		/// <param name="coordinates">Vector with the coordinates of the point. Length = 2.</param>
-		public NaturalPoint3D(double[] coordinates)
+		public NaturalPoint(double[] coordinates)
 		{
 			this.xi = coordinates[0];
 			this.eta = coordinates[1];
 			this.zeta = coordinates[2];
 		}
+
+        public double X1 => xi;
+
+        public double X2 => eta;
+
+        public double X3 => zeta;
 
         /// <summary>
         /// Vector with the coordinates of the point. Length = 3.
@@ -58,12 +65,6 @@ namespace ISAAR.MSolve.Geometry.Coordinates
 		/// The coordinate of the point along local axis Zeta.
 		/// </summary>
 		public double Zeta => zeta;
-
-        public double X1 => xi;
-
-        public double X2 => eta;
-
-        public double X3 => zeta;
 
         public override string ToString() => $"(xi, eta, zeta)=({xi}, {eta}, {zeta})";
     }

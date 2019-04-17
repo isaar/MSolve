@@ -12,8 +12,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
         private readonly TrackingExteriorCrackLSM lsm;
         private readonly string outputDirectory;
         private int iteration;
-        private Dictionary<XNode2D, double> previousBodyLevelSets;
-        private Dictionary<XNode2D, double> previousTipLevelSets;
+        private Dictionary<XNode, double> previousBodyLevelSets;
+        private Dictionary<XNode, double> previousTipLevelSets;
 
         public PreviousLevelSetComparer(TrackingExteriorCrackLSM lsm, string outputDirectory)
         {
@@ -74,8 +74,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
                     writer.WriteLine();
                 }
             }
-            previousBodyLevelSets = new Dictionary<XNode2D, double>(lsm.LevelSetsBody);
-            previousTipLevelSets = new Dictionary<XNode2D, double>(lsm.LevelSetsTip);
+            previousBodyLevelSets = new Dictionary<XNode, double>(lsm.LevelSetsBody);
+            previousTipLevelSets = new Dictionary<XNode, double>(lsm.LevelSetsTip);
             ++iteration;
         }
     }

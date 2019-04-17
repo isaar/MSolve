@@ -57,7 +57,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             writer.WriteLine($"POINTS {model.Nodes.Count} double");
             for (int n = 0; n < model.Nodes.Count; ++n) // Their indices in Model.Nodes are equal to their IDs
             {
-                XNode2D node = model.Nodes[n];
+                XNode node = model.Nodes[n];
                 writer.WriteLine($"{node.X} {node.Y} 0.0");
             }
 

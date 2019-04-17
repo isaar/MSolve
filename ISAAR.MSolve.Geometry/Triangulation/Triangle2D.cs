@@ -5,17 +5,17 @@ using ISAAR.MSolve.Geometry.Coordinates;
 namespace ISAAR.MSolve.Geometry.Triangulation
 {
     /// <summary>
-    /// Initializes a new instance of some class that implements <see cref="IPoint2D"/>.
+    /// Initializes a new instance of some class that implements <see cref="IPoint"/>.
     /// </summary>
     /// <param name="x">The x coordinate of the node.</param>
     /// <param name="y">The y coordinate of the node.</param>
-    public delegate TVertex CreateVertex2D<TVertex>(double x, double y) where TVertex : IPoint2D;
+    public delegate TVertex CreateVertex2D<TVertex>(double x, double y) where TVertex : IPoint;
 
     /// <summary>
     /// Wrapper class for 3rd party library triangles. For now I only need 2D triangles in natural system. 
     /// TODO: make them generic.
     /// </summary>
-    public class Triangle2D<TVertex> where TVertex: IPoint2D
+    public class Triangle2D<TVertex> where TVertex: IPoint
     {
         public IReadOnlyList<TVertex> Vertices { get; }
 

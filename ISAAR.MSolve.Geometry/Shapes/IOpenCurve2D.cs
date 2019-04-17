@@ -5,8 +5,8 @@ namespace ISAAR.MSolve.Geometry.Shapes
 {
     public interface IOpenCurve2D : ICurve2D
     {
-        CartesianPoint2D Start { get; }
-        CartesianPoint2D End { get; }
+        CartesianPoint Start { get; }
+        CartesianPoint End { get; }
 
         /// <summary>
         /// Unit vector. It will coincide with the normal vector if rotated -PI/2.

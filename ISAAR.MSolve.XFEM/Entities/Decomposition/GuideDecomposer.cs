@@ -15,13 +15,13 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
     {
         private readonly int numRegions;
         private readonly IRegion2D[] guides;
-        private readonly BidirectionalMesh2D<XNode2D, XContinuumElement2D> mesh;
+        private readonly BidirectionalMesh2D<XNode, XContinuumElement2D> mesh;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="guides">They must be convex.</param>
-        public GuideDecomposer(IRegion2D[] guides, BidirectionalMesh2D<XNode2D, XContinuumElement2D> mesh)
+        public GuideDecomposer(IRegion2D[] guides, BidirectionalMesh2D<XNode, XContinuumElement2D> mesh)
         {
             this.guides = guides;
             this.numRegions = guides.Length;
@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
 
         public XCluster2D CreateSubdomains()
         {
-            HashSet<XNode2D>[] internalNodes, boundaryNodes;
+            HashSet<XNode>[] internalNodes, boundaryNodes;
             (internalNodes, boundaryNodes) = PartitionNodes();
             HashSet<XContinuumElement2D>[] subdomains = PartitionElements(internalNodes, boundaryNodes);
             (internalNodes, boundaryNodes) = RepartitionNodes(subdomains);
@@ -48,8 +48,8 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
             // Do nothing
         }
 
-        private int DecideElementRegion(XContinuumElement2D element, HashSet<XNode2D>[] internalNodes,
-            HashSet<XNode2D>[] boundaryNodes)
+        private int DecideElementRegion(XContinuumElement2D element, HashSet<XNode>[] internalNodes,
+            HashSet<XNode>[] boundaryNodes)
         {
             foreach (var node in element.Nodes)
             {
@@ -63,14 +63,14 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
             throw new IncorrectDecompositionException("This element's nodes do not belong to any of the regions provided");
         }
 
-        private (HashSet<XNode2D>[] internalNodes, HashSet<XNode2D>[] boundaryNodes) PartitionNodes()
+        private (HashSet<XNode>[] internalNodes, HashSet<XNode>[] boundaryNodes) PartitionNodes()
         {
-            var internalNodes = new HashSet<XNode2D>[numRegions];
-            var boundaryNodes = new HashSet<XNode2D>[numRegions];
+            var internalNodes = new HashSet<XNode>[numRegions];
+            var boundaryNodes = new HashSet<XNode>[numRegions];
             for (int i = 0; i < numRegions; ++i)
             {
-                internalNodes[i] = new HashSet<XNode2D>();
-                boundaryNodes[i] = new HashSet<XNode2D>();
+                internalNodes[i] = new HashSet<XNode>();
+                boundaryNodes[i] = new HashSet<XNode>();
             }
 
             foreach (var node in mesh.Nodes)
@@ -105,8 +105,8 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
             return (internalNodes, boundaryNodes);
         }
 
-        private HashSet<XContinuumElement2D>[] PartitionElements(HashSet<XNode2D>[] internalNodes, 
-            HashSet<XNode2D>[] boundaryNodes)
+        private HashSet<XContinuumElement2D>[] PartitionElements(HashSet<XNode>[] internalNodes, 
+            HashSet<XNode>[] boundaryNodes)
         {
             var subdomains = new HashSet<XContinuumElement2D>[numRegions];
             for (int i = 0; i < numRegions; ++i) subdomains[i] = new HashSet<XContinuumElement2D>();
@@ -119,15 +119,15 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
             return subdomains;
         }
 
-        private (HashSet<XNode2D>[] internalNodes, HashSet<XNode2D>[] boundaryNodes) RepartitionNodes(
+        private (HashSet<XNode>[] internalNodes, HashSet<XNode>[] boundaryNodes) RepartitionNodes(
             HashSet<XContinuumElement2D>[] subdomains)
         {
-            var internalNodes = new HashSet<XNode2D>[numRegions];
-            var boundaryNodes = new HashSet<XNode2D>[numRegions];
+            var internalNodes = new HashSet<XNode>[numRegions];
+            var boundaryNodes = new HashSet<XNode>[numRegions];
             for (int i = 0; i < numRegions; ++i)
             {
-                internalNodes[i] = new HashSet<XNode2D>();
-                boundaryNodes[i] = new HashSet<XNode2D>();
+                internalNodes[i] = new HashSet<XNode>();
+                boundaryNodes[i] = new HashSet<XNode>();
             }
 
             foreach (var node in mesh.Nodes)

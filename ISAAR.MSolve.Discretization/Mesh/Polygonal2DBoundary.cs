@@ -8,12 +8,12 @@ namespace ISAAR.MSolve.Discretization.Mesh
     {
         private readonly ConvexPolygon2D polygon;
 
-        public Polygonal2DBoundary(IReadOnlyList<CartesianPoint2D> vertices)
+        public Polygonal2DBoundary(IReadOnlyList<CartesianPoint> vertices)
         {
             polygon = ConvexPolygon2D.CreateUnsafe(vertices); 
         }
 
-        public bool IsInside(CartesianPoint2D point)
+        public bool IsInside(CartesianPoint point)
         {
             var pos = polygon.FindRelativePositionOfPoint(point);
             if (pos == PolygonPointPosition.Inside) return true;

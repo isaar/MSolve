@@ -8,7 +8,7 @@ namespace ISAAR.MSolve.XFEM.Entities
 {
     class ContinuityEquations
     {
-        public ContinuityEquations(int numEquations, IReadOnlyList<XNode2D> nodes, IReadOnlyList<EnrichedDof> dofs,
+        public ContinuityEquations(int numEquations, IReadOnlyList<XNode> nodes, IReadOnlyList<EnrichedDof> dofs,
             IReadOnlyList<XSubdomain2D> positiveSubdomains, IReadOnlyList<XSubdomain2D> negativeSubdomains)
         {
             this.NumEquations = numEquations;
@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.XFEM.Entities
         public enum EquationOrder { DofMajor, SubdomainMajor};
 
         public int NumEquations { get; }
-        public IReadOnlyList<XNode2D> Nodes { get; }
+        public IReadOnlyList<XNode> Nodes { get; }
         public IReadOnlyList<EnrichedDof> Dofs { get; }
         public IReadOnlyList<XSubdomain2D> PositiveSubdomains { get; }
         public IReadOnlyList<XSubdomain2D> NegativeSubdomains { get; }
@@ -29,16 +29,16 @@ namespace ISAAR.MSolve.XFEM.Entities
 
         public class Builder
         {
-            private readonly Dictionary<XNode2D, Dictionary<EnrichedDof, SortedSet<XSubdomain2D>>> data;
+            private readonly Dictionary<XNode, Dictionary<EnrichedDof, SortedSet<XSubdomain2D>>> data;
 
             public Builder()
             {
-                this.data = new Dictionary<XNode2D, Dictionary<EnrichedDof, SortedSet<XSubdomain2D>>>();
+                this.data = new Dictionary<XNode, Dictionary<EnrichedDof, SortedSet<XSubdomain2D>>>();
             }
 
             public ContinuityEquations Build(EquationOrder order)
             {
-                var nodes = new List<XNode2D>();
+                var nodes = new List<XNode>();
                 var dofs = new List<EnrichedDof>();
                 var positiveSubdomains = new List<XSubdomain2D>();
                 var negativeSubdomains = new List<XSubdomain2D>();
@@ -47,7 +47,7 @@ namespace ISAAR.MSolve.XFEM.Entities
                 {
                     foreach (var nodeData in data)
                     {
-                        XNode2D node = nodeData.Key;
+                        XNode node = nodeData.Key;
                         foreach (var dofData in nodeData.Value)
                         {
                             EnrichedDof dof = dofData.Key;
@@ -72,7 +72,7 @@ namespace ISAAR.MSolve.XFEM.Entities
                 }
             }
 
-            public void Register(XNode2D node, EnrichedDof dof, XSubdomain2D subdomain)
+            public void Register(XNode node, EnrichedDof dof, XSubdomain2D subdomain)
             {
                 bool nodeExists = data.TryGetValue(node, out Dictionary<EnrichedDof, SortedSet<XSubdomain2D>> nodeData);
                 if (!nodeExists)

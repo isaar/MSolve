@@ -10,7 +10,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
 {
     interface IAuxiliaryStates
     {
-        AuxiliaryStatesTensors ComputeTensorsAt(CartesianPoint2D globalIntegrationPoint, 
+        AuxiliaryStatesTensors ComputeTensorsAt(CartesianPoint globalIntegrationPoint, 
             TipCoordinateSystem tipCoordinateSystem);
     }
 }

@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.XFEM.Output
         private IReadOnlyList<Tensor2D> ComputeSmoothedNodalTensors(Vector solution, bool extrapolateFromGPs, 
             IOutputField field)
         {
-            var tensorsFromAllElements = new Dictionary<XNode2D, List<Tensor2D>>();
+            var tensorsFromAllElements = new Dictionary<XNode, List<Tensor2D>>();
             foreach (var node in model.Nodes) tensorsFromAllElements[node] = new List<Tensor2D>();
             Vector constrainedDisplacements = model.CalculateConstrainedDisplacements(dofOrderer);
 
@@ -79,7 +79,7 @@ namespace ISAAR.MSolve.XFEM.Output
             var nodalTensors = new Tensor2D[model.Nodes.Count];
             for (int i = 0; i < model.Nodes.Count; ++i)
             {
-                XNode2D node = model.Nodes[i];
+                XNode node = model.Nodes[i];
                 double tensorXX = 0.0, tensorYY = 0.0, tensorXY = 0.0;
                 foreach (var tensor in tensorsFromAllElements[node])
                 {
@@ -127,7 +127,7 @@ namespace ISAAR.MSolve.XFEM.Output
             Vector enrichedDisplacements =
                 dofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
 
-            IReadOnlyList<NaturalPoint2D> naturalNodes = element.ElementType.NaturalCoordinatesOfNodes;
+            IReadOnlyList<NaturalPoint> naturalNodes = element.ElementType.NaturalCoordinatesOfNodes;
             var nodalTensors = new Tensor2D[element.Nodes.Count];
             for (int i = 0; i < element.Nodes.Count; ++i)
             {
@@ -146,7 +146,7 @@ namespace ISAAR.MSolve.XFEM.Output
                 dofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
 
             IGaussPointSystem gpSystem = element.ElementType.GaussPointSystem;
-            IReadOnlyList<NaturalPoint2D> gaussPoints = gpSystem.GaussPoints;
+            IReadOnlyList<NaturalPoint> gaussPoints = gpSystem.GaussPoints;
             var gpTensors = new Tensor2D[gaussPoints.Count];
             for (int i = 0; i < gaussPoints.Count; ++i)
             {

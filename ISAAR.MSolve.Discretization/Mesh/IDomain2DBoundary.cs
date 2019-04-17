@@ -5,6 +5,6 @@ namespace ISAAR.MSolve.Discretization.Mesh
     public interface IDomain2DBoundary
     {
         // Not on the boundary exactly.
-        bool IsInside(CartesianPoint2D point);
+        bool IsInside(CartesianPoint point);
     }
 }

@@ -222,7 +222,7 @@ namespace ISAAR.MSolve.SamplesConsole
                         double nodeX = double.Parse(bits[1]);
                         double nodeY = double.Parse(bits[2]);
                         double nodeZ = double.Parse(bits[3]);
-                        model.NodesDictionary.Add(nodeID, new Node { ID = nodeID, X = nodeX, Y = nodeY, Z = nodeZ });
+                        model.NodesDictionary.Add(nodeID, new Node( id: nodeID, x: nodeX, y: nodeY, z: nodeZ ));
                     }
                 }
 
@@ -304,7 +304,7 @@ namespace ISAAR.MSolve.SamplesConsole
                         double nodeX = double.Parse(bits[1]);
                         double nodeY = double.Parse(bits[2]);
                         double nodeZ = double.Parse(bits[3]);
-                        model.NodesDictionary.Add(nodeID, new Node { ID = nodeID, X = nodeX, Y = nodeY, Z = nodeZ });
+                        model.NodesDictionary.Add(nodeID, new Node( id: nodeID, x: nodeX, y:  nodeY, z: nodeZ ));
                     }
                 }
 

@@ -46,22 +46,22 @@ namespace ISAAR.MSolve.XFEM.Materials
             HomogeneousThickness = thickness;
         }
 
-        public double GetYoungModulusAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public double GetYoungModulusAt(NaturalPoint point, EvaluatedInterpolation2D interpolation)
         { return HomogeneousYoungModulus; }
 
-        public double GetEquivalentYoungModulusAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public double GetEquivalentYoungModulusAt(NaturalPoint point, EvaluatedInterpolation2D interpolation)
         { return HomogeneousEquivalentYoungModulus; }
 
-        public double GetPoissonRatioAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public double GetPoissonRatioAt(NaturalPoint point, EvaluatedInterpolation2D interpolation)
         { return HomogeneousPoissonRatio; }
 
-        public double GetEquivalentPoissonRatioAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public double GetEquivalentPoissonRatioAt(NaturalPoint point, EvaluatedInterpolation2D interpolation)
         { return HomogeneousEquivalentPoissonRatio; }
 
-        public double GetThicknessAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public double GetThicknessAt(NaturalPoint point, EvaluatedInterpolation2D interpolation)
         { return HomogeneousThickness; }
         
-        public Matrix CalculateConstitutiveMatrixAt(NaturalPoint2D point, EvaluatedInterpolation2D interpolation)
+        public Matrix CalculateConstitutiveMatrixAt(NaturalPoint point, EvaluatedInterpolation2D interpolation)
         {
             var matrix = Matrix.CreateZero(3, 3);
             double eqE = HomogeneousEquivalentYoungModulus;

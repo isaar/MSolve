@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             writer.Write("ASCII\n\n");
         }
 
-        public void WriteScalarField(string fieldName, IReadOnlyDictionary<CartesianPoint2D, double> pointValues)
+        public void WriteScalarField(string fieldName, IReadOnlyDictionary<CartesianPoint, double> pointValues)
         {
             // Points
             writer.WriteLine("DATASET UNSTRUCTURED_GRID");

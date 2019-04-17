@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
             this.integrationForTipBlendingElements = integrationForTipBlendingElements;
         }
 
-        public IReadOnlyList<GaussPoint2D> GenerateIntegrationPoints(XContinuumElement2D element)
+        public IReadOnlyList<GaussPoint> GenerateIntegrationPoints(XContinuumElement2D element)
         {
             if (element.EnrichmentItems.Count == 0)
             {
@@ -60,7 +60,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
         // TODO: determining the state of the element might be the responsibility of XContinuumElement2D.
         private bool HasTipEnrichedNodes(XContinuumElement2D element)
         {
-            foreach (XNode2D node in element.Nodes)
+            foreach (XNode node in element.Nodes)
             {
                 foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)
                 {

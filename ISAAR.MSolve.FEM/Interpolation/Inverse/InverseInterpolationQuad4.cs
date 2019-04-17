@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
         private readonly double ab, ac, bc;
 
         // The delegate avoids redundant checking for which case we are at 
-        private readonly Func<double, double, NaturalPoint2D> formula;
+        private readonly Func<double, double, NaturalPoint> formula;
 
         public InverseInterpolationQuad4(IReadOnlyList<Node> nodes)
         {
@@ -70,7 +70,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
             throw new Exception("Cannot find a valid counter-clockwise node ordering. The original node order might be wrong");
         }
 
-        public NaturalPoint2D TransformPointCartesianToNatural(CartesianPoint2D point)
+        public NaturalPoint TransformPointCartesianToNatural(CartesianPoint point)
         {
             // Point dependent coefficients
             double d1 = 4 * point.X - sum1;
@@ -80,7 +80,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
         }
 
         #region case specific code
-        private Func<double, double, NaturalPoint2D> FindQuadDependentFormula()
+        private Func<double, double, NaturalPoint> FindQuadDependentFormula()
         {
             // E.g. Case 1: a1*a2*ab*ac != 0. 
             // I check them individually to avoid precision errors of the multiplication.
@@ -92,7 +92,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
             else return FormulaForCase6;
         }
 
-        private NaturalPoint2D FormulaForCases123(double d1, double d2)
+        private NaturalPoint FormulaForCases123(double d1, double d2)
         {
             double ad = a1 * d2 - a2 * d1;
             double dc = d1 * c2 - d2 * c1;
@@ -108,37 +108,37 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
                 xi = IsWithinNaturalDomain(solutions[0]) ? solutions[0] : solutions[1];
             }
             double eta = (ad - ab * xi) / ac;
-            return new NaturalPoint2D(xi, eta);
+            return new NaturalPoint(xi, eta);
         }
 
-        private NaturalPoint2D FormulaForCase4(double d1, double d2)
+        private NaturalPoint FormulaForCase4(double d1, double d2)
         {
             double ad = a1 * d2 - a2 * d1;
             double dc = d1 * c2 - d2 * c1;
 
             double xi = a1 * dc / (b1 * ac + a1 * ad);
             double eta = ad / ac;
-            return new NaturalPoint2D(xi, eta);
+            return new NaturalPoint(xi, eta);
         }
 
-        private NaturalPoint2D FormulaForCase5(double d1, double d2)
+        private NaturalPoint FormulaForCase5(double d1, double d2)
         {
             double ad = a1 * d2 - a2 * d1;
             double db = d1 * b2 - d2 * b1;
 
             double xi = ad / ab;
             double eta = a1 * db / (c1 * ab + a1 * ad);
-            return new NaturalPoint2D(xi, eta);
+            return new NaturalPoint(xi, eta);
         }
 
-        private NaturalPoint2D FormulaForCase6(double d1, double d2)
+        private NaturalPoint FormulaForCase6(double d1, double d2)
         {
             double bd = b1 * d2 - b2 * d1;
             double dc = d1 * c2 - d2 * c1;
 
             double xi = dc / (a1 * d2 + bc);
             double eta = bd / (a2 * d1 + bc);
-            return new NaturalPoint2D(xi, eta);
+            return new NaturalPoint(xi, eta);
         }
         #endregion
 

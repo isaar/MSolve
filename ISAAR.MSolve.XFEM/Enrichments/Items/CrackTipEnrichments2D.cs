@@ -54,7 +54,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
 
         public TipCoordinateSystem TipSystem { get; set; }
 
-        public double[] EvaluateFunctionsAt(XNode2D node)
+        public double[] EvaluateFunctionsAt(XNode node)
         {
             PolarPoint2D polarPoint = TipSystem.TransformPointGlobalCartesianToLocalPolar(node);
             var enrichments = new double[enrichmentFunctions.Count];
@@ -65,7 +65,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             return enrichments;
         }
 
-        public EvaluatedFunction2D[] EvaluateAllAt(NaturalPoint2D point, XContinuumElement2D element,
+        public EvaluatedFunction2D[] EvaluateAllAt(NaturalPoint point, XContinuumElement2D element,
              EvaluatedInterpolation2D interpolation)
         {
             PolarPoint2D polarPoint = TipSystem.TransformPointGlobalCartesianToLocalPolar(
@@ -82,7 +82,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
 
 
         // TODO: delete this
-        public IReadOnlyList<CartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element)
+        public IReadOnlyList<CartesianPoint> IntersectionPointsForIntegration(XContinuumElement2D element)
         {
             throw new NotImplementedException();
         }

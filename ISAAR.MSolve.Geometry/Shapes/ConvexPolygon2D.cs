@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.Geometry.Shapes
 
     public class ConvexPolygon2D
     {
-        private ConvexPolygon2D(IReadOnlyList<CartesianPoint2D> vertices)
+        private ConvexPolygon2D(IReadOnlyList<CartesianPoint> vertices)
         {
             this.Vertices = vertices;
 
@@ -28,20 +28,20 @@ namespace ISAAR.MSolve.Geometry.Shapes
             this.Edges = edges;
         }
 
-        public IReadOnlyList<CartesianPoint2D> Vertices { get; }
+        public IReadOnlyList<CartesianPoint> Vertices { get; }
         public IReadOnlyList<LineSegment2D> Edges { get; }
 
-        public static ConvexPolygon2D CreateUnsafe(IReadOnlyList<CartesianPoint2D> vertices)
+        public static ConvexPolygon2D CreateUnsafe(IReadOnlyList<CartesianPoint> vertices)
         {
             return new ConvexPolygon2D(vertices);
         }
 
-        public static ConvexPolygon2D CreateSafe(IReadOnlyList<CartesianPoint2D> vertices)
+        public static ConvexPolygon2D CreateSafe(IReadOnlyList<CartesianPoint> vertices)
         {
-            var points = new CartesianPoint2D[vertices.Count];
+            var points = new CartesianPoint[vertices.Count];
             for (int i = 0; i < vertices.Count; ++i)
             {
-                points[i] = new CartesianPoint2D(vertices[i].X, vertices[i].Y);
+                points[i] = new CartesianPoint(vertices[i].X, vertices[i].Y);
             }
             return new ConvexPolygon2D(points);
         }
@@ -51,8 +51,8 @@ namespace ISAAR.MSolve.Geometry.Shapes
             double sum = 0.0;
             for (int vertexIdx = 0; vertexIdx < Vertices.Count; ++vertexIdx)
             {
-                CartesianPoint2D vertex1 = Vertices[vertexIdx];
-                CartesianPoint2D vertex2 = Vertices[(vertexIdx + 1) % Vertices.Count];
+                CartesianPoint vertex1 = Vertices[vertexIdx];
+                CartesianPoint vertex2 = Vertices[(vertexIdx + 1) % Vertices.Count];
                 sum += vertex1.X * vertex2.Y - vertex2.X * vertex1.Y;
             }
             return Math.Abs(0.5 * sum); // area would be negative if vertices were in counter-clockwise order
@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.Geometry.Shapes
         /// </summary>
         /// <param name="point"></param>
         /// <returns></returns>
-        public bool IsPointInsidePolygon(CartesianPoint2D point)
+        public bool IsPointInsidePolygon(CartesianPoint point)
         {
             int i, j;
             bool result = false;
@@ -86,7 +86,7 @@ namespace ISAAR.MSolve.Geometry.Shapes
         {
             int verticesOutsideCircle = 0;
             int verticesInsideCircle = 0;
-            foreach (CartesianPoint2D vertex in Vertices)
+            foreach (CartesianPoint vertex in Vertices)
             {
                 CirclePointPosition vertexPosition = circle.FindRelativePositionOfPoint(vertex);
                 if (vertexPosition == CirclePointPosition.Outside) ++verticesOutsideCircle;
@@ -104,7 +104,7 @@ namespace ISAAR.MSolve.Geometry.Shapes
             else return CirclePolygonPosition.Intersecting;
         }
 
-        public PolygonPointPosition FindRelativePositionOfPoint(CartesianPoint2D point)
+        public PolygonPointPosition FindRelativePositionOfPoint(CartesianPoint point)
         {
             
             int edgesPassingThroughPoint = 0;
@@ -152,7 +152,7 @@ namespace ISAAR.MSolve.Geometry.Shapes
         {
             int verticesOutsideCircle = 0;
             int verticesInsideCircle = 0;
-            foreach (CartesianPoint2D vertex in Vertices)
+            foreach (CartesianPoint vertex in Vertices)
             {
                 CirclePointPosition vertexPosition = circle.FindRelativePositionOfPoint(vertex);
                 if (vertexPosition == CirclePointPosition.Outside) ++verticesOutsideCircle;

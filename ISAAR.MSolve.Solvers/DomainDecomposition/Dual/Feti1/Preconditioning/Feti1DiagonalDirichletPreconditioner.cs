@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
                 Matrix Kbi = stiffnessesBoundaryInternal[id];
                 DiagonalMatrix invDii = stiffnessesInternalInternalInverseDiagonal[id];
 
-                // inv(F) * Y = Bpb * S * Bpb^T * Y
+                // inv(F) * Y =  Bpb * S * Bpb^T * Y
                 // S = Kbb - Kbi * inv(Dii) * Kib
                 Matrix BY = Bpb.MultiplyRight(rhs, true);
                 Matrix SBY = Kbb.MultiplyRight(BY) - Kbi.MultiplyRight(invDii.MultiplyRight(Kbi.MultiplyRight(BY, true)));

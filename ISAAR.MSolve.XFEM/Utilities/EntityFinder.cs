@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.XFEM.Utilities
             this.tolerance = tolerance;
         }
         public List<XContinuumElement2D> FindElementsThatContains(IEnumerable<XContinuumElement2D> elements, 
-            CartesianPoint2D point)
+            CartesianPoint point)
         {
             var result = new List<XContinuumElement2D>();
             foreach (var element in elements)

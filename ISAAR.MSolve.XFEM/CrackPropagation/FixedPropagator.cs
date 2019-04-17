@@ -56,20 +56,20 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
 
         public PropagationLogger Logger { get; }
 
-        //public FixedPropagator CreateFromPath(IReadOnlyList<CartesianPoint2D> knownCrackPath, Propagator actualPropagator = null)
+        //public FixedPropagator CreateFromPath(IReadOnlyList<CartesianPoint> knownCrackPath, Propagator actualPropagator = null)
         //{
         //    int growthSteps = knownCrackPath.Count - 2; // The first 2 vertices are the initial crack.
         //    double[] angles = new double[growthSteps];
         //    double[] lengths = new double[growthSteps];
         //    for (int i = 0; i < growthSteps; ++i)
         //    {
-        //        CartesianPoint2D previousTip = knownCrackPath[i];
-        //        CartesianPoint2D currentTip = knownCrackPath[i+1];
-        //        CartesianPoint2D nextTip = knownCrackPath[i+2];
+        //        CartesianPoint previousTip = knownCrackPath[i];
+        //        CartesianPoint currentTip = knownCrackPath[i+1];
+        //        CartesianPoint nextTip = knownCrackPath[i+2];
         //        var oldSegment = new DirectedSegment2D(previousTip, currentTip);
         //        var newSegment = new DirectedSegment2D(currentTip, nextTip);
         //        lengths[i] = newSegment.Length;
-        //        CartesianPoint2D local = oldSegment.TransformGlobalToLocalPoint(nextTip);
+        //        CartesianPoint local = oldSegment.TransformGlobalToLocalPoint(nextTip);
         //        angles[i] = Math.Atan2(local.Y, local.X);
         //    }
         //    return new FixedPropagator(angles, lengths, actualPropagator);
@@ -77,7 +77,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
 
         
         public (double growthAngle, double growthLength) Propagate(IDofOrderer dofOrderer, Vector totalFreeDisplacements, 
-            Vector totalConstrainedDisplacements, CartesianPoint2D crackTip, TipCoordinateSystem tipSystem, 
+            Vector totalConstrainedDisplacements, CartesianPoint crackTip, TipCoordinateSystem tipSystem, 
             IReadOnlyList<XContinuumElement2D> tipElements)
         {
             if (iteration >= Logger.GrowthLengths.Count) throw new IndexOutOfRangeException(

@@ -5,13 +5,13 @@ namespace ISAAR.MSolve.Geometry.Shapes
 {
     public interface ICurve2D
     {
-        double SignedDistanceOf(CartesianPoint2D point);
+        double SignedDistanceOf(CartesianPoint point);
 
         /// <summary>
         /// Unit length
         /// </summary>
         /// <param name="point"></param>
         /// <returns></returns>
-        Vector2 NormalVectorThrough(CartesianPoint2D point);
+        Vector2 NormalVectorThrough(CartesianPoint point);
     }
 }

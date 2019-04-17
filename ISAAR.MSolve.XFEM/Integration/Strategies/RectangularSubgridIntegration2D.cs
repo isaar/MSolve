@@ -29,9 +29,9 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
             this.gaussQuadrature = gaussQuadrature;
         }
 
-        public IReadOnlyList<GaussPoint2D> GenerateIntegrationPoints(TElement element)
+        public IReadOnlyList<GaussPoint> GenerateIntegrationPoints(TElement element)
         {
-            var points = new List<GaussPoint2D>();
+            var points = new List<GaussPoint>();
             double length = 2.0 / subgridsPerAxis;
             for (int i = 0; i < subgridsPerAxis; ++i)
             {
@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
                         double naturalXi = subgridPoint.Xi * (xiMax - xiMin) / 2.0 + (xiMin + xiMax) / 2.0;
                         double naturalEta = subgridPoint.Eta * (etaMax - etaMin) / 2.0 + (etaMin + etaMax) / 2.0;
                         double naturalWeight = subgridPoint.Weight * (xiMax - xiMin) / 2.0 * (etaMax - etaMin) / 2.0;
-                        points.Add(new GaussPoint2D(naturalXi, naturalEta, naturalWeight));
+                        points.Add(new GaussPoint(naturalXi, naturalEta, naturalWeight));
                     }
                 }
             }

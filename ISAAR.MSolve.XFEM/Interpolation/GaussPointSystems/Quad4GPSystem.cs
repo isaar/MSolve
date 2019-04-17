@@ -15,12 +15,12 @@ namespace ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems
         private const int numNodes = 4;
 
         // The order is important
-        private static readonly GaussPoint2D[] gaussPoints = new GaussPoint2D[]
+        private static readonly GaussPoint[] gaussPoints = new GaussPoint[]
         {
-            new GaussPoint2D(-1/Math.Sqrt(3), -1/Math.Sqrt(3), 1.0),
-            new GaussPoint2D(1/Math.Sqrt(3), -1/Math.Sqrt(3), 1.0),
-            new GaussPoint2D(-1/Math.Sqrt(3), 1/Math.Sqrt(3), 1.0),
-            new GaussPoint2D(1/Math.Sqrt(3), 1/Math.Sqrt(3), 1.0)
+            new GaussPoint(-1/Math.Sqrt(3), -1/Math.Sqrt(3), 1.0),
+            new GaussPoint(1/Math.Sqrt(3), -1/Math.Sqrt(3), 1.0),
+            new GaussPoint(-1/Math.Sqrt(3), 1/Math.Sqrt(3), 1.0),
+            new GaussPoint(1/Math.Sqrt(3), 1/Math.Sqrt(3), 1.0)
         };
 
         private static readonly Func<double, double, double>[] shapeFunctions = new Func<double, double, double>[]
@@ -56,9 +56,9 @@ namespace ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems
             }
         }
 
-        public IReadOnlyList<GaussPoint2D> GaussPoints { get { return gaussPoints; } }
+        public IReadOnlyList<GaussPoint> GaussPoints { get { return gaussPoints; } }
 
-        public Tensor2D ExtrapolateTensorFromGaussPoints(IReadOnlyList<Tensor2D> tensorsAtGPs, NaturalPoint2D point)
+        public Tensor2D ExtrapolateTensorFromGaussPoints(IReadOnlyList<Tensor2D> tensorsAtGPs, NaturalPoint point)
         {
             double r = Math.Sqrt(3) * point.Xi;
             double s = Math.Sqrt(3) * point.Eta;
@@ -91,7 +91,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems
             return nodalTensors;
         }
 
-        public Vector2 ExtrapolateVectorFromGaussPoints(IReadOnlyList<Vector2> vectorsAtGPs, NaturalPoint2D point)
+        public Vector2 ExtrapolateVectorFromGaussPoints(IReadOnlyList<Vector2> vectorsAtGPs, NaturalPoint point)
         {
             double r = Math.Sqrt(3) * point.Xi;
             double s = Math.Sqrt(3) * point.Eta;

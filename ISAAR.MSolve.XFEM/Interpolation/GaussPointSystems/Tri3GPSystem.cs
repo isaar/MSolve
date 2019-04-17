@@ -13,11 +13,11 @@ namespace ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems
         private const int numNodes = 3; //TODO: Actually this is used for Tri6
 
         // The order is important
-        private static readonly GaussPoint2D[] gaussPoints = new GaussPoint2D[]
+        private static readonly GaussPoint[] gaussPoints = new GaussPoint[]
         {
-            new GaussPoint2D(1.0/6.0, 1.0/6.0, 1.0/6.0),
-            new GaussPoint2D(2.0/3.0, 1.0/6.0, 1.0/6.0),
-            new GaussPoint2D(1.0/6.0, 2.0/3.0, 1.0/6.0)
+            new GaussPoint(1.0/6.0, 1.0/6.0, 1.0/6.0),
+            new GaussPoint(2.0/3.0, 1.0/6.0, 1.0/6.0),
+            new GaussPoint(1.0/6.0, 2.0/3.0, 1.0/6.0)
         };
 
         private static readonly double[,] shapeFunctionsAtNodes;
@@ -51,9 +51,9 @@ namespace ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems
             }
         }
 
-        public IReadOnlyList<GaussPoint2D> GaussPoints { get { return gaussPoints; } }
+        public IReadOnlyList<GaussPoint> GaussPoints { get { return gaussPoints; } }
 
-        public Tensor2D ExtrapolateTensorFromGaussPoints(IReadOnlyList<Tensor2D> tensorsAtGPs, NaturalPoint2D point)
+        public Tensor2D ExtrapolateTensorFromGaussPoints(IReadOnlyList<Tensor2D> tensorsAtGPs, NaturalPoint point)
         {
             double r = 2.0 * point.Xi - 1.0 / 3.0;
             double s = 2.0 * point.Eta - 1.0 / 3.0;
@@ -86,7 +86,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems
             return nodalTensors;
         }
 
-        public Vector2 ExtrapolateVectorFromGaussPoints(IReadOnlyList<Vector2> vectorsAtGPs, NaturalPoint2D point)
+        public Vector2 ExtrapolateVectorFromGaussPoints(IReadOnlyList<Vector2> vectorsAtGPs, NaturalPoint point)
         {
             double r = 2.0 * point.Xi - 1.0 / 3.0;
             double s = 2.0 * point.Eta - 1.0 / 3.0;

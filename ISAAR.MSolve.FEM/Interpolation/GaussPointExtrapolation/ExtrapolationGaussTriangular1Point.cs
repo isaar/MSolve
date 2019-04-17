@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         /// <param name="point">The point where the scalar will be computed. Its coordinates are expressed in the natural
         ///     (element local) system, instead of the coordinate system defined by the integration points.</param>
         /// <returns></returns>
-        public double ExtrapolateScalarFromGaussPoints(IReadOnlyList<double> scalarsAtGaussPoints, NaturalPoint2D point)
+        public double ExtrapolateScalarFromGaussPoints(IReadOnlyList<double> scalarsAtGaussPoints, NaturalPoint point)
             => scalarsAtGaussPoints[0];
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         /// <param name="point">The point where the tensor will be computed. Its coordinates are expressed in the natural
         ///     (element local) system, instead of the coordinate system defined by the integration points.</param>
         /// <returns></returns>
-        public double[] ExtrapolateTensorFromGaussPoints(IReadOnlyList<double[]> tensorsAtGaussPoints, NaturalPoint2D point)
+        public double[] ExtrapolateTensorFromGaussPoints(IReadOnlyList<double[]> tensorsAtGaussPoints, NaturalPoint point)
             => tensorsAtGaussPoints[0];
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         /// <param name="point">The point where the tensor will be computed. Its coordinates are expressed in the natural
         ///     (element local) system, instead of the coordinate system defined by the integration points.</param>
         /// <returns></returns>
-        public double[] ExtrapolateVectorFromGaussPoints(IReadOnlyList<double[]> vectorsAtGaussPoints, NaturalPoint2D point)
+        public double[] ExtrapolateVectorFromGaussPoints(IReadOnlyList<double[]> vectorsAtGaussPoints, NaturalPoint point)
             => vectorsAtGaussPoints[0];
 
         /// <summary>

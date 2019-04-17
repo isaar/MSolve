@@ -26,22 +26,22 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
                 new EnrichedDof(enrichmentFunction, DisplacementDof.X),
                 new EnrichedDof(enrichmentFunction, DisplacementDof.Y)
             };
-            this.ElementIntersections = new Dictionary<XContinuumElement2D, CartesianPoint2D[]>();
+            this.ElementIntersections = new Dictionary<XContinuumElement2D, CartesianPoint[]>();
         }
 
         public ICurve2D Discontinuity { get; }
-        public Dictionary<XContinuumElement2D, CartesianPoint2D[]> ElementIntersections { get; }
+        public Dictionary<XContinuumElement2D, CartesianPoint[]> ElementIntersections { get; }
 
-        public override double[] EvaluateFunctionsAt(XNode2D node)
+        public override double[] EvaluateFunctionsAt(XNode node)
         {
             double signedDistance = Discontinuity.SignedDistanceOf(node);
             return new double[] { enrichmentFunction.EvaluateAt(signedDistance) };
         }
 
-        public override EvaluatedFunction2D[] EvaluateAllAt(NaturalPoint2D point, XContinuumElement2D element,
+        public override EvaluatedFunction2D[] EvaluateAllAt(NaturalPoint point, XContinuumElement2D element,
              EvaluatedInterpolation2D interpolation)
         {
-            CartesianPoint2D cartesianPoint = interpolation.TransformPointNaturalToGlobalCartesian(point);
+            CartesianPoint cartesianPoint = interpolation.TransformPointNaturalToGlobalCartesian(point);
             double signedDistance = Discontinuity.SignedDistanceOf(cartesianPoint);
             Vector2 normalVector = Discontinuity.NormalVectorThrough(cartesianPoint);
             return new EvaluatedFunction2D[] { enrichmentFunction.EvaluateAllAt(signedDistance, normalVector) };
@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         /// <param name="point"></param>
         /// <param name="subdomain">The posi</param>
         /// <returns></returns>
-        public Subdomain LocatePoint(CartesianPoint2D point)
+        public Subdomain LocatePoint(CartesianPoint point)
         {
             int sign = Math.Sign(Discontinuity.SignedDistanceOf(point));
             if (sign < 0) return Subdomain.Negative;
@@ -63,9 +63,9 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             else return Subdomain.Boundary;
         }
 
-        public override IReadOnlyList<CartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element)
+        public override IReadOnlyList<CartesianPoint> IntersectionPointsForIntegration(XContinuumElement2D element)
         {
-            CartesianPoint2D[] intersectionPoints;
+            CartesianPoint[] intersectionPoints;
             bool alreadyIntersected = ElementIntersections.TryGetValue(element, out intersectionPoints);
             if (alreadyIntersected) return intersectionPoints;
             else

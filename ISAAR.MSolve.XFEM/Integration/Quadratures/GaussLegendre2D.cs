@@ -22,17 +22,17 @@ namespace ISAAR.MSolve.XFEM.Integration.Quadratures
         public static readonly GaussLegendre2D  Order9x9 = new GaussLegendre2D (Order9, Order9);
         public static readonly GaussLegendre2D  Order10x10 = new GaussLegendre2D (Order10, Order10);
 
-        public IReadOnlyList<GaussPoint2D> IntegrationPoints { get; }
+        public IReadOnlyList<GaussPoint> IntegrationPoints { get; }
 
         private GaussLegendre2D (GaussLegendre1D ruleXi, GaussLegendre1D ruleEta)
         {
             // Combine the integration rules of each axis: 
-            var points2D = new List<GaussPoint2D>();
+            var points2D = new List<GaussPoint>();
             foreach (var pointXi in ruleXi.IntegrationPoints)
             {
                 foreach (var pointEta in ruleEta.IntegrationPoints)
                 {
-                    points2D.Add(new GaussPoint2D(pointXi.Xi, pointEta.Xi, pointXi.Weight * pointEta.Weight));
+                    points2D.Add(new GaussPoint(pointXi.Xi, pointEta.Xi, pointXi.Weight * pointEta.Weight));
                 }
             }
             this.IntegrationPoints = points2D;

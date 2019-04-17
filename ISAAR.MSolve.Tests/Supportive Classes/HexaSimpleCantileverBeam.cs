@@ -19,11 +19,11 @@ namespace ISAAR.MSolve.Tests
             {
                 if (nodeID % 2 == 0)
                 {
-                    model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX, Y = startY + 0.25, Z = startZ + 0.25 * (j / 2) });
+                    model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX, y:  startY + 0.25, z: startZ + 0.25 * (j / 2) ));
                 }
                 else
                 {
-                    model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX, Y = startY, Z = startZ + 0.25 * (j / 2) });
+                    model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX, y:  startY, z: startZ + 0.25 * (j / 2) ));
                 }
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
@@ -38,11 +38,11 @@ namespace ISAAR.MSolve.Tests
                 {
                     if (nodeID % 2 == 0)
                     {
-                        model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 0.25 * (i + 1), Y = startY + 0.25, Z = startZ + 0.25 * (k / 2) });
+                        model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + 0.25 * (i + 1), y:  startY + 0.25, z: startZ + 0.25 * (k / 2) ));
                     }
                     else
                     {
-                        model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 0.25 * (i + 1), Y = startY, Z = startZ + 0.25 * (k / 2) });
+                        model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + 0.25 * (i + 1), y:  startY, z: startZ + 0.25 * (k / 2) ));
                     }
                     nodeID++;
                 }

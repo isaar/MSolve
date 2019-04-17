@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
             this.material = globalMaterial;
         }
 
-        public AuxiliaryStatesTensors ComputeTensorsAt(CartesianPoint2D globalIntegrationPoint, 
+        public AuxiliaryStatesTensors ComputeTensorsAt(CartesianPoint globalIntegrationPoint, 
             TipCoordinateSystem tipCoordinateSystem)
         {
             // Common calculations

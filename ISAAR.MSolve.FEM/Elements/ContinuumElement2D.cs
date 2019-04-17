@@ -228,8 +228,8 @@ namespace ISAAR.MSolve.FEM.Elements
         /// <summary>
         /// Calculates the coordinates of the centroid of this element.
         /// </summary>
-        public CartesianPoint2D FindCentroid()
-            => Interpolation.TransformNaturalToCartesian(Nodes, new NaturalPoint2D(0.0, 0.0));
+        public CartesianPoint FindCentroid()
+            => Interpolation.TransformNaturalToCartesian(Nodes, new NaturalPoint(0.0, 0.0));
 
         public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
 

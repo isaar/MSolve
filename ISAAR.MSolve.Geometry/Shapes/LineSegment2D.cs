@@ -12,8 +12,8 @@ namespace ISAAR.MSolve.Geometry.Shapes
     // the normal vector of the positive region is pointing DOWNWARDS (into the positive region). 
     public class LineSegment2D
     {
-        public CartesianPoint2D Start { get; }
-        public CartesianPoint2D End { get; }
+        public CartesianPoint Start { get; }
+        public CartesianPoint End { get; }
 
         public double Length
         {
@@ -25,13 +25,13 @@ namespace ISAAR.MSolve.Geometry.Shapes
             }
         }
         
-        public LineSegment2D(CartesianPoint2D start, CartesianPoint2D end)
+        public LineSegment2D(CartesianPoint start, CartesianPoint end)
         {
             this.Start = start;
             this.End = end;
         }
 
-        public double DistanceOf(CartesianPoint2D point)
+        public double DistanceOf(CartesianPoint point)
         {
             double triangleAreax2 = Math.Abs(
                 (End.Y - Start.Y) * point.X - (End.X - Start.X) * point.Y + End.X * Start.Y - End.Y * Start.X);
@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.Geometry.Shapes
         }
 
         // One of the 2 normal vectors for the positive region.
-        public Vector NormalVectorThrough(CartesianPoint2D point)
+        public Vector NormalVectorThrough(CartesianPoint point)
         {
             double dy = End.Y - Start.Y;
             double dx = Start.X - End.X;
@@ -47,13 +47,13 @@ namespace ISAAR.MSolve.Geometry.Shapes
             return Vector.CreateFromArray(new double[] { dy / length, -dx / length });
         }
 
-        public IReadOnlyList<CartesianPoint2D> IntersectionWith(ConvexPolygon2D polygon)
+        public IReadOnlyList<CartesianPoint> IntersectionWith(ConvexPolygon2D polygon)
         {
-            var intersectionPoints = new List<CartesianPoint2D>();
+            var intersectionPoints = new List<CartesianPoint>();
             // Should I also include the vertices if they fall inside? Or should I do that in the enrichment item?
             foreach (LineSegment2D edge in polygon.Edges)
             {
-                CartesianPoint2D point;
+                CartesianPoint point;
                 SegmentSegmentPosition intersection = IntersectionWith(edge, out point);
                 if (intersection == SegmentSegmentPosition.Intersecting) intersectionPoints.Add(point);
             }
@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.Geometry.Shapes
         /// <param name="segment"></param>
         /// <param name="intersectionPoint"></param>
         /// <returns></returns>
-        public SegmentSegmentPosition IntersectionWith(LineSegment2D segment, out CartesianPoint2D intersectionPoint) 
+        public SegmentSegmentPosition IntersectionWith(LineSegment2D segment, out CartesianPoint intersectionPoint) 
         {
             //TODO: optimize this:
             // a) Cache the vector representation of "this".Perhaps there could be a private vector representation class
@@ -128,7 +128,7 @@ namespace ISAAR.MSolve.Geometry.Shapes
                 if ((t >= 0.0) && (t <= 1.0) && (u >= 0.0) && (u <= 1.0))
                 {
                     var solution = p + t * r;
-                    intersectionPoint = new CartesianPoint2D(solution);
+                    intersectionPoint = new CartesianPoint(solution[0], solution[1]);
                     return SegmentSegmentPosition.Intersecting;
                 }
                 else
@@ -139,7 +139,7 @@ namespace ISAAR.MSolve.Geometry.Shapes
             }
         }
 
-        public SegmentPointPosition FindRelativePositionOfPoint(CartesianPoint2D point)
+        public SegmentPointPosition FindRelativePositionOfPoint(CartesianPoint point)
         {
             // Local coordinate system
             double length = Length;

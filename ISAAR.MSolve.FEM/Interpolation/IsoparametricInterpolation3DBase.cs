@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <summary>
         /// See <see cref="IIsoparametricInterpolation3D.NodalNaturalCoordinates"/>.
         /// </summary>
-        public abstract IReadOnlyList<NaturalPoint3D> NodalNaturalCoordinates { get; }
+        public abstract IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
         /// <summary>
         /// See <see cref="IIsoparametricInterpolation3D.CreateInverseMappingFor(IReadOnlyList{Node})"/>.
@@ -47,9 +47,9 @@ namespace ISAAR.MSolve.FEM.Interpolation
         public abstract IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> nodes);
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation3D.EvaluateAllAt(IReadOnlyList{Node}, NaturalPoint3D)"/>.
+        /// See <see cref="IIsoparametricInterpolation3D.EvaluateAllAt(IReadOnlyList{Node}, NaturalPoint)"/>.
         /// </summary>
-        public EvalInterpolation3D EvaluateAllAt(IReadOnlyList<Node> nodes, NaturalPoint3D naturalPoint)
+        public EvalInterpolation3D EvaluateAllAt(IReadOnlyList<Node> nodes, NaturalPoint naturalPoint)
         {
             double xi = naturalPoint.Xi;
             double eta = naturalPoint.Eta;
@@ -81,9 +81,9 @@ namespace ISAAR.MSolve.FEM.Interpolation
         }
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation3D.EvaluateFunctionsAt(NaturalPoint3D)"/>.
+        /// See <see cref="IIsoparametricInterpolation3D.EvaluateFunctionsAt(NaturalPoint)"/>.
         /// </summary>
-        public double[] EvaluateFunctionsAt(NaturalPoint3D naturalPoint)
+        public double[] EvaluateFunctionsAt(NaturalPoint naturalPoint)
             => EvaluateAt(naturalPoint.Xi, naturalPoint.Eta, naturalPoint.Zeta);
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
                 var shapeFunctionsAtGPsArray = new double[numGPs][];
                 for (int gp = 0; gp < numGPs; ++gp)
                 {
-                    GaussPoint3D gaussPoint = quadrature.IntegrationPoints[gp];
+                    GaussPoint gaussPoint = quadrature.IntegrationPoints[gp];
                     shapeFunctionsAtGPsArray[gp] = EvaluateAt(gaussPoint.Xi, gaussPoint.Eta, gaussPoint.Zeta);
                 }
                 cachedFunctionsAtGPs.Add(quadrature, shapeFunctionsAtGPsArray);
@@ -109,9 +109,9 @@ namespace ISAAR.MSolve.FEM.Interpolation
         }
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation3D.EvaluateNaturalGradientsAt(NaturalPoint3D)".
+        /// See <see cref="IIsoparametricInterpolation3D.EvaluateNaturalGradientsAt(NaturalPoint)".
         /// </summary>
-        public Matrix EvaluateNaturalGradientsAt(NaturalPoint3D naturalPoint)
+        public Matrix EvaluateNaturalGradientsAt(NaturalPoint naturalPoint)
             => EvaluateGradientsAt(naturalPoint.Xi, naturalPoint.Eta, naturalPoint.Zeta);
 
         /// <summary>
@@ -129,7 +129,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
                 var naturalGradientsAtGPsArray = new Matrix[numGPs];
                 for (int gp = 0; gp < numGPs; ++gp)
                 {
-                    GaussPoint3D gaussPoint = quadrature.IntegrationPoints[gp];
+                    GaussPoint gaussPoint = quadrature.IntegrationPoints[gp];
                     naturalGradientsAtGPsArray[gp] = EvaluateGradientsAt(gaussPoint.Xi, gaussPoint.Eta, gaussPoint.Zeta);
                 }
                 cachedNaturalGradientsAtGPs.Add(quadrature, naturalGradientsAtGPsArray);
@@ -138,9 +138,9 @@ namespace ISAAR.MSolve.FEM.Interpolation
         }
 
         /// <summary>
-        /// See <see cref="IIsoparametricInterpolation3D.TransformNaturalToCartesian(IReadOnlyList{Node}, NaturalPoint3D)"/>.
+        /// See <see cref="IIsoparametricInterpolation3D.TransformNaturalToCartesian(IReadOnlyList{Node}, NaturalPoint)"/>.
         /// </summary>
-        public CartesianPoint3D TransformNaturalToCartesian(IReadOnlyList<Node> nodes, NaturalPoint3D naturalPoint)
+        public CartesianPoint TransformNaturalToCartesian(IReadOnlyList<Node> nodes, NaturalPoint naturalPoint)
         {
             double[] shapeFunctionValues = EvaluateAt(naturalPoint.Xi, naturalPoint.Eta, naturalPoint.Zeta);
             double x = 0, y = 0, z = 0;
@@ -150,7 +150,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
                 y += shapeFunctionValues[i] * nodes[i].Y;
                 z += shapeFunctionValues[i] * nodes[i].Z;
             }
-            return new CartesianPoint3D(x, y, z);
+            return new CartesianPoint(x, y, z);
         }
 
         /// <summary>

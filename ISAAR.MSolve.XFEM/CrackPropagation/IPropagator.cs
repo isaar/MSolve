@@ -17,6 +17,6 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
 
         (double growthAngle, double growthLength) Propagate(
             IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements,
-            CartesianPoint2D crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements);
+            CartesianPoint crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements);
     }
 }

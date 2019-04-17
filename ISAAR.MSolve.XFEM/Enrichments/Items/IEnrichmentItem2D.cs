@@ -28,11 +28,11 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
 
         //void EnrichElement(XContinuumElement2D element);
 
-        IReadOnlyList<CartesianPoint2D> IntersectionPointsForIntegration(XContinuumElement2D element);
+        IReadOnlyList<CartesianPoint> IntersectionPointsForIntegration(XContinuumElement2D element);
 
-        double[] EvaluateFunctionsAt(XNode2D node);
+        double[] EvaluateFunctionsAt(XNode node);
 
-        EvaluatedFunction2D[] EvaluateAllAt(NaturalPoint2D point, XContinuumElement2D element,
+        EvaluatedFunction2D[] EvaluateAllAt(NaturalPoint point, XContinuumElement2D element,
              EvaluatedInterpolation2D interpolation);
     }
 }

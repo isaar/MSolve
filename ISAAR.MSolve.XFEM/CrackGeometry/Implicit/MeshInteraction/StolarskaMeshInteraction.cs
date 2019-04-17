@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.MeshInteraction
             double minTipLevelSet = double.MaxValue;
             double maxTipLevelSet = double.MinValue;
 
-            foreach (XNode2D node in element.Nodes)
+            foreach (XNode node in element.Nodes)
             {
                 double bodyLevelSet = lsm.LevelSetsBody[node];
                 double tipLevelSet = lsm.LevelSetsTip[node];

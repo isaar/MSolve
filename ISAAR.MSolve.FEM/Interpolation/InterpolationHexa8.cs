@@ -19,16 +19,16 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
         private InterpolationHexa8() : base(8)
         {
-            NodalNaturalCoordinates = new NaturalPoint3D[]
+            NodalNaturalCoordinates = new NaturalPoint[]
             {
-                new NaturalPoint3D(-1, -1, -1),
-                new NaturalPoint3D(1, -1, -1),
-                new NaturalPoint3D(1, 1, -1),
-                new NaturalPoint3D(-1, 1, -1),
-                new NaturalPoint3D(-1, -1, 1),
-                new NaturalPoint3D(1, -1, 1),
-                new NaturalPoint3D(1, 1, 1),
-                new NaturalPoint3D(-1, 1, 1),
+                new NaturalPoint(-1, -1, -1),
+                new NaturalPoint(1, -1, -1),
+                new NaturalPoint(1, 1, -1),
+                new NaturalPoint(-1, 1, -1),
+                new NaturalPoint(-1, -1, 1),
+                new NaturalPoint(1, -1, 1),
+                new NaturalPoint(1, 1, 1),
+                new NaturalPoint(-1, 1, 1),
             };
         }
 
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// The coordinates of the finite element's nodes in the natural (element local) coordinate system. The order of these
         /// nodes matches the order of the shape functions and is always the same for each element.
         /// </summary>
-        public override IReadOnlyList<NaturalPoint3D> NodalNaturalCoordinates { get; }
+        public override IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
         /// <summary>
         /// Get the unique <see cref="InterpolationHexa8"/> object for the whole program. Thread safe.

@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.FEM.Elements
     {
         private readonly IDofType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
         private readonly ThermalMaterial material;
-        //private readonly Dictionary<GaussPoint2D, ThermalMaterial> materialsAtGaussPoints;
+        //private readonly Dictionary<GaussPoint, ThermalMaterial> materialsAtGaussPoints;
 
 
         public ThermalElement2D(double thickness, IReadOnlyList<Node> nodes, IIsoparametricInterpolation2D interpolation,
@@ -210,7 +210,7 @@ namespace ISAAR.MSolve.FEM.Elements
         public EmbeddedNode BuildHostElementEmbeddedNode(Element element, Node node, IEmbeddedDOFInHostTransformationVector transformationVector)
         {
             IInverseInterpolation2D inverseInterpolation = Interpolation.CreateInverseMappingFor(Nodes);
-            double[] naturalCoordinates = inverseInterpolation.TransformPointCartesianToNatural(new CartesianPoint2D(node.X, node.Y)).Coordinates;
+            double[] naturalCoordinates = inverseInterpolation.TransformPointCartesianToNatural(new CartesianPoint(node.X, node.Y)).Coordinates;
 
             if (naturalCoordinates.Length == 0) return null;
 
@@ -223,7 +223,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public double[] GetShapeFunctionsForNode(Element element, EmbeddedNode node)
         {
-            return Interpolation.EvaluateFunctionsAt(new NaturalPoint2D(node.Coordinates[0], node.Coordinates[1]));
+            return Interpolation.EvaluateFunctionsAt(new NaturalPoint(node.Coordinates[0], node.Coordinates[1]));
 
             //TODO: This method originally returned an array containing the shape functions, shape function derivatives and entries of the inverse jacobian matrix.
             //      a) This is retarded and extremely difficult to work with. b) This array is used in Hexa8TranslationAndRotationTransformationVector. Cohesive embedding 

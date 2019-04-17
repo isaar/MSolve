@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// The coordinates of the finite element's nodes in the natural (element local) coordinate system. The order of these
         /// nodes matches the order of the shape functions and is always the same for each element.
         /// </summary>
-        IReadOnlyList<NaturalPoint3D> NodalNaturalCoordinates { get; }
+        IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
         /// <summary>
         /// The number of shape functions that define this interpolation.
@@ -44,13 +44,13 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <param name="naturalPoint">The coordinates of the point in the natural (element local) coordinate system of the 
         ///     element.</param>
-        EvalInterpolation3D EvaluateAllAt(IReadOnlyList<Node> nodes, NaturalPoint3D naturalPoint);
+        EvalInterpolation3D EvaluateAllAt(IReadOnlyList<Node> nodes, NaturalPoint naturalPoint);
 
         /// <summary>
         /// Evaluate the shape functions, the 1st order derivatives with respect to the global cartesian coordinate system and
         /// the jacobian at the integration points defined by a given quadrature. 
         /// This method caches all possible quantities from previous calls. Use it instead of when the integration points of an 
-        /// <see cref="EvaluateAllAt(IReadOnlyList{Node}, NaturalPoint3D)"/>
+        /// <see cref="EvaluateAllAt(IReadOnlyList{Node}, NaturalPoint)"/>
         /// element are the same across multiple elements or multiple iterations of a non linear or dynamic analysis (in the 
         /// latter cases we could also cache the <see cref="EvalInterpolation3D"/> at the integration points of each element).
         /// The <see cref="EvalInterpolation3D"/>s per integration point are returned in the same order as the integration 
@@ -68,12 +68,12 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         /// <param name="naturalPoint">The coordinates of the point in the natural (element local) coordinate system of the 
         ///     element.</param>
-        double[] EvaluateFunctionsAt(NaturalPoint3D naturalPoint);
+        double[] EvaluateFunctionsAt(NaturalPoint naturalPoint);
 
         /// <summary>
         /// Evaluate the shape functions at the integration points defined by a given quadrature. 
         /// This method caches all possible quantities from previous calls. Use it instead of 
-        /// <see cref="EvaluateFunctionsAt(NaturalPoint3D)"/> when the integration points of an element are the same across 
+        /// <see cref="EvaluateFunctionsAt(NaturalPoint)"/> when the integration points of an element are the same across 
         /// multiple elements or multiple iterations of a non linear or dynamic analysis.
         /// The shape functions vectors per integration point are returned in the same order as the integration 
         /// points in <paramref name="quadrature"/>.<see cref="IQuadrature2D.IntegrationPoints"/>. Each vector contains the
@@ -93,13 +93,13 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <param name="naturalPoint">The coordinates of the point in the natural (element local) coordinate system of the 
         ///     element.</param>
-        Matrix EvaluateNaturalGradientsAt(NaturalPoint3D naturalPoint);
+        Matrix EvaluateNaturalGradientsAt(NaturalPoint naturalPoint);
 
         /// <summary>
         /// Evaluate the 1st order shape function derivatives with respect to the natural coordinate system 
         /// at the integration points defined by a given quadrature. 
         /// This method caches all possible quantities from previous calls. Use it instead of  
-        /// <see cref="EvaluateNaturalGradientsAt(NaturalPoint3D)"/> when the integration points of an element are the same
+        /// <see cref="EvaluateNaturalGradientsAt(NaturalPoint)"/> when the integration points of an element are the same
         /// across multiple elements or multiple iterations of a non linear or dynamic analysis (in the latter cases we could
         /// also cache the cartesian gradients at the integration points of each element).
         /// The shape gradients matrices per integration point are returned in the same order as the integration 
@@ -119,6 +119,6 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <param name="nodes">The coordinates of the finite element's nodes in the global cartesian system.</param>
         /// <param name="naturalPoint">The coordinates in the natural system of a point that is internal to the finite 
         ///     element.</param>
-        CartesianPoint3D TransformNaturalToCartesian(IReadOnlyList<Node> nodes, NaturalPoint3D naturalPoint);
+        CartesianPoint TransformNaturalToCartesian(IReadOnlyList<Node> nodes, NaturalPoint naturalPoint);
     }
 }

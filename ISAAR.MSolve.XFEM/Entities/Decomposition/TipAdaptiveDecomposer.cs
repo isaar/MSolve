@@ -10,11 +10,11 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
     class TipAdaptiveDecomposer: IDomainDecomposer //TODO: extend it to more than one tips/cracks
     {
         private readonly ICrackDescription crack;
-        private readonly BidirectionalMesh2D<XNode2D, XContinuumElement2D> mesh;
+        private readonly BidirectionalMesh2D<XNode, XContinuumElement2D> mesh;
         private readonly IReadOnlyList<IRegion2D> regions;
         private IDomainDecomposer initialDecomposer; //TODO: this should be discarded once used.
 
-        public TipAdaptiveDecomposer(BidirectionalMesh2D<XNode2D, XContinuumElement2D> mesh, IReadOnlyList<IRegion2D> regions, 
+        public TipAdaptiveDecomposer(BidirectionalMesh2D<XNode, XContinuumElement2D> mesh, IReadOnlyList<IRegion2D> regions, 
             ICrackDescription crack, IDomainDecomposer initialDecomposer)
         {
             this.mesh = mesh;
@@ -36,15 +36,15 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
             foreach (ISingleCrack singleCrack in crack.SingleCracks)
             {
                 // Find the subdomain that contains the crack tip
-                CartesianPoint2D tip = singleCrack.CrackTips[0];
+                CartesianPoint tip = singleCrack.CrackTips[0];
                 XContinuumElement2D tipElement = singleCrack.CrackTipElements[tip][0]; // If there are more neighboring ones, we don't need them
                 XSubdomain2D tipSubdomain = cluster.FindSubdomainOfElement(tipElement);
 
                 // Find all elements that have at least one tip enriched node
                 //TODO: this can be merged with the next subtask
                 var tipEnrichedElements = new HashSet<XContinuumElement2D>();
-                ISet<XNode2D> tipNodes = singleCrack.CrackTipNodesNew[singleCrack.CrackTipEnrichments];
-                foreach (XNode2D node in tipNodes) tipEnrichedElements.UnionWith(mesh.FindElementsWithNode(node));
+                ISet<XNode> tipNodes = singleCrack.CrackTipNodesNew[singleCrack.CrackTipEnrichments];
+                foreach (XNode node in tipNodes) tipEnrichedElements.UnionWith(mesh.FindElementsWithNode(node));
 
                 // Find which of these elements must be removed and from which subdomains
                 var removedElements = new Dictionary<XContinuumElement2D, XSubdomain2D>();
@@ -59,7 +59,7 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
                 if (removedElements.Count == 0) continue;
 
                 // Find the old subdomains of the nodes of the elements to be removed, before moving the elements
-                Dictionary<XNode2D, HashSet<XSubdomain2D>> oldNodeMembership = FindOldNodeMembership(cluster, removedElements);
+                Dictionary<XNode, HashSet<XSubdomain2D>> oldNodeMembership = FindOldNodeMembership(cluster, removedElements);
 
                 // Move these elements to the subdomain that contains the crack tip
                 //var modifiedSubdomains = new HashSet<XSubdomain2D>();
@@ -75,18 +75,18 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
 
                 // Move their nodes to their new subdomains, which also updates the boundaries.
                 RemoveNodesFromSubdomains(oldNodeMembership);
-                Dictionary<XNode2D, HashSet<XSubdomain2D>> newNodeMembership =
+                Dictionary<XNode, HashSet<XSubdomain2D>> newNodeMembership =
                     FindNewNodeMembership(cluster, oldNodeMembership.Keys);
                 AddNodesToSubdomains(newNodeMembership);
             }
         }
 
         // TODO: perhaps adding and deleting must be done simultaneously with building the node memberships
-        private static void AddNodesToSubdomains(Dictionary<XNode2D, HashSet<XSubdomain2D>> newNodeMembership)
+        private static void AddNodesToSubdomains(Dictionary<XNode, HashSet<XSubdomain2D>> newNodeMembership)
         {
             foreach (var nodeSubdomains in newNodeMembership)
             {
-                XNode2D node = nodeSubdomains.Key;
+                XNode node = nodeSubdomains.Key;
                 int nodeSubdomainsCount = nodeSubdomains.Value.Count;
                 if (nodeSubdomainsCount > 1) // Will be boundary node between 2 or more subdomains
                 {
@@ -101,11 +101,11 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
             }
         }
 
-        private static void RemoveNodesFromSubdomains(Dictionary<XNode2D, HashSet<XSubdomain2D>> oldNodeMembership)
+        private static void RemoveNodesFromSubdomains(Dictionary<XNode, HashSet<XSubdomain2D>> oldNodeMembership)
         {
             foreach (var nodeSubdomains in oldNodeMembership)
             {
-                XNode2D node = nodeSubdomains.Key;
+                XNode node = nodeSubdomains.Key;
                 int nodeSubdomainsCount = nodeSubdomains.Value.Count;
                 if (nodeSubdomainsCount > 1) // Was boundary node between 2 or more subdomains
                 {
@@ -129,10 +129,10 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
         }
 
         //TODO: perhaps the node membership should be stored in Cluster for all nodes of the model and updated whenever sth changes 
-        private Dictionary<XNode2D, HashSet<XSubdomain2D>> FindOldNodeMembership(XCluster2D cluster,
+        private Dictionary<XNode, HashSet<XSubdomain2D>> FindOldNodeMembership(XCluster2D cluster,
             Dictionary<XContinuumElement2D, XSubdomain2D> removedElements)
         {
-            var nodeMembership = new Dictionary<XNode2D, HashSet<XSubdomain2D>>();
+            var nodeMembership = new Dictionary<XNode, HashSet<XSubdomain2D>>();
             foreach (var elementSubdomainPair in removedElements)
             {
                 foreach (var node in elementSubdomainPair.Key.Nodes)
@@ -153,9 +153,9 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
             return nodeMembership;
         }
 
-        private Dictionary<XNode2D, HashSet<XSubdomain2D>> FindNewNodeMembership(XCluster2D cluster, IEnumerable<XNode2D> nodes)
+        private Dictionary<XNode, HashSet<XSubdomain2D>> FindNewNodeMembership(XCluster2D cluster, IEnumerable<XNode> nodes)
         {
-            var nodeMembership = new Dictionary<XNode2D, HashSet<XSubdomain2D>>();
+            var nodeMembership = new Dictionary<XNode, HashSet<XSubdomain2D>>();
             var elementMembership = new Dictionary<XContinuumElement2D, XSubdomain2D>(); // cache each element for all its nodes
             foreach (var node in nodes)
             {

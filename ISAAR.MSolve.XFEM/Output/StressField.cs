@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.XFEM.Output
 {
     class StressField: IOutputField
     {
-        public Tensor2D EvaluateAt(XContinuumElement2D element, NaturalPoint2D point,
+        public Tensor2D EvaluateAt(XContinuumElement2D element, NaturalPoint point,
             Vector standardDisplacements, Vector enrichedDisplacements)
         {
             EvaluatedInterpolation2D evaluatedInterpolation =

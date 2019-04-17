@@ -26,11 +26,11 @@ namespace ISAAR.MSolve.Geometry.Shapes
         /// </summary>
         private readonly Vector2 normalVector;
 
-        public CartesianPoint2D Start { get; }
-        public CartesianPoint2D End { get; }
+        public CartesianPoint Start { get; }
+        public CartesianPoint End { get; }
         public double Length { get; }
         
-        public DirectedSegment2D(CartesianPoint2D start, CartesianPoint2D end)
+        public DirectedSegment2D(CartesianPoint start, CartesianPoint end)
         {
             this.Start = start;
             this.End = end;
@@ -50,31 +50,31 @@ namespace ISAAR.MSolve.Geometry.Shapes
             normalVector = Vector2.Create(-sina, cosa ); // This is the opposite from the one in LineSegment2D I think
         }
 
-        public double SignedDistanceOf(CartesianPoint2D point)
+        public double SignedDistanceOf(CartesianPoint point)
         {
             return LocalYOf(point); // This suffices since there is no scaling involved in the transformation.
         }
 
-        public CartesianPoint2D TransformGlobalToLocalPoint(CartesianPoint2D point)
+        public CartesianPoint TransformGlobalToLocalPoint(CartesianPoint point)
         {
-            return new CartesianPoint2D(cosa * point.X + sina * point.Y + originLocalX,
+            return new CartesianPoint(cosa * point.X + sina * point.Y + originLocalX,
                 -sina * point.X + cosa * point.Y + originLocalY);
         }
 
         // The normal vector for the positive region.
-        public Vector2 NormalVectorThrough(CartesianPoint2D point)
+        public Vector2 NormalVectorThrough(CartesianPoint point)
         {
             return normalVector.Copy();
         }
 
         //Perhaps I can override the intersects method and project the other segment onto the local system!
         public LineSegment2D.SegmentSegmentPosition IntersectionWith(LineSegment2D segment, 
-            out CartesianPoint2D intersectionPoint)
+            out CartesianPoint intersectionPoint)
         {
             return segment.IntersectionWith(new LineSegment2D(Start, End), out intersectionPoint);
         }
 
-        public PointProjectionPosition FindPositionOfProjectionOfPointOntoThis(CartesianPoint2D point)
+        public PointProjectionPosition FindPositionOfProjectionOfPointOntoThis(CartesianPoint point)
         {
             double projectionX = LocalXOf(point);
             if (projectionX < 0.0) return PointProjectionPosition.BeforeSegment;
@@ -82,12 +82,12 @@ namespace ISAAR.MSolve.Geometry.Shapes
             else return PointProjectionPosition.OnSegment;
         }
 
-        private double LocalXOf(CartesianPoint2D point)
+        private double LocalXOf(CartesianPoint point)
         {
             return cosa * point.X + sina * point.Y + originLocalX;
         }
 
-        private double LocalYOf(CartesianPoint2D point)
+        private double LocalYOf(CartesianPoint point)
         {
             return -sina * point.X + cosa * point.Y + originLocalY;
         }

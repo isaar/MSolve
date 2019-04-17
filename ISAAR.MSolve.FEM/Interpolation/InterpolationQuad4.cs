@@ -23,12 +23,12 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
         private InterpolationQuad4(): base(CellType.Quad4, 4)
         {
-            NodalNaturalCoordinates = new NaturalPoint2D[]
+            NodalNaturalCoordinates = new NaturalPoint[]
             {
-                new NaturalPoint2D(-1.0, -1.0),
-                new NaturalPoint2D(+1.0, -1.0),
-                new NaturalPoint2D(+1.0, +1.0),
-                new NaturalPoint2D(-1.0, +1.0)
+                new NaturalPoint(-1.0, -1.0),
+                new NaturalPoint(+1.0, -1.0),
+                new NaturalPoint(+1.0, +1.0),
+                new NaturalPoint(-1.0, +1.0)
             };
         }
 
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// The coordinates of the finite element's nodes in the natural (element local) coordinate system. The order of these
         /// nodes matches the order of the shape functions and is always the same for each element.
         /// </summary>
-        public override IReadOnlyList<NaturalPoint2D> NodalNaturalCoordinates { get; }
+        public override IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
         /// <summary>
         /// Get the unique <see cref="InterpolationQuad4"/> object for the whole program. Thread safe.

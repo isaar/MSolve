@@ -10,11 +10,11 @@ namespace ISAAR.MSolve.Geometry.Shapes
     {
         private readonly List<double> angles;
         private readonly List<DirectedSegment2D> segments;
-        private readonly List<CartesianPoint2D> vertices;
+        private readonly List<CartesianPoint> vertices;
 
-        public PolyLine2D(CartesianPoint2D first, CartesianPoint2D second)
+        public PolyLine2D(CartesianPoint first, CartesianPoint second)
         {
-            vertices = new List<CartesianPoint2D>();
+            vertices = new List<CartesianPoint>();
             segments = new List<DirectedSegment2D>();
             angles = new List<double>();
 
@@ -23,12 +23,12 @@ namespace ISAAR.MSolve.Geometry.Shapes
             segments.Add(new DirectedSegment2D(first, second));
         }
 
-        public CartesianPoint2D End { get { return vertices[vertices.Count - 1]; } }
+        public CartesianPoint End { get { return vertices[vertices.Count - 1]; } }
         public IReadOnlyList<DirectedSegment2D> Segments { get { return segments; } }
-        public CartesianPoint2D Start { get { return vertices[0]; } }
+        public CartesianPoint Start { get { return vertices[0]; } }
         public Vector2 TangentAtStart => throw new NotImplementedException();
         public Vector2 TangentAtEnd => throw new NotImplementedException();
-        public IReadOnlyList<CartesianPoint2D> Vertices { get { return vertices; } }
+        public IReadOnlyList<CartesianPoint> Vertices { get { return vertices; } }
 
         /// <summary>
         /// Counter-clockwise angle from global cartesian x axis to a vector which 1) starts at the end point of the 
@@ -36,15 +36,15 @@ namespace ISAAR.MSolve.Geometry.Shapes
         /// </summary>
         public double EndPointOrientation() // TODO: perhaps it should return a local coordinate system. I do not need the angle, but its cos and sign.
         {
-            CartesianPoint2D lastSegmentStart = vertices[vertices.Count - 2];
-            CartesianPoint2D lastSegmentEnd = vertices[vertices.Count - 1];
+            CartesianPoint lastSegmentStart = vertices[vertices.Count - 2];
+            CartesianPoint lastSegmentEnd = vertices[vertices.Count - 1];
             double dx = lastSegmentEnd.X - lastSegmentStart.X;
             double dy = lastSegmentEnd.Y - lastSegmentStart.Y;
             return Math.Atan2(dy, dx);
         }
 
         // The normal vector for the positive region.
-        public Vector2 NormalVectorThrough(CartesianPoint2D point)
+        public Vector2 NormalVectorThrough(CartesianPoint point)
         {
             if (segments.Count == 1)
             {
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.Geometry.Shapes
         /// </summary>
         /// <param name="point"></param>
         /// <returns></returns>
-        public double SignedDistanceOf(CartesianPoint2D point)
+        public double SignedDistanceOf(CartesianPoint point)
         {
             if (segments.Count == 1) return segments[0].TransformGlobalToLocalPoint(point).Y;
 
@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.Geometry.Shapes
             bool afterPreviousSegment = false;
 
             // First segment
-            CartesianPoint2D localPoint = segments[0].TransformGlobalToLocalPoint(point);
+            CartesianPoint localPoint = segments[0].TransformGlobalToLocalPoint(point);
             if (localPoint.X < segments[0].Length) distances.Add(localPoint.Y);
             else afterPreviousSegment = true;
 
@@ -124,17 +124,17 @@ namespace ISAAR.MSolve.Geometry.Shapes
         {
             // This one's orientation requires more thought, especially since the convention for determining the
             // level set value gives the opposite sign from the rest of the curve.
-            CartesianPoint2D firstSegmentStart = vertices[0];
-            CartesianPoint2D firstSegmentEnd = vertices[1];
+            CartesianPoint firstSegmentStart = vertices[0];
+            CartesianPoint firstSegmentEnd = vertices[1];
             double dx = firstSegmentStart.X - firstSegmentEnd.X;
             double dy = firstSegmentStart.Y - firstSegmentEnd.Y;
             return Math.Atan2(dy, dx);
         }
 
         // Perhaps geometry classes should be decoupled from elements and interact through polygons instead.
-        //IReadOnlyList<CartesianPoint2D> IntersectionWith(XContinuumElement2D element);
+        //IReadOnlyList<CartesianPoint> IntersectionWith(XContinuumElement2D element);
         
         // This is the correct one but it needs constrained Delauny triangulation
-        //public void IntersectionWith(ContinuumElement2D element, out CartesianPoint2D[] points, out LineSegment2D[] segments);
+        //public void IntersectionWith(ContinuumElement2D element, out CartesianPoint[] points, out LineSegment2D[] segments);
     }
 }

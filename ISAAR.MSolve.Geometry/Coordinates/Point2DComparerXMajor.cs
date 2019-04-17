@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using ISAAR.MSolve.LinearAlgebra.Commons;
+using ISAAR.MSolve.Geometry.Commons;
 
 namespace ISAAR.MSolve.Geometry.Coordinates
 {
-    public class Point2DComparerXMajor: IComparer<CartesianPoint2D>
+    public class Point2DComparerXMajor: IComparer<CartesianPoint>
     {
         private readonly ValueComparer valueComparer;
 
@@ -12,7 +12,7 @@ namespace ISAAR.MSolve.Geometry.Coordinates
             this.valueComparer = new ValueComparer(tolerance);
         }
 
-        public int Compare(CartesianPoint2D point1, CartesianPoint2D point2)
+        public int Compare(CartesianPoint point1, CartesianPoint point2)
         {
             if (valueComparer.AreEqual(point1.X, point2.X))
             {

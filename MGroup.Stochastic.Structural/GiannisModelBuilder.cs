@@ -19,17 +19,17 @@ namespace MGroup.Stochastic.Structural
             var m = new Model();
             m.SubdomainsDictionary.Add(0, new Subdomain(0));
 
-            m.NodesDictionary.Add(0, new Node() { ID = 0, X = 0.0, Y = 0, Z = 0 });
-            m.NodesDictionary.Add(1, new Node() { ID = 1, X = 0.1, Y = 0, Z = 0 });
-            m.NodesDictionary.Add(2, new Node() { ID = 2, X = 0.2, Y = 0, Z = 0 });
-            m.NodesDictionary.Add(3, new Node() { ID = 3, X = 0.3, Y = 0, Z = 0 });
-            m.NodesDictionary.Add(4, new Node() { ID = 4, X = 0.4, Y = 0, Z = 0 });
-            m.NodesDictionary.Add(5, new Node() { ID = 5, X = 0.5, Y = 0, Z = 0 });
-            m.NodesDictionary.Add(6, new Node() { ID = 6, X = 0.6, Y = 0, Z = 0 });
-            m.NodesDictionary.Add(7, new Node() { ID = 7, X = 0.7, Y = 0, Z = 0 });
-            m.NodesDictionary.Add(8, new Node() { ID = 8, X = 0.8, Y = 0, Z = 0 });
-            m.NodesDictionary.Add(9, new Node() { ID = 9, X = 0.9, Y = 0, Z = 0 });
-            m.NodesDictionary.Add(10, new Node() { ID = 10, X = 1, Y = 0, Z = 0 });
+            m.NodesDictionary.Add(0, new Node(id: 0, x: 0.0, y:  0, z: 0 ));
+            m.NodesDictionary.Add(1, new Node(id: 1, x: 0.1, y:  0, z: 0 ));
+            m.NodesDictionary.Add(2, new Node(id: 2, x: 0.2, y:  0, z: 0 ));
+            m.NodesDictionary.Add(3, new Node(id: 3, x: 0.3, y:  0, z: 0 ));
+            m.NodesDictionary.Add(4, new Node(id: 4, x: 0.4, y:  0, z: 0 ));
+            m.NodesDictionary.Add(5, new Node(id: 5, x: 0.5, y:  0, z: 0 ));
+            m.NodesDictionary.Add(6, new Node(id: 6, x: 0.6, y:  0, z: 0 ));
+            m.NodesDictionary.Add(7, new Node(id: 7, x: 0.7, y:  0, z: 0 ));
+            m.NodesDictionary.Add(8, new Node(id: 8, x: 0.8, y:  0, z: 0 ));
+            m.NodesDictionary.Add(9, new Node(id: 9, x: 0.9, y:  0, z: 0 ));
+            m.NodesDictionary.Add(10, new Node(id: 10, x: 1, y:  0, z: 0 ));
 
             for (int i = 0; i < m.NodesDictionary.Count - 1; i++)
             {

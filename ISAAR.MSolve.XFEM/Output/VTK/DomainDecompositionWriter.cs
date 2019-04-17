@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
 
         public void WriteBoundaryNodes(string path, IReadOnlyList<XSubdomain2D> subdomains)
         {
-            var boundaryNodes = new Dictionary<CartesianPoint2D, double>();
+            var boundaryNodes = new Dictionary<CartesianPoint, double>();
             foreach (var subdomain in subdomains)
             {
                 foreach (var node in subdomain.BoundaryNodes) boundaryNodes[node] = 0.0;
@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
 
         public void WriteRegions(string path, PolygonalRegion[] regions)
         {
-            var pointIds = new Dictionary<CartesianPoint2D, int>();
+            var pointIds = new Dictionary<CartesianPoint, int>();
             var polygons = new HashSet<List<int>>();
             foreach (var region in regions)
             {
@@ -100,14 +100,14 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                 writer.WriteLine("DATASET UNSTRUCTURED_GRID");
 
                 // Write all nodes by repeating the boundary ones
-                var subdomainNodes = new Dictionary<XNode2D, int>[subdomains.Count];
+                var subdomainNodes = new Dictionary<XNode, int>[subdomains.Count];
                 int numNodes = 0;
                 foreach (var subdomain in subdomains) numNodes += subdomain.AllNodes.Count;
                 writer.WriteLine($"POINTS {numNodes} double");
                 int nodeCounter = 0;
                 for (int s = 0; s < subdomains.Count; ++s)
                 {
-                    subdomainNodes[s] = new Dictionary<XNode2D, int>();
+                    subdomainNodes[s] = new Dictionary<XNode, int>();
                     foreach (var node in subdomains[s].AllNodes)
                     {
                         writer.WriteLine($"{node.X} {node.Y} 0.0");

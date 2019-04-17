@@ -205,7 +205,7 @@ namespace ISAAR.MSolve.Tests.FEM
             // orismos shmeiwn
             for (int nNode = 0; nNode < nodeData.GetLength(0); nNode++)
             {
-                model.NodesDictionary.Add(nNode + 1, new Node() { ID = nNode + 1, X = nodeData[nNode, 0], Y = nodeData[nNode, 1], Z = nodeData[nNode, 2] });
+                model.NodesDictionary.Add(nNode + 1, new Node(id: nNode + 1, x: nodeData[nNode, 0], y:  nodeData[nNode, 1], z: nodeData[nNode, 2] ));
             }
 
             // orismos elements 

@@ -22,18 +22,18 @@ namespace ISAAR.MSolve.XFEM.Interpolation
     {
         // TODO: these 2 dictionaries may be able to be optimized into 1. E.g. only 1 data structure 
         // or arrays with a node to index dictionary
-        private readonly Dictionary<XNode2D, double> nodesToValues;
-        private readonly Dictionary<XNode2D, Vector2> nodesToCartesianDerivatives;
+        private readonly Dictionary<XNode, double> nodesToValues;
+        private readonly Dictionary<XNode, Vector2> nodesToCartesianDerivatives;
 
         internal Jacobian2D Jacobian { get; }
 
-        internal EvaluatedInterpolation2D(IReadOnlyList<XNode2D> nodes, double[,] naturalDerivatives, Jacobian2D jacobian)
+        internal EvaluatedInterpolation2D(IReadOnlyList<XNode> nodes, double[,] naturalDerivatives, Jacobian2D jacobian)
         {
             /// Any attempt at retrieving the not evaluated shape function values (through <see cref="GetValueOf"/> 
             /// will throw a NullReferenceException, which should be sufficient.
             nodesToValues = null;
              
-            nodesToCartesianDerivatives = new Dictionary<XNode2D, Vector2>(nodes.Count);
+            nodesToCartesianDerivatives = new Dictionary<XNode, Vector2>(nodes.Count);
             for (int i = 0; i < nodes.Count; ++i)
             {
                 nodesToCartesianDerivatives[nodes[i]] = jacobian.TransformNaturalDerivativesToCartesian(
@@ -42,15 +42,15 @@ namespace ISAAR.MSolve.XFEM.Interpolation
             this.Jacobian = jacobian;
         }
 
-        internal EvaluatedInterpolation2D(IReadOnlyList<XNode2D> nodes, double[] shapeFunctionValues, 
+        internal EvaluatedInterpolation2D(IReadOnlyList<XNode> nodes, double[] shapeFunctionValues, 
             double[,] naturalDerivatives, Jacobian2D jacobian)
         {
             // TODO: Optimize the dictionaries. Could I provide comparers or sth that speeds up hashing?
-            nodesToValues = new Dictionary<XNode2D, double>(nodes.Count);
-            nodesToCartesianDerivatives = new Dictionary<XNode2D, Vector2>(nodes.Count);
+            nodesToValues = new Dictionary<XNode, double>(nodes.Count);
+            nodesToCartesianDerivatives = new Dictionary<XNode, Vector2>(nodes.Count);
             for (int i = 0; i < nodes.Count; ++i)
             {
-                XNode2D node = nodes[i];
+                XNode node = nodes[i];
                 nodesToValues[node] = shapeFunctionValues[i];
                 nodesToCartesianDerivatives[node] = jacobian.TransformNaturalDerivativesToCartesian(
                     Vector2.Create(naturalDerivatives[i, 0], naturalDerivatives[i, 1]));
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
             this.Jacobian = jacobian;
         }
 
-        public double GetValueOf(XNode2D node)
+        public double GetValueOf(XNode node)
         {
             return nodesToValues[node];
         }
@@ -67,22 +67,22 @@ namespace ISAAR.MSolve.XFEM.Interpolation
         // Tuple<double, double>. However it would require multiple node lookups. Otherwise, a software wide convention   
         // to use gradients as IReadOnlyList (immutable row arrays) or a dedicated (immutable class) can be enforced. 
         // TODO: Should the returned vector be immutable?
-        public Vector2 GetGlobalCartesianDerivativesOf(XNode2D node)
+        public Vector2 GetGlobalCartesianDerivativesOf(XNode node)
         {
             return nodesToCartesianDerivatives[node];
         }
 
-        public CartesianPoint2D TransformPointNaturalToGlobalCartesian(NaturalPoint2D naturalCoordinates)
+        public CartesianPoint TransformPointNaturalToGlobalCartesian(NaturalPoint naturalCoordinates)
         {
             double x = 0, y = 0;
             foreach (var entry in nodesToValues)
             {
-                XNode2D node = entry.Key;
+                XNode node = entry.Key;
                 double val = entry.Value;
                 x += val * node.X;
                 y += val * node.Y;
             }
-            return new CartesianPoint2D(x, y);
+            return new CartesianPoint(x, y);
         }
 
         // TODO: Add methods: interpolate scalar, interpolate vector/point (there already is one, just make it similar 

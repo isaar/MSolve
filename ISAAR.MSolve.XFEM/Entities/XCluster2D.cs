@@ -41,10 +41,10 @@ namespace ISAAR.MSolve.XFEM.Entities
         //TODO: Should this be a dedicated class?
         //TODO: Should this be done, when a subdomain is added? What if a subdomain is added first and then nodes are added
         //      to the subdomain.
-        public Dictionary<XNode2D, SortedSet<XSubdomain2D>> FindBoundaryNodeMembership()
+        public Dictionary<XNode, SortedSet<XSubdomain2D>> FindBoundaryNodeMembership()
         {
             // Assign subdomains to boundary nodes
-            var membership = new Dictionary<XNode2D, SortedSet<XSubdomain2D>>();
+            var membership = new Dictionary<XNode, SortedSet<XSubdomain2D>>();
             foreach (var subdomain in subdomains)
             {
                 foreach (var node in subdomain.BoundaryNodes)
@@ -70,10 +70,10 @@ namespace ISAAR.MSolve.XFEM.Entities
             return membership;
         }
 
-        public Dictionary<XNode2D, SortedSet<XSubdomain2D>> FindEnrichedBoundaryNodeMembership()
+        public Dictionary<XNode, SortedSet<XSubdomain2D>> FindEnrichedBoundaryNodeMembership()
         {
             // Assign subdomains to boundary nodes
-            var membership = new Dictionary<XNode2D, SortedSet<XSubdomain2D>>();
+            var membership = new Dictionary<XNode, SortedSet<XSubdomain2D>>();
             foreach (var subdomain in subdomains)
             {
                 foreach (var node in subdomain.BoundaryNodes)

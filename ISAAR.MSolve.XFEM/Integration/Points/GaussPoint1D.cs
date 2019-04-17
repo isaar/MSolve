@@ -10,11 +10,16 @@ namespace ISAAR.MSolve.XFEM.Integration.Points
     /// <summary>
     /// Must be immutable to use across many elements that employ the same integration rule
     /// </summary>
-    class GaussPoint1D : NaturalPoint1D
+    class GaussPoint : NaturalPoint
     {
         public double Weight { get; }
 
-        public GaussPoint1D(double xi, double weight): base(xi)
+        public GaussPoint(double xi, double weight) : base(xi)
+        {
+            this.Weight = weight;
+        }
+
+        public GaussPoint(double xi, double eta, double weight): base(xi, eta)
         {
             this.Weight = weight;
         }

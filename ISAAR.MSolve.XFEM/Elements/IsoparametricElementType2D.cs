@@ -28,8 +28,8 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// </summary>
         public abstract IStandardQuadrature2D StandardQuadrature { get; }
         public abstract IsoparametricInterpolation2D Interpolation { get; }
-        public abstract void CheckNodes(IReadOnlyList<XNode2D> nodes);
-        public abstract IReadOnlyList<NaturalPoint2D> NaturalCoordinatesOfNodes { get; }
+        public abstract void CheckNodes(IReadOnlyList<XNode> nodes);
+        public abstract IReadOnlyList<NaturalPoint> NaturalCoordinatesOfNodes { get; }
         public abstract IGaussPointSystem GaussPointSystem { get; }
 
         private class IsoparametricQuad4: IsoparametricElementType2D
@@ -44,23 +44,23 @@ namespace ISAAR.MSolve.XFEM.Elements
                 get { return GaussLegendre2D.Order2x2; }
             }
 
-            public override void CheckNodes(IReadOnlyList<XNode2D> nodes)
+            public override void CheckNodes(IReadOnlyList<XNode> nodes)
             {
                 if (nodes.Count != 4) throw new ArgumentException("A Quad4 finite element has 4 nodes, but "
                 + nodes.Count + " nodes were provided.");
                 // TODO: Perhaps I can check the order of the nodes too or even the shape
             }
 
-            public override IReadOnlyList<NaturalPoint2D> NaturalCoordinatesOfNodes
+            public override IReadOnlyList<NaturalPoint> NaturalCoordinatesOfNodes
             {
                 get
                 {
-                    return new NaturalPoint2D[]
+                    return new NaturalPoint[]
                     {
-                        new NaturalPoint2D(-1.0, -1.0),
-                        new NaturalPoint2D(1.0, -1.0),
-                        new NaturalPoint2D(1.0, 1.0),
-                        new NaturalPoint2D(-1.0, 1.0)
+                        new NaturalPoint(-1.0, -1.0),
+                        new NaturalPoint(1.0, -1.0),
+                        new NaturalPoint(1.0, 1.0),
+                        new NaturalPoint(-1.0, 1.0)
                     };
                 }
             }
@@ -80,29 +80,29 @@ namespace ISAAR.MSolve.XFEM.Elements
                 get { return GaussLegendre2D.Order3x3; }
             }
 
-            public override void CheckNodes(IReadOnlyList<XNode2D> nodes)
+            public override void CheckNodes(IReadOnlyList<XNode> nodes)
             {
                 if (nodes.Count != 9) throw new ArgumentException("A Quad9 finite element has 9 nodes, but "
                 + nodes.Count + " nodes were provided.");
                 // TODO: Perhaps I can check the order of the nodes too or even the shape
             }
 
-            public override IReadOnlyList<NaturalPoint2D> NaturalCoordinatesOfNodes
+            public override IReadOnlyList<NaturalPoint> NaturalCoordinatesOfNodes
             {
                 get
                 {
-                    return new NaturalPoint2D[]
+                    return new NaturalPoint[]
                     {
-                        new NaturalPoint2D(-1.0, -1.0),
-                        new NaturalPoint2D(1.0, -1.0),
-                        new NaturalPoint2D(1.0, 1.0),
-                        new NaturalPoint2D(-1.0, 1.0),
+                        new NaturalPoint(-1.0, -1.0),
+                        new NaturalPoint(1.0, -1.0),
+                        new NaturalPoint(1.0, 1.0),
+                        new NaturalPoint(-1.0, 1.0),
 
-                        new NaturalPoint2D(0.0, -1.0),
-                        new NaturalPoint2D(1.0, 0.0),
-                        new NaturalPoint2D(0.0, 1.0),
-                        new NaturalPoint2D(-1.0, 0.0),
-                        new NaturalPoint2D(0.0, 0.0),
+                        new NaturalPoint(0.0, -1.0),
+                        new NaturalPoint(1.0, 0.0),
+                        new NaturalPoint(0.0, 1.0),
+                        new NaturalPoint(-1.0, 0.0),
+                        new NaturalPoint(0.0, 0.0),
                     };
                 }
             }
@@ -122,22 +122,22 @@ namespace ISAAR.MSolve.XFEM.Elements
                 get { return GaussQuadratureForTriangle.Order1Point1; }
             }
 
-            public override void CheckNodes(IReadOnlyList<XNode2D> nodes)
+            public override void CheckNodes(IReadOnlyList<XNode> nodes)
             {
                 if (nodes.Count != 3) throw new ArgumentException("A Tri3 finite element has 3 nodes, but "
                 + nodes.Count + " nodes were provided.");
                 // TODO: Perhaps I can check the order of the nodes too or even the shape
             }
 
-            public override IReadOnlyList<NaturalPoint2D> NaturalCoordinatesOfNodes
+            public override IReadOnlyList<NaturalPoint> NaturalCoordinatesOfNodes
             {
                 get
                 {
-                    return new NaturalPoint2D[]
+                    return new NaturalPoint[]
                     {
-                        new NaturalPoint2D(0.0, 0.0),
-                        new NaturalPoint2D(1.0, 0.0),
-                        new NaturalPoint2D(0.0, 1.0)
+                        new NaturalPoint(0.0, 0.0),
+                        new NaturalPoint(1.0, 0.0),
+                        new NaturalPoint(0.0, 1.0)
                     };
                 }
             }

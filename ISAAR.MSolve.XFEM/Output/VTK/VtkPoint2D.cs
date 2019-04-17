@@ -8,9 +8,9 @@ using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.Output.VTK
 {
-    internal class VtkPoint2D: CartesianPoint2D
+    internal class VtkPoint2D: CartesianPoint
     {
-        public VtkPoint2D(int id, CartesianPoint2D originalNode): base(originalNode.X, originalNode.Y)
+        public VtkPoint2D(int id, CartesianPoint originalNode): base(originalNode.X, originalNode.Y)
         {
             this.ID = id;
         }

@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         /// <param name="point">The point where the scalar will be computed. Its coordinates are expressed in the natural
         ///     (element local) system, instead of the coordinate system defined by the integration points.</param>
         /// <returns></returns>
-        public double ExtrapolateScalarFromGaussPoints(IReadOnlyList<double> scalarsAtGaussPoints, NaturalPoint2D point)
+        public double ExtrapolateScalarFromGaussPoints(IReadOnlyList<double> scalarsAtGaussPoints, NaturalPoint point)
         {
             double[] extrapolationFunctions = EvaluateExtrapolationFunctionsAt(point);
             double scalar = 0;
@@ -68,7 +68,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
             IIsoparametricInterpolation2D interpolation)
         {
             double[][] nodalExtrapolationFunctions = EvaluateExtrapolationFunctionsAtNodes(interpolation);
-            IReadOnlyList<NaturalPoint2D> nodes = interpolation.NodalNaturalCoordinates;
+            IReadOnlyList<NaturalPoint> nodes = interpolation.NodalNaturalCoordinates;
             var nodalScalars = new double[nodes.Count];
             for (int i = 0; i < nodes.Count; ++i)
             {
@@ -92,7 +92,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         /// <param name="point">The point where the tensor will be computed. Its coordinates are expressed in the natural
         ///     (element local) system, instead of the coordinate system defined by the integration points.</param>
         /// <returns></returns>
-        public double[] ExtrapolateTensorFromGaussPoints(IReadOnlyList<double[]> tensorsAtGaussPoints, NaturalPoint2D point)
+        public double[] ExtrapolateTensorFromGaussPoints(IReadOnlyList<double[]> tensorsAtGaussPoints, NaturalPoint point)
         {
             double[] extrapolationFunctions = EvaluateExtrapolationFunctionsAt(point);
             var tensor = new double[3]; //In 2D problems, symmetric tensors have 3 entries. TODO: replace with Tensor2D class.
@@ -117,7 +117,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
             IIsoparametricInterpolation2D interpolation)
         {
             double[][] nodalExtrapolationFunctions = EvaluateExtrapolationFunctionsAtNodes(interpolation);
-            IReadOnlyList<NaturalPoint2D> nodes = interpolation.NodalNaturalCoordinates;
+            IReadOnlyList<NaturalPoint> nodes = interpolation.NodalNaturalCoordinates;
             var nodalTensors = new double[nodes.Count][];
             for (int i = 0; i < nodes.Count; ++i)
             {
@@ -143,7 +143,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         /// <param name="point">The point where the tensor will be computed. Its coordinates are expressed in the natural
         ///     (element local) system, instead of the coordinate system defined by the integration points.</param>
         /// <returns></returns>
-        public double[] ExtrapolateVectorFromGaussPoints(IReadOnlyList<double[]> vectorsAtGaussPoints, NaturalPoint2D point)
+        public double[] ExtrapolateVectorFromGaussPoints(IReadOnlyList<double[]> vectorsAtGaussPoints, NaturalPoint point)
         {
             double[] extrapolationFunctions = EvaluateExtrapolationFunctionsAt(point);
             var vector = new double[2]; //In 2D problems, vector fields have 2 entries. TODO: replace with Vector2 class.
@@ -167,7 +167,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
             IIsoparametricInterpolation2D interpolation)
         {
             double[][] nodalExtrapolationFunctions = EvaluateExtrapolationFunctionsAtNodes(interpolation);
-            IReadOnlyList<NaturalPoint2D> nodes = interpolation.NodalNaturalCoordinates;
+            IReadOnlyList<NaturalPoint> nodes = interpolation.NodalNaturalCoordinates;
             var nodalVectors = new double[nodes.Count][];
             for (int i = 0; i < nodes.Count; ++i)
             {
@@ -190,7 +190,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         /// <param name="point">The coordinates of the point where the extrapolation functions will be calculated, in the 
         ///     natural (element local) system.</param>
         /// <returns></returns>
-        protected abstract double[] EvaluateExtrapolationFunctionsAt(NaturalPoint2D point);
+        protected abstract double[] EvaluateExtrapolationFunctionsAt(NaturalPoint point);
 
         private double[][] EvaluateExtrapolationFunctionsAtNodes(IIsoparametricInterpolation2D interpolation)
         {
@@ -198,7 +198,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
                 out double[][] nodalExtrapolationFunctions);
             if (!isCached)
             {
-                IReadOnlyList<NaturalPoint2D> nodes = interpolation.NodalNaturalCoordinates;
+                IReadOnlyList<NaturalPoint> nodes = interpolation.NodalNaturalCoordinates;
                 nodalExtrapolationFunctions = new double[nodes.Count][];
                 for (int i = 0; i < nodes.Count; ++i)
                 {

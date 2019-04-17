@@ -40,7 +40,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
 
         public void SolveLinearSystems(Matrix rhs, Matrix lhs)
         {
-            // inv(F) * Y = Bpb * Kbb * Bpb^T * Y
+            // inv(F) * y: Bpb * Kbb * Bpb^T * Y
             lhs.Clear(); //TODO: this should be avoided
             foreach (int id in subdomainIDs)
             {

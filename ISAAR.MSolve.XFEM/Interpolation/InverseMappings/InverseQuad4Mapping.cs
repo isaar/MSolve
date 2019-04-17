@@ -18,9 +18,9 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
         private readonly double ab, ac, bc;
 
         // The delegate avoids redundant checking for which case we are at 
-        private readonly Func<double, double, NaturalPoint2D> formula; 
+        private readonly Func<double, double, NaturalPoint> formula; 
 
-        public InverseQuad4Mapping(IReadOnlyList<XNode2D> nodes)
+        public InverseQuad4Mapping(IReadOnlyList<XNode> nodes)
         {
             //TODO: all these concern only the first configuration (nodes[0] is the bottom left)
 
@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
             throw new Exception("Cannot find a valid counter-clockwise node ordering. The original node order might be wrong");
         }
 
-        public NaturalPoint2D TransformCartesianToNatural(CartesianPoint2D point)
+        public NaturalPoint TransformCartesianToNatural(CartesianPoint point)
         {
             // Point dependent coefficients
             double d1 = 4 * point.X - sum1;
@@ -74,7 +74,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
         }
 
         #region case specific code
-        private Func<double, double, NaturalPoint2D> FindQuadDependentFormula()
+        private Func<double, double, NaturalPoint> FindQuadDependentFormula()
         {
             // E.g. Case 1: a1*a2*ab*ac != 0. 
             // I check them individually to avoid precision errors of the multiplication.
@@ -86,7 +86,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
             else return FormulaForCase6;
         }
 
-        private NaturalPoint2D FormulaForCases123(double d1, double d2)
+        private NaturalPoint FormulaForCases123(double d1, double d2)
         {
             double ad = a1 * d2 - a2 * d1;
             double dc = d1 * c2 - d2 * c1;
@@ -102,37 +102,37 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
                 xi = IsWithinNaturalDomain(solutions[0]) ? solutions[0] : solutions[1];
             }
             double eta = (ad - ab * xi) / ac;
-            return new NaturalPoint2D(xi, eta);
+            return new NaturalPoint(xi, eta);
         }
 
-        private NaturalPoint2D FormulaForCase4(double d1, double d2)
+        private NaturalPoint FormulaForCase4(double d1, double d2)
         {
             double ad = a1 * d2 - a2 * d1;
             double dc = d1 * c2 - d2 * c1;
 
             double xi = a1 * dc / (b1 * ac + a1 * ad);
             double eta = ad / ac;
-            return new NaturalPoint2D(xi, eta);
+            return new NaturalPoint(xi, eta);
         }
 
-        private NaturalPoint2D FormulaForCase5(double d1, double d2)
+        private NaturalPoint FormulaForCase5(double d1, double d2)
         {
             double ad = a1 * d2 - a2 * d1;
             double db = d1 * b2 - d2 * b1;
 
             double xi = ad / ab;
             double eta = a1 * db / (c1 * ab + a1 * ad);
-            return new NaturalPoint2D(xi, eta);
+            return new NaturalPoint(xi, eta);
         }
 
-        private NaturalPoint2D FormulaForCase6(double d1, double d2)
+        private NaturalPoint FormulaForCase6(double d1, double d2)
         {
             double bd = b1 * d2 - b2 * d1;
             double dc = d1 * c2 - d2 * c1;
 
             double xi = dc / (a1 * d2 + bc);
             double eta = bd / (a2 * d1 + bc);
-            return new NaturalPoint2D(xi, eta);
+            return new NaturalPoint(xi, eta);
         }
         #endregion
 
@@ -183,9 +183,9 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
         /// </summary>
         /// <param name="nodes"></param>
         /// <returns></returns>
-        private static IReadOnlyList<XNode2D> CycleCounterClockwise(IReadOnlyList<XNode2D> nodes)
+        private static IReadOnlyList<XNode> CycleCounterClockwise(IReadOnlyList<XNode> nodes)
         {
-            var cycled = new XNode2D[nodes.Count];
+            var cycled = new XNode[nodes.Count];
             cycled[0] = nodes[nodes.Count - 1];
             for (int i = 0; i < nodes.Count - 1; ++i) cycled[i + 1] = nodes[i];
             return cycled;

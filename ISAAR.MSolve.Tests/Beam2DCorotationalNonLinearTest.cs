@@ -40,9 +40,9 @@ namespace ISAAR.MSolve.Tests
 
             // Node creation
             IList<Node> nodes = new List<Node>();
-            Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0 };
-            Node node2 = new Node { ID = 2, X = 100.0, Y = 0.0 };
-            Node node3 = new Node { ID = 3, X = 200.0, Y = 0.0 };
+            Node node1 = new Node( id: 1, x: 0.0, y:  0.0 );
+            Node node2 = new Node( id: 2, x: 100.0, y:  0.0 );
+            Node node3 = new Node( id: 3, x: 200.0, y:  0.0 );
 
             nodes.Add(node1);
             nodes.Add(node2);
@@ -149,9 +149,9 @@ namespace ISAAR.MSolve.Tests
 
             // Node creation
             IList<Node> nodes = new List<Node>();
-            Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0 };
-            Node node2 = new Node { ID = 2, X = 100.0, Y = 0.0 };
-            Node node3 = new Node { ID = 3, X = 200.0, Y = 0.0 };
+            Node node1 = new Node( id: 1, x:   0.0, y:  0.0 );
+            Node node2 = new Node( id: 2, x: 100.0, y:  0.0 );
+            Node node3 = new Node( id: 3, x: 200.0, y:  0.0 );
 
             nodes.Add(node1);
             nodes.Add(node2);

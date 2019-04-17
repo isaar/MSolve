@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Functions
     /// </summary>
     public interface IEnrichmentFunction2D
     {
-        //double EvalueAt(CartesianPoint2D cartesianPoint);
-        //EvaluatedFunction2D EvaluateAllAt(CartesianPoint2D cartesianPoint);
+        //double EvalueAt(CartesianPoint cartesianPoint);
+        //EvaluatedFunction2D EvaluateAllAt(CartesianPoint cartesianPoint);
     }
 }

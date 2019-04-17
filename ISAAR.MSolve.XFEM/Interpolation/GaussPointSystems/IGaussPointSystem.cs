@@ -8,11 +8,11 @@ namespace ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems
 {
     interface IGaussPointSystem
     {
-        IReadOnlyList<GaussPoint2D> GaussPoints { get; }
+        IReadOnlyList<GaussPoint> GaussPoints { get; }
 
-        Tensor2D ExtrapolateTensorFromGaussPoints(IReadOnlyList<Tensor2D> tensorsAtGPs, NaturalPoint2D point);
+        Tensor2D ExtrapolateTensorFromGaussPoints(IReadOnlyList<Tensor2D> tensorsAtGPs, NaturalPoint point);
         IReadOnlyList<Tensor2D> ExtrapolateTensorFromGaussPointsToNodes(IReadOnlyList<Tensor2D> tensorsAtGPs);
-        Vector2 ExtrapolateVectorFromGaussPoints(IReadOnlyList<Vector2> vectorsAtGPs, NaturalPoint2D point);
+        Vector2 ExtrapolateVectorFromGaussPoints(IReadOnlyList<Vector2> vectorsAtGPs, NaturalPoint point);
         IReadOnlyList<Vector2> ExtrapolateVectorFromGaussPointsToNodes(IReadOnlyList<Vector2> vectorsAtGPs);
     }
 }

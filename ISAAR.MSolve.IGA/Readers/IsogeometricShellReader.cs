@@ -145,7 +145,7 @@ namespace ISAAR.MSolve.IGA.Readers
 							double z = Double.Parse(line[3], CultureInfo.InvariantCulture);
 							double w = Double.Parse(line[4], CultureInfo.InvariantCulture);
 							ControlPoint controlPoint = new ControlPoint()
-							{ ID = controlPointGlobalID, X = x, Y = y, Z = z, WeightFactor = w };
+							{ ID = controlPointGlobalID, X = x, Y =  y, Z = z, WeightFactor = w };
 							Model.ControlPointsDictionary.Add(controlPointGlobalID, controlPoint);
 						}
 						break;

@@ -12,12 +12,12 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
     class RelativeAreaResolver : IHeavisideSingularityResolver
     {
         private readonly double relativeAreaTolerance;
-        private readonly Triangulator2D<CartesianPoint2D> triangulator;
+        private readonly Triangulator2D<CartesianPoint> triangulator;
 
         public RelativeAreaResolver(double relativeAreaTolerance = 1e-4)
         {
             this.relativeAreaTolerance = relativeAreaTolerance;
-            this.triangulator = new Triangulator2D<CartesianPoint2D>((x, y) => new CartesianPoint2D(x, y));
+            this.triangulator = new Triangulator2D<CartesianPoint>((x, y) => new CartesianPoint(x, y));
         }
 
         /// <summary>
@@ -27,11 +27,11 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
         /// <param name="mesh"></param>
         /// <param name="heavisideNodes">They will not be altered.</param>
         /// <returns></returns>
-        public ISet<XNode2D> FindHeavisideNodesToRemove(ISingleCrack crack, IMesh2D<XNode2D, XContinuumElement2D> mesh, 
-            ISet<XNode2D> heavisideNodes)
+        public ISet<XNode> FindHeavisideNodesToRemove(ISingleCrack crack, IMesh2D<XNode, XContinuumElement2D> mesh, 
+            ISet<XNode> heavisideNodes)
         {
             var processedElements = new Dictionary<XContinuumElement2D, Tuple<double, double>>();
-            var nodesToRemove = new HashSet<XNode2D>();
+            var nodesToRemove = new HashSet<XNode>();
             foreach (var node in heavisideNodes)
             {
                 double nodePositiveArea = 0.0;
@@ -72,14 +72,14 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
         /// <param name="mesh"></param>
         /// <param name="heavisideNodes">They will not be altered.</param>
         /// <returns></returns>
-        public ISet<XNode2D> FindHeavisideNodesToRemove(ISingleCrack crack, IReadOnlyList<XNode2D> heavisideNodes, 
+        public ISet<XNode> FindHeavisideNodesToRemove(ISingleCrack crack, IReadOnlyList<XNode> heavisideNodes, 
             IReadOnlyList<ISet<XContinuumElement2D>> nodalSupports)
         {
             var processedElements = new Dictionary<XContinuumElement2D, Tuple<double, double>>();
-            var nodesToRemove = new HashSet<XNode2D>();
+            var nodesToRemove = new HashSet<XNode>();
             for (int i = 0; i < heavisideNodes.Count; ++i)
             {
-                XNode2D node = heavisideNodes[i];
+                XNode node = heavisideNodes[i];
                 double nodePositiveArea = 0.0;
                 double nodeNegativeArea = 0.0;
 
@@ -115,23 +115,23 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
         private (double positiveArea, double negativeArea) FindSignedAreasOfElement(ISingleCrack crack, 
             XContinuumElement2D element)
         {
-            SortedSet<CartesianPoint2D> triangleVertices = crack.FindTriangleVertices(element);
-            IReadOnlyList<Triangle2D<CartesianPoint2D>> triangles = triangulator.CreateMesh(triangleVertices);
+            SortedSet<CartesianPoint> triangleVertices = crack.FindTriangleVertices(element);
+            IReadOnlyList<Triangle2D<CartesianPoint>> triangles = triangulator.CreateMesh(triangleVertices);
 
             double positiveArea = 0.0;
             double negativeArea = 0.0;
             foreach (var triangle in triangles)
             {
-                CartesianPoint2D v0 = triangle.Vertices[0];
-                CartesianPoint2D v1 = triangle.Vertices[1];
-                CartesianPoint2D v2 = triangle.Vertices[2];
+                CartesianPoint v0 = triangle.Vertices[0];
+                CartesianPoint v1 = triangle.Vertices[1];
+                CartesianPoint v2 = triangle.Vertices[2];
                 double area = 0.5 * Math.Abs(v0.X * (v1.Y - v2.Y) + v1.X * (v2.Y - v0.Y) + v2.X * (v0.Y - v1.Y));
 
                 // The sign of the area can be derived from any node with body level set != 0
                 int sign = 0;
                 foreach (var vertex in triangle.Vertices)
                 {
-                    XNode2D vertexAsNode = null;
+                    XNode vertexAsNode = null;
                     foreach (var node in element.Nodes) // TODO: find a faster way to do this
                     {
                         if ((vertex.X == node.X) && (vertex.Y == node.Y))
@@ -157,8 +157,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
                     //}
 
 
-                    var centroid = new CartesianPoint2D((v0.X + v1.X + v2.X) / 3.0, (v0.Y + v1.Y + v2.Y) / 3.0);
-                    NaturalPoint2D centroidNatural = element.Interpolation.
+                    var centroid = new CartesianPoint((v0.X + v1.X + v2.X) / 3.0, (v0.Y + v1.Y + v2.Y) / 3.0);
+                    NaturalPoint centroidNatural = element.Interpolation.
                         CreateInverseMappingFor(element.Nodes).TransformCartesianToNatural(centroid);
                     EvaluatedInterpolation2D centroidInterpolation =
                         element.Interpolation.EvaluateAt(element.Nodes, centroidNatural);
