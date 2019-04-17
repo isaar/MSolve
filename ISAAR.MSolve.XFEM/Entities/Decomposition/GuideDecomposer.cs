@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Exceptions;
-using ISAAR.MSolve.XFEM.Geometry.Mesh;
 
 //TODO: All this logic is common to any FEM like method. Decouple from XFEM (use Vertex and Cell).
 namespace ISAAR.MSolve.XFEM.Entities.Decomposition
@@ -16,13 +15,13 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
     {
         private readonly int numRegions;
         private readonly IRegion2D[] guides;
-        private readonly BiMesh2D mesh;
+        private readonly BidirectionalMesh2D<XNode2D, XContinuumElement2D> mesh;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="guides">They must be convex.</param>
-        public GuideDecomposer(IRegion2D[] guides, BiMesh2D mesh)
+        public GuideDecomposer(IRegion2D[] guides, BidirectionalMesh2D<XNode2D, XContinuumElement2D> mesh)
         {
             this.guides = guides;
             this.numRegions = guides.Length;
@@ -74,7 +73,7 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
                 boundaryNodes[i] = new HashSet<XNode2D>();
             }
 
-            foreach (var node in mesh.Vertices)
+            foreach (var node in mesh.Nodes)
             {
                 #region debug
                 //if (node.ID == 1250)
@@ -112,7 +111,7 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
             var subdomains = new HashSet<XContinuumElement2D>[numRegions];
             for (int i = 0; i < numRegions; ++i) subdomains[i] = new HashSet<XContinuumElement2D>();
 
-            foreach (var element in mesh.Cells)
+            foreach (var element in mesh.Elements)
             {
                 int elementRegion = DecideElementRegion(element, internalNodes, boundaryNodes);
                 subdomains[elementRegion].Add(element);                
@@ -131,7 +130,7 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
                 boundaryNodes[i] = new HashSet<XNode2D>();
             }
 
-            foreach (var node in mesh.Vertices)
+            foreach (var node in mesh.Nodes)
             {
                 // Find out which subdomains it elements belong to
                 var nodeSubdomains = new HashSet<int>();

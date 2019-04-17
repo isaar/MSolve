@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace ISAAR.MSolve.Discretization.Interfaces
 {
-    public interface INode
+    public interface INode : IComparable<INode>
     {
 		int ID { get; set; }
 		double X { get; set; }
@@ -13,17 +12,5 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 
         List<Constraint> Constraints { get; }
         Dictionary<int, ISubdomain> SubdomainsDictionary { get; }
-    }
-
-    public static class NodeExtensions
-    {
-        //TODO: perhaps this should be in the geometry project.
-        public static double CalculateEuclidianDistanceFrom(this INode node1, INode node2)
-        {
-            double dx = node1.X - node2.X;
-            double dy = node1.Y - node2.Y;
-            double dz = node1.Z - node2.Z;
-            return Math.Sqrt(dx * dx + dy * dy + dz * dz);
-        }
     }
 }

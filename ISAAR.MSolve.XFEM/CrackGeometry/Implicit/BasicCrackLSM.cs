@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.Geometry.Commons;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
@@ -11,7 +12,6 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Interpolation;
 
 // TODO: Consider removing the bookkeeping of enrichment items in elements. It creates a lot of opportunities for mistakes.
@@ -90,7 +90,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             tangentX /= length;
             tangentY /= length;
 
-            foreach (XNode2D node in Mesh.Vertices)
+            foreach (XNode2D node in Mesh.Nodes)
             {
                 levelSetsBody[node] = segment.SignedDistanceOf(node);
                 levelSetsTip[node] = (node.X - crackTip.X) * tangentX + (node.Y - crackTip.Y) * tangentY;
@@ -111,7 +111,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             tipSystem = new TipCoordinateSystem(newTip, globalGrowthAngle);
 
             var newSegment = new DirectedSegment2D(oldTip, newTip);
-            foreach (XNode2D node in Mesh.Vertices)
+            foreach (XNode2D node in Mesh.Nodes)
             {
                 // Rotate the ALL tip level sets towards the new tip and then advance them
                 double rotatedTipLevelSet = (node.X - crackTip.X) * unitDx + (node.Y - crackTip.Y) * unitDy;
@@ -222,7 +222,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         private void ApplyEnrichmentFunctions(HashSet<XNode2D> bodyNodes, HashSet<XNode2D> tipNodes)
         {
             // O(n) operation. TODO: This could be sped up by tracking the tip enriched nodes of each step.
-            foreach (var node in Mesh.Vertices) node.EnrichmentItems.Remove(CrackTipEnrichments);
+            foreach (var node in Mesh.Nodes) node.EnrichmentItems.Remove(CrackTipEnrichments);
             foreach (var node in tipNodes)
             {
                 double[] enrichmentValues = CrackTipEnrichments.EvaluateFunctionsAt(node);
@@ -308,7 +308,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         private void FindBodyAndTipNodesAndElements(HashSet<XNode2D> bodyNodes, HashSet<XNode2D> tipNodes, 
             List<XContinuumElement2D> tipElements)
         {
-            foreach (var element in Mesh.Cells)
+            foreach (var element in Mesh.Elements)
             {
                 element.EnrichmentItems.Clear();
                 ElementEnrichmentType type = CharacterizeElementEnrichment(element);

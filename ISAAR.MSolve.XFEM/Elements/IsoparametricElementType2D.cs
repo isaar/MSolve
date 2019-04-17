@@ -8,6 +8,7 @@ using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems;
+using ISAAR.MSolve.FEM.Entities;
 
 namespace ISAAR.MSolve.XFEM.Elements
 {
@@ -27,7 +28,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// </summary>
         public abstract IStandardQuadrature2D StandardQuadrature { get; }
         public abstract IsoparametricInterpolation2D Interpolation { get; }
-        public abstract void CheckNodes(IReadOnlyList<Node2D> nodes);
+        public abstract void CheckNodes(IReadOnlyList<XNode2D> nodes);
         public abstract IReadOnlyList<NaturalPoint2D> NaturalCoordinatesOfNodes { get; }
         public abstract IGaussPointSystem GaussPointSystem { get; }
 
@@ -43,7 +44,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                 get { return GaussLegendre2D.Order2x2; }
             }
 
-            public override void CheckNodes(IReadOnlyList<Node2D> nodes)
+            public override void CheckNodes(IReadOnlyList<XNode2D> nodes)
             {
                 if (nodes.Count != 4) throw new ArgumentException("A Quad4 finite element has 4 nodes, but "
                 + nodes.Count + " nodes were provided.");
@@ -79,7 +80,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                 get { return GaussLegendre2D.Order3x3; }
             }
 
-            public override void CheckNodes(IReadOnlyList<Node2D> nodes)
+            public override void CheckNodes(IReadOnlyList<XNode2D> nodes)
             {
                 if (nodes.Count != 9) throw new ArgumentException("A Quad9 finite element has 9 nodes, but "
                 + nodes.Count + " nodes were provided.");
@@ -121,7 +122,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                 get { return GaussQuadratureForTriangle.Order1Point1; }
             }
 
-            public override void CheckNodes(IReadOnlyList<Node2D> nodes)
+            public override void CheckNodes(IReadOnlyList<XNode2D> nodes)
             {
                 if (nodes.Count != 3) throw new ArgumentException("A Tri3 finite element has 3 nodes, but "
                 + nodes.Count + " nodes were provided.");

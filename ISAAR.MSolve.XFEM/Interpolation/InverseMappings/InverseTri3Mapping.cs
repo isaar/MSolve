@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
 {
@@ -13,7 +15,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
         private readonly double x1, x2, x3, y1, y2, y3;
         private readonly double det;
 
-        public InverseTri3Mapping(IReadOnlyList<Node2D> nodes)
+        public InverseTri3Mapping(IReadOnlyList<INode> nodes)
         {
             x1 = nodes[0].X;
             x2 = nodes[1].X;

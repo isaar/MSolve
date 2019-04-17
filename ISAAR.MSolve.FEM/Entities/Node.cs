@@ -1,5 +1,6 @@
 ﻿using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Geometry.Coordinates;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -80,5 +81,7 @@ namespace ISAAR.MSolve.FEM.Entities
                 if (!subdomainsDictionary.ContainsKey(element.Subdomain.ID))
                     subdomainsDictionary.Add(element.Subdomain.ID, element.Subdomain);
         }
+
+        public int CompareTo(INode other) => this.ID - other.ID;
     }
 }

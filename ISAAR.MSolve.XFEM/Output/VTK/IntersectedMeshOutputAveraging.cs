@@ -260,10 +260,10 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
         {
             //TODO: consider removing all this type safety in the coordinate systems or use generics
             // Copy the triangle nodes' natural coordinates to pseudo-cartesian nodes, so that interpolations can be used. 
-            var nodesPseudoCartesian = new Node2D[3];
+            var nodesPseudoCartesian = new XNode2D[3];
             for (int i = 0; i < 3; ++i)
             {
-                nodesPseudoCartesian[i] = new Node2D(i, triangleNodesNatural[i].Xi, triangleNodesNatural[i].Eta);
+                nodesPseudoCartesian[i] = new XNode2D(i, triangleNodesNatural[i].Xi, triangleNodesNatural[i].Eta);
             }
 
             var triangleGPsNatural = new NaturalPoint2D[triangleGPsAuxiliary.Count];

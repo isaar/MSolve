@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.XFEM.Interpolation
 {
@@ -16,22 +18,22 @@ namespace ISAAR.MSolve.XFEM.Interpolation
     // also a bad idea, since it requires to convert int -> Node2D (client) and then Dictionary lookup of Node2D (this 
     // class), instead of an array read. I guess it would be acceptable to use node indices to communicate with the 
     // client, IF that client is guaranteed to be the element. 
-    class EvaluatedInterpolation2D
+    public class EvaluatedInterpolation2D
     {
         // TODO: these 2 dictionaries may be able to be optimized into 1. E.g. only 1 data structure 
         // or arrays with a node to index dictionary
-        private readonly Dictionary<Node2D, double> nodesToValues;
-        private readonly Dictionary<Node2D, Vector2> nodesToCartesianDerivatives;
+        private readonly Dictionary<XNode2D, double> nodesToValues;
+        private readonly Dictionary<XNode2D, Vector2> nodesToCartesianDerivatives;
 
-        public Jacobian2D Jacobian { get; }
+        internal Jacobian2D Jacobian { get; }
 
-        public EvaluatedInterpolation2D(IReadOnlyList<Node2D> nodes, double[,] naturalDerivatives, Jacobian2D jacobian)
+        internal EvaluatedInterpolation2D(IReadOnlyList<XNode2D> nodes, double[,] naturalDerivatives, Jacobian2D jacobian)
         {
             /// Any attempt at retrieving the not evaluated shape function values (through <see cref="GetValueOf"/> 
             /// will throw a NullReferenceException, which should be sufficient.
             nodesToValues = null;
              
-            nodesToCartesianDerivatives = new Dictionary<Node2D, Vector2>(nodes.Count);
+            nodesToCartesianDerivatives = new Dictionary<XNode2D, Vector2>(nodes.Count);
             for (int i = 0; i < nodes.Count; ++i)
             {
                 nodesToCartesianDerivatives[nodes[i]] = jacobian.TransformNaturalDerivativesToCartesian(
@@ -40,15 +42,15 @@ namespace ISAAR.MSolve.XFEM.Interpolation
             this.Jacobian = jacobian;
         }
 
-        public EvaluatedInterpolation2D(IReadOnlyList<Node2D> nodes, double[] shapeFunctionValues, 
+        internal EvaluatedInterpolation2D(IReadOnlyList<XNode2D> nodes, double[] shapeFunctionValues, 
             double[,] naturalDerivatives, Jacobian2D jacobian)
         {
             // TODO: Optimize the dictionaries. Could I provide comparers or sth that speeds up hashing?
-            nodesToValues = new Dictionary<Node2D, double>(nodes.Count);
-            nodesToCartesianDerivatives = new Dictionary<Node2D, Vector2>(nodes.Count);
+            nodesToValues = new Dictionary<XNode2D, double>(nodes.Count);
+            nodesToCartesianDerivatives = new Dictionary<XNode2D, Vector2>(nodes.Count);
             for (int i = 0; i < nodes.Count; ++i)
             {
-                Node2D node = nodes[i];
+                XNode2D node = nodes[i];
                 nodesToValues[node] = shapeFunctionValues[i];
                 nodesToCartesianDerivatives[node] = jacobian.TransformNaturalDerivativesToCartesian(
                     Vector2.Create(naturalDerivatives[i, 0], naturalDerivatives[i, 1]));
@@ -56,7 +58,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
             this.Jacobian = jacobian;
         }
 
-        public double GetValueOf(Node2D node)
+        public double GetValueOf(XNode2D node)
         {
             return nodesToValues[node];
         }
@@ -65,7 +67,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
         // Tuple<double, double>. However it would require multiple node lookups. Otherwise, a software wide convention   
         // to use gradients as IReadOnlyList (immutable row arrays) or a dedicated (immutable class) can be enforced. 
         // TODO: Should the returned vector be immutable?
-        public Vector2 GetGlobalCartesianDerivativesOf(Node2D node)
+        public Vector2 GetGlobalCartesianDerivativesOf(XNode2D node)
         {
             return nodesToCartesianDerivatives[node];
         }
@@ -75,7 +77,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
             double x = 0, y = 0;
             foreach (var entry in nodesToValues)
             {
-                Node2D node = entry.Key;
+                XNode2D node = entry.Key;
                 double val = entry.Value;
                 x += val * node.X;
                 y += val * node.Y;

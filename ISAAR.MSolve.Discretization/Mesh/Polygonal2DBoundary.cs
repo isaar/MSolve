@@ -2,13 +2,13 @@
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
 
-namespace ISAAR.MSolve.XFEM.Geometry.Boundaries
+namespace ISAAR.MSolve.Discretization.Mesh
 {
-    class PolygonalBoundary: IDomainBoundary
+    public class Polygonal2DBoundary: IDomain2DBoundary
     {
         private readonly ConvexPolygon2D polygon;
 
-        public PolygonalBoundary(IReadOnlyList<CartesianPoint2D> vertices)
+        public Polygonal2DBoundary(IReadOnlyList<CartesianPoint2D> vertices)
         {
             polygon = ConvexPolygon2D.CreateUnsafe(vertices); 
         }

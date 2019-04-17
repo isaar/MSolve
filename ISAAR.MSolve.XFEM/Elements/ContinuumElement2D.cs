@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Geometry.Tensors;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -17,14 +18,14 @@ namespace ISAAR.MSolve.XFEM.Elements
     {
         private readonly IsoparametricElementType2D elementType;
 
-        public IReadOnlyList<Node2D> Nodes { get; private set; }
+        public IReadOnlyList<XNode2D> Nodes { get; private set; }
         public IsoparametricInterpolation2D Interpolation { get { return elementType.Interpolation; } }
         public IStandardQuadrature2D StandardQuadrature { get { return elementType.StandardQuadrature; } }
         public IIntegrationStrategy2D<ContinuumElement2D> IntegrationStrategy { get; }
         public IMaterialField2D Material { get; }
         public int DofsCount { get { return Nodes.Count * 2; } } // I could store it for efficency and update it when nodes change.
         
-        public ContinuumElement2D(IsoparametricElementType2D type, IReadOnlyList<Node2D> nodes,  
+        public ContinuumElement2D(IsoparametricElementType2D type, IReadOnlyList<XNode2D> nodes,  
             IIntegrationStrategy2D<ContinuumElement2D> integrationStrategy, IMaterialField2D material)
         {
             type.CheckNodes(nodes);
@@ -132,10 +133,10 @@ namespace ISAAR.MSolve.XFEM.Elements
         // the mutable collections
         // TODO: Perhaps this should be saved as a DofOrderer object. XElement will get a mutable one, while 
         // others will get a view. I could still use a DofOrderer even if I do not save it.
-        public IReadOnlyDictionary<Node2D, HashSet<DisplacementDof>> GetNodalDofTypes()
+        public IReadOnlyDictionary<XNode2D, HashSet<DisplacementDof>> GetNodalDofTypes()
         {
-            var nodalDofTypes = new Dictionary<Node2D, HashSet<DisplacementDof>>(Nodes.Count);
-            foreach (Node2D node in Nodes)
+            var nodalDofTypes = new Dictionary<XNode2D, HashSet<DisplacementDof>>(Nodes.Count);
+            foreach (XNode2D node in Nodes)
             {
                 var dofTypesOfThisNode = new HashSet<DisplacementDof>();
                 dofTypesOfThisNode.Add(DisplacementDof.X);

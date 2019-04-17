@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.XFEM.Utilities
     /// Data transfer object to store and pass around the value and derivatives of a 2D function, evaluated at some 
     /// It mainly serves to avoid obscure Tuple<double, Tuple<double, double>> objects.
     /// </summary>
-    class EvaluatedFunction2D
+    public class EvaluatedFunction2D
     {
         public EvaluatedFunction2D(double value, Vector2 cartesianDerivatives)
         {

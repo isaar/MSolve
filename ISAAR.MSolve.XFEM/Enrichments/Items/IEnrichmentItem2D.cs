@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
 {
     // Connects the geometry, model and enrichment function entities.
     // TODO: At this point it does most of the work in 1 class. Appropriate decomposition is needed.
-    interface IEnrichmentItem2D
+    public interface IEnrichmentItem2D
     {
         // Perhaps the nodal dof types should be decided by the element type (structural, continuum) in combination with the EnrichmentItem2D and drawn from XContinuumElement2D
         IReadOnlyList<EnrichedDof> Dofs { get; } 

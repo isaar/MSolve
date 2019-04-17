@@ -3,7 +3,7 @@ using ISAAR.MSolve.XFEM.Enrichments.Functions;
 
 namespace ISAAR.MSolve.XFEM.FreedomDegrees
 {
-    internal class EnrichedDof: IDof
+    public class EnrichedDof: IDof
     {
         public IEnrichmentFunction2D Enrichment { get; }
         public IDof StandardDof { get; }

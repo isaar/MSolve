@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Entities;
 
@@ -18,7 +20,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
         // The delegate avoids redundant checking for which case we are at 
         private readonly Func<double, double, NaturalPoint2D> formula; 
 
-        public InverseQuad4Mapping(IReadOnlyList<Node2D> nodes)
+        public InverseQuad4Mapping(IReadOnlyList<XNode2D> nodes)
         {
             //TODO: all these concern only the first configuration (nodes[0] is the bottom left)
 
@@ -181,9 +183,9 @@ namespace ISAAR.MSolve.XFEM.Interpolation.InverseMappings
         /// </summary>
         /// <param name="nodes"></param>
         /// <returns></returns>
-        private static IReadOnlyList<Node2D> CycleCounterClockwise(IReadOnlyList<Node2D> nodes)
+        private static IReadOnlyList<XNode2D> CycleCounterClockwise(IReadOnlyList<XNode2D> nodes)
         {
-            var cycled = new Node2D[nodes.Count];
+            var cycled = new XNode2D[nodes.Count];
             cycled[0] = nodes[nodes.Count - 1];
             for (int i = 0; i < nodes.Count - 1; ++i) cycled[i + 1] = nodes[i];
             return cycled;

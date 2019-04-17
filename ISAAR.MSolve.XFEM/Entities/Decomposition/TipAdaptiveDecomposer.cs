@@ -1,23 +1,21 @@
-﻿using ISAAR.MSolve.XFEM.CrackGeometry;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Exceptions;
-using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Geometry.Mesh;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ISAAR.MSolve.XFEM.Entities.Decomposition
 {
     class TipAdaptiveDecomposer: IDomainDecomposer //TODO: extend it to more than one tips/cracks
     {
         private readonly ICrackDescription crack;
-        private readonly BiMesh2D mesh;
+        private readonly BidirectionalMesh2D<XNode2D, XContinuumElement2D> mesh;
         private readonly IReadOnlyList<IRegion2D> regions;
         private IDomainDecomposer initialDecomposer; //TODO: this should be discarded once used.
 
-        public TipAdaptiveDecomposer(BiMesh2D mesh, IReadOnlyList<IRegion2D> regions, ICrackDescription crack,
-            IDomainDecomposer initialDecomposer)
+        public TipAdaptiveDecomposer(BidirectionalMesh2D<XNode2D, XContinuumElement2D> mesh, IReadOnlyList<IRegion2D> regions, 
+            ICrackDescription crack, IDomainDecomposer initialDecomposer)
         {
             this.mesh = mesh;
             this.regions = regions;

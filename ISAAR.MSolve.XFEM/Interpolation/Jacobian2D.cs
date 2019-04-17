@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.XFEM.Entities;
 
 namespace ISAAR.MSolve.XFEM.Interpolation
 {
@@ -23,7 +25,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
         /// </summary>
         /// <param name="nodes">The nodes used for the interpolation.</param>
         /// <param name="naturalDerivatives">The shape function derivatives at a specific integration point. </param>
-        public Jacobian2D(IReadOnlyList<CartesianPoint2D> nodes, double[,] naturalDerivatives)
+        public Jacobian2D(IReadOnlyList<XNode2D> nodes, double[,] naturalDerivatives)
         {
             // The original matrix is not stored. Only the inverse and the determinant
             Matrix2by2 jacobianMatrix = CalculateJacobianMatrix(nodes, naturalDerivatives);
@@ -40,7 +42,7 @@ namespace ISAAR.MSolve.XFEM.Interpolation
             return naturalGradient * inverseJ;
         }
 
-        private static Matrix2by2 CalculateJacobianMatrix(IReadOnlyList<CartesianPoint2D> nodes, 
+        private static Matrix2by2 CalculateJacobianMatrix(IReadOnlyList<XNode2D> nodes, 
             double[,] naturalDerivatives)
         {
             var J = new double[DIMENSION, DIMENSION];

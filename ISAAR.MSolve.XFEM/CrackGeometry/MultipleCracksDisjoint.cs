@@ -1,18 +1,13 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.CrackGeometry.Implicit;
 using ISAAR.MSolve.XFEM.CrackPropagation;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Geometry.Mesh;
-using ISAAR.MSolve.Geometry.Shapes;
-using ISAAR.MSolve.XFEM.Interpolation;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 //TODO: replace the boilerplate code with one or more (or generic) Union() private methods
 namespace ISAAR.MSolve.XFEM.CrackGeometry
@@ -190,7 +185,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
             }
         }
 
-        public BiMesh2D Mesh { get { return cracks[0].Mesh; } } //TODO: during construction check that all cracks use the same mesh
+        public BidirectionalMesh2D<XNode2D, XContinuumElement2D> Mesh { get { return cracks[0].Mesh; } } //TODO: during construction check that all cracks use the same mesh
 
         public IReadOnlyList<IEnrichmentItem2D> Enrichments
         {

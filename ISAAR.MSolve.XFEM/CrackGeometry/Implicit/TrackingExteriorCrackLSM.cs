@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.Geometry.Commons;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
@@ -15,7 +16,6 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Interpolation;
 
 //TODO: replace BasicCrackLSM with this one after testing is done
@@ -198,7 +198,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         public EnrichmentLogger EnrichmentLogger { get; set; }
         public LevelSetLogger LevelSetLogger { get; set; }
         public PreviousLevelSetComparer LevelSetComparer { get; set; }
-        public BiMesh2D Mesh { get; set; }
+        public BidirectionalMesh2D<XNode2D, XContinuumElement2D> Mesh { get; set; }
         public IHeavisideSingularityResolver SingularityResolver { get; }
         public IReadOnlyList<ISingleCrack> SingleCracks { get { return new ISingleCrack[] { this }; } }
 
@@ -240,7 +240,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             tangentX /= length;
             tangentY /= length;
 
-            foreach (XNode2D node in Mesh.Vertices)
+            foreach (XNode2D node in Mesh.Nodes)
             {
                 levelSetsBody[node] = segment.SignedDistanceOf(node);
                 levelSetsTip[node] = (node.X - crackTip.X) * tangentX + (node.Y - crackTip.Y) * tangentY;
@@ -269,7 +269,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             tangentX /= length;
             tangentY /= length;
 
-            foreach (XNode2D node in Mesh.Vertices)
+            foreach (XNode2D node in Mesh.Nodes)
             {
                 levelSetsBody[node] = initialCrack.SignedDistanceOf(node);
                 levelSetsTip[node] = (node.X - crackTip.X) * tangentX + (node.Y - crackTip.Y) * tangentY;
@@ -421,7 +421,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             CrackTipEnrichments.TipSystem = tipSystem;
 
             //TODO: it is inconsistent that the modified body nodes are updated here, while the other in UpdateEnrichments(); 
-            crackBodyNodesModified = levelSetUpdater.Update(oldTip, localGrowthAngle, growthLength, dx, dy, Mesh.Vertices, 
+            crackBodyNodesModified = levelSetUpdater.Update(oldTip, localGrowthAngle, growthLength, dx, dy, Mesh.Nodes, 
                 crackBodyNodesAll, levelSetsBody, levelSetsTip);
 
             if (LevelSetLogger != null) LevelSetLogger.Log(); //TODO: handle this with a NullLogger.
@@ -505,7 +505,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
 
         private void FindBodyAndTipNodesAndElements() //TODO: perhaps the singularity resolution should be done inside this method
         {
-            foreach (var element in Mesh.Cells)
+            foreach (var element in Mesh.Elements)
             {
                 element.EnrichmentItems.Clear(); //TODO: not too fond of saving enrichment state in elements. It should be confined in nodes
                 CrackElementPosition relativePosition = meshInteraction.FindRelativePositionOf(element);

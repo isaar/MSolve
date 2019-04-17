@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Interpolation;
 
 //TODO: I suspect this is method is responsible for singular global matrices popping up randomly for many configurations.

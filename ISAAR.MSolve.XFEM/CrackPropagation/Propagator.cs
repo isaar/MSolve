@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.Geometry.Tensors;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -10,9 +14,6 @@ using ISAAR.MSolve.XFEM.CrackPropagation.Length;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Geometry.Mesh;
-using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Interpolation;
 
@@ -123,7 +124,8 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
                 double[] nodalWeights = new double[element.Nodes.Count];
                 for (int nodeIdx = 0; nodeIdx < element.Nodes.Count; ++nodeIdx)
                 {
-                    if (outerContour.FindRelativePositionOfPoint(element.Nodes[nodeIdx]) == CirclePointPosition.Outside)
+                    CirclePointPosition pos = outerContour.FindRelativePositionOfPoint((CartesianPoint2D)element.Nodes[nodeIdx]);
+                    if (pos == CirclePointPosition.Outside)
                     {
                         nodalWeights[nodeIdx] = 0.0;
                     }
@@ -145,7 +147,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             double maxTipElementArea = -1.0;
             foreach (var element in tipElements)
             {
-                var outline = ConvexPolygon2D.CreateUnsafe(element.Nodes);
+                var outline = ConvexPolygon2D.CreateUnsafe(element.Nodes.Select(node => (CartesianPoint2D)node).ToArray());
                 double elementArea = outline.ComputeArea();
                 if (elementArea > maxTipElementArea) maxTipElementArea = elementArea;
             }

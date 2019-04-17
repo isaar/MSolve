@@ -1,19 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
 
-namespace ISAAR.MSolve.XFEM.Geometry.Mesh
+namespace ISAAR.MSolve.Discretization.Mesh
 {
-    interface IMesh2D<TVertex, TCell> 
-        where TVertex: IPoint2D 
-        where TCell: class, ICell
+    public interface IMesh2D<TNode, TElement> 
+        where TNode: INode 
+        where TElement: class, ICell<TNode>
     {
-        IReadOnlyList<TVertex> Vertices { get; }
-        IReadOnlyList<TCell> Cells { get; }
+        IReadOnlyList<TNode> Nodes { get; }
+        IReadOnlyList<TElement> Elements { get; }
 
         /// <summary>
         /// Find the elements that contain the provided point. The following cases are possible:
@@ -26,7 +23,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
         /// <param name="startingElement">An element around which to start the search. If no such element is provided 
         ///     the search will probably take longer, usually O(elementsCount).</param>
         /// <returns></returns>
-        IReadOnlyList<TCell> FindElementsContainingPoint(CartesianPoint2D point, TCell startingElement = null);
+        IReadOnlyList<TElement> FindElementsContainingPoint(CartesianPoint2D point, TElement startingElement = null);
 
         /// <summary>
         /// Find the elements that are intersected by the provided circle. The following cases are possible:
@@ -40,7 +37,7 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
         /// <param name="startingElement">An element around which to start the search. If no such element is provided 
         ///     the search will probably take longer, usually O(elementsCount).</param>
         /// <returns></returns>
-        IReadOnlyList<TCell> FindElementsIntersectedByCircle(Circle2D circle, TCell startingElement = null);
+        IReadOnlyList<TElement> FindElementsIntersectedByCircle(Circle2D circle, TElement startingElement = null);
 
         /// <summary>
         /// Find the elements that are completely inside or intersected by the provided circle. 
@@ -48,9 +45,9 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
         /// <param name="startingElement">An element around which to start the search. If no such element is provided 
         ///     the search will probably take longer, usually O(elementsCount).</param>
         /// <returns></returns>
-        IReadOnlyList<TCell> FindElementsInsideCircle(Circle2D circle, TCell startingElement = null);
+        IReadOnlyList<TElement> FindElementsInsideCircle(Circle2D circle, TElement startingElement = null);
 
-        ISet<TCell> FindElementsWithNode(TVertex node);
+        ISet<TElement> FindElementsWithNode(TNode node);
 
         /// <summary>
         /// Find the nodes of the mesh which are inside (and optionally exactly on) the provided circle. If there are
@@ -62,8 +59,8 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh
         /// <param name="startingElement">An element around which to start the search. If no such element is provided 
         ///     the search will probably take longer, usually O(nodesCount).</param>
         /// <returns></returns>
-        IReadOnlyList<TVertex> FindNodesInsideCircle(Circle2D circle, 
-            bool findBoundaryNodes = true, TCell startingElement = null);
+        IReadOnlyList<TNode> FindNodesInsideCircle(Circle2D circle, 
+            bool findBoundaryNodes = true, TElement startingElement = null);
 
         bool IsInsideBoundary(CartesianPoint2D point);
     }

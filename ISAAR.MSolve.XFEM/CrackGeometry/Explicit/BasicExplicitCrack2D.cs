@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.Geometry.Commons;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
@@ -14,7 +15,6 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Interpolation;
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
@@ -45,7 +45,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
 
         public IReadOnlyList<IEnrichmentItem2D> Enrichments => throw new NotImplementedException();
 
-        BiMesh2D ICrackDescription.Mesh => throw new NotImplementedException();
+        BidirectionalMesh2D<XNode2D, XContinuumElement2D> ICrackDescription.Mesh => throw new NotImplementedException();
 
         public IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode2D>> CrackBodyNodesAll => throw new NotImplementedException();
 
@@ -186,7 +186,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
         private void ApplyEnrichmentFunctions(HashSet<XNode2D> bodyNodes, HashSet<XNode2D> tipNodes)
         {
             // O(n) operation. TODO: This could be sped up by tracking the tip enriched nodes of each step.
-            foreach (var node in Mesh.Vertices) node.EnrichmentItems.Remove(CrackTipEnrichments);
+            foreach (var node in Mesh.Nodes) node.EnrichmentItems.Remove(CrackTipEnrichments);
             foreach (var node in tipNodes)
             {
                 double[] enrichmentValues = CrackTipEnrichments.EvaluateFunctionsAt(node);
@@ -321,7 +321,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
         private void FindBodyAndTipNodesAndElements(HashSet<XNode2D> bodyNodes, HashSet<XNode2D> tipNodes)
         {
             var bothElements = new HashSet<XContinuumElement2D>();
-            foreach (var element in Mesh.Cells)
+            foreach (var element in Mesh.Elements)
             {
                 element.EnrichmentItems.Clear();
                 ElementEnrichmentType type = CharacterizeElementEnrichment(element);

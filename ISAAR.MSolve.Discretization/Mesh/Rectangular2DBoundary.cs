@@ -1,15 +1,15 @@
 ﻿using ISAAR.MSolve.Geometry.Coordinates;
 
-namespace ISAAR.MSolve.XFEM.Geometry.Boundaries
+namespace ISAAR.MSolve.Discretization.Mesh
 {
-    class RectangularBoundary: IDomainBoundary
+    public class Rectangular2DBoundary: IDomain2DBoundary
     {
         private readonly double minX;
         private readonly double maxX;
         private readonly double minY;
         private readonly double maxY;
 
-        public RectangularBoundary(double minX, double maxX, double minY, double maxY)
+        public Rectangular2DBoundary(double minX, double maxX, double minY, double maxY)
         {
             this.minX = minX;
             this.maxX = maxX;

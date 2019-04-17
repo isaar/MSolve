@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.Geometry.Commons;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
@@ -11,7 +12,6 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.XFEM.Geometry.Mesh;
 using ISAAR.MSolve.XFEM.Interpolation;
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
@@ -171,7 +171,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             HashSet<XNode2D> endTipNodes)
         {
             // O(n) operation. TODO: This could be sped up by tracking the tip enriched nodes of each step.
-            foreach (var node in Mesh.Vertices)
+            foreach (var node in Mesh.Nodes)
             {
                 node.EnrichmentItems.Remove(StartTipEnrichments);
                 node.EnrichmentItems.Remove(EndTipEnrichments);
@@ -238,7 +238,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             HashSet<XNode2D> endTipNodes)
         {
             var bodyElements = new HashSet<XContinuumElement2D>();
-            foreach (var element in Mesh.Cells)
+            foreach (var element in Mesh.Elements)
             {
                 element.EnrichmentItems.Clear();
                 bool isCut = IsCutElement(element);
