@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
-using ISAAR.MSolve.Discretization.Mesh;
-using ISAAR.MSolve.Discretization.Mesh.GMSH;
+using ISAAR.MSolve.Discretization.Mesh.Generation;
+using ISAAR.MSolve.Discretization.Mesh.Generation.GMSH;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.SamplesConsole.Preprocessing;

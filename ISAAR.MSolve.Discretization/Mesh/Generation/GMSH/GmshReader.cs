@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using ISAAR.MSolve.Discretization.Interfaces;
 
-namespace ISAAR.MSolve.Discretization.Mesh.GMSH
+namespace ISAAR.MSolve.Discretization.Mesh.Generation.GMSH
 {
     /// <summary>
     /// Creates meshes by reading GMSH output files (.msh). Unrecognized GMSH cell types will be ignored along with any 1D cells

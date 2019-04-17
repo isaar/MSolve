@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Discretization.Mesh;
-using ISAAR.MSolve.Discretization.Mesh.Custom;
+using ISAAR.MSolve.Discretization.Mesh.Generation;
+using ISAAR.MSolve.Discretization.Mesh.Generation.Custom;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;

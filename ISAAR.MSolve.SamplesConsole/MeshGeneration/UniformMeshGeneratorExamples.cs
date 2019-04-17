@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using ISAAR.MSolve.Discretization.Mesh;
-using ISAAR.MSolve.Discretization.Mesh.Custom;
+using ISAAR.MSolve.Discretization.Mesh.Generation;
+using ISAAR.MSolve.Discretization.Mesh.Generation.Custom;
 using ISAAR.MSolve.FEM.Entities;
 
 namespace ISAAR.MSolve.SamplesConsole.MeshGeneration
@@ -10,7 +10,6 @@ namespace ISAAR.MSolve.SamplesConsole.MeshGeneration
     {
         public static void Generate2DMesh()
         {
-
         }
 
         public static void Generate3DMesh()

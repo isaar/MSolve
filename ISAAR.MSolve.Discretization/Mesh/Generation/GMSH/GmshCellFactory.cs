@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Discretization.Mesh;
 
 //TODO: Extend this works to 3D cells
-namespace ISAAR.MSolve.Discretization.Mesh.GMSH
+namespace ISAAR.MSolve.Discretization.Mesh.Generation.GMSH
 {
     /// <summary>
     /// Converts cell types and the order of their vertices from GMSH to MSolve.

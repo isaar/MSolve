@@ -2,8 +2,8 @@
 using System.Diagnostics;
 using System.Linq;
 using ISAAR.MSolve.Analyzers.Multiscale;
-using ISAAR.MSolve.Discretization.Mesh;
-using ISAAR.MSolve.Discretization.Mesh.Custom;
+using ISAAR.MSolve.Discretization.Mesh.Generation;
+using ISAAR.MSolve.Discretization.Mesh.Generation.Custom;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;

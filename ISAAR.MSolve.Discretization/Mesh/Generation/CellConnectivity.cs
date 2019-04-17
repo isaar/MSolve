@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Discretization.Mesh;
 
 //TODO: this should be moved to Geometry.Shapes once Node2D has been replaced with a generic IPoint2D
-namespace ISAAR.MSolve.Discretization.Mesh
+namespace ISAAR.MSolve.Discretization.Mesh.Generation
 {
     /// <summary>
     /// Data Transfer Object that packs the <see cref="CellType"/> with the vertices of a cell. Since there are no 

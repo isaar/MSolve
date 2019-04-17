@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Discretization.Mesh;
 
 //TODO: abstract this in order to be used with points in various coordinate systems
 //TODO: perhaps the origin should be (0.0, 0.0) and the meshes could then be transformed. Abaqus does something similar with its
 //      meshed parts during assembly
-namespace ISAAR.MSolve.Discretization.Mesh.Custom
+namespace ISAAR.MSolve.Discretization.Mesh.Generation.Custom
 {
     /// <summary>
     /// Creates 2D meshes based on uniform rectilinear grids: the distance between two consecutive vertices for the same axis is 
