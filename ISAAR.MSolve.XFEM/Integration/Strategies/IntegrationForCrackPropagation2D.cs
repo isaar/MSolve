@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Integration;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
-using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Integration.Quadratures;
-using ISAAR.MSolve.XFEM.Integration.Points;
 
 namespace ISAAR.MSolve.XFEM.Integration.Strategies
 {

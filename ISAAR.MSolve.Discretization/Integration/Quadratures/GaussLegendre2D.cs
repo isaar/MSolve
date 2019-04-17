@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Commons;
-using ISAAR.MSolve.Discretization.Integration.Points;
+using ISAAR.MSolve.Discretization.Integration;
 
 //TODO: A thread safe Table is needed with an atomic method: 
 //      GetOrAddNew(int orderXi, int orderEta, Func<int, int, GaussLegendre2D> createFunc). This quadrature class should also 

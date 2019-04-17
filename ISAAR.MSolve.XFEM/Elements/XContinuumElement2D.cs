@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using ISAAR.MSolve.Discretization.Integration;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Tensors;
@@ -9,8 +11,6 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
-using ISAAR.MSolve.XFEM.Integration.Points;
-using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Materials;
@@ -40,7 +40,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// </summary>
         public IsoparametricInterpolation2D Interpolation { get { return ElementType.Interpolation; } }
 
-        internal IStandardQuadrature2D StandardQuadrature { get { return ElementType.StandardQuadrature; } }
+        internal IQuadrature2D StandardQuadrature { get { return ElementType.StandardQuadrature; } }
         internal IIntegrationStrategy2D<XContinuumElement2D> IntegrationStrategy { get; }
         internal IIntegrationStrategy2D<XContinuumElement2D> JintegralStrategy { get; }
 

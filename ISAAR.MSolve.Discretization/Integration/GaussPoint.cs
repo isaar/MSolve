@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.Geometry.Coordinates;
 
-namespace ISAAR.MSolve.Discretization.Integration.Points
+namespace ISAAR.MSolve.Discretization.Integration
 {
     /// <summary>
     /// Integration point (coordinates & weight) defined in the 3D natural coordinate system of a finite element. It can also 

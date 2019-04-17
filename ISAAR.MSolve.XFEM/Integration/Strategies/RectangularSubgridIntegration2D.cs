@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Elements;
-using ISAAR.MSolve.XFEM.Integration.Points;
-using ISAAR.MSolve.XFEM.Integration.Quadratures;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Integration;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 
 namespace ISAAR.MSolve.XFEM.Integration.Strategies
 {
@@ -19,7 +14,8 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
         private readonly int subgridsPerAxis;
         private readonly GaussLegendre2D  gaussQuadrature;
 
-        public RectangularSubgridIntegration2D(int subgridsPerAxis): this(subgridsPerAxis, GaussLegendre2D.Order2x2)
+        public RectangularSubgridIntegration2D(int subgridsPerAxis) : 
+            this(subgridsPerAxis, GaussLegendre2D.GetQuadratureWithOrder(2,2))
         {
         }
 

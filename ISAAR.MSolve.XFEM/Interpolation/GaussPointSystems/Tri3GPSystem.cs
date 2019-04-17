@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Integration;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Tensors;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Integration.Points;
 
 namespace ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems
 {

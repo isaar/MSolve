@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Integration;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
-using ISAAR.MSolve.XFEM.Integration.Points;
-using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Interpolation.InverseMappings;
 
 namespace ISAAR.MSolve.XFEM.Integration.Strategies
@@ -14,12 +14,12 @@ namespace ISAAR.MSolve.XFEM.Integration.Strategies
     // TODO: Needs option to refine the mesh for the J-integral and tip blending elements.
     class IntegrationWithSubtriangles: IIntegrationStrategy2D<XContinuumElement2D>
     {
-        private readonly GaussQuadratureForTriangle triangleIntegrationRule;
+        private readonly TriangleQuadratureSymmetricGaussian triangleIntegrationRule;
         private readonly ITriangulator2D<NaturalPoint> triangulator;
         private readonly ISingleCrack crack;
         private readonly double triangleOverElementArea;
 
-        public IntegrationWithSubtriangles(GaussQuadratureForTriangle triangleIntegrationRule, ISingleCrack crack, 
+        public IntegrationWithSubtriangles(TriangleQuadratureSymmetricGaussian triangleIntegrationRule, ISingleCrack crack, 
             ITriangulator2D<NaturalPoint> triangulator, double triangleOverElementArea = double.PositiveInfinity)
         {
             this.triangleIntegrationRule = triangleIntegrationRule;

@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Integration.Quadratures;
+using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems;
-using ISAAR.MSolve.FEM.Entities;
 
 namespace ISAAR.MSolve.XFEM.Elements
 {
@@ -26,7 +22,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// i) immutable, ii) precached for fast generation, iii) stored globally for all elements
         /// TODO: Should this be stored as a field? It is a static property of the concrete (aka derived) class...
         /// </summary>
-        public abstract IStandardQuadrature2D StandardQuadrature { get; }
+        public abstract IQuadrature2D StandardQuadrature { get; }
         public abstract IsoparametricInterpolation2D Interpolation { get; }
         public abstract void CheckNodes(IReadOnlyList<XNode> nodes);
         public abstract IReadOnlyList<NaturalPoint> NaturalCoordinatesOfNodes { get; }
@@ -39,9 +35,9 @@ namespace ISAAR.MSolve.XFEM.Elements
                 get { return IsoparametricInterpolation2D.Quad4; }
             }
 
-            public override IStandardQuadrature2D StandardQuadrature
+            public override IQuadrature2D StandardQuadrature
             {
-                get { return GaussLegendre2D.Order2x2; }
+                get { return GaussLegendre2D.GetQuadratureWithOrder(2, 2); }
             }
 
             public override void CheckNodes(IReadOnlyList<XNode> nodes)
@@ -75,9 +71,9 @@ namespace ISAAR.MSolve.XFEM.Elements
                 get { return IsoparametricInterpolation2D.Quad9; }
             }
 
-            public override IStandardQuadrature2D StandardQuadrature
+            public override IQuadrature2D StandardQuadrature
             {
-                get { return GaussLegendre2D.Order3x3; }
+                get { return GaussLegendre2D.GetQuadratureWithOrder(3, 3); }
             }
 
             public override void CheckNodes(IReadOnlyList<XNode> nodes)
@@ -117,9 +113,9 @@ namespace ISAAR.MSolve.XFEM.Elements
                 get { return IsoparametricInterpolation2D.Tri3; }
             }
 
-            public override IStandardQuadrature2D StandardQuadrature
+            public override IQuadrature2D StandardQuadrature
             {
-                get { return GaussQuadratureForTriangle.Order1Point1; }
+                get { return TriangleQuadratureSymmetricGaussian.Order1Point1; }
             }
 
             public override void CheckNodes(IReadOnlyList<XNode> nodes)

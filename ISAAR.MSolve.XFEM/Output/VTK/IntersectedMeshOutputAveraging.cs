@@ -1,21 +1,19 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
+﻿using System;
+using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Integration;
+using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.Geometry.Tensors;
+using ISAAR.MSolve.Geometry.Triangulation;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.CrackGeometry;
-using ISAAR.MSolve.XFEM.CrackGeometry.Implicit;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Geometry.Triangulation;
-using ISAAR.MSolve.XFEM.Integration.Points;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems;
 using ISAAR.MSolve.XFEM.Interpolation.InverseMappings;
-using ISAAR.MSolve.Geometry.Tensors;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 //TODO: the extrapolations from Gauss points to nodes of the subtriangles does not work near the tip, where the displacement 
 //      field contains interpolated tip functions. This could be fixed (for the subtriangle nodes only) by basing the 

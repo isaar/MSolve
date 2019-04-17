@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.Discretization.Integration;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Geometry.Tensors;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
-using ISAAR.MSolve.XFEM.Integration.Points;
-using ISAAR.MSolve.XFEM.Integration.Quadratures;
 using ISAAR.MSolve.XFEM.Integration.Strategies;
 using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Materials;
@@ -20,7 +19,7 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         public IReadOnlyList<XNode> Nodes { get; private set; }
         public IsoparametricInterpolation2D Interpolation { get { return elementType.Interpolation; } }
-        public IStandardQuadrature2D StandardQuadrature { get { return elementType.StandardQuadrature; } }
+        public IQuadrature2D StandardQuadrature { get { return elementType.StandardQuadrature; } }
         public IIntegrationStrategy2D<ContinuumElement2D> IntegrationStrategy { get; }
         public IMaterialField2D Material { get; }
         public int DofsCount { get { return Nodes.Count * 2; } } // I could store it for efficency and update it when nodes change.

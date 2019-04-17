@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using ISAAR.MSolve.Discretization.Integration.Points;
+using ISAAR.MSolve.Discretization.Integration;
 
 namespace ISAAR.MSolve.Discretization.Integration.Quadratures
 {
