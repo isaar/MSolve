@@ -35,15 +35,15 @@ namespace ISAAR.MSolve.Discretization.Mesh.Generation.Custom
         /// Generates a uniform mesh with the dimensions and density defined in the constructor.
         /// </summary>
         /// <returns></returns>
-        public (IReadOnlyList<TNode> vertices, IReadOnlyList<CellConnectivity<TNode>> cells)
+        public (IReadOnlyList<TNode> nodes, IReadOnlyList<CellConnectivity<TNode>> elements)
             CreateMesh(CreateNode<TNode> createNode)
         {
-            TNode[] vertices = CreateVertices(createNode);
-            CellConnectivity<TNode>[] cells = CreateCells(vertices);
-            return (vertices, cells);
+            TNode[] nodes = CreateNodes(createNode);
+            CellConnectivity<TNode>[] elements = CreateElements(nodes);
+            return (nodes, elements);
         }
 
-        private TNode[] CreateVertices(CreateNode<TNode> createNode)
+        private TNode[] CreateNodes(CreateNode<TNode> createNode)
         {
             var vertices = new TNode[verticesPerY * verticesPerX];
             int id = 0;
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.Discretization.Mesh.Generation.Custom
             return vertices;
         }
 
-        private CellConnectivity<TNode>[] CreateCells(TNode[] allVertices)
+        private CellConnectivity<TNode>[] CreateElements(TNode[] allVertices)
         {
             var cells = new CellConnectivity<TNode>[cellsPerY * cellsPerX];
             for (int j = 0; j < cellsPerY; ++j)

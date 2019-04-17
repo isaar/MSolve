@@ -25,16 +25,21 @@ namespace ISAAR.MSolve.Discretization.Mesh.Generation.GMSH
             reader = new StreamReader(mshFilePath);
         }
 
+        ~GmshReader()
+        {
+            if (reader != null) reader.Dispose();
+        }
+
         /// <summary>
         /// Reads the whole .msh file and converts it to MSolve mesh data.
         /// </summary>
-        public (IReadOnlyList<TNode> vertices, IReadOnlyList<CellConnectivity<TNode>> cells) 
+        public (IReadOnlyList<TNode> nodes, IReadOnlyList<CellConnectivity<TNode>> elements) 
             CreateMesh(CreateNode<TNode> createNode)
         {
             // Vertices must be listed before cells
-            TNode[] vertices = ReadVertices(createNode);
-            IReadOnlyList<CellConnectivity<TNode>> cells = ReadCells(vertices);
-            return (vertices, cells);
+            TNode[] nodes = ReadNodes(createNode);
+            IReadOnlyList<CellConnectivity<TNode>> elements = ReadElements(nodes);
+            return (nodes, elements);
         }
 
 
@@ -43,7 +48,7 @@ namespace ISAAR.MSolve.Discretization.Mesh.Generation.GMSH
             if (reader != null) reader.Dispose();
         }
 
-        private TNode[] ReadVertices(CreateNode<TNode> createNode)
+        private TNode[] ReadNodes(CreateNode<TNode> createNode)
         {
             string line;
 
@@ -75,7 +80,7 @@ namespace ISAAR.MSolve.Discretization.Mesh.Generation.GMSH
         }
 
         // It must be called after vertices are read.
-        private IReadOnlyList<CellConnectivity<TNode>> ReadCells(TNode[] vertices)
+        private IReadOnlyList<CellConnectivity<TNode>> ReadElements(TNode[] vertices)
         {
             string line;
 

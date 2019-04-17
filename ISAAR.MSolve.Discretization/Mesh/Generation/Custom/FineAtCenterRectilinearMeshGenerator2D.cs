@@ -3,26 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh.Generation;
 
-namespace ISAAR.MSolve.XFEM.Geometry.Mesh.SuiteSparse
+namespace ISAAR.MSolve.Discretization.Mesh.Generation.Custom
 {
-    class FineAtCenterRectilinearMeshGenerator
+    public class FineAtCenterRectilinearMeshGenerator2D<TNode> : IMeshGenerator<TNode> where TNode : INode
     {
         public double[] domainLowerBounds, domainUpperBounds;
         public double fineElementSize;
         public int coarseElementCountPerRegion;
         public double[] interestAreaDimensions;
 
-        public FineAtCenterRectilinearMeshGenerator()
+        public FineAtCenterRectilinearMeshGenerator2D()
         { }
 
-        public (XNode2D[] nodes, List<XNode2D[]> elementConnectivity) CreateMesh()
+        public (IReadOnlyList<TNode> nodes, IReadOnlyList<CellConnectivity<TNode>> elements) 
+            CreateMesh(CreateNode<TNode> createNode)
         {
             double[] coordinatesX = FindNodalCoordinates(0);
             double[] coordinatesY = FindNodalCoordinates(1);
-            var baseGenerator = new RectilinearMeshGenerator(coordinatesX, coordinatesY);
-            return baseGenerator.CreateMesh();
+            var baseGenerator = new RectilinearMeshGenerator2D<TNode>(coordinatesX, coordinatesY);
+            return baseGenerator.CreateMesh(createNode);
         }
 
         public double[] FindNodalCoordinates(int dimension)

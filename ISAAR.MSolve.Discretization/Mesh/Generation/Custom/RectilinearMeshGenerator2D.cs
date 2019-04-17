@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.Discretization.Interfaces;
 
-namespace ISAAR.MSolve.XFEM.Geometry.Mesh.SuiteSparse
+namespace ISAAR.MSolve.Discretization.Mesh.Generation.Custom
 {
-    class RectilinearMeshGenerator
+    public class RectilinearMeshGenerator2D<TNode> : IMeshGenerator<TNode> where TNode : INode
     {
         private readonly IReadOnlyList<double> coordinatesX;
         private readonly IReadOnlyList<double> coordinatesY;
@@ -15,12 +13,12 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh.SuiteSparse
         public int NodeRows { get; }
         public int NodeColumns { get; }
 
-        public RectilinearMeshGenerator(double[,] meshSizeAlongX, double[,] meshSizeAlongY):
+        public RectilinearMeshGenerator2D(double[,] meshSizeAlongX, double[,] meshSizeAlongY) :
             this(PartitionLine(meshSizeAlongX), PartitionLine(meshSizeAlongY))
         {
         }
 
-        public RectilinearMeshGenerator(IReadOnlyList<double> coordinatesX, IReadOnlyList<double> coordinatesY)
+        public RectilinearMeshGenerator2D(IReadOnlyList<double> coordinatesX, IReadOnlyList<double> coordinatesY)
         {
             this.coordinatesX = coordinatesX;
             this.coordinatesY = coordinatesY;
@@ -28,44 +26,45 @@ namespace ISAAR.MSolve.XFEM.Geometry.Mesh.SuiteSparse
             NodeColumns = coordinatesX.Count;
         }
 
-        public (XNode2D[] nodes, List<XNode2D[]> elementConnectivity) CreateMesh()
+        public (IReadOnlyList<TNode> nodes, IReadOnlyList<CellConnectivity<TNode>> elements) 
+            CreateMesh(CreateNode<TNode> createNode)
         {
-            XNode2D[] nodes = CreateNodes();
-            List<XNode2D[]> elementConnectivity = CreateElements(nodes);
+            TNode[] nodes = CreateNodes(createNode);
+            IReadOnlyList<CellConnectivity<TNode>> elementConnectivity = CreateElements(nodes);
             return (nodes, elementConnectivity);
         }
 
-        private XNode2D[] CreateNodes()
+        private TNode[] CreateNodes(CreateNode<TNode> createNode)
         {
-            var nodes = new XNode2D[NodeColumns * NodeRows];
+            var nodes = new TNode[NodeColumns * NodeRows];
             int id = 0;
             for (int row = 0; row < NodeRows; ++row)
             {
                 for (int col = 0; col < NodeColumns; ++col)
                 {
-                    nodes[id] = new XNode2D(id, coordinatesX[col], coordinatesY[row]);
+                    nodes[id] = createNode(id, coordinatesX[col], coordinatesY[row], 0.0);
                     ++id;
                 }
             }
             return nodes;
         }
 
-        private List<XNode2D[]> CreateElements(XNode2D[] allNodes)
+        private IReadOnlyList<CellConnectivity<TNode>> CreateElements(TNode[] allNodes)
         {
             int elementRows = NodeRows - 1;
             int elementColumns = NodeColumns - 1;
-            var elementNodes = new List<XNode2D[]>();
+            var elements = new List<CellConnectivity<TNode>>();
             for (int row = 0; row < elementRows; ++row)
             {
                 for (int col = 0; col < elementColumns; ++col)
                 {
                     int firstNode = row * NodeColumns + col;
-                    XNode2D[] nodesOfElement = { allNodes[firstNode], allNodes[firstNode+1],
+                    TNode[] nodesOfElement = { allNodes[firstNode], allNodes[firstNode+1],
                         allNodes[firstNode + NodeColumns + 1], allNodes[firstNode + NodeColumns] };
-                    elementNodes.Add(nodesOfElement);
+                    elements.Add(new CellConnectivity<TNode>(CellType.Quad4, nodesOfElement));  // row major
                 }
             }
-            return elementNodes;
+            return elements;
         }
 
         private static List<double> PartitionLine(double[,] meshSizes)

@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.Discretization.Mesh.Generation
     /// <typeparam name="TNode"></typeparam>
     public interface IMeshGenerator<TNode> where TNode : INode 
     {
-        (IReadOnlyList<TNode> vertices, IReadOnlyList<CellConnectivity<TNode>> cells) CreateMesh(CreateNode<TNode> createNode);
+        (IReadOnlyList<TNode> nodes, IReadOnlyList<CellConnectivity<TNode>> elements) CreateMesh(CreateNode<TNode> createNode);
     }
 
     /// <summary>
