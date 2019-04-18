@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
             double zeta = naturalPoint.Zeta;
             var shapeFunctions = EvaluateAt(xi, eta, zeta);
             var naturalShapeDerivatives = EvaluateGradientsAt(xi, eta, zeta);
-            return new EvalInterpolation3D(shapeFunctions, naturalShapeDerivatives,
+            return new EvalInterpolation3D(nodes, shapeFunctions, naturalShapeDerivatives,
                 new IsoparametricJacobian3D(nodes, naturalShapeDerivatives));
         }
 
@@ -74,7 +74,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
             var interpolationsAtGPs = new EvalInterpolation3D[numGPs];
             for (int gp = 0; gp < numGPs; ++gp)
             {
-                interpolationsAtGPs[gp] = new EvalInterpolation3D(shapeFunctionsAtGPs[gp],
+                interpolationsAtGPs[gp] = new EvalInterpolation3D(nodes, shapeFunctionsAtGPs[gp],
                     naturalShapeDerivativesAtGPs[gp], new IsoparametricJacobian3D(nodes, naturalShapeDerivativesAtGPs[gp]));
             }
             return interpolationsAtGPs;

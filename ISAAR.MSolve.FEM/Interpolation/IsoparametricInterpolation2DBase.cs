@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
             double eta = naturalPoint.Eta;
             var shapeFunctions = EvaluateAt(xi, eta);
             Matrix naturalShapeDerivatives = EvaluateGradientsAt(xi, eta);
-            return new EvalInterpolation2D(shapeFunctions, naturalShapeDerivatives,
+            return new EvalInterpolation2D(nodes, shapeFunctions, naturalShapeDerivatives,
                 new IsoparametricJacobian2D(nodes, naturalShapeDerivatives));
         }
 
@@ -74,7 +74,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
             var interpolationsAtGPs = new EvalInterpolation2D[numGPs];
             for (int gp = 0; gp < numGPs; ++gp)
             {
-                interpolationsAtGPs[gp] = new EvalInterpolation2D(shapeFunctionsAtGPs[gp],
+                interpolationsAtGPs[gp] = new EvalInterpolation2D(nodes, shapeFunctionsAtGPs[gp],
                     naturalShapeDerivativesAtGPs[gp], new IsoparametricJacobian2D(nodes, naturalShapeDerivativesAtGPs[gp]));
             }
             return interpolationsAtGPs;
