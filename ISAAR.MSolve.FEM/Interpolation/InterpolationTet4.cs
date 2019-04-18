@@ -38,13 +38,23 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// </summary>
 	    public static InterpolationTet4 UniqueInstance => uniqueInstance;
 
-		/// <summary>
-		/// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.
-		/// </summary>
-		/// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
-		/// <returns></returns>
-		// TODO: Find and implement inverse mapping for Tet4.
-	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> node) 
+        /// <summary>
+        /// See <see cref="IIsoparametricInterpolation2D.CheckElementNodes(IReadOnlyList{Node})"/>
+        /// </summary>
+        public override void CheckElementNodes(IReadOnlyList<Node> nodes)
+        {
+            if (nodes.Count != 4) throw new ArgumentException(
+                $"A Tetra4 finite element has 4 nodes, but {nodes.Count} nodes were provided.");
+            // TODO: Also check the order of the nodes too and perhaps even the shape
+        }
+
+        /// <summary>
+        /// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.
+        /// </summary>
+        /// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
+        /// <returns></returns>
+        // TODO: Find and implement inverse mapping for Tet4.
+        public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> node) 
             => throw new NotImplementedException("Not implemented yet.");
 
 		/// <summary>

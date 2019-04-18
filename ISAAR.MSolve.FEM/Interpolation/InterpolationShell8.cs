@@ -32,6 +32,16 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
         public static InterpolationShell8 UniqueInstance => uniqueInstance;
 
+        /// <summary>
+        /// See <see cref="IIsoparametricInterpolation2D.CheckElementNodes(IReadOnlyList{Node})"/>
+        /// </summary>
+        public override void CheckElementNodes(IReadOnlyList<Node> nodes)
+        {
+            if (nodes.Count != 8) throw new ArgumentException(
+                $"A Shell8 finite element has 8 nodes, but {nodes.Count} nodes were provided.");
+            // TODO: Also check the order of the nodes too and perhaps even the shape
+        }
+
         public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> nodes) 
             => throw new NotImplementedException();
 

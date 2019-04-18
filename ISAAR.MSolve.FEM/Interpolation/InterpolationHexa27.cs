@@ -67,12 +67,22 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// </summary>
 		public static InterpolationHexa27 UniqueInstance => uniqueInstance;
 
-		/// <summary>
-		/// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.
-		/// </summary>
-		/// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
-		/// <returns></returns>
-		public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> node)
+        /// <summary>
+        /// See <see cref="IIsoparametricInterpolation2D.CheckElementNodes(IReadOnlyList{Node})"/>
+        /// </summary>
+        public override void CheckElementNodes(IReadOnlyList<Node> nodes)
+        {
+            if (nodes.Count != 27) throw new ArgumentException(
+                $"A Hexa27 finite element has 27 nodes, but {nodes.Count} nodes were provided.");
+            // TODO: Also check the order of the nodes too and perhaps even the shape
+        }
+
+        /// <summary>
+        /// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.
+        /// </summary>
+        /// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
+        /// <returns></returns>
+        public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> node)
             => throw new NotImplementedException("Iterative procedure needed");
 
 		/// <summary>

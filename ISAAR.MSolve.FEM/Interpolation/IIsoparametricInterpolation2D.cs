@@ -34,6 +34,12 @@ namespace ISAAR.MSolve.FEM.Interpolation
         int NumFunctions { get; }
 
         /// <summary>
+        /// Checks the number and possibly the order of an element's nodes.
+        /// </summary>
+        /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
+        void CheckElementNodes(IReadOnlyList<Node> nodes);
+
+        /// <summary>
         /// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.
         /// </summary>
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>

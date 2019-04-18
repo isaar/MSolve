@@ -21,8 +21,8 @@ namespace ISAAR.MSolve.FEM.Elements
         private static readonly IReadOnlyDictionary<CellType, IQuadrature3D> integrationsForMass;
         private static readonly IReadOnlyDictionary<CellType, IIsoparametricInterpolation3D> interpolations;
 
-        private ElasticMaterial3D commonMaterial;
-        private DynamicMaterial commonDynamicProperties;
+        private readonly ElasticMaterial3D commonMaterial;
+        private readonly DynamicMaterial commonDynamicProperties;
 
         static ContinuumElement3DFactory()
         {
@@ -136,6 +136,10 @@ namespace ISAAR.MSolve.FEM.Elements
         public ContinuumElement3D CreateElement(CellType cellType, IReadOnlyList<Node> nodes,
             IReadOnlyList<ElasticMaterial3D> materialsAtGaussPoints, DynamicMaterial commonDynamicProperties)
         {
+            //TODO: check if nodes - interpolation and Gauss points - materials match
+#if DEBUG
+            interpolations[cellType].CheckElementNodes(nodes);
+#endif
             return new ContinuumElement3D(nodes,interpolations[cellType],
                 integrationsForStiffness[cellType], integrationsForMass[cellType], extrapolations[cellType],
                 materialsAtGaussPoints, commonDynamicProperties);

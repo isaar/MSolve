@@ -15,8 +15,8 @@ namespace ISAAR.MSolve.FEM.Elements
         private static readonly IReadOnlyDictionary<CellType, IQuadrature2D> integrationsForMass;
         private static readonly IReadOnlyDictionary<CellType, IIsoparametricInterpolation2D> interpolations;
 
-        private ThermalMaterial commonMaterial;
-        private double commonThickness;
+        private readonly ThermalMaterial commonMaterial;
+        private readonly double commonThickness;
 
         static ThermalElement2DFactory()
         {
@@ -75,33 +75,13 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public ThermalElement2D CreateElement(CellType cellType, IReadOnlyList<Node> nodes)
         {
+            //TODO: check if nodes - interpolation and Gauss points - materials match
+#if DEBUG
+            interpolations[cellType].CheckElementNodes(nodes);
+#endif
             return new ThermalElement2D(commonThickness, nodes, interpolations[cellType],
                integrationsForStiffness[cellType], integrationsForMass[cellType], extrapolations[cellType],
                commonMaterial);
         }
-
-        //public ThermalElement2D CreateElement(CellType cellType, IReadOnlyList<Node2D> nodes)
-        //{
-        //    return CreateElement(cellType, nodes, commonThickness, commonMaterial);
-        //}
-
-        //public ThermalElement2D CreateElement(CellType cellType, IReadOnlyList<Node2D> nodes, double thickness, ThermalMaterial material)
-        //{
-        //    var materialsAtGaussPoints = new Dictionary<GaussPoint, ThermalMaterial>();
-        //    foreach (GaussPoint gaussPoint in integrationsForStiffness[cellType].IntegrationPoints)
-        //    {
-        //        materialsAtGaussPoints[gaussPoint] = material.Clone();
-        //    }
-        //    return CreateElement(cellType, nodes, thickness, materialsAtGaussPoints);
-        //}
-
-        //public ThermalElement2D CreateElement(CellType cellType, IReadOnlyList<Node2D> nodes, double thickness,
-        //    Dictionary<GaussPoint, ThermalMaterial> materialsAtGaussPoints)
-        //{
-        //    //TODO: check if nodes - interpolation and Gauss points - materials match
-        //    return new ThermalElement2D(thickness, nodes, interpolations[cellType],
-        //        integrationsForStiffness[cellType], integrationsForMass[cellType], extrapolations[cellType],
-        //        materialsAtGaussPoints);
-        //}
     }
 }

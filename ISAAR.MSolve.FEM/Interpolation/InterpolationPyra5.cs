@@ -39,12 +39,22 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// </summary>
 	    public static InterpolationPyra5 UniqueInstance => uniqueInstance;
 
-		/// <summary>
-		/// The reverse mapping for this interpolation, namely from global cartesian coordinates to natural (element local) coordinate system.
-		/// </summary>
-		/// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
-		/// <returns></returns>
-		public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> node)
+        /// <summary>
+        /// See <see cref="IIsoparametricInterpolation2D.CheckElementNodes(IReadOnlyList{Node})"/>
+        /// </summary>
+        public override void CheckElementNodes(IReadOnlyList<Node> nodes)
+        {
+            if (nodes.Count != 5) throw new ArgumentException(
+                $"A Pyra5 finite element has 5 nodes, but {nodes.Count} nodes were provided.");
+            // TODO: Also check the order of the nodes too and perhaps even the shape
+        }
+
+        /// <summary>
+        /// The reverse mapping for this interpolation, namely from global cartesian coordinates to natural (element local) coordinate system.
+        /// </summary>
+        /// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
+        /// <returns></returns>
+        public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> node)
             => throw new NotImplementedException();
 
 	    protected sealed override double[] EvaluateAt(double xi, double eta, double zeta)

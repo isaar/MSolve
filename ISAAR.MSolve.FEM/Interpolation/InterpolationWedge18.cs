@@ -52,14 +52,23 @@ namespace ISAAR.MSolve.FEM.Interpolation
 	    /// </summary>
 	    public static InterpolationWedge18 UniqueInstance => uniqueInstance;
 
-	    /// <summary>
-	    /// The reverse mapping for this interpolation, namely from global cartesian coordinates to natural (element local) coordinate system.
-	    /// </summary>
-	    /// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
-	    /// <returns></returns>
-	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> node) 
-            => throw new NotImplementedException("Iterative procedure needed");
+        /// <summary>
+        /// See <see cref="IIsoparametricInterpolation2D.CheckElementNodes(IReadOnlyList{Node})"/>
+        /// </summary>
+        public override void CheckElementNodes(IReadOnlyList<Node> nodes)
+        {
+            if (nodes.Count != 18) throw new ArgumentException(
+                $"A Wedge18 finite element has 18 nodes, but {nodes.Count} nodes were provided.");
+            // TODO: Also check the order of the nodes too and perhaps even the shape
+        }
 
+        /// <summary>
+        /// The reverse mapping for this interpolation, namely from global cartesian coordinates to natural (element local) coordinate system.
+        /// </summary>
+        /// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
+        /// <returns></returns>
+        public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> node) 
+            => throw new NotImplementedException("Iterative procedure needed");
 
 	    protected sealed override double[] EvaluateAt(double xi, double eta, double zeta)
 	    {
@@ -90,7 +99,6 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
 		    return values;
 	    }
-
 
 	    protected sealed override Matrix EvaluateGradientsAt(double xi, double eta, double zeta)
 	    {

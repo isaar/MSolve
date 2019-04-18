@@ -152,6 +152,8 @@ namespace ISAAR.MSolve.FEM.Interpolation
             return new CartesianPoint(x, y);
         }
 
+        public abstract void CheckElementNodes(IReadOnlyList<Node> nodes);
+
         /// <summary>
         /// Evaluate shape function at a given point expressed in the natural coordinate system. Each entry corresponds to a
         /// different shape function.

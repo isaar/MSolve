@@ -4,6 +4,7 @@ using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using System;
 
 // Quad4 nodes:
 // 3 -- 2
@@ -42,6 +43,16 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// Get the unique <see cref="InterpolationQuad4"/> object for the whole program. Thread safe.
         /// </summary>
         public static InterpolationQuad4 UniqueInstance => uniqueInstance;
+
+        /// <summary>
+        /// See <see cref="IIsoparametricInterpolation2D.CheckElementNodes(IReadOnlyList{Node})"/>
+        /// </summary>
+        public override void CheckElementNodes(IReadOnlyList<Node> nodes)
+        {
+            if (nodes.Count != 4) throw new ArgumentException(
+                $"A Quad4 finite element has 4 nodes, but {nodes.Count} nodes were provided.");
+            // TODO: Also check the order of the nodes too and perhaps even the shape
+        }
 
         /// <summary>
         /// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.
