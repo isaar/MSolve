@@ -7,7 +7,7 @@ using ISAAR.MSolve.Discretization.Integration;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Materials;
 
-namespace ISAAR.MSolve.XFEM.Integration.Strategies
+namespace ISAAR.MSolve.XFEM.Integration
 {
     // Not sure if generics are needed. I could just have different interfaces for different element types. 
     // It would make sense if some of the actual integration strategy implementations would work for many element types.

@@ -9,7 +9,7 @@ using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Interpolation.InverseMappings;
 
-namespace ISAAR.MSolve.XFEM.Integration.Strategies
+namespace ISAAR.MSolve.XFEM.Integration
 {
     // TODO: Needs option to refine the mesh for the J-integral and tip blending elements.
     class IntegrationWithSubtriangles: IIntegrationStrategy2D<XContinuumElement2D>

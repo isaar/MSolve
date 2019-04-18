@@ -2,12 +2,11 @@
 using ISAAR.MSolve.Discretization.Integration;
 using ISAAR.MSolve.XFEM.Elements;
 
-namespace ISAAR.MSolve.XFEM.Integration.Strategies
+namespace ISAAR.MSolve.XFEM.Integration
 {
-    // TODO: Remove the plain ContinuumElement, SimpleIntegration2D
-    class XSimpleIntegration2D : IIntegrationStrategy2D<XContinuumElement2D>
+    class SimpleIntegration2D : IIntegrationStrategy2D<XContinuumElement2D>
     {
-        public XSimpleIntegration2D()
+        public SimpleIntegration2D()
         {
         }
 

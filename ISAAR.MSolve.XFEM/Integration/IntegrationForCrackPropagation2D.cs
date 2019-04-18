@@ -4,7 +4,7 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 
-namespace ISAAR.MSolve.XFEM.Integration.Strategies
+namespace ISAAR.MSolve.XFEM.Integration
 {
     class IntegrationForCrackPropagation2D: IIntegrationStrategy2D<XContinuumElement2D>
     {
