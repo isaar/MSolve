@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.Integration;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.FEM.Interpolation;
+using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Geometry.Tensors;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Integration;
-using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Utilities;
 
@@ -26,25 +27,25 @@ namespace ISAAR.MSolve.XFEM.Elements
     ///     Pros: only need to track one set of Gauss points, which simplifies non linear analysis. 
     ///     Cons: calculating Kss with the Gauss points of an enriched element is much more expensive
     /// </summary>
-    public class XContinuumElement2D: ICell<XNode>, IFiniteElement2DView<XNode, IsoparametricInterpolation2D>
+    public class XContinuumElement2D : ICell<XNode>, IFiniteElement2DView<XNode, IIsoparametricInterpolation2D>
     {
-        internal IsoparametricElementType2D ElementType { get; }
+        public XContinuumElement2D(IReadOnlyList<XNode> nodes, IIsoparametricInterpolation2D interpolation,
+            IGaussPointExtrapolation2D gaussPointExtrapolation, IQuadrature2D standardQuadrature, 
+            IIntegrationStrategy2D<XContinuumElement2D> integrationStrategy, 
+            IIntegrationStrategy2D<XContinuumElement2D> jIntegralStrategy, IMaterialField2D material)
+        {
+            this.Nodes = nodes;
+            this.Interpolation = interpolation;
+            this.GaussPointExtrapolation = gaussPointExtrapolation;
+            this.StandardQuadrature = standardQuadrature;
+            this.IntegrationStrategy = integrationStrategy;
+            this.JintegralStrategy = jIntegralStrategy;
+            this.Material = material;
+            this.EnrichmentItems = new List<IEnrichmentItem2D>();
+            this.NumStandardDofs = 2 * nodes.Count;
+        }
 
-        /// <summary>
-        /// All nodes are enriched for now.
-        /// </summary>
-        public IReadOnlyList<XNode> Nodes { get; }
-
-        /// <summary>
-        /// Common interpolation for standard and enriched nodes.
-        /// </summary>
-        public IsoparametricInterpolation2D Interpolation { get { return ElementType.Interpolation; } }
-
-        internal IQuadrature2D StandardQuadrature { get { return ElementType.StandardQuadrature; } }
-        internal IIntegrationStrategy2D<XContinuumElement2D> IntegrationStrategy { get; }
-        internal IIntegrationStrategy2D<XContinuumElement2D> JintegralStrategy { get; }
-
-        internal IMaterialField2D Material { get; }
+        public CellType CellType => Interpolation.CellType;
 
         /// <summary>
         /// ERROR: elements should not be enriched explicitly. 
@@ -54,49 +55,50 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// </summary>
         public List<IEnrichmentItem2D> EnrichmentItems { get; }
 
-        internal XContinuumElement2D(IsoparametricElementType2D type, IReadOnlyList<XNode> nodes,
-            IMaterialField2D material, IIntegrationStrategy2D<XContinuumElement2D> integrationStrategy):
-            this(type, nodes, material, integrationStrategy, integrationStrategy)
-        {
-            type.CheckNodes(nodes);
-            this.Nodes = nodes;
-            this.ElementType = type;
-            this.EnrichmentItems = new List<IEnrichmentItem2D>();
-            this.IntegrationStrategy = integrationStrategy;
-            this.Material = material;
-        }
+        public IGaussPointExtrapolation2D GaussPointExtrapolation { get; }
+        internal IIntegrationStrategy2D<XContinuumElement2D> IntegrationStrategy { get; }
 
-        internal XContinuumElement2D(IsoparametricElementType2D type, IReadOnlyList<XNode> nodes,
-            IMaterialField2D material, IIntegrationStrategy2D<XContinuumElement2D> integrationStrategy,
-            IIntegrationStrategy2D<XContinuumElement2D> jIntegralStrategy)
-        {
-            type.CheckNodes(nodes);
-            this.Nodes = nodes;
-            this.ElementType = type;
-            this.EnrichmentItems = new List<IEnrichmentItem2D>();
-            this.Material = material;
-            this.IntegrationStrategy = integrationStrategy;
-            this.JintegralStrategy = jIntegralStrategy;
-        }
+        /// <summary>
+        /// Common interpolation for standard and enriched nodes.
+        /// </summary>
+        public IIsoparametricInterpolation2D Interpolation { get; }
+
+        internal IIntegrationStrategy2D<XContinuumElement2D> JintegralStrategy { get; }
+        internal IMaterialField2D Material { get; }
+
+        /// <summary>
+        /// All nodes are enriched for now.
+        /// </summary>
+        public IReadOnlyList<XNode> Nodes { get; }
+        public int NumStandardDofs { get; }
+        internal IQuadrature2D StandardQuadrature { get; }
+
 
         // TODO: return a symmetric matrix
         public Matrix BuildStandardStiffnessMatrix()
         {
-            var stiffness = Matrix.CreateZero(StandardDofsCount, StandardDofsCount);
-            foreach (GaussPoint gaussPoint in IntegrationStrategy.GenerateIntegrationPoints(this))
+            var stiffness = Matrix.CreateZero(NumStandardDofs, NumStandardDofs);
+            IReadOnlyList<EvalInterpolation2D> evaluatedInterpolations = 
+                Interpolation.EvaluateAllAtGaussPoints(Nodes, StandardQuadrature);
+
+            for (int gp = 0; gp < StandardQuadrature.IntegrationPoints.Count; ++gp)
             {
+                GaussPoint gaussPoint = StandardQuadrature.IntegrationPoints[gp];
+
+                // Material properties
+                Matrix constitutive = Material.CalculateConstitutiveMatrixAt(gaussPoint, evaluatedInterpolations[gp]);
+                //TODO: The thickness is constant per element in FEM, but what about XFEM? Different materials within the same element are possible.
+                double thickness = Material.GetThicknessAt(gaussPoint, evaluatedInterpolations[gp]);
+
                 // Calculate the necessary quantities for the integration
-                EvaluatedInterpolation2D evaluatedInterpolation =
-                    ElementType.Interpolation.EvaluateAt(Nodes, gaussPoint);
-                double thickness = Material.GetThicknessAt(gaussPoint, evaluatedInterpolation);
-                Matrix constitutive = Material.CalculateConstitutiveMatrixAt(gaussPoint, evaluatedInterpolation);
-                Matrix deformation = CalculateStandardDeformationMatrix(evaluatedInterpolation);
+                var jacobian = evaluatedInterpolations[gp].Jacobian;
+                Matrix deformation = CalculateStandardDeformationMatrix(evaluatedInterpolations[gp].ShapeGradientsCartesian);
 
                 // Contribution of this gauss point to the element stiffness matrix
-                Matrix partial = (deformation.MultiplyRight(constitutive, true, false)) * deformation; // Perhaps this could be done in a faster way taking advantage of symmetry.
-                Debug.Assert(partial.NumRows == StandardDofsCount);
-                Debug.Assert(partial.NumColumns == StandardDofsCount);
-                double dV = thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight; // Perhaps I should scale only the smallest matrix (constitutive) before the multiplications
+                Matrix partial = deformation.ThisTransposeTimesOtherTimesThis(constitutive);
+                Debug.Assert(partial.NumRows == NumStandardDofs);
+                Debug.Assert(partial.NumColumns == NumStandardDofs);
+                double dV = jacobian.DirectDeterminant * gaussPoint.Weight * thickness;
                 stiffness.AxpyIntoThis(partial, dV);
             }
             return stiffness;
@@ -104,7 +106,7 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         public (Matrix stiffnessEnrichedEnriched, Matrix stiffnessEnrichedStandard) BuildEnrichedStiffnessMatricesLower()
         {
-            int numStandardDofs = StandardDofsCount;
+            int numStandardDofs = NumStandardDofs;
             int numEnrichedDofs = CountEnrichedDofs();
             var stiffnessEnrichedStandard = Matrix.CreateZero(numEnrichedDofs, numStandardDofs);
             var stiffnessEnrichedEnriched = Matrix.CreateZero(numEnrichedDofs, numEnrichedDofs);
@@ -112,18 +114,17 @@ namespace ISAAR.MSolve.XFEM.Elements
             foreach (GaussPoint gaussPoint in IntegrationStrategy.GenerateIntegrationPoints(this))
             {
                 // Calculate the necessary quantities for the integration
-                EvaluatedInterpolation2D evaluatedInterpolation =
-                    ElementType.Interpolation.EvaluateAt(Nodes, gaussPoint);
+                EvalInterpolation2D evaluatedInterpolation = Interpolation.EvaluateAllAt(Nodes, gaussPoint);
                 double thickness = Material.GetThicknessAt(gaussPoint, evaluatedInterpolation);
                 Matrix constitutive = Material.CalculateConstitutiveMatrixAt(gaussPoint, evaluatedInterpolation);
-                Matrix Bstd = CalculateStandardDeformationMatrix(evaluatedInterpolation);
+                Matrix Bstd = CalculateStandardDeformationMatrix(evaluatedInterpolation.ShapeGradientsCartesian);
                 Matrix Benr = CalculateEnrichedDeformationMatrix(numEnrichedDofs,
                     gaussPoint, evaluatedInterpolation);
 
                 // Contributions of this gauss point to the element stiffness matrices. 
                 // Kee = SUM(Benr^T * E * Benr * dV), Kes = SUM(Benr^T * E * Bstd * dV)
                 // TODO: Scale only the smallest matrix (constitutive) before the multiplications. Probably requires a copy of the constitutive matrix.
-                double dVolume = thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight;
+                double dVolume = thickness * evaluatedInterpolation.Jacobian.DirectDeterminant * gaussPoint.Weight;
                 Matrix transposeBenrTimesConstitutive = Benr.MultiplyRight(constitutive, true, false); // cache the result
 
                 Matrix Kes = transposeBenrTimesConstitutive * Bstd;  // enriched-standard part
@@ -138,7 +139,7 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         public (Matrix stiffnessEnrichedEnriched, Matrix stiffnessStandardEnriched) BuildEnrichedStiffnessMatricesUpper()
         {
-            int numStandardDofs = StandardDofsCount;
+            int numStandardDofs = NumStandardDofs;
             int numEnrichedDofs = CountEnrichedDofs();
             var stiffnessStandardEnriched = Matrix.CreateZero(numStandardDofs, numEnrichedDofs);
             var stiffnessEnrichedEnriched = Matrix.CreateZero(numEnrichedDofs, numEnrichedDofs);
@@ -146,18 +147,17 @@ namespace ISAAR.MSolve.XFEM.Elements
             foreach (GaussPoint gaussPoint in IntegrationStrategy.GenerateIntegrationPoints(this))
             {
                 // Calculate the necessary quantities for the integration
-                EvaluatedInterpolation2D evaluatedInterpolation =
-                    ElementType.Interpolation.EvaluateAt(Nodes, gaussPoint);
+                EvalInterpolation2D evaluatedInterpolation = Interpolation.EvaluateAllAt(Nodes, gaussPoint);
                 double thickness = Material.GetThicknessAt(gaussPoint, evaluatedInterpolation);
                 Matrix constitutive = Material.CalculateConstitutiveMatrixAt(gaussPoint, evaluatedInterpolation);
-                Matrix Bstd = CalculateStandardDeformationMatrix(evaluatedInterpolation);
+                Matrix Bstd = CalculateStandardDeformationMatrix(evaluatedInterpolation.ShapeGradientsCartesian);
                 Matrix Benr = CalculateEnrichedDeformationMatrix(numEnrichedDofs,
                     gaussPoint, evaluatedInterpolation);
 
                 // Contributions of this gauss point to the element stiffness matrices. 
                 // Kee = SUM(Benr^T * E * Benr * dV), Kse = SUM(Bstd^T * E * Benr * dV)
                 // TODO: Scale only the smallest matrix (constitutive) before the multiplications. Probably requires a copy of the constitutive matrix.
-                double dVolume = thickness * evaluatedInterpolation.Jacobian.Determinant * gaussPoint.Weight;
+                double dVolume = thickness * evaluatedInterpolation.Jacobian.DirectDeterminant * gaussPoint.Weight;
                 Matrix constitutiveTimesBenr = constitutive * Benr; // cache the result
 
                 Matrix Kse = Bstd.MultiplyRight(constitutiveTimesBenr, true, false);  // enriched-standard part
@@ -180,40 +180,40 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="evaluatedInterpolation">The shape function derivatives calculated at a specific 
         ///     integration point</param>
         /// <returns></returns>
-        internal Matrix CalculateStandardDeformationMatrix(EvaluatedInterpolation2D evaluatedInterpolation)
+        internal Matrix CalculateStandardDeformationMatrix(Matrix shapeGradientsCartesian)
         {
-            var deformationMatrix = Matrix.CreateZero(3, StandardDofsCount);
-            for (int nodeIndex = 0; nodeIndex < Nodes.Count; ++nodeIndex)
+            var deformation = Matrix.CreateZero(3, NumStandardDofs);
+            for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
             {
-                int col1 = 2 * nodeIndex;
-                int col2 = 2 * nodeIndex + 1;
-                Vector2 dNdX = evaluatedInterpolation.GetGlobalCartesianDerivativesOf(Nodes[nodeIndex]);
+                int col0 = 2 * nodeIdx;
+                int col1 = 2 * nodeIdx + 1;
 
-                deformationMatrix[0, col1] = dNdX[0];
-                deformationMatrix[1, col2] = dNdX[1];
-                deformationMatrix[2, col1] = dNdX[1];
-                deformationMatrix[2, col2] = dNdX[0];
+                deformation[0, col0] = shapeGradientsCartesian[nodeIdx, 0];
+                deformation[1, col1] = shapeGradientsCartesian[nodeIdx, 1];
+                deformation[2, col0] = shapeGradientsCartesian[nodeIdx, 1];
+                deformation[2, col1] = shapeGradientsCartesian[nodeIdx, 0];
             }
-            return deformationMatrix;
+            return deformation;
         }
 
         // TODO: the argument asrtificialDofsCount was added when this method was private and only called by 
         // BuildStiffnessMatrix() that already counted the dofs. Since it is now used by other modules 
         // (J-integral, output), it would be better to obscure it, at the cost of recounting the dofs in some cases.
         internal Matrix CalculateEnrichedDeformationMatrix(int artificialDofsCount,
-            NaturalPoint gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
+            NaturalPoint gaussPoint, EvalInterpolation2D evaluatedInterpolation)
         {
             //CartesianPoint cartesianPoint = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian(gaussPoint);
             var uniqueEnrichments = new Dictionary<IEnrichmentItem2D, EvaluatedFunction2D[]>();
 
             var deformationMatrix = Matrix.CreateZero(3, artificialDofsCount);
             int currentColumn = 0;
-            foreach (XNode node in Nodes)
+            for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
             {
-                double N = evaluatedInterpolation.GetValueOf(node);
-                var dNdx = evaluatedInterpolation.GetGlobalCartesianDerivativesOf(node);
+                double N = evaluatedInterpolation.ShapeFunctions[nodeIdx];
+                double dNdx = evaluatedInterpolation.ShapeGradientsCartesian[nodeIdx, 0];
+                double dNdy = evaluatedInterpolation.ShapeGradientsCartesian[nodeIdx, 1];
 
-                foreach (var enrichment in node.EnrichmentItems)
+                foreach (var enrichment in Nodes[nodeIdx].EnrichmentItems)
                 {
                     IEnrichmentItem2D enrichmentItem = enrichment.Key;
                     double[] nodalEnrichmentValues = enrichment.Value;
@@ -231,9 +231,9 @@ namespace ISAAR.MSolve.XFEM.Elements
                         // For each node and with all derivatives w.r.t. cartesian coordinates, the enrichment derivatives 
                         // are: Bx = enrN,x = N,x(x,y) * [H(x,y) - H(node)] + N(x,y) * H,x(x,y), where H is the enrichment 
                         // function
-                        double Bx = dNdx[0] * (evaluatedEnrichments[i].Value - nodalEnrichmentValues[i])
+                        double Bx = dNdx * (evaluatedEnrichments[i].Value - nodalEnrichmentValues[i])
                             + N * evaluatedEnrichments[i].CartesianDerivatives[0];
-                        double By = dNdx[1] * (evaluatedEnrichments[i].Value - nodalEnrichmentValues[i])
+                        double By = dNdy * (evaluatedEnrichments[i].Value - nodalEnrichmentValues[i])
                             + N * evaluatedEnrichments[i].CartesianDerivatives[1];
 
                         // This depends on the convention: node major or enrichment major. The following is node major.
@@ -259,7 +259,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="standardNodalDisplacements"></param>
         /// <param name="enrichedNodalDisplacements"></param>
         /// <returns></returns>
-        internal Vector2 CalculateDisplacementField(NaturalPoint gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation,
+        internal Vector2 CalculateDisplacementField(NaturalPoint gaussPoint, EvalInterpolation2D evaluatedInterpolation,
             Vector standardNodalDisplacements, Vector enrichedNodalDisplacements)
         {
             #region debug
@@ -274,7 +274,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             // Standard contributions
             for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
             {
-                double shapeFunction = evaluatedInterpolation.GetValueOf(Nodes[nodeIdx]);
+                double shapeFunction = evaluatedInterpolation.ShapeFunctions[nodeIdx];
                 displacements[0] += shapeFunction * standardNodalDisplacements[2 * nodeIdx];
                 displacements[1] += shapeFunction * standardNodalDisplacements[2 * nodeIdx + 1];
             }
@@ -283,12 +283,12 @@ namespace ISAAR.MSolve.XFEM.Elements
             //TODO: this should be taken as input, so that it is only computed once if it is needed for displacements, strains, 
             //      stresses, just like the evaluated interpolation.
             IReadOnlyDictionary<IEnrichmentItem2D, EvaluatedFunction2D[]> evalEnrichments =
-                EvaluateEnrichments(gaussPoint, evaluatedInterpolation); 
+                EvaluateEnrichments(gaussPoint, evaluatedInterpolation);
             int dof = 0;
-            foreach (XNode node in Nodes)
+            for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
             {
-                double shapeFunction = evaluatedInterpolation.GetValueOf(node);
-                foreach (var nodalEnrichment in node.EnrichmentItems)
+                double shapeFunction = evaluatedInterpolation.ShapeFunctions[nodeIdx];
+                foreach (var nodalEnrichment in Nodes[nodeIdx].EnrichmentItems)
                 {
                     EvaluatedFunction2D[] currentEvalEnrichments = evalEnrichments[nodalEnrichment.Key];
                     for (int e = 0; e < currentEvalEnrichments.Length; ++e)
@@ -313,8 +313,8 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="nodalDisplacementsX"></param>
         /// <param name="nodalDisplacementsY"></param>
         /// <returns></returns>
-        internal Matrix2by2 CalculateDisplacementFieldGradient(NaturalPoint gaussPoint, 
-            EvaluatedInterpolation2D evaluatedInterpolation, Vector standardNodalDisplacements,
+        internal Matrix2by2 CalculateDisplacementFieldGradient(NaturalPoint gaussPoint,
+            EvalInterpolation2D evaluatedInterpolation, Vector standardNodalDisplacements,
             Vector enrichedNodalDisplacements) //TODO: this must only allow evaluations at Gauss points. It doesn't work for points on the crack interface
         {
             var displacementGradient = Matrix2by2.CreateZero();
@@ -325,24 +325,25 @@ namespace ISAAR.MSolve.XFEM.Elements
                 double displacementX = standardNodalDisplacements[2 * nodeIdx];
                 double displacementY = standardNodalDisplacements[2 * nodeIdx + 1];
 
-                Vector2 shapeFunctionDerivatives = 
-                    evaluatedInterpolation.GetGlobalCartesianDerivativesOf(Nodes[nodeIdx]);
-                displacementGradient[0, 0] += shapeFunctionDerivatives[0] * displacementX;
-                displacementGradient[0, 1] += shapeFunctionDerivatives[1] * displacementX;
-                displacementGradient[1, 0] += shapeFunctionDerivatives[0] * displacementY;
-                displacementGradient[1, 1] += shapeFunctionDerivatives[1] * displacementY;
+                double dNdx = evaluatedInterpolation.ShapeGradientsCartesian[nodeIdx, 0];
+                double dNdy = evaluatedInterpolation.ShapeGradientsCartesian[nodeIdx, 1];
+                displacementGradient[0, 0] += dNdx * displacementX;
+                displacementGradient[0, 1] += dNdy * displacementX;
+                displacementGradient[1, 0] += dNdx * displacementY;
+                displacementGradient[1, 1] += dNdy * displacementY;
             }
 
             // Enriched contributions. TODO: Extract the common steps with building B into a separate method 
-            IReadOnlyDictionary<IEnrichmentItem2D, EvaluatedFunction2D[]> evalEnrichments = 
+            IReadOnlyDictionary<IEnrichmentItem2D, EvaluatedFunction2D[]> evalEnrichments =
                 EvaluateEnrichments(gaussPoint, evaluatedInterpolation);
             int dof = 0;
-            foreach (XNode node in Nodes)
+            for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
             {
-                double N = evaluatedInterpolation.GetValueOf(node);
-                Vector2 gradN = evaluatedInterpolation.GetGlobalCartesianDerivativesOf(node);
+                double N = evaluatedInterpolation.ShapeFunctions[nodeIdx];
+                double dNdx = evaluatedInterpolation.ShapeGradientsCartesian[nodeIdx, 0];
+                double dNdy = evaluatedInterpolation.ShapeGradientsCartesian[nodeIdx, 1];
 
-                foreach (var nodalEnrichment in node.EnrichmentItems)
+                foreach (var nodalEnrichment in Nodes[nodeIdx].EnrichmentItems)
                 {
                     EvaluatedFunction2D[] currentEvalEnrichments = evalEnrichments[nodalEnrichment.Key];
                     for (int e = 0; e < currentEvalEnrichments.Length; ++e)
@@ -351,8 +352,8 @@ namespace ISAAR.MSolve.XFEM.Elements
                         Vector2 gradPsi = currentEvalEnrichments[e].CartesianDerivatives;
                         double deltaPsi = psi - nodalEnrichment.Value[e];
 
-                        double Bx = gradN[0] * deltaPsi + N * gradPsi[0];
-                        double By = gradN[1] * deltaPsi + N * gradPsi[1];
+                        double Bx = dNdx * deltaPsi + N * gradPsi[0];
+                        double By = dNdy * deltaPsi + N * gradPsi[1];
 
                         double enrDisplacementX = enrichedNodalDisplacements[dof++];
                         double enrDisplacementY = enrichedNodalDisplacements[dof++];
@@ -392,7 +393,6 @@ namespace ISAAR.MSolve.XFEM.Elements
             return count;
         }
 
-        public int StandardDofsCount { get { return Nodes.Count * 2; } } // I could store it for efficency and update it when nodes change.
 
         internal FreedomDegrees.Ordering.DofTable<EnrichedDof> GetEnrichedDofs()
         {
@@ -430,9 +430,9 @@ namespace ISAAR.MSolve.XFEM.Elements
             return elementDofs;
         }
         #endregion
-        
+
         private IReadOnlyDictionary<IEnrichmentItem2D, EvaluatedFunction2D[]> EvaluateEnrichments(
-            NaturalPoint gaussPoint, EvaluatedInterpolation2D evaluatedInterpolation)
+            NaturalPoint gaussPoint, EvalInterpolation2D evaluatedInterpolation)
         {
             var cachedEvalEnrichments = new Dictionary<IEnrichmentItem2D, EvaluatedFunction2D[]>();
             foreach (XNode node in Nodes)

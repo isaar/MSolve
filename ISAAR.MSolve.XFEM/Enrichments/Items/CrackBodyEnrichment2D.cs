@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.FEM.Interpolation;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
-using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Utilities;
 
 // TODO: this class should not be associated with the whole crack geometry, just the part that stores a single branch.
@@ -39,9 +39,9 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         }
 
         public EvaluatedFunction2D[] EvaluateAllAt(NaturalPoint point, XContinuumElement2D element,
-             EvaluatedInterpolation2D interpolation)
+             EvalInterpolation2D interpolation)
         {
-            CartesianPoint cartesianPoint = interpolation.TransformPointNaturalToGlobalCartesian(point);
+            CartesianPoint cartesianPoint = interpolation.TransformPointNaturalToGlobalCartesian();
             double signedDistance = crackDescription.SignedDistanceOf(point, element, interpolation);
             return new EvaluatedFunction2D[] { enrichmentFunction.EvaluateAllAt(signedDistance) };
         }

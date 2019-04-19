@@ -1,4 +1,5 @@
-﻿using ISAAR.MSolve.XFEM.Elements;
+﻿using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.XFEM.Elements;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,11 +9,11 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
 {
     class VtkCell2D
     {
-        public static readonly IDictionary<IsoparametricElementType2D, int> CellTypeCodes =
-            new Dictionary<IsoparametricElementType2D, int>()
+        public static readonly IDictionary<CellType, int> CellTypeCodes =
+            new Dictionary<CellType, int>()
             {
-                { IsoparametricElementType2D.Quad4, 9 },
-                {IsoparametricElementType2D.Tri3, 5 }
+                { CellType.Quad4, 9 },
+                { CellType.Tri3, 5 }
             };
 
         public int TypeCode { get; }

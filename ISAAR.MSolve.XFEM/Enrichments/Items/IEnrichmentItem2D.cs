@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.FEM.Interpolation;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
-using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Items
@@ -33,6 +29,6 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         double[] EvaluateFunctionsAt(XNode node);
 
         EvaluatedFunction2D[] EvaluateAllAt(NaturalPoint point, XContinuumElement2D element,
-             EvaluatedInterpolation2D interpolation);
+             EvalInterpolation2D interpolation);
     }
 }

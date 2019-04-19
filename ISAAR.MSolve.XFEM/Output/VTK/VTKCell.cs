@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.XFEM.Elements;
 
 namespace ISAAR.MSolve.XFEM.Output.VTK
 {
     class VTKCell
     {
-        public static readonly IDictionary<IsoparametricElementType2D, int> CellTypeCodes =
-            new Dictionary<IsoparametricElementType2D, int>()
+        public static readonly IDictionary<CellType, int> CellTypeCodes =
+            new Dictionary<CellType, int>()
             {
-                { IsoparametricElementType2D.Quad4, 9 }
+                { CellType.Quad4, 9 }
             };
 
         public XContinuumElement2D OriginalElement { get; }

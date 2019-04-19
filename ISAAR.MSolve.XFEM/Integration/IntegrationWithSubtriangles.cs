@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Integration;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
+using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
-using ISAAR.MSolve.XFEM.Interpolation.InverseMappings;
 
 namespace ISAAR.MSolve.XFEM.Integration
 {
@@ -98,11 +98,11 @@ namespace ISAAR.MSolve.XFEM.Integration
         private static IReadOnlyList<NaturalPoint> FindNaturalPointsForTriangulation(XContinuumElement2D element,
             IEnumerable<CartesianPoint> cartesianDelaunyPoints)
         {
-            IInverseMapping2D inverseMapping = element.Interpolation.CreateInverseMappingFor(element.Nodes);
+            IInverseInterpolation2D inverseMapping = element.Interpolation.CreateInverseMappingFor(element.Nodes);
             var naturalDelaunyPoints = new List<NaturalPoint>();
             foreach (var cartesianPoint in cartesianDelaunyPoints)
             {
-                naturalDelaunyPoints.Add(inverseMapping.TransformCartesianToNatural(cartesianPoint));
+                naturalDelaunyPoints.Add(inverseMapping.TransformPointCartesianToNatural(cartesianPoint));
             }
             return naturalDelaunyPoints;
         }

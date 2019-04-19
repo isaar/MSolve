@@ -1,8 +1,8 @@
 ﻿using System;
-using ISAAR.MSolve.Geometry.Tensors;
+using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry.CrackTip
 {

@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using System.Threading.Tasks;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.Geometry.Tensors;
 
 namespace ISAAR.MSolve.XFEM.Output.VTK
 {
@@ -42,7 +40,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                     cellVertices[i] = point;
                     allPoints.Add(point);
                 }
-                int cellType = VTKCell.CellTypeCodes[element.ElementType];
+                int cellType = VTKCell.CellTypeCodes[element.Interpolation.CellType];
                 allCells.Add(new VTKCell(element, cellType, cellVertices));
             }
 

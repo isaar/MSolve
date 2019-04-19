@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.Integration;
 using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
-using ISAAR.MSolve.Geometry.Tensors;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
@@ -15,7 +16,6 @@ using ISAAR.MSolve.XFEM.CrackPropagation.Length;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.XFEM.Interpolation;
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation
 {
@@ -165,9 +165,9 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
                 // Nomenclature: global = global cartesian system, natural = element natural system, 
                 // local = tip local cartesian system  
                 
-                EvaluatedInterpolation2D evaluatedInterpolation = 
-                    element.Interpolation.EvaluateAt(element.Nodes, naturalGP);
-                CartesianPoint globalGP = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian(naturalGP);
+                EvalInterpolation2D evaluatedInterpolation = 
+                    element.Interpolation.EvaluateAllAt(element.Nodes, naturalGP);
+                CartesianPoint globalGP = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian();
                 Matrix constitutive = 
                     element.Material.CalculateConstitutiveMatrixAt(naturalGP, evaluatedInterpolation);
 
@@ -182,11 +182,12 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
 
                 // Weight Function
                 // TODO: There should be a method InterpolateScalarGradient(double[] nodalValues) in EvaluatedInterpolation
+                // TODO: Rewrite this as a shapeGradients (matrix) * nodalWeights (vector) operation.
                 var globalWeightGradient = Vector2.CreateZero();
                 for (int nodeIdx = 0; nodeIdx < element.Nodes.Count; ++nodeIdx)
                 {
                     globalWeightGradient.AxpyIntoThis(
-                        evaluatedInterpolation.GetGlobalCartesianDerivativesOf(element.Nodes[nodeIdx]), 
+                        evaluatedInterpolation.ShapeGradientsCartesian.GetRow(nodeIdx), // Previously: GetGlobalCartesianDerivativesOf(element.Nodes[nodeIdx])
                         nodalWeights[nodeIdx]);
                 }
                 Vector2 localWeightGradient = tipSystem.
@@ -206,8 +207,8 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
                     localStressTensorState1, auxiliary.DisplacementGradientMode2,
                     auxiliary.StrainTensorMode2, auxiliary.StressTensorMode2);
 
-                integralMode1 += integrandMode1 * evaluatedInterpolation.Jacobian.Determinant * naturalGP.Weight;
-                integralMode2 += integrandMode2 * evaluatedInterpolation.Jacobian.Determinant * naturalGP.Weight;
+                integralMode1 += integrandMode1 * evaluatedInterpolation.Jacobian.DirectDeterminant * naturalGP.Weight;
+                integralMode2 += integrandMode2 * evaluatedInterpolation.Jacobian.DirectDeterminant * naturalGP.Weight;
             }
         }
 

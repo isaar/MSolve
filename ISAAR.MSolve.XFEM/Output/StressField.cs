@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.FEM.Interpolation;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
-using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Interpolation;
-using ISAAR.MSolve.Geometry.Tensors;
 
 namespace ISAAR.MSolve.XFEM.Output
 {
@@ -17,8 +12,7 @@ namespace ISAAR.MSolve.XFEM.Output
         public Tensor2D EvaluateAt(XContinuumElement2D element, NaturalPoint point,
             Vector standardDisplacements, Vector enrichedDisplacements)
         {
-            EvaluatedInterpolation2D evaluatedInterpolation =
-                element.Interpolation.EvaluateAt(element.Nodes, point);
+            EvalInterpolation2D evaluatedInterpolation = element.Interpolation.EvaluateAllAt(element.Nodes, point);
             Matrix2by2 displacementGradient = element.CalculateDisplacementFieldGradient(
                 point, evaluatedInterpolation, standardDisplacements, enrichedDisplacements);
             Matrix constitutive =

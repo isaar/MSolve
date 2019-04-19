@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
+using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Interpolation;
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         double SignedDistanceOf(XNode node);
         double SignedDistanceOf(NaturalPoint point, XContinuumElement2D element,
-            EvaluatedInterpolation2D interpolation);
+            EvalInterpolation2D interpolation);
 
         //CartesianPoint GetCrackTip(CrackTipPosition tipPosition);
         /// TODO: an interface is needed for TipSystems. Then the explicit (global, local, polar) systems or the level 

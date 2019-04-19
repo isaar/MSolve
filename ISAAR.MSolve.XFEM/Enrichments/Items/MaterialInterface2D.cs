@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -7,7 +8,6 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
-using ISAAR.MSolve.XFEM.Interpolation;
 using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Items
@@ -39,9 +39,9 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
         }
 
         public override EvaluatedFunction2D[] EvaluateAllAt(NaturalPoint point, XContinuumElement2D element,
-             EvaluatedInterpolation2D interpolation)
+             EvalInterpolation2D interpolation)
         {
-            CartesianPoint cartesianPoint = interpolation.TransformPointNaturalToGlobalCartesian(point);
+            CartesianPoint cartesianPoint = interpolation.TransformPointNaturalToGlobalCartesian();
             double signedDistance = Discontinuity.SignedDistanceOf(cartesianPoint);
             Vector2 normalVector = Discontinuity.NormalVectorThrough(cartesianPoint);
             return new EvaluatedFunction2D[] { enrichmentFunction.EvaluateAllAt(signedDistance, normalVector) };

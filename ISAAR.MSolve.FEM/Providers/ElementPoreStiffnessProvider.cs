@@ -76,7 +76,7 @@ namespace ISAAR.MSolve.FEM.Providers
             else
             {
                 IMatrix stiffnessMatrix = solidStiffnessProvider.Matrix(element);
-                stiffnessMatrix.Scale(stiffnessCoefficient);
+                stiffnessMatrix.ScaleIntoThis(stiffnessCoefficient);
                 return stiffnessMatrix;
             }
         }

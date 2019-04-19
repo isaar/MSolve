@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.Geometry.Tensors;
 
 //TODO: This should be IDisposable
 //TODO: It should work with Mesh, not Model. What about data that is interpolated over specific regions (e.g. narrow band LSM)?
@@ -19,10 +16,10 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
         public static string vtkReaderVersion = "4.1";
         private static readonly string directory = 
             Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName + "\\Resources\\";
-        private static readonly Dictionary<IsoparametricElementType2D, int> cellTypeCodes = 
-            new Dictionary<IsoparametricElementType2D, int>()
+        private static readonly Dictionary<CellType, int> cellTypeCodes = 
+            new Dictionary<CellType, int>()
             {
-                { IsoparametricElementType2D.Quad4, 9 }
+                { CellType.Quad4, 9 }
             };
 
         private StreamWriter writer;
@@ -80,7 +77,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             writer.WriteLine("\nCELL_TYPES " + model.Elements.Count);
             foreach (var element in model.Elements)
             {
-                writer.WriteLine(cellTypeCodes[element.ElementType]);
+                writer.WriteLine(cellTypeCodes[element.CellType]);
             }
         }
 

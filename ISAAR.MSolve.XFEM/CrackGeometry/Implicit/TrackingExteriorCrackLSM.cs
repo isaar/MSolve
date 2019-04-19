@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.Geometry.Commons;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
@@ -16,7 +17,6 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.XFEM.Interpolation;
 
 //TODO: replace BasicCrackLSM with this one after testing is done
 //TODO: Consider removing the bookkeeping of enrichment items in elements. It creates a lot of opportunities for mistakes.
@@ -296,27 +296,29 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         /// <param name="interpolation"></param>
         /// <returns></returns>
         public double SignedDistanceOf(NaturalPoint point, XContinuumElement2D element,
-             EvaluatedInterpolation2D interpolation)
+             EvalInterpolation2D interpolation)
         {
             double signedDistance = 0.0;
-            foreach (XNode node in element.Nodes)
+            for (int nodeIdx = 0; nodeIdx < element.Nodes.Count; ++nodeIdx)
             {
-                signedDistance += interpolation.GetValueOf(node) * levelSetsBody[node];
+                signedDistance += interpolation.ShapeFunctions[nodeIdx] * levelSetsBody[element.Nodes[nodeIdx]];
             }
             return signedDistance;
         }
 
         public Tuple<double, double> SignedDistanceGradientThrough(NaturalPoint point,
-            IReadOnlyList<XNode> elementNodes, EvaluatedInterpolation2D interpolation)
+            IReadOnlyList<XNode> elementNodes, EvalInterpolation2D interpolation)
         {
             double gradientX = 0.0;
             double gradientY = 0.0;
-            foreach (XNode node in elementNodes)
+            for (int nodeIdx = 0; nodeIdx < elementNodes.Count; ++nodeIdx)
             {
-                double levelSet = levelSetsBody[node];
-                var shapeFunctionGradient = interpolation.GetGlobalCartesianDerivativesOf(node);
-                gradientX += shapeFunctionGradient[0] * levelSet;
-                gradientY += shapeFunctionGradient[1] * levelSet;
+                double dNdx = interpolation.ShapeGradientsCartesian[nodeIdx, 0];
+                double dNdy = interpolation.ShapeGradientsCartesian[nodeIdx, 1];
+
+                double levelSet = levelSetsBody[elementNodes[nodeIdx]];
+                gradientX += dNdx * levelSet;
+                gradientY += dNdy * levelSet;
             }
             return new Tuple<double, double>(gradientX, gradientY);
         }

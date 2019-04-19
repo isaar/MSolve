@@ -8,6 +8,7 @@ using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.Decomposition;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.Discretization.Mesh;
 
 namespace ISAAR.MSolve.XFEM.Output.VTK
 {
@@ -16,10 +17,10 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
         public static string vtkReaderVersion = "4.1";
         private static readonly string directory =
             Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName + "\\Resources\\";
-        private static readonly Dictionary<IsoparametricElementType2D, int> cellTypeCodes =
-            new Dictionary<IsoparametricElementType2D, int>()
+        private static readonly Dictionary<CellType, int> cellTypeCodes =
+            new Dictionary<CellType, int>()
             {
-                { IsoparametricElementType2D.Quad4, 9 }
+                { CellType.Quad4, 9 }
             };
 
         public void WriteBoundaryNodes(string path, IReadOnlyList<XSubdomain2D> subdomains)
@@ -140,7 +141,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                 writer.WriteLine("CELL_TYPES " + numElements);
                 foreach (var subdomain in subdomains)
                 {
-                    foreach (var element in subdomain.Elements) writer.WriteLine(cellTypeCodes[element.ElementType]);
+                    foreach (var element in subdomain.Elements) writer.WriteLine(cellTypeCodes[element.CellType]);
                 }
                 writer.WriteLine();
 

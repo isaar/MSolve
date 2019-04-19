@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
+﻿using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Interpolation;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.XFEM.Materials
 {
@@ -46,22 +41,21 @@ namespace ISAAR.MSolve.XFEM.Materials
             HomogeneousThickness = thickness;
         }
 
-        public double GetYoungModulusAt(NaturalPoint point, EvaluatedInterpolation2D interpolation)
-        { return HomogeneousYoungModulus; }
+        public double GetYoungModulusAt(NaturalPoint point, EvalInterpolation2D interpolation) => HomogeneousYoungModulus;
 
-        public double GetEquivalentYoungModulusAt(NaturalPoint point, EvaluatedInterpolation2D interpolation)
-        { return HomogeneousEquivalentYoungModulus; }
+        public double GetEquivalentYoungModulusAt(NaturalPoint point, EvalInterpolation2D interpolation)
+            => HomogeneousEquivalentYoungModulus;
 
-        public double GetPoissonRatioAt(NaturalPoint point, EvaluatedInterpolation2D interpolation)
-        { return HomogeneousPoissonRatio; }
+        public double GetPoissonRatioAt(NaturalPoint point, EvalInterpolation2D interpolation)
+            => HomogeneousPoissonRatio;
 
-        public double GetEquivalentPoissonRatioAt(NaturalPoint point, EvaluatedInterpolation2D interpolation)
-        { return HomogeneousEquivalentPoissonRatio; }
+        public double GetEquivalentPoissonRatioAt(NaturalPoint point, EvalInterpolation2D interpolation)
+            => HomogeneousEquivalentPoissonRatio;
 
-        public double GetThicknessAt(NaturalPoint point, EvaluatedInterpolation2D interpolation)
-        { return HomogeneousThickness; }
+        public double GetThicknessAt(NaturalPoint point, EvalInterpolation2D interpolation)
+            => HomogeneousThickness;
         
-        public Matrix CalculateConstitutiveMatrixAt(NaturalPoint point, EvaluatedInterpolation2D interpolation)
+        public Matrix CalculateConstitutiveMatrixAt(NaturalPoint point, EvalInterpolation2D interpolation)
         {
             var matrix = Matrix.CreateZero(3, 3);
             double eqE = HomogeneousEquivalentYoungModulus;

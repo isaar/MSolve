@@ -15,30 +15,30 @@ namespace ISAAR.MSolve.Logging.VTK
                                             // 3 ---- 2
                                             // |      |
                                             // |      |
-                { CellType.Quad4, 9 },    // 0 ---- 1
+                { CellType.Quad4, 9 },      // 0 ---- 1
 
                                             // 3 -- 6 -- 2
                                             // |         |
                                             // 7         5
                                             // |         |
-                { CellType.Quad8, 23 },   // 0 -- 4 -- 1
+                { CellType.Quad8, 23 },     // 0 -- 4 -- 1
 
                                             // 3 -- 6 -- 2
                                             // |    |    |
                                             // 7 -- 8 -- 5
                                             // |    |    |
-                { CellType.Quad9, 28 },   // 0 -- 4 -- 1
+                { CellType.Quad9, 28 },     // 0 -- 4 -- 1
 
                                             //    2
                                             //   /  \
                                             //  /    \
-                { CellType.Tri3, 5 },     // 0 ---  1
+                { CellType.Tri3, 5 },       // 0 ---  1
 
                                             //     2
                                             //    /  \
                                             //   5    4
                                             //  /       \
-                { CellType.Tri6, 22 }     // 0 -- 3 -- 1
+                { CellType.Tri6, 22 }       // 0 -- 3 -- 1
             };
 
         public VtkCell2D(int code, IReadOnlyList<VtkPoint2D> vertices)

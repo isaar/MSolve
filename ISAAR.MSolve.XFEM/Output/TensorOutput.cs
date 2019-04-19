@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Interpolation.GaussPointSystems;
-using ISAAR.MSolve.Geometry.Tensors;
 
 namespace ISAAR.MSolve.XFEM.Output
 {
@@ -127,7 +123,7 @@ namespace ISAAR.MSolve.XFEM.Output
             Vector enrichedDisplacements =
                 dofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
 
-            IReadOnlyList<NaturalPoint> naturalNodes = element.ElementType.NaturalCoordinatesOfNodes;
+            IReadOnlyList<NaturalPoint> naturalNodes = element.Interpolation.NodalNaturalCoordinates;
             var nodalTensors = new Tensor2D[element.Nodes.Count];
             for (int i = 0; i < element.Nodes.Count; ++i)
             {
@@ -137,6 +133,7 @@ namespace ISAAR.MSolve.XFEM.Output
             return nodalTensors;
         }
 
+        //TODO: Either work with Tensor class or double[]
         private IReadOnlyList<Tensor2D> ElementNodalTensorsExtrapolation(XContinuumElement2D element,
             Vector freeDisplacements, Vector constrainedDisplacements, IOutputField field)
         {
@@ -145,15 +142,14 @@ namespace ISAAR.MSolve.XFEM.Output
             Vector enrichedDisplacements =
                 dofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
 
-            IGaussPointSystem gpSystem = element.ElementType.GaussPointSystem;
-            IReadOnlyList<NaturalPoint> gaussPoints = gpSystem.GaussPoints;
+            IReadOnlyList<NaturalPoint> gaussPoints = element.GaussPointExtrapolation.Quadrature.IntegrationPoints;
             var gpTensors = new Tensor2D[gaussPoints.Count];
             for (int i = 0; i < gaussPoints.Count; ++i)
             {
                 gpTensors[i] =
                     field.EvaluateAt(element, gaussPoints[i], standardDisplacements, enrichedDisplacements);
             }
-            return gpSystem.ExtrapolateTensorFromGaussPointsToNodes(gpTensors);
+            return element.GaussPointExtrapolation.ExtrapolateTensorFromGaussPointsToNodes(gpTensors, element.Interpolation);
         }
 
     }

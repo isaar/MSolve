@@ -8,6 +8,7 @@ namespace ISAAR.MSolve.Discretization.Mesh
 {
     public interface ICell<TNode>
     {
+        CellType CellType { get; }
         IReadOnlyList<TNode> Nodes { get; }
     }
 }

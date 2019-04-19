@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.Geometry.Commons;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
@@ -12,7 +13,6 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.XFEM.Interpolation;
 
 // TODO: Consider removing the bookkeeping of enrichment items in elements. It creates a lot of opportunities for mistakes.
 //       Could the enrichment type of an element be infered by just looking at its nodes, without storing state. Could it be
@@ -142,27 +142,26 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         /// <param name="interpolation"></param>
         /// <returns></returns>
         public double SignedDistanceOf(NaturalPoint point, XContinuumElement2D element,
-             EvaluatedInterpolation2D interpolation)
+             EvalInterpolation2D interpolation)
         {
             double signedDistance = 0.0;
-            foreach (XNode node in element.Nodes)
+            for (int nodeIdx = 0; nodeIdx < element.Nodes.Count; ++nodeIdx)
             {
-                signedDistance += interpolation.GetValueOf(node) * levelSetsBody[node];
+                signedDistance += interpolation.ShapeFunctions[nodeIdx] * levelSetsBody[element.Nodes[nodeIdx]];
             }
             return signedDistance;
         }
 
         public Tuple<double, double> SignedDistanceGradientThrough(NaturalPoint point,
-            IReadOnlyList<XNode> elementNodes, EvaluatedInterpolation2D interpolation)
+            IReadOnlyList<XNode> elementNodes, EvalInterpolation2D interpolation)
         {
             double gradientX = 0.0;
             double gradientY = 0.0;
-            foreach (XNode node in elementNodes)
+            for (int nodeIdx = 0; nodeIdx < elementNodes.Count; ++nodeIdx)
             {
-                double levelSet = levelSetsBody[node];
-                var shapeFunctionGradient = interpolation.GetGlobalCartesianDerivativesOf(node);
-                gradientX += shapeFunctionGradient[0] * levelSet;
-                gradientY += shapeFunctionGradient[1] * levelSet;
+                double levelSet = levelSetsBody[elementNodes[nodeIdx]];
+                gradientX += interpolation.ShapeGradientsCartesian[nodeIdx, 0] * levelSet;
+                gradientY += interpolation.ShapeGradientsCartesian[nodeIdx, 1] * levelSet;
             }
             return new Tuple<double, double>(gradientX, gradientY);
         }
@@ -370,9 +369,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
                     
                     var centroid = new CartesianPoint((v0.X + v1.X + v2.X) / 3.0, (v0.Y + v1.Y + v2.Y) / 3.0);
                     NaturalPoint centroidNatural = element.Interpolation.
-                        CreateInverseMappingFor(element.Nodes).TransformCartesianToNatural(centroid);
-                    EvaluatedInterpolation2D centroidInterpolation = 
-                        element.Interpolation.EvaluateAt(element.Nodes, centroidNatural);
+                        CreateInverseMappingFor(element.Nodes).TransformPointCartesianToNatural(centroid);
+                    EvalInterpolation2D centroidInterpolation = 
+                        element.Interpolation.EvaluateAllAt(element.Nodes, centroidNatural);
                     sign = Math.Sign(SignedDistanceOf(centroidNatural, element, centroidInterpolation));
                 }
 

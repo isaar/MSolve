@@ -1,9 +1,8 @@
-﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Geometry.Tensors;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.XFEM.Output.VTK
 {
@@ -131,7 +130,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
         /// <param name="fieldName"></param>
         /// <param name="pointValues">Each row correspond to a different node. They must be in the exact same order as the nodes.
         ///     Columns 0 and 1 are the vector entries.</param>
-        public void WriteVector2DField(string fieldName, IReadOnlyList<Vector2> pointVectors)
+        public void WriteVector2DField(string fieldName, IReadOnlyList<double[]> pointVectors)
         {
             WriteFieldsHeader(pointVectors.Count);
             writer.WriteLine($"VECTORS {fieldName} double");

@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.XFEM.Integration
     /// They typically make use of the standard quadrature rules.
     /// </summary>
     /// <typeparam name="TElement"></typeparam>
-    interface IIntegrationStrategy2D<TElement>
+    public interface IIntegrationStrategy2D<TElement>
     {
         IReadOnlyList<GaussPoint> GenerateIntegrationPoints(TElement element);
     }

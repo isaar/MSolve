@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.FEM.Interpolation;
+using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.XFEM.Interpolation;
-using ISAAR.MSolve.Geometry.Tensors;
 
 namespace ISAAR.MSolve.XFEM.Output
 {
@@ -86,12 +83,12 @@ namespace ISAAR.MSolve.XFEM.Output
             Vector enrichedDisplacements = 
                 dofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(element, freeDisplacements);
 
-            IReadOnlyList<NaturalPoint> naturalNodes = element.ElementType.NaturalCoordinatesOfNodes;
+            IReadOnlyList<NaturalPoint> naturalNodes = element.Interpolation.NodalNaturalCoordinates;
             var nodalStresses = new Dictionary<XNode, Tensor2D>();
             for (int i = 0; i < element.Nodes.Count; ++i)
             {
-                EvaluatedInterpolation2D evaluatedInterpolation =
-                    element.Interpolation.EvaluateAt(element.Nodes, naturalNodes[i]);
+                EvalInterpolation2D evaluatedInterpolation =
+                    element.Interpolation.EvaluateAllAt(element.Nodes, naturalNodes[i]);
                 Matrix2by2 displacementGradient = element.CalculateDisplacementFieldGradient(
                     naturalNodes[i], evaluatedInterpolation, standardDisplacements, enrichedDisplacements);
                 Matrix constitutive = 

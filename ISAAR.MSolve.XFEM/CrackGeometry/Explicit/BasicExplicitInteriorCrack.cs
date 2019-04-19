@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.Geometry.Commons;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
@@ -12,7 +13,6 @@ using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.XFEM.Interpolation;
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
 {
@@ -120,9 +120,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
         }
 
         public double SignedDistanceOf(NaturalPoint point, XContinuumElement2D element,
-             EvaluatedInterpolation2D interpolation)
+             EvalInterpolation2D interpolation)
         {
-            return SignedDistanceOfPoint(interpolation.TransformPointNaturalToGlobalCartesian(point));
+            return SignedDistanceOfPoint(interpolation.TransformPointNaturalToGlobalCartesian());
         }
 
         public SortedSet<CartesianPoint> FindTriangleVertices(XContinuumElement2D element)

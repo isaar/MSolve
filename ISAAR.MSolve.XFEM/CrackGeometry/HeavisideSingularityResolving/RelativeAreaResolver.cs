@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Triangulation;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Interpolation;
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
 {
@@ -159,9 +159,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
 
                     var centroid = new CartesianPoint((v0.X + v1.X + v2.X) / 3.0, (v0.Y + v1.Y + v2.Y) / 3.0);
                     NaturalPoint centroidNatural = element.Interpolation.
-                        CreateInverseMappingFor(element.Nodes).TransformCartesianToNatural(centroid);
-                    EvaluatedInterpolation2D centroidInterpolation =
-                        element.Interpolation.EvaluateAt(element.Nodes, centroidNatural);
+                        CreateInverseMappingFor(element.Nodes).TransformPointCartesianToNatural(centroid);
+                    EvalInterpolation2D centroidInterpolation =
+                        element.Interpolation.EvaluateAllAt(element.Nodes, centroidNatural);
                     sign = Math.Sign(crack.SignedDistanceOf(centroidNatural, element, centroidInterpolation));
                 }
 
