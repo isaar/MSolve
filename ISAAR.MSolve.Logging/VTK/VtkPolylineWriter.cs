@@ -1,37 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.Output.VTK
 {
-    class PolylineWriter
+    public class VtkPolylineWriter : IDisposable
     {
-        public static string vtkReaderVersion = "4.1";
-        private static readonly string directory =
-            Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName + "\\Resources\\";
-        private StreamWriter writer;
+        public const string vtkReaderVersion = "4.1";
+        private readonly StreamWriter writer;
 
-        public PolylineWriter()
+        public VtkPolylineWriter(string filePath)
         {
-        }
-
-        public void CloseCurrentFile()
-        {
-            writer.Flush();
-            writer.Close();
-        }
-
-        public void InitializeFile(string filename, bool isAbsolute)
-        {
-            // Header
-            string path = isAbsolute ? filename + ".vtk" : directory + filename + ".vtk";
-            writer = new StreamWriter(path);
+            this.writer = new StreamWriter(filePath);
             writer.Write("# vtk DataFile Version ");
             writer.WriteLine(vtkReaderVersion);
-            writer.WriteLine(filename);
+            writer.WriteLine(filePath);
             writer.Write("ASCII\n\n");
+        }
+
+        public void Dispose()
+        {
+            if (writer != null) writer.Dispose();
         }
 
         public void WritePolyline(IReadOnlyList<CartesianPoint> vertices)

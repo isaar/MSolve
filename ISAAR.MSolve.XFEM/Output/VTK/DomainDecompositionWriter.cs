@@ -2,38 +2,33 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using ISAAR.MSolve.XFEM.Elements;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Entities.Decomposition;
-using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Geometry.Shapes;
-using ISAAR.MSolve.Discretization.Mesh;
 
+//TODO: Move this to Logging project with the rest of VTK classes.
 namespace ISAAR.MSolve.XFEM.Output.VTK
 {
-    class DomainDecompositionWriter
+    internal class DomainDecompositionWriter
     {
         public static string vtkReaderVersion = "4.1";
         private static readonly string directory =
             Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName + "\\Resources\\";
-        private static readonly Dictionary<CellType, int> cellTypeCodes =
-            new Dictionary<CellType, int>()
-            {
-                { CellType.Quad4, 9 }
-            };
 
         public void WriteBoundaryNodes(string path, IReadOnlyList<XSubdomain2D> subdomains)
         {
-            var boundaryNodes = new Dictionary<CartesianPoint, double>();
+            var boundaryNodes = new Dictionary<INode, double>();
             foreach (var subdomain in subdomains)
             {
                 foreach (var node in subdomain.BoundaryNodes) boundaryNodes[node] = 0.0;
             }
-            var writer = new VTKPointWriter();
-            writer.InitializeFile(path, true);
-            writer.WriteScalarField("boundary", boundaryNodes);
-            writer.CloseCurrentFile();
+            using (var writer = new VtkPointWriter(path))
+            {
+                writer.WriteScalarField("boundary", boundaryNodes);
+            }
         }
 
         public void WriteRegions(string path, PolygonalRegion[] regions)
@@ -141,7 +136,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                 writer.WriteLine("CELL_TYPES " + numElements);
                 foreach (var subdomain in subdomains)
                 {
-                    foreach (var element in subdomain.Elements) writer.WriteLine(cellTypeCodes[element.CellType]);
+                    foreach (var element in subdomain.Elements) writer.WriteLine(VtkCell.CellTypeCodes[element.CellType]);
                 }
                 writer.WriteLine();
 

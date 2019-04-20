@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Mesh;
 
 namespace ISAAR.MSolve.Logging.VTK
@@ -7,9 +8,9 @@ namespace ISAAR.MSolve.Logging.VTK
     /// Cell used to represent VTK grids.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class VtkCell2D
+    public class VtkCell
     {
-        public static readonly IReadOnlyDictionary<CellType, int> cellTypeCodes = 
+        private static readonly IReadOnlyDictionary<CellType, int> cellTypeCodes = 
             new Dictionary<CellType, int>
             {
                                             // 3 ---- 2
@@ -41,13 +42,17 @@ namespace ISAAR.MSolve.Logging.VTK
                 { CellType.Tri6, 22 }       // 0 -- 3 -- 1
             };
 
-        public VtkCell2D(int code, IReadOnlyList<VtkPoint2D> vertices)
+        public static IReadOnlyDictionary<CellType, int> CellTypeCodes => cellTypeCodes;
+
+        public VtkCell(CellType cellType, IReadOnlyList<VtkPoint> vertices)
         {
+            bool exists = cellTypeCodes.TryGetValue(cellType, out int code);
+            if (!exists) throw new NotImplementedException("Cannot plot elements of type " + cellType);
             this.Code = code;
             this.Vertices = vertices;
         }
 
         public int Code { get; }
-        public IReadOnlyList<VtkPoint2D> Vertices { get; }
+        public IReadOnlyList<VtkPoint> Vertices { get; }
     }
 }

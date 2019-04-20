@@ -4,6 +4,7 @@ using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Interpolation;
@@ -21,7 +22,7 @@ namespace ISAAR.MSolve.FEM.Elements
     /// the appropriate <see cref="IIsoparametricInterpolation3D_OLD"/>, <see cref="IQuadrature3D"/> etc. strategies. 
     /// Authors: Dimitris Tsapetis
     /// </summary>
-    public class ContinuumElement3D : IStructuralFiniteElement
+    public class ContinuumElement3D : IStructuralFiniteElement, ICell<Node>
     {
         private readonly static IDofType[] nodalDOFTypes = new IDofType[] {StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ};
         private readonly IDofType[][] dofTypes;
@@ -46,6 +47,7 @@ namespace ISAAR.MSolve.FEM.Elements
                 dofTypes[i]=new IDofType[]{StructuralDof.TranslationX, StructuralDof.TranslationY,StructuralDof.TranslationZ};
         }
 
+        public CellType CellType => Interpolation.CellType;
         public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
         public IGaussPointExtrapolation3D GaussPointExtrapolation { get; }
         public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;

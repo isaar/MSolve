@@ -12,7 +12,10 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //TODO: find what is going on with the dynamic loads and refactor them. That 564000000 in AssignMassAccelerationHistoryLoads()
 //      cannot be correct.
 //TODO: ConnectDataStructures() should not be called twice. There should be a flag that determines if it has been called. If it
-//      has the method should just return without doing anything.
+//      has, the method should just return without doing anything.
+//TODO: Replace all IList with IReadOnlyList. Even better, have a different class to create the model than the one used to 
+//      store the entities, so that they can be accessed by solvers, analyzers & loggers. Could the latter be the same for FEM, 
+//      IGA, XFEM?
 namespace ISAAR.MSolve.FEM.Entities
 {
     public class Model : IStructuralModel

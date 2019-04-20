@@ -4,6 +4,7 @@ using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
@@ -18,7 +19,7 @@ using ISAAR.MSolve.Materials;
 //TODO: Is there any point in having different material properties per Gauss point?
 namespace ISAAR.MSolve.FEM.Elements
 {
-    public class ThermalElement2D : IFiniteElement, IEmbeddedHostElement
+    public class ThermalElement2D : IFiniteElement, IEmbeddedHostElement, ICell<Node>
     {
         private readonly IDofType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
         private readonly ThermalMaterial material;
@@ -42,6 +43,7 @@ namespace ISAAR.MSolve.FEM.Elements
             for (int i = 0; i < interpolation.NumFunctions; ++i) dofTypes[i] = new IDofType[] { ThermalDof.Temperature };
         }
 
+        public CellType CellType => Interpolation.CellType;
         public ElementDimensions ElementDimensions => ElementDimensions.TwoD;
 
         public int ID => throw new NotImplementedException(

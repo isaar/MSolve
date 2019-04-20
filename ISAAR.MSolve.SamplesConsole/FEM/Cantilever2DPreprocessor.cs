@@ -159,10 +159,19 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
 
         private static void PrintMeshOnly(Model model)
         {
-            var mesh = new VtkMesh2D(model);
-            using (var writer = new VtkFileWriter(workingDirectory + "\\mesh.vtk"))
+            try
             {
-                writer.WriteMesh(mesh.Points, mesh.Cells);
+                Node[] nodes = model.Nodes.ToArray();
+                ICell<Node>[] elements = model.Elements.Select(element => (ICell<Node>)element).ToArray();
+                var mesh = new VtkMesh<Node>(nodes, elements);
+                using (var writer = new VtkFileWriter(workingDirectory + "\\mesh.vtk"))
+                {
+                    writer.WriteMesh(mesh);
+                }
+            }
+            catch (InvalidCastException ex)
+            {
+                throw new InvalidCastException("VtkLogFactory only works for models with elements that implement ICell.", ex);
             }
         }
 

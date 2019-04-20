@@ -4,6 +4,7 @@ using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Interpolation;
@@ -32,7 +33,7 @@ namespace ISAAR.MSolve.FEM.Elements
     /// of this element is uniform, therefore it is necessary to use finer meshes to simulate domains with variable thickness.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class ContinuumElement2D : IStructuralFiniteElement
+    public class ContinuumElement2D : IStructuralFiniteElement, ICell<Node>
     {
         private readonly static IDofType[] nodalDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY };
         private readonly IDofType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
@@ -57,6 +58,7 @@ namespace ISAAR.MSolve.FEM.Elements
             for (int i = 0; i < interpolation.NumFunctions; ++i) dofTypes[i] = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY };
         }
 
+        public CellType CellType => Interpolation.CellType;
         public ElementDimensions ElementDimensions => ElementDimensions.TwoD;
 
         public int ID => throw new NotImplementedException(

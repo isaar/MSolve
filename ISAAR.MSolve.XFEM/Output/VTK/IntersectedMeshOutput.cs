@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.Integration;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
@@ -9,6 +10,7 @@ using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
@@ -28,7 +30,6 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
 {
     class IntersectedMeshOutput: IXfemOutput
     {
-        private const int triangleVtkCode = 5;
         private readonly ICrackDescription crackGeometry;
         private readonly Model2D model;
         private readonly string pathNoExtension;
@@ -45,8 +46,8 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
         public void WriteOutputData(IDofOrderer dofOrderer, Vector freeDisplacements, Vector constrainedDisplacements, int step)
         {
             // TODO: guess initial capacities from previous steps or from the model
-            var allPoints = new List<VtkPoint2D>();
-            var allCells = new List<VtkCell2D>();
+            var allPoints = new List<VtkPoint>();
+            var allCells = new List<VtkCell>();
             var displacements = new List<double[]>();
             var strains = new List<Tensor2D>();
             var stresses = new List<Tensor2D>();
@@ -63,13 +64,13 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                 if (!mustTriangulate)
                 {
                     // Mesh
-                    var cellPoints = new VtkPoint2D[element.Nodes.Count];
+                    var cellPoints = new VtkPoint[element.Nodes.Count];
                     for (int p = 0; p < cellPoints.Length; ++p)
                     {
-                        cellPoints[p] = new VtkPoint2D(pointCounter++, element.Nodes[p]);
+                        cellPoints[p] = new VtkPoint(pointCounter++, element.Nodes[p]);
                         allPoints.Add(cellPoints[p]);
                     }
-                    allCells.Add(new VtkCell2D(VtkCell2D.CellTypeCodes[element.CellType], cellPoints));
+                    allCells.Add(new VtkCell(element.CellType, cellPoints));
 
                     // Displacements
                     for (int p = 0; p < cellPoints.Length; ++p)
@@ -113,14 +114,14 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                     {
                         // Mesh
                         int numTriangleNodes = 3;
-                        var cellPoints = new VtkPoint2D[numTriangleNodes];
+                        var cellPoints = new VtkPoint[numTriangleNodes];
                         for (int p = 0; p < numTriangleNodes; ++p)
                         {
-                            cellPoints[p] = 
-                                new VtkPoint2D(pointCounter++, new CartesianPoint(triangle.Vertices[p].Coordinates));
+                            CartesianPoint point = triangle.Vertices[p];
+                            cellPoints[p] = new VtkPoint(pointCounter++, point.X, point.Y, point.Z);
                             allPoints.Add(cellPoints[p]);
                         }
-                        allCells.Add(new VtkCell2D(triangleVtkCode, cellPoints));
+                        allCells.Add(new VtkCell(CellType.Tri3, cellPoints));
 
                         // Displacements, strains and stresses are not defined on the crack, thus they must be evaluated at GPs   
                         // and extrapolated to each point of interest. However how should I choose the Gauss points? Here I take 
@@ -175,7 +176,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
                 }
             }
 
-            using (var writer = new VtkFileWriter2D($"{pathNoExtension}_{step}.vtk"))
+            using (var writer = new VtkFileWriter($"{pathNoExtension}_{step}.vtk"))
             {
                 writer.WriteMesh(allPoints, allCells);
                 writer.WriteVector2DField("displacement", displacements);

@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Output.VTK;
 
 //TODO: right now lsm.UpdateGeometry() is called before checking collapse, while lsm.UpdateEnrichments() afterwards. Thus there
@@ -27,92 +26,95 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
 
         public void Log()
         {
-            var writer = new VTKPointWriter();
-            
             // Log the new tip enriched nodes and the signs of their crack body level sets.
-            writer.InitializeFile($"{outputDirectory}\\tip_nodes_new_{iteration}", true);
-            var tipNodesNew = new Dictionary<CartesianPoint, double>();
-            foreach (var node in lsm.CrackTipNodesNew[lsm.CrackTipEnrichments])
+            using (var writer = new VtkPointWriter($"{outputDirectory}\\tip_nodes_new_{iteration}"))
             {
-                double sign = Math.Sign(lsm.LevelSetsTip[node]);
-                tipNodesNew.Add(node, sign);
-            }
-            writer.WriteScalarField("Tip_nodes_new", tipNodesNew);
-            writer.CloseCurrentFile();
-
-            // Log the old tip enriched nodes and the signs of their crack body level sets.
-            writer.InitializeFile($"{outputDirectory}\\tip_nodes_old_{iteration}", true);
-            var tipNodesOld = new Dictionary<CartesianPoint, double>();
-            if (iteration > 0) 
-            {
-                foreach (var node in lsm.CrackTipNodesOld[lsm.CrackTipEnrichments])
+                var tipNodesNew = new Dictionary<CartesianPoint, double>();
+                foreach (var node in lsm.CrackTipNodesNew[lsm.CrackTipEnrichments])
                 {
                     double sign = Math.Sign(lsm.LevelSetsTip[node]);
-                    tipNodesOld.Add(node, sign);
+                    tipNodesNew.Add(node, sign);
                 }
+                writer.WriteScalarField("Tip_nodes_new", tipNodesNew);
             }
-            else // else a phony node just to get the Paraview reader working. TODO: find a more elegant solution.
+
+            // Log the old tip enriched nodes and the signs of their crack body level sets.
+            using (var writer = new VtkPointWriter($"{outputDirectory}\\tip_nodes_old_{iteration}"))
             {
-                tipNodesOld.Add(new CartesianPoint(-0.01, -0.01), 0);
+                var tipNodesOld = new Dictionary<CartesianPoint, double>();
+                if (iteration > 0)
+                {
+                    foreach (var node in lsm.CrackTipNodesOld[lsm.CrackTipEnrichments])
+                    {
+                        double sign = Math.Sign(lsm.LevelSetsTip[node]);
+                        tipNodesOld.Add(node, sign);
+                    }
+                }
+                else // else a phony node just to get the Paraview reader working. TODO: find a more elegant solution.
+                {
+                    tipNodesOld.Add(new CartesianPoint(-0.01, -0.01), 0);
+                }
+                writer.WriteScalarField("Tip_nodes_old", tipNodesOld);
             }
-            writer.WriteScalarField("Tip_nodes_old", tipNodesOld);
-            writer.CloseCurrentFile();
 
             // Log all Heaviside enriched nodes and the signs of their crack body level sets.
-            writer.InitializeFile($"{outputDirectory}\\heaviside_nodes_all_{iteration}", true);
-            var heavisideNodesAll = new Dictionary<CartesianPoint, double>();
-            foreach (var node in lsm.CrackBodyNodesAll[lsm.CrackBodyEnrichment])
+            using (var writer = new VtkPointWriter($"{outputDirectory}\\heaviside_nodes_all_{iteration}"))
             {
-                double sign = Math.Sign(lsm.LevelSetsBody[node]);
-                heavisideNodesAll.Add(node, sign);
+                var heavisideNodesAll = new Dictionary<CartesianPoint, double>();
+                foreach (var node in lsm.CrackBodyNodesAll[lsm.CrackBodyEnrichment])
+                {
+                    double sign = Math.Sign(lsm.LevelSetsBody[node]);
+                    heavisideNodesAll.Add(node, sign);
+                }
+                writer.WriteScalarField("Heaviside_nodes_all", heavisideNodesAll);
             }
-            writer.WriteScalarField("Heaviside_nodes_all", heavisideNodesAll);
-            writer.CloseCurrentFile();
 
             // Log only the new Heaviside enriched nodes and the signs of their crack body level sets.
-            writer.InitializeFile($"{outputDirectory}\\heaviside_nodes_new_{iteration}", true);
-            var heavisideNodesNew = new Dictionary<CartesianPoint, double>();
-            foreach (var node in lsm.CrackBodyNodesNew[lsm.CrackBodyEnrichment])
+            using (var writer = new VtkPointWriter($"{outputDirectory}\\heaviside_nodes_new_{iteration}"))
             {
-                double sign = Math.Sign(lsm.LevelSetsBody[node]);
-                heavisideNodesNew.Add(node, sign);
+                var heavisideNodesNew = new Dictionary<CartesianPoint, double>();
+                foreach (var node in lsm.CrackBodyNodesNew[lsm.CrackBodyEnrichment])
+                {
+                    double sign = Math.Sign(lsm.LevelSetsBody[node]);
+                    heavisideNodesNew.Add(node, sign);
+                }
+                writer.WriteScalarField("Heaviside_nodes_new", heavisideNodesNew);
             }
-            writer.WriteScalarField("Heaviside_nodes_new", heavisideNodesNew);
-            writer.CloseCurrentFile();
 
             // Log the nodes that belong to elements intersected by the crack, but are not enriched with Heaviside 
-            writer.InitializeFile($"{outputDirectory}\\heaviside_rejected_nodes_{iteration}", true);
-            var rejectedNodes = new Dictionary<CartesianPoint, double>();
-            foreach (var node in lsm.CrackBodyNodesRejected[lsm.CrackBodyEnrichment])
+            using (var writer = new VtkPointWriter($"{outputDirectory}\\heaviside_rejected_nodes_{iteration}"))
             {
-                double sign = Math.Sign(lsm.LevelSetsBody[node]);
-                rejectedNodes.Add(node, sign);
+                var rejectedNodes = new Dictionary<CartesianPoint, double>();
+                foreach (var node in lsm.CrackBodyNodesRejected[lsm.CrackBodyEnrichment])
+                {
+                    double sign = Math.Sign(lsm.LevelSetsBody[node]);
+                    rejectedNodes.Add(node, sign);
+                }
+                if (rejectedNodes.Count == 0) //a phony node just to get the Paraview reader working. TODO: find a more elegant solution.
+                {
+                    rejectedNodes.Add(new CartesianPoint(-0.01, -0.01), 0);
+                }
+                writer.WriteScalarField("Heaviside_rejected_nodes", rejectedNodes);
             }
-            if (rejectedNodes.Count == 0) //a phony node just to get the Paraview reader working. TODO: find a more elegant solution.
-            {
-                rejectedNodes.Add(new CartesianPoint(-0.01, -0.01), 0);
-            }
-            writer.WriteScalarField("Heaviside_rejected_nodes", rejectedNodes);
-            writer.CloseCurrentFile();
-
+                
 
             // Log unmodified Heaviside nodes of elements with at least one modified node
-            writer.InitializeFile($"{outputDirectory}\\near_modified_heaviside_nodes_{iteration}", true);
-            var nearModifiedHeavisideNodes = new Dictionary<CartesianPoint, double>();
-            foreach (var node in lsm.CrackBodyNodesNearModified[lsm.CrackBodyEnrichment])
+            using (var writer = new VtkPointWriter($"{outputDirectory}\\near_modified_heaviside_nodes_{iteration}"))
             {
-                double sign = Math.Sign(lsm.LevelSetsBody[node]);
-                nearModifiedHeavisideNodes.Add(node, sign);
+                var nearModifiedHeavisideNodes = new Dictionary<CartesianPoint, double>();
+                foreach (var node in lsm.CrackBodyNodesNearModified[lsm.CrackBodyEnrichment])
+                {
+                    double sign = Math.Sign(lsm.LevelSetsBody[node]);
+                    nearModifiedHeavisideNodes.Add(node, sign);
+                }
+                if (nearModifiedHeavisideNodes.Count == 0) // a phony node just to get the Paraview reader working. TODO: find a more elegant solution.
+                {
+                    nearModifiedHeavisideNodes.Add(new CartesianPoint(-0.01, -0.01), 0);
+                }
+                writer.WriteScalarField("near_modified_heaviside_nodes", nearModifiedHeavisideNodes);
             }
-            if (nearModifiedHeavisideNodes.Count == 0) // a phony node just to get the Paraview reader working. TODO: find a more elegant solution.
-            {
-                nearModifiedHeavisideNodes.Add(new CartesianPoint(-0.01, -0.01), 0);
-            }
-            writer.WriteScalarField("near_modified_heaviside_nodes", nearModifiedHeavisideNodes);
-            writer.CloseCurrentFile();
 
             ++iteration;
-
         }
     }
 }
