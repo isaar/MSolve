@@ -1,16 +1,15 @@
-﻿using System;
-using ISAAR.MSolve.Discretization.Commons;
+﻿using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 {
     class InterleavedDofOrderer: DofOrdererBase
     {
-        private InterleavedDofOrderer(int constrainedDofsCount, DofTable<DisplacementDof> constrainedDofs,
+        private InterleavedDofOrderer(int constrainedDofsCount, DofTable<StructuralDof> constrainedDofs,
             int enrichedDofsCount, DofTable<EnrichedDof> enrichedDofs,
-            int standardDofsCount, DofTable<DisplacementDof> standardDofs) :
+            int standardDofsCount, DofTable<StructuralDof> standardDofs) :
             base(constrainedDofsCount, constrainedDofs, enrichedDofsCount, enrichedDofs, standardDofsCount, standardDofs)
         {
         }
@@ -19,9 +18,9 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         {
             // TODO: I should probably have a Constraint or Constraints class, to decouple this class from the collections 
             // used to represent constraints
-            (DofTable<DisplacementDof> standardDofs, DofTable<EnrichedDof> enrichedDofs) = 
+            (DofTable<StructuralDof> standardDofs, DofTable<EnrichedDof> enrichedDofs) = 
                 OrderUnconstrainedDofs(model);
-            (int constrainedDofsCount, DofTable<DisplacementDof> constrainedDofs) =
+            (int constrainedDofsCount, DofTable<StructuralDof> constrainedDofs) =
                 OrderConstrainedDofs(model.Constraints);
 
             #region DEBUG code
@@ -39,12 +38,12 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
                 standardDofs.EntryCount, standardDofs);
         }
 
-        private static (int constrainedDofsCount, DofTable<DisplacementDof> constrainedDofs) OrderConstrainedDofs(
-            ITable<XNode, DisplacementDof, double> constraints)
+        private static (int constrainedDofsCount, DofTable<StructuralDof> constrainedDofs) OrderConstrainedDofs(
+            ITable<XNode, StructuralDof, double> constraints)
         {
-            var constrainedDofs = new DofTable<DisplacementDof>();
+            var constrainedDofs = new DofTable<StructuralDof>();
             int dofCounter = 0;
-            foreach ((XNode node, DisplacementDof dofType, double displacement) in constraints)
+            foreach ((XNode node, StructuralDof dofType, double displacement) in constraints)
             {
                 constrainedDofs[node, dofType] = dofCounter++;
             }
@@ -58,18 +57,18 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        private static (DofTable<DisplacementDof> standardDofs, DofTable<EnrichedDof> enrichedDofs) 
+        private static (DofTable<StructuralDof> standardDofs, DofTable<EnrichedDof> enrichedDofs) 
             OrderUnconstrainedDofs(Model2D model)
         {
-            ITable<XNode, DisplacementDof, double> constraints = model.Constraints;
-            var standardDofs = new DofTable<DisplacementDof>();
+            ITable<XNode, StructuralDof, double> constraints = model.Constraints;
+            var standardDofs = new DofTable<StructuralDof>();
             var enrichedDofs = new DofTable<EnrichedDof>();
             int dofCounter = 0;
             foreach (XNode node in model.Nodes)
             {
                 // Standard free dofs. No rotational dofs. They can be X or Y. One or both of them may be constrained. 
-                if (!constraints.Contains(node, DisplacementDof.X)) standardDofs[node, DisplacementDof.X] = dofCounter++;
-                if (!constraints.Contains(node, DisplacementDof.Y)) standardDofs[node, DisplacementDof.Y] = dofCounter++;
+                if (!constraints.Contains(node, StructuralDof.TranslationX)) standardDofs[node, StructuralDof.TranslationX] = dofCounter++;
+                if (!constraints.Contains(node, StructuralDof.TranslationY)) standardDofs[node, StructuralDof.TranslationY] = dofCounter++;
 
                 // Enriched dofs. No rotational dofs. They cannot be constrained.
                 foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys)

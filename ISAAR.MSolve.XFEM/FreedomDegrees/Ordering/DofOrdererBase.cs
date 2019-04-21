@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Utilities;
 
 //TODO: I should use interchangeble builders, rather than subclasses.
 //TODO: constrained dofs should be ignored (set to -1) and the effect of constraints should be done via equivalent forces.
@@ -13,17 +13,17 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 {
     class DofOrdererBase: IDofOrderer
     {
-        protected readonly DofTable<DisplacementDof> constrainedDofs;
+        protected readonly DofTable<StructuralDof> constrainedDofs;
         protected readonly DofTable<EnrichedDof> enrichedDofs;
-        protected readonly DofTable<DisplacementDof> standardDofs;
+        protected readonly DofTable<StructuralDof> standardDofs;
 
         public int NumConstrainedDofs { get; }
         public int NumEnrichedDofs { get; }
         public int NumStandardDofs { get; }
 
-        protected DofOrdererBase(int constrainedDofsCount, DofTable<DisplacementDof> constrainedDofs, 
+        protected DofOrdererBase(int constrainedDofsCount, DofTable<StructuralDof> constrainedDofs, 
             int enrichedDofsCount, DofTable<EnrichedDof> enrichedDofs,
-            int standardDofsCount, DofTable<DisplacementDof> standardDofs)
+            int standardDofsCount, DofTable<StructuralDof> standardDofs)
         {
             this.NumConstrainedDofs = constrainedDofsCount;
             this.constrainedDofs = constrainedDofs;
@@ -50,9 +50,9 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         public Vector ExtractDisplacementVectorOfElementFromGlobal(XContinuumElement2D element,
             Vector globalFreeVector, Vector globalConstrainedVector)
         {
-            DofTable<DisplacementDof> elementDofs = element.GetStandardDofs();
+            DofTable<StructuralDof> elementDofs = element.GetStandardDofs();
             double[] elementVector = new double[elementDofs.EntryCount];
-            foreach ((XNode node, DisplacementDof dofType, int dofIdx) in elementDofs)
+            foreach ((XNode node, StructuralDof dofType, int dofIdx) in elementDofs)
             {
                 bool isStandard = this.standardDofs.TryGetValue(node, dofType, out int globalStandardDof);
                 if (isStandard) elementVector[dofIdx] = globalFreeVector[globalStandardDof];
@@ -105,18 +105,18 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             {
                 XNode node = model.Nodes[i];
 
-                bool isXStandard = standardDofs.TryGetValue(node, DisplacementDof.X, out int globalStandardDofX);
+                bool isXStandard = standardDofs.TryGetValue(node, StructuralDof.TranslationX, out int globalStandardDofX);
                 if (isXStandard) result[i, 0] = solution[globalStandardDofX];
-                else result[i, 0] = model.Constraints[node, DisplacementDof.X];
+                else result[i, 0] = model.Constraints[node, StructuralDof.TranslationX];
 
-                bool isYStandard = standardDofs.TryGetValue(node, DisplacementDof.Y, out int globalStandardDofY);
+                bool isYStandard = standardDofs.TryGetValue(node, StructuralDof.TranslationY, out int globalStandardDofY);
                 if (isYStandard) result[i, 1] = solution[globalStandardDofY];
-                else result[i, 1] = model.Constraints[node, DisplacementDof.Y];
+                else result[i, 1] = model.Constraints[node, StructuralDof.TranslationY];
             }
             return result;
         }
 
-        public int GetConstrainedDofOf(XNode node, DisplacementDof dofType)
+        public int GetConstrainedDofOf(XNode node, StructuralDof dofType)
         {
             return constrainedDofs[node, dofType];
         }
@@ -175,7 +175,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 
         // Would it be faster to return the Dictionary<StandardDofType, int> for consecutive accesses of the dofs of this node? 
         // Dictionary's Read operation is supposed to be O(1), but still...
-        public int GetStandardDofOf(XNode node, DisplacementDof dofType)
+        public int GetStandardDofOf(XNode node, StructuralDof dofType)
         {
             return standardDofs[node, dofType];
         }
@@ -239,10 +239,10 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             out IReadOnlyDictionary<int, int> elementToGlobalStandardDofs,
             out IReadOnlyDictionary<int, int> elementToGlobalConstrainedDofs)
         {
-            DofTable<DisplacementDof> elementDofs = element.GetStandardDofs();
+            DofTable<StructuralDof> elementDofs = element.GetStandardDofs();
             var globalStandardDofs = new Dictionary<int, int>();
             var globalConstrainedDofs = new Dictionary<int, int>();
-            foreach ((XNode node, DisplacementDof dofType, int dofIdx) in elementDofs)
+            foreach ((XNode node, StructuralDof dofType, int dofIdx) in elementDofs)
             {
                 bool isStandard = this.standardDofs.TryGetValue(node, dofType, out int standardGlobalDof);
                 if (isStandard) globalStandardDofs[dofIdx] = standardGlobalDof;

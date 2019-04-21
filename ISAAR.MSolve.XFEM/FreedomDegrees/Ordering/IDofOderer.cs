@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Utilities;
 
 //TODO: Clean this up: Not all these methods are actually necessary. Some are only used for testing specific orderers.  
 namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 
         ITable<XNode, EnrichedDof, double> GatherEnrichedNodalDisplacements(Model2D model, Vector solution);
 
-        int GetConstrainedDofOf(XNode node, DisplacementDof dofType);
+        int GetConstrainedDofOf(XNode node, StructuralDof dofType);
         IEnumerable<int> GetConstrainedDofsOf(XNode node);
         List<int> GetConstrainedDofsOf(XContinuumElement2D element); // Also add a method that simultaneously returns free+constrained
 
@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         IEnumerable<int> GetEnrichedDofsOf(XNode node);
         List<int> GetEnrichedDofsOf(XContinuumElement2D element);
 
-        int GetStandardDofOf(XNode node, DisplacementDof dofType);
+        int GetStandardDofOf(XNode node, StructuralDof dofType);
         IEnumerable<int> GetStandardDofsOf(XNode node);
         List<int> GetStandardDofsOf(XContinuumElement2D element);
 

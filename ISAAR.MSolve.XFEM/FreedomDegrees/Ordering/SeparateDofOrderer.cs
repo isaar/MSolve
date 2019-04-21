@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Utilities;
 
 /// TODO: abstract this with an IGlobalEnumerator2D interface. That way I could have different dof orders:
 /// e.g. 1) first all standard dofs and then all enriched, 2) First all dofs (std & enr) of the 1st node, 
@@ -22,9 +22,9 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
     /// </summary>
     class SeparateDofOrderer: DofOrdererBase
     {
-        private SeparateDofOrderer(int constrainedDofsCount, DofTable<DisplacementDof> constrainedDofs,
+        private SeparateDofOrderer(int constrainedDofsCount, DofTable<StructuralDof> constrainedDofs,
             int enrichedDofsCount, DofTable<EnrichedDof> enrichedDofs,
-            int standardDofsCount, DofTable<DisplacementDof> standardDofs):
+            int standardDofsCount, DofTable<StructuralDof> standardDofs):
             base(constrainedDofsCount, constrainedDofs, enrichedDofsCount, enrichedDofs, standardDofsCount, standardDofs)
         {
         }
@@ -33,10 +33,10 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         {
             // TODO: I should probably have a Constraint or Constraints class, to decouple this class from the collections 
             // used to represent constraints
-            IDictionary<XNode, HashSet<DisplacementDof>> nodalDofTypes = FindUniqueDofTypes(model.Elements);
-            (int standardDofsCount, DofTable<DisplacementDof> standardDofs) = 
+            IDictionary<XNode, HashSet<StructuralDof>> nodalDofTypes = FindUniqueDofTypes(model.Elements);
+            (int standardDofsCount, DofTable<StructuralDof> standardDofs) = 
                 OrderStandardDofs(nodalDofTypes, model.Constraints);
-            (int constrainedDofsCount, DofTable<DisplacementDof> constrainedDofs) =
+            (int constrainedDofsCount, DofTable<StructuralDof> constrainedDofs) =
                 OrderConstrainedDofs(model.Constraints);
             (int enrichedDofsCount, DofTable<EnrichedDof> enrichedDofs) = 
                 OrderEnrichedDofs(model.Nodes, standardDofsCount);
@@ -58,18 +58,18 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 
         // This is for problems that have rotational dofs only at some nodes. In continuum mechanics, we can just assign 2  
         // standard dofs per node and avoid iterating the elements. TODO: There should be different enumerators
-        private static IDictionary<XNode, HashSet<DisplacementDof>> FindUniqueDofTypes(IEnumerable<XContinuumElement2D> elements)
+        private static IDictionary<XNode, HashSet<StructuralDof>> FindUniqueDofTypes(IEnumerable<XContinuumElement2D> elements)
         {
-            var totalDofs = new SortedDictionary<XNode, HashSet<DisplacementDof>>();
+            var totalDofs = new SortedDictionary<XNode, HashSet<StructuralDof>>();
             foreach (XContinuumElement2D element in elements)
             {
-                ITable<XNode, DisplacementDof, int> elementDofs = element.GetStandardDofs();
+                ITable<XNode, StructuralDof, int> elementDofs = element.GetStandardDofs();
                 foreach (XNode node in elementDofs.GetRows())
                 {
-                    bool alreadyExists = totalDofs.TryGetValue(node, out HashSet<DisplacementDof> dofsOfThisNode);
+                    bool alreadyExists = totalDofs.TryGetValue(node, out HashSet<StructuralDof> dofsOfThisNode);
                     if (!alreadyExists)
                     {
-                        dofsOfThisNode = new HashSet<DisplacementDof>();
+                        dofsOfThisNode = new HashSet<StructuralDof>();
                         totalDofs.Add(node, dofsOfThisNode);
                     }
                     dofsOfThisNode.UnionWith(elementDofs.GetColumnsOfRow(node));
@@ -78,12 +78,12 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             return totalDofs;
         }
 
-        private static (int constrainedDofsCount, DofTable<DisplacementDof> constrainedDofs) OrderConstrainedDofs(
-            ITable<XNode, DisplacementDof, double> constraints)
+        private static (int constrainedDofsCount, DofTable<StructuralDof> constrainedDofs) OrderConstrainedDofs(
+            ITable<XNode, StructuralDof, double> constraints)
         {
-            var constrainedDofs = new DofTable<DisplacementDof>();
+            var constrainedDofs = new DofTable<StructuralDof>();
             int counter = 0;
-            foreach ((XNode node, DisplacementDof dofType, double displacement) in constraints)
+            foreach ((XNode node, StructuralDof dofType, double displacement) in constraints)
             {
                 constrainedDofs[node, dofType] = counter++;
             }
@@ -111,15 +111,15 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         }
 
         //Node major ordering
-        private static (int standardDofsCount, DofTable<DisplacementDof> standardDofs) OrderStandardDofs(
-            IDictionary<XNode, HashSet<DisplacementDof>> nodalDofTypes, ITable<XNode, DisplacementDof, double> constraints)
+        private static (int standardDofsCount, DofTable<StructuralDof> standardDofs) OrderStandardDofs(
+            IDictionary<XNode, HashSet<StructuralDof>> nodalDofTypes, ITable<XNode, StructuralDof, double> constraints)
         {
-            var standardDofs = new DofTable<DisplacementDof>();
+            var standardDofs = new DofTable<StructuralDof>();
             int counter = 0;
             foreach (var pair in nodalDofTypes)
             {
                 XNode node = pair.Key;
-                foreach (DisplacementDof dofType in pair.Value)
+                foreach (StructuralDof dofType in pair.Value)
                 {
                     if (!constraints.Contains(node, dofType)) standardDofs[node, dofType] = counter++;
                 }

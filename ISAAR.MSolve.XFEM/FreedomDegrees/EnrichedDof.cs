@@ -1,14 +1,15 @@
 ﻿using System.Text;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 
 namespace ISAAR.MSolve.XFEM.FreedomDegrees
 {
-    public class EnrichedDof: IDof
+    public class EnrichedDof: IDofType
     {
         public IEnrichmentFunction2D Enrichment { get; }
-        public IDof StandardDof { get; }
+        public IDofType StandardDof { get; }
 
-        public EnrichedDof(IEnrichmentFunction2D enrichment, IDof standardDof)
+        public EnrichedDof(IEnrichmentFunction2D enrichment, IDofType standardDof)
         {
             this.Enrichment = enrichment;
             this.StandardDof = standardDof;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
@@ -23,8 +24,8 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             this.Discontinuity = geometry;
             this.enrichmentFunction = new RampFunction2D();
             this.Dofs = new EnrichedDof[] {
-                new EnrichedDof(enrichmentFunction, DisplacementDof.X),
-                new EnrichedDof(enrichmentFunction, DisplacementDof.Y)
+                new EnrichedDof(enrichmentFunction, StructuralDof.TranslationX),
+                new EnrichedDof(enrichmentFunction, StructuralDof.TranslationY)
             };
             this.ElementIntersections = new Dictionary<XContinuumElement2D, CartesianPoint[]>();
         }

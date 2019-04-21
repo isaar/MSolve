@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
-using ISAAR.MSolve.XFEM.Utilities;
 
 //TODO: This needs to be split between standard and enriched. Otherwise all enriched stuff may be uninitialized or in a 
 //      previous state.
@@ -14,11 +14,11 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
     class XClusterDofOrderer: IDofOrderer
     {
         private readonly XCluster2D cluster;
-        private readonly DofTable<DisplacementDof> constrainedDofs;
-        private readonly DofTable<DisplacementDof> standardDofs;
+        private readonly DofTable<StructuralDof> constrainedDofs;
+        private readonly DofTable<StructuralDof> standardDofs;
 
         private XClusterDofOrderer(XCluster2D cluster, int numConstrainedDofs,
-            DofTable<DisplacementDof> constrainedDofs, int numStandardDofs, DofTable<DisplacementDof> standardDofs)
+            DofTable<StructuralDof> constrainedDofs, int numStandardDofs, DofTable<StructuralDof> standardDofs)
         {
             this.cluster = cluster;
             this.NumConstrainedDofs = numConstrainedDofs;
@@ -51,8 +51,8 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         /// <returns></returns>
         public static XClusterDofOrderer CreateNodeMajor(Model2D model, XCluster2D cluster)
         {
-            (int numConstrainedDofs, DofTable<DisplacementDof> constrainedDofs) = OrderConstrainedDofs(model.Constraints);
-            (int numStandardDofs, DofTable<DisplacementDof> standardDofs) = OrderStandardDofs(model);
+            (int numConstrainedDofs, DofTable<StructuralDof> constrainedDofs) = OrderConstrainedDofs(model.Constraints);
+            (int numStandardDofs, DofTable<StructuralDof> standardDofs) = OrderStandardDofs(model);
 
             return new XClusterDofOrderer(cluster, numConstrainedDofs, constrainedDofs, numStandardDofs, standardDofs);
         }
@@ -75,9 +75,9 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         public Vector ExtractDisplacementVectorOfElementFromGlobal(XContinuumElement2D element,
             Vector globalFreeVector, Vector globalConstrainedVector)
         {
-            DofTable<DisplacementDof> elementDofs = element.GetStandardDofs();
+            DofTable<StructuralDof> elementDofs = element.GetStandardDofs();
             double[] elementVector = new double[elementDofs.EntryCount];
-            foreach ((XNode node, DisplacementDof dofType, int dofIdx) in elementDofs)
+            foreach ((XNode node, StructuralDof dofType, int dofIdx) in elementDofs)
             {
                 bool isStandard = this.standardDofs.TryGetValue(node, dofType, out int globalStandardDof);
                 if (isStandard) elementVector[dofIdx] = globalFreeVector[globalStandardDof];
@@ -119,18 +119,18 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             {
                 XNode node = model.Nodes[i];
 
-                bool isXStandard = standardDofs.TryGetValue(node, DisplacementDof.X, out int globalStandardDofX);
+                bool isXStandard = standardDofs.TryGetValue(node, StructuralDof.TranslationX, out int globalStandardDofX);
                 if (isXStandard) result[i, 0] = solution[globalStandardDofX];
-                else result[i, 0] = model.Constraints[node, DisplacementDof.X];
+                else result[i, 0] = model.Constraints[node, StructuralDof.TranslationX];
 
-                bool isYStandard = standardDofs.TryGetValue(node, DisplacementDof.Y, out int globalStandardDofY);
+                bool isYStandard = standardDofs.TryGetValue(node, StructuralDof.TranslationY, out int globalStandardDofY);
                 if (isYStandard) result[i, 1] = solution[globalStandardDofY];
-                else result[i, 1] = model.Constraints[node, DisplacementDof.Y];
+                else result[i, 1] = model.Constraints[node, StructuralDof.TranslationY];
             }
             return result;
         }
 
-        public int GetConstrainedDofOf(XNode node, DisplacementDof dofType)
+        public int GetConstrainedDofOf(XNode node, StructuralDof dofType)
         {
             return constrainedDofs[node, dofType];
         }
@@ -175,7 +175,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             return globalDofs;
         }
 
-        public int GetStandardDofOf(XNode node, DisplacementDof dofType)
+        public int GetStandardDofOf(XNode node, StructuralDof dofType)
         {
             return standardDofs[node, dofType];
         }
@@ -225,10 +225,10 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             out IReadOnlyDictionary<int, int> elementToGlobalStandardDofs,
             out IReadOnlyDictionary<int, int> elementToGlobalConstrainedDofs)
         {
-            DofTable<DisplacementDof> elementDofs = element.GetStandardDofs();
+            DofTable<StructuralDof> elementDofs = element.GetStandardDofs();
             var globalStandardDofs = new Dictionary<int, int>();
             var globalConstrainedDofs = new Dictionary<int, int>();
-            foreach ((XNode node, DisplacementDof dofType, int dofIdx) in elementDofs)
+            foreach ((XNode node, StructuralDof dofType, int dofIdx) in elementDofs)
             {
                 bool isStandard = this.standardDofs.TryGetValue(node, dofType, out int standardGlobalDof);
                 if (isStandard) globalStandardDofs[dofIdx] = standardGlobalDof;
@@ -285,27 +285,27 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             }
         }
 
-        private static (int numConstrainedDofs, DofTable<DisplacementDof> constrainedDofs) OrderConstrainedDofs(
-            ITable<XNode, DisplacementDof, double> constraints)
+        private static (int numConstrainedDofs, DofTable<StructuralDof> constrainedDofs) OrderConstrainedDofs(
+            ITable<XNode, StructuralDof, double> constraints)
         {
-            var constrainedDofs = new DofTable<DisplacementDof>();
+            var constrainedDofs = new DofTable<StructuralDof>();
             int counter = 0;
-            foreach ((XNode node, DisplacementDof dofType, double displacement) in constraints)
+            foreach ((XNode node, StructuralDof dofType, double displacement) in constraints)
             {
                 constrainedDofs[node, dofType] = counter++;
             }
             return (counter, constrainedDofs);
         }
 
-        private static (int numStandardDofs, DofTable<DisplacementDof> standardDofs) OrderStandardDofs(Model2D model)
+        private static (int numStandardDofs, DofTable<StructuralDof> standardDofs) OrderStandardDofs(Model2D model)
         {
-            ITable<XNode, DisplacementDof, double> constraints = model.Constraints;
-            var standardDofs = new DofTable<DisplacementDof>();
+            ITable<XNode, StructuralDof, double> constraints = model.Constraints;
+            var standardDofs = new DofTable<StructuralDof>();
             int counter = 0;
             foreach (var node in model.Nodes)
             {
-                if (!constraints.Contains(node, DisplacementDof.X)) standardDofs[node, DisplacementDof.X] = counter++;
-                if (!constraints.Contains(node, DisplacementDof.Y)) standardDofs[node, DisplacementDof.Y] = counter++;
+                if (!constraints.Contains(node, StructuralDof.TranslationX)) standardDofs[node, StructuralDof.TranslationX] = counter++;
+                if (!constraints.Contains(node, StructuralDof.TranslationY)) standardDofs[node, StructuralDof.TranslationY] = counter++;
             }
             return (counter, standardDofs);
         }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Mesh;
@@ -418,14 +419,14 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// code duplication with the standard ContinuumElement2D
         /// </summary>
         /// <returns></returns>
-        internal FreedomDegrees.Ordering.DofTable<DisplacementDof> GetStandardDofs()
+        internal FreedomDegrees.Ordering.DofTable<StructuralDof> GetStandardDofs()
         {
-            var elementDofs = new FreedomDegrees.Ordering.DofTable<DisplacementDof>();
+            var elementDofs = new FreedomDegrees.Ordering.DofTable<StructuralDof>();
             int dofCounter = 0;
             foreach (XNode node in Nodes)
             {
-                elementDofs[node, DisplacementDof.X] = dofCounter++;
-                elementDofs[node, DisplacementDof.Y] = dofCounter++;
+                elementDofs[node, StructuralDof.TranslationX] = dofCounter++;
+                elementDofs[node, StructuralDof.TranslationY] = dofCounter++;
             }
             return elementDofs;
         }

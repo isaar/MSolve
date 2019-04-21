@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 {
-    class DofTable<TDof> : Table<XNode, TDof, int> where TDof : IDof
+    class DofTable<TDof> : Table<XNode, TDof, int> where TDof : IDofType
     {
         public DofTable() : base()
         { }

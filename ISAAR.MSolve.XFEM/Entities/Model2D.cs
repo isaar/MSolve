@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
-using ISAAR.MSolve.XFEM.FreedomDegrees;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
-using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Entities
 {
@@ -19,26 +18,26 @@ namespace ISAAR.MSolve.XFEM.Entities
         private readonly List<XNode> nodes;
         private readonly List<XContinuumElement2D> elements;
         private readonly List<IEnrichmentItem2D> enrichments;
-        private readonly Table<XNode, DisplacementDof, double> constraints;
+        private readonly Table<XNode, StructuralDof, double> constraints;
 
         /// <summary>
         /// Multiple loads for the same dof are not allowed. Any attempt to input them will result in an exception 
         /// thrown by the table object.
         /// </summary>
-        private readonly Table<XNode, DisplacementDof, double> loads;
+        private readonly Table<XNode, StructuralDof, double> loads;
 
         public IReadOnlyList<XNode> Nodes { get { return nodes; } }
         public IReadOnlyList<XContinuumElement2D> Elements { get { return elements; } }
         public IReadOnlyList<IEnrichmentItem2D> Enrichments { get { return enrichments; } }
-        public ITable<XNode, DisplacementDof, double> Constraints { get { return constraints; } }
+        public ITable<XNode, StructuralDof, double> Constraints { get { return constraints; } }
 
         public Model2D()
         {
             this.nodes = new List<XNode>();
             this.elements = new List<XContinuumElement2D>();
             this.enrichments = new List<IEnrichmentItem2D>();
-            this.constraints = new Table<XNode, DisplacementDof, double>();
-            this.loads = new Table<XNode, DisplacementDof, double>();
+            this.constraints = new Table<XNode, StructuralDof, double>();
+            this.loads = new Table<XNode, StructuralDof, double>();
         }
 
         public void AddNode(XNode node)
@@ -62,7 +61,7 @@ namespace ISAAR.MSolve.XFEM.Entities
             enrichments.Add(enrichment);
         }
 
-        public void AddConstraint(XNode node, DisplacementDof dof, double displacement)
+        public void AddConstraint(XNode node, StructuralDof dof, double displacement)
         {
             // TODO: This should be done more efficiently than O(N)
             if (!nodes.Contains(node)) throw new ArgumentException("There is no such node");
@@ -70,7 +69,7 @@ namespace ISAAR.MSolve.XFEM.Entities
         }
 
         //TODO: Should I use the node's id instead? In a UI class, I probably should.
-        public void AddNodalLoad(XNode node, DisplacementDof dof, double magnitude)
+        public void AddNodalLoad(XNode node, StructuralDof dof, double magnitude)
         {
             // TODO: This should be done more efficiently than O(N)
             if (!nodes.Contains(node)) throw new ArgumentException("There is no such node");
@@ -80,7 +79,7 @@ namespace ISAAR.MSolve.XFEM.Entities
         public Vector CalculateFreeForces(IDofOrderer dofOrderer)
         {
             double[] rhs = new double[dofOrderer.NumStandardDofs + dofOrderer.NumEnrichedDofs];
-            foreach ((XNode node, DisplacementDof dofType, double load) in loads)
+            foreach ((XNode node, StructuralDof dofType, double load) in loads)
             {
                 try
                 {
@@ -99,7 +98,7 @@ namespace ISAAR.MSolve.XFEM.Entities
         public Vector CalculateStandardForces(IDofOrderer dofOrderer)
         {
             double[] rhs = new double[dofOrderer.NumStandardDofs];
-            foreach ((XNode node, DisplacementDof dofType, double load) in loads)
+            foreach ((XNode node, StructuralDof dofType, double load) in loads)
             {
                 try
                 {
@@ -118,7 +117,7 @@ namespace ISAAR.MSolve.XFEM.Entities
         public Vector CalculateConstrainedDisplacements(IDofOrderer dofOrderer)
         {
             double[] uc = new double[dofOrderer.NumConstrainedDofs];
-            foreach ((XNode node, DisplacementDof dofType, double displacement) in constraints)
+            foreach ((XNode node, StructuralDof dofType, double displacement) in constraints)
             {
                 int dof = dofOrderer.GetConstrainedDofOf(node, dofType);
                 uc[dof] = displacement;

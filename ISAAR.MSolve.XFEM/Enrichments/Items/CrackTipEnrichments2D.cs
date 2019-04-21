@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.CrackGeometry;
@@ -40,14 +41,14 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             this.enrichmentFunctions = enrichmentFunctions;
             this.Dofs = new EnrichedDof[]
             {
-                new EnrichedDof(enrichmentFunctions[0], DisplacementDof.X),
-                new EnrichedDof(enrichmentFunctions[0], DisplacementDof.Y),
-                new EnrichedDof(enrichmentFunctions[1], DisplacementDof.X),
-                new EnrichedDof(enrichmentFunctions[1], DisplacementDof.Y),
-                new EnrichedDof(enrichmentFunctions[2], DisplacementDof.X),
-                new EnrichedDof(enrichmentFunctions[2], DisplacementDof.Y),
-                new EnrichedDof(enrichmentFunctions[3], DisplacementDof.X),
-                new EnrichedDof(enrichmentFunctions[3], DisplacementDof.Y),
+                new EnrichedDof(enrichmentFunctions[0], StructuralDof.TranslationX),
+                new EnrichedDof(enrichmentFunctions[0], StructuralDof.TranslationY),
+                new EnrichedDof(enrichmentFunctions[1], StructuralDof.TranslationX),
+                new EnrichedDof(enrichmentFunctions[1], StructuralDof.TranslationY),
+                new EnrichedDof(enrichmentFunctions[2], StructuralDof.TranslationX),
+                new EnrichedDof(enrichmentFunctions[2], StructuralDof.TranslationY),
+                new EnrichedDof(enrichmentFunctions[3], StructuralDof.TranslationX),
+                new EnrichedDof(enrichmentFunctions[3], StructuralDof.TranslationY),
             };
 
         }
