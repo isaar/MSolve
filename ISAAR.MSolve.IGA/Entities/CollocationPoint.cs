@@ -10,8 +10,16 @@ namespace ISAAR.MSolve.IGA.Entities
 	public class CollocationPoint2D:NaturalPoint2D, INode
     {
         private int _id;
+        private bool _isBoundary;
         public int ID => _id;
         int INode.ID { get => _id; set => _id = value; }
+
+        public bool IsBoundary
+        {
+            get => _isBoundary;
+            set => _isBoundary = value;
+        }
+
         public double X { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public double Y { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public double Z { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
@@ -20,14 +28,16 @@ namespace ISAAR.MSolve.IGA.Entities
 
         public Dictionary<int, ISubdomain> SubdomainsDictionary => throw new NotImplementedException();
 
-        public CollocationPoint2D(int id, double xi, double eta) : base(xi, eta)
+        public CollocationPoint2D(int id, double xi, double eta, bool isBoundary=false) : base(xi, eta)
 		{
             _id = id;
-		}
+            _isBoundary = isBoundary;
+        }
 
-		public CollocationPoint2D(int id, double[] coordinates) : base(coordinates)
+		public CollocationPoint2D(int id, double[] coordinates, bool isBoundary=false) : base(coordinates)
 		{
             _id = id;
-		}
+            _isBoundary = isBoundary;
+        }
 	}
 }

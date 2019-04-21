@@ -166,9 +166,9 @@ namespace ISAAR.MSolve.IGA.Entities
 		#region PatchData
 		public int NumberOfDimensions { get; set; }
 		public double Thickness { get; set; }
-		public IFiniteElementMaterial Material { get; set; }
+        public IFiniteElementMaterial Material { get; set; }
 
-		public int NumberOfControlPointsKsi { get; set; }
+        public int NumberOfControlPointsKsi { get; set; }
 		public int NumberOfControlPointsHeta { get; set; }
 		public int NumberOfControlPointsZeta { get; set; }
 
@@ -207,11 +207,176 @@ namespace ISAAR.MSolve.IGA.Entities
 			}
 			else
 			{
-				//CreatePatchCollocationData3D();
+				CreatePatchCollocationData3D();
 			}
 		}
 
-		private void CreatePatchCollocationData2D()
+        private void CreatePatchCollocationData3D()
+        {
+            CreateCollocationPoints3D();
+        }
+
+        private void CreateCollocationPoints3D()
+        {
+            #region Collocation Points
+            var collocationPoints = new List<CollocationPoint3D>();
+            var index = 0;
+            for (int i = 0; i < NumberOfControlPointsKsi; i++)
+            {
+                var coordinateKsi = 0.0;
+                for (int j = 1; j <= DegreeKsi; j++)
+                    coordinateKsi += KnotValueVectorKsi[i + j];
+                coordinateKsi /= DegreeKsi;
+
+                for (int j = 0; j < NumberOfControlPointsHeta; j++)
+                {
+                    var coordinateHeta = 0.0;
+                    for (int k = 1; k <= DegreeHeta; k++)
+                        coordinateHeta += KnotValueVectorHeta[j + k];
+
+                    coordinateHeta /= DegreeHeta;
+
+                    for (int k = 0; k < NumberOfControlPointsZeta; k++)
+                    {
+                        var coordinateZeta = 0.0;
+                        for (int m = 1; m <= DegreeZeta; m++)
+                            coordinateZeta += KnotValueVectorZeta[k + m];
+
+                        coordinateZeta /= DegreeZeta;
+
+                        var isBoundary = (i == 0 || i == NumberOfControlPointsKsi - 1 || j == 0 ||
+                                          j == NumberOfControlPointsHeta - 1 || k == 0 || k == NumberOfControlPointsZeta);
+                        collocationPoints.Add(new CollocationPoint3D(index++, coordinateKsi, coordinateHeta, coordinateZeta, isBoundary));
+                    }
+                }
+            }
+            #endregion
+            
+            #region Knots
+            Vector singleKnotValuesKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
+            Vector singleKnotValuesHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
+            Vector singleKnotValuesZeta = KnotValueVectorZeta.RemoveDuplicatesFindMultiplicity()[0];
+
+            List<Knot> knots = new List<Knot>();
+
+            int id = 0;
+            for (int i = 0; i < singleKnotValuesKsi.Length; i++)
+            {
+                for (int j = 0; j < singleKnotValuesHeta.Length; j++)
+                {
+                    for (int k = 0; k < singleKnotValuesZeta.Length; k++)
+                    {
+                        knots.Add(new Knot() { ID = id, Ksi = singleKnotValuesKsi[i], Heta = singleKnotValuesHeta[j], Zeta = singleKnotValuesZeta[k] });
+                        id++;
+                    }
+
+                }
+            }
+            #endregion
+
+            #region Elements
+            Vector singlesKnotValuesKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
+            Vector multiplicityKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[1];
+            Vector singlesKnotValuesHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
+            Vector multiplicityHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[1];
+            Vector singlesKnotValuesZeta = KnotValueVectorZeta.RemoveDuplicatesFindMultiplicity()[0];
+            Vector multiplicityZeta = KnotValueVectorZeta.RemoveDuplicatesFindMultiplicity()[1];
+
+            int numberOfElementsKsi = singlesKnotValuesKsi.Length - 1;
+            int numberOfElementsHeta = singlesKnotValuesHeta.Length - 1;
+            int numberOfElementsZeta = singlesKnotValuesZeta.Length - 1;
+
+            if (numberOfElementsKsi * numberOfElementsHeta * numberOfElementsZeta == 0)
+            {
+                throw new NullReferenceException("Number of Elements should be defined before Element Connectivity");
+            }
+
+            for (int i = 0; i < numberOfElementsKsi; i++)
+            {
+                for (int j = 0; j < numberOfElementsHeta; j++)
+                {
+                    for (int k = 0; k < numberOfElementsZeta; k++)
+                    {
+                        IList<Knot> knotsOfElement = new List<Knot>();
+                        knotsOfElement.Add(knots[i * singlesKnotValuesZeta.Length * singlesKnotValuesHeta.Length + j * singlesKnotValuesZeta.Length + k]);
+                        knotsOfElement.Add(knots[i * singlesKnotValuesZeta.Length * singlesKnotValuesHeta.Length + j * singlesKnotValuesZeta.Length + k + 1]);
+                        knotsOfElement.Add(knots[i * singlesKnotValuesZeta.Length * singlesKnotValuesHeta.Length + (j + 1) * singlesKnotValuesZeta.Length + k]);
+                        knotsOfElement.Add(knots[i * singlesKnotValuesZeta.Length * singlesKnotValuesHeta.Length + (j + 1) * singlesKnotValuesZeta.Length + k + 1]);
+                        knotsOfElement.Add(knots[(i + 1) * singlesKnotValuesZeta.Length * singlesKnotValuesHeta.Length + j * singlesKnotValuesZeta.Length + k]);
+                        knotsOfElement.Add(knots[(i + 1) * singlesKnotValuesZeta.Length * singlesKnotValuesHeta.Length + j * singlesKnotValuesZeta.Length + k + 1]);
+                        knotsOfElement.Add(knots[(i + 1) * singlesKnotValuesZeta.Length * singlesKnotValuesHeta.Length + (j + 1) * singlesKnotValuesZeta.Length + k]);
+                        knotsOfElement.Add(knots[(i + 1) * singlesKnotValuesZeta.Length * singlesKnotValuesHeta.Length + (j + 1) * singlesKnotValuesZeta.Length + k + 1]);
+
+                        int multiplicityElementKsi = 0;
+                        if (multiplicityKsi[i + 1] - this.DegreeKsi > 0)
+                        {
+                            multiplicityElementKsi = (int)multiplicityKsi[i + 1] - DegreeKsi;
+                        }
+
+                        int multiplicityElementHeta = 0;
+                        if (multiplicityHeta[j + 1] - this.DegreeHeta > 0)
+                        {
+                            multiplicityElementHeta = (int)multiplicityHeta[j + 1] - this.DegreeHeta;
+                        }
+
+                        int multiplicityElementZeta = 0;
+                        if (multiplicityZeta[k + 1] - this.DegreeZeta > 0)
+                        {
+                            multiplicityElementZeta = (int)multiplicityZeta[k + 1] - this.DegreeZeta;
+                        }
+
+                        int nurbsSupportKsi = this.DegreeKsi + 1;
+                        int nurbsSupportHeta = this.DegreeHeta + 1;
+                        int nurbsSupportZeta = this.DegreeZeta + 1;
+
+                        IList<ControlPoint> elementControlPoints = new List<ControlPoint>();
+
+                        for (int l = 0; l < nurbsSupportKsi; l++)
+                        {
+                            for (int m = 0; m < nurbsSupportHeta; m++)
+                            {
+                                for (int n = 0; n < nurbsSupportZeta; n++)
+                                {
+                                    int controlPointID = (i + multiplicityElementKsi) * NumberOfControlPointsHeta * NumberOfControlPointsZeta +
+                                        (j + multiplicityElementHeta) * NumberOfControlPointsZeta + (k + multiplicityElementZeta) +
+                                        l * NumberOfControlPointsHeta * NumberOfControlPointsZeta + m * NumberOfControlPointsZeta + n;
+
+                                    elementControlPoints.Add(ControlPoints[controlPointID]);
+                                }
+                            }
+                        }
+
+                        var elementCollocationPoints = collocationPoints.Where(cp =>
+                            knotsOfElement[0].Ksi <= cp.Xi && cp.Xi < knotsOfElement[7].Ksi &&
+                            knotsOfElement[0].Heta <= cp.Eta && cp.Eta < knotsOfElement[7].Heta &&
+                            knotsOfElement[0].Zeta <= cp.Zeta && cp.Zeta < knotsOfElement[7].Zeta).ToList();
+
+                        foreach (var point in elementCollocationPoints)
+                        {
+                            Element element = new NURBSElement3DCollocation
+                            {
+                                ID = point.ID,
+                                Patch = this,
+                                ElementType = new NURBSElement3D(),
+                                CollocationPoint = point
+                            };
+                            element.AddKnots(knotsOfElement);
+                            element.AddControlPoints(elementControlPoints.ToList<ControlPoint>());
+                            Elements.Add(element);
+                        }
+                    }
+                }
+            }
+
+            var orderedElements = Elements.OrderBy(e => ((ICollocationElement) e).CollocationPoint.ID).ToList();
+            Elements.Clear();
+            Elements.AddRange(orderedElements);
+
+            #endregion
+
+        }
+
+        private void CreatePatchCollocationData2D()
 		{
 			CreateCollocationPoints2D();
 		}
@@ -221,14 +386,14 @@ namespace ISAAR.MSolve.IGA.Entities
 			#region CollocationPoints
 			var collocationPoints= new List<CollocationPoint2D>();
 			var index = 0;
-			for (int i = 1; i < NumberOfControlPointsKsi-1; i++)
+			for (int i = 0; i < NumberOfControlPointsKsi; i++)
 			{
 				var coordinateKsi = 0.0;
 				for (int j = 1; j <= DegreeKsi; j++)
 					coordinateKsi += KnotValueVectorKsi[i+j];
 				coordinateKsi /= DegreeKsi;
 
-				for (int j = 1; j < NumberOfControlPointsHeta-1; j++)
+				for (int j = 0; j < NumberOfControlPointsHeta; j++)
 				{
 					var coordinateHeta = 0.0;
 					for (int k = 1; k <= DegreeHeta; k++)
@@ -236,13 +401,15 @@ namespace ISAAR.MSolve.IGA.Entities
 
 					coordinateHeta /= DegreeHeta;
 
-					collocationPoints.Add( new CollocationPoint2D(index++,coordinateKsi, coordinateHeta));
+                    var isBoundary = (i == 0 || i == NumberOfControlPointsKsi - 1 || j == 0 ||
+                                      j == NumberOfControlPointsHeta - 1);
+					collocationPoints.Add( new CollocationPoint2D(index++,coordinateKsi, coordinateHeta, isBoundary));
 				}
 			}
-			#endregion
-			
-			#region Knots
-			Vector singleKnotValuesKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
+#endregion
+
+            #region Knots
+            Vector singleKnotValuesKsi = KnotValueVectorKsi.RemoveDuplicatesFindMultiplicity()[0];
 			Vector singleKnotValuesHeta = KnotValueVectorHeta.RemoveDuplicatesFindMultiplicity()[0];
 
 			List<Knot> knots = new List<Knot>();
@@ -312,17 +479,17 @@ namespace ISAAR.MSolve.IGA.Entities
 
 					foreach (var point in elementCollocationPoints)
 					{
-						Element element = new NURBSElement2DCollocation
-						{
-							ID = point.ID,
-							Patch = this,
-							ElementType = new NURBSElement2DCollocation(),
+                        Element element = new NURBSElement2DCollocation
+                        {
+                            ID = point.ID,
+                            Patch = this,
+                            ElementType = new NURBSElement2DCollocation(),
                             CollocationPoint = point
-						};
-						element.AddKnots(knotsOfElement);
-						element.AddControlPoints(elementControlPoints.ToList<ControlPoint>());
-						Elements.Add(element);
-					}
+                        };
+                        element.AddKnots(knotsOfElement);
+                        element.AddControlPoints(elementControlPoints.ToList<ControlPoint>());
+                        Elements.Add(element);
+                    }
 				}
 			}
 
