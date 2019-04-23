@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
@@ -28,8 +30,10 @@ namespace ISAAR.MSolve.XFEM.Elements
     ///     Pros: only need to track one set of Gauss points, which simplifies non linear analysis. 
     ///     Cons: calculating Kss with the Gauss points of an enriched element is much more expensive
     /// </summary>
-    public class XContinuumElement2D : ICell<XNode>, IFiniteElement2DView<XNode, IIsoparametricInterpolation2D>
+    public class XContinuumElement2D : ICell<XNode>, IFiniteElement2DView<XNode, IIsoparametricInterpolation2D>, IElementType
     {
+        private readonly IDofType[][] standardDofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
+
         public XContinuumElement2D(IReadOnlyList<XNode> nodes, IIsoparametricInterpolation2D interpolation,
             IGaussPointExtrapolation2D gaussPointExtrapolation, IQuadrature2D standardQuadrature, 
             IIntegrationStrategy2D<XContinuumElement2D> integrationStrategy, 
@@ -44,12 +48,19 @@ namespace ISAAR.MSolve.XFEM.Elements
             this.Material = material;
             this.EnrichmentItems = new List<IEnrichmentItem2D>();
             this.NumStandardDofs = 2 * nodes.Count;
+
+            standardDofTypes = new IDofType[nodes.Count][];
+            for (int i = 0; i < nodes.Count; ++i)
+            {
+                standardDofTypes[i] = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY };
+            }
         }
 
         public CellType CellType => Interpolation.CellType;
+        public IElementDofEnumerator DofEnumerator { get; set; } = new GenericDofEnumerator();
 
         /// <summary>
-        /// ERROR: elements should not be enriched explicitly. 
+        /// TODO: Perhaps elements should not be enriched explicitly. 
         /// Instead the enrichment items should store which elements they interact with. 
         /// If the element needs to access the enrichment items it should do so through its nodes.
         /// Ok, but how would the integration strategy access the enrichment item?
@@ -73,7 +84,6 @@ namespace ISAAR.MSolve.XFEM.Elements
         public IReadOnlyList<XNode> Nodes { get; }
         public int NumStandardDofs { get; }
         internal IQuadrature2D StandardQuadrature { get; }
-
 
         // TODO: return a symmetric matrix
         public Matrix BuildStandardStiffnessMatrix()
@@ -387,7 +397,9 @@ namespace ISAAR.MSolve.XFEM.Elements
         }
 
         #region Dofs (perhaps all these should be delegated to element specific std and enr DofOrderers)
-        public int CountEnrichedDofs()
+        //TODO: This should be cached and, along with other dof data, updated when the element's enrichments change, which must 
+        //      happen with a single call. 
+        public int CountEnrichedDofs() 
         {
             int count = 0;
             foreach (XNode node in Nodes) count += node.EnrichedDofsCount; // in all nodes or in enriched interpolation nodes?
@@ -431,6 +443,97 @@ namespace ISAAR.MSolve.XFEM.Elements
             return elementDofs;
         }
         #endregion
+
+        public IMatrix DampingMatrix(IElement element) => throw new NotImplementedException();
+
+        public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
+        { 
+            //TODO: should they enriched dofs also be cached per element?
+            if (EnrichmentItems.Count == 0) return standardDofTypes;
+            else 
+            {
+                // The dof order in increasing frequency of change is: node, enrichment item, enrichment function, axis.
+                // A similar convention should also hold for each enrichment item: enrichment function major, axis minor.
+                // WARNING: The order here must match the order in StiffnessMatrix().
+                var dofTypes = new List<IDofType>[Nodes.Count];
+                for (int i = 0; i < Nodes.Count; ++i)
+                {
+                    dofTypes[i] = new List<IDofType>(4); // At least 2 * num std dofs
+                    dofTypes[i].AddRange(standardDofTypes[i]);
+                    foreach (IEnrichmentItem2D enrichment in Nodes[i].EnrichmentItems.Keys)
+                    {
+                        dofTypes[i].AddRange(enrichment.Dofs);
+                    }
+                }
+                return dofTypes;
+            }
+
+        }
+
+        public IMatrix MassMatrix(IElement element) => throw new NotImplementedException();
+
+        public IMatrix StiffnessMatrix(IElement element)
+        {
+            if (EnrichmentItems.Count == 0) return BuildStandardStiffnessMatrix();
+            else
+            {
+                // The dof order in increasing frequency of change is: node, enrichment item, enrichment function, axis.
+                // WARNING: The order here must match the order in GetElementDOFTypes() and BuildEnrichedStiffnessMatricesUpper()
+
+                // Find the mapping from Kss, Kse, Kee to a total matrix for the element. TODO: This could be a different method.
+                int numEnrichedDofs = CountEnrichedDofs();
+                var stdDofIndices = new int[NumStandardDofs];
+                var enrDofIndices = new int[numEnrichedDofs];
+                int enrDofCounter = 0, totDofCounter = 0;
+                for (int n = 0; n < Nodes.Count; ++n)
+                {
+                    // Std dofs
+                    stdDofIndices[n] = totDofCounter;           // std X
+                    stdDofIndices[n + 1] = totDofCounter + 1;   // std Y
+                    totDofCounter += 2;
+
+                    // Enr dofs
+                    for (int e = 0; e < Nodes[n].EnrichedDofsCount; ++e)
+                    {
+                        enrDofIndices[enrDofCounter++] = totDofCounter++;
+                    }
+                }
+
+                // Copy the entries of Kss, Kse, Kee to the upper triangle of a total matrix for the element.
+                Matrix Kss = BuildStandardStiffnessMatrix();
+                (Matrix Kee, Matrix Kse) = BuildEnrichedStiffnessMatricesUpper();
+                var Ktotal = SymmetricMatrix.CreateZero(NumStandardDofs + numEnrichedDofs);
+
+                // Upper triangle of Kss
+                for (int stdCol = 0; stdCol < NumStandardDofs; ++stdCol)
+                {
+                    int totColIdx = stdDofIndices[stdCol];
+                    for (int stdRow = 0; stdRow <= stdCol; ++stdRow)
+                    {
+                        Ktotal[stdDofIndices[stdRow], totColIdx] = Kss[stdRow, stdCol];
+                    }
+                }
+
+                for (int enrCol = 0; enrCol < numEnrichedDofs; ++enrCol)
+                {
+                    int totColIdx = enrDofIndices[enrCol];
+
+                    // Whole Kse
+                    for (int stdRow = 0; stdRow <= NumStandardDofs; ++stdRow)
+                    {
+                        Ktotal[stdDofIndices[stdRow], totColIdx] = Kse[stdRow, enrCol];
+                    }
+
+                    // Upper triangle of Kee
+                    for (int enrRow = 0; enrRow <= enrCol; ++enrRow)
+                    {
+                        Ktotal[enrDofIndices[enrRow], totColIdx] = Kee[enrRow, enrCol];
+                    }
+                }
+
+                return Ktotal;
+            }
+        }
 
         private IReadOnlyDictionary<IEnrichmentItem2D, EvaluatedFunction2D[]> EvaluateEnrichments(
             NaturalPoint gaussPoint, EvalInterpolation2D evaluatedInterpolation)

@@ -55,10 +55,14 @@ namespace ISAAR.MSolve.FEM.Elements
             this.Thickness = thickness;
 
             dofTypes = new IDofType[nodes.Count][];
-            for (int i = 0; i < interpolation.NumFunctions; ++i) dofTypes[i] = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY };
+            for (int i = 0; i < nodes.Count; ++i)
+            {
+                dofTypes[i] = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY };
+            }
         }
 
         public CellType CellType => Interpolation.CellType;
+        public IElementDofEnumerator DofEnumerator { get; set; } = new GenericDofEnumerator();
         public ElementDimensions ElementDimensions => ElementDimensions.TwoD;
 
         public int ID => throw new NotImplementedException(
@@ -66,6 +70,17 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public IGaussPointExtrapolation2D GaussPointExtrapolation { get; }
         public IIsoparametricInterpolation2D Interpolation { get; }
+
+        public bool MaterialModified
+        {
+            get
+            {
+                foreach (ElasticMaterial2D material in materialsAtGaussPoints)
+                    if (material.Modified) return true;
+                return false;
+            }
+        }
+
         public IReadOnlyList<Node> Nodes { get; }
         public IQuadrature2D QuadratureForConsistentMass { get; }
         public IQuadrature2D QuadratureForStiffness { get; }
@@ -225,8 +240,6 @@ namespace ISAAR.MSolve.FEM.Elements
             return damping;
         }
 
-        public IElementDofEnumerator DofEnumerator { get; set; } = new GenericDofEnumerator();
-
         /// <summary>
         /// Calculates the coordinates of the centroid of this element.
         /// </summary>
@@ -253,9 +266,6 @@ namespace ISAAR.MSolve.FEM.Elements
             return allDofs;
         }
 
-        //TODO: This must be a property or returned with the count. Clients should not have to iterate it once, just to count. 
-        public int GetNodalDofsCount() => 2 * Nodes.Count;
-
         //TODO: This is for the case when we also number constrained dofs globally.
         //// Perhaps this should be more minimalistic
         //// TODO: Either keep this or the GetNodlDofs() logic, but through a DofEnumerator and caching the dofs.
@@ -275,16 +285,6 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             return BuildConsistentMassMatrix();
             //return BuildLumpedMassMatrix();
-        }
-
-        public bool MaterialModified
-        {
-            get
-            {
-                foreach (ElasticMaterial2D material in materialsAtGaussPoints)
-                    if (material.Modified) return true;
-                return false;
-            }
         }
 
         public void ResetMaterialModified()

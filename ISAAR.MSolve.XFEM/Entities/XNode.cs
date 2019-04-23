@@ -24,23 +24,17 @@ namespace ISAAR.MSolve.XFEM.Entities
             get
             {
                 int count = 0;
-                foreach (IEnrichmentItem2D enrichment in EnrichmentItems.Keys)
-                {
-                    count += enrichment.Dofs.Count;
-                }
+                foreach (IEnrichmentItem2D enrichment in EnrichmentItems.Keys) count += enrichment.Dofs.Count;
                 return count;
             }
         }
 
-        public ISet<EnrichedDof> EnrichedDofs
+        public IReadOnlyList<EnrichedDof> EnrichedDofs
         {
             get
             {
-                var dofs = new HashSet<EnrichedDof>();
-                foreach (IEnrichmentItem2D enrichment in EnrichmentItems.Keys)
-                {
-                    dofs.UnionWith(enrichment.Dofs);
-                }
+                var dofs = new List<EnrichedDof>();
+                foreach (IEnrichmentItem2D enrichment in EnrichmentItems.Keys) dofs.AddRange(enrichment.Dofs);
                 return dofs;
             }
         }

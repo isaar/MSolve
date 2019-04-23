@@ -24,7 +24,11 @@ namespace ISAAR.MSolve.FEM.Elements
     /// </summary>
     public class ContinuumElement3D : IStructuralFiniteElement, ICell<Node>
     {
-        private readonly static IDofType[] nodalDOFTypes = new IDofType[] {StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ};
+        private readonly static IDofType[] nodalDOFTypes = new IDofType[] 
+        {
+            StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ
+        };
+
         private readonly IDofType[][] dofTypes;
         private DynamicMaterial dynamicProperties;
         private readonly IReadOnlyList<ElasticMaterial3D> materialsAtGaussPoints;
@@ -43,11 +47,17 @@ namespace ISAAR.MSolve.FEM.Elements
             this.QuadratureForStiffness = quadratureForStiffness;
 
             dofTypes= new IDofType[nodes.Count][];
-            for (int i = 0; i < interpolation.NumFunctions; i++)
-                dofTypes[i]=new IDofType[]{StructuralDof.TranslationX, StructuralDof.TranslationY,StructuralDof.TranslationZ};
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                dofTypes[i] = new IDofType[] 
+                {
+                    StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ
+                };
+            }
         }
 
         public CellType CellType => Interpolation.CellType;
+        public IElementDofEnumerator DofEnumerator { get; set; } = new GenericDofEnumerator();
         public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
         public IGaussPointExtrapolation3D GaussPointExtrapolation { get; }
         public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
@@ -56,11 +66,6 @@ namespace ISAAR.MSolve.FEM.Elements
             "Element type codes should be in a settings class. Even then it's a bad design choice");
 
         public IIsoparametricInterpolation3D Interpolation { get; }
-        public IReadOnlyList<Node> Nodes { get; }
-        public IQuadrature3D QuadratureForConsistentMass { get; }
-        public IQuadrature3D QuadratureForStiffness { get; }
-
-        public IElementDofEnumerator DofEnumerator { get; set; } = new GenericDofEnumerator();
 
         public bool MaterialModified
         {
@@ -73,6 +78,10 @@ namespace ISAAR.MSolve.FEM.Elements
                 return false;
             }
         }
+
+        public IReadOnlyList<Node> Nodes { get; }
+        public IQuadrature3D QuadratureForConsistentMass { get; }
+        public IQuadrature3D QuadratureForStiffness { get; }
 
         public Matrix BuildConsistentMassMatrix()
         {
@@ -217,7 +226,6 @@ namespace ISAAR.MSolve.FEM.Elements
         /// </summary>
         public CartesianPoint FindCentroid()
             => Interpolation.TransformNaturalToCartesian(Nodes, new NaturalPoint(0.0, 0.0, 0.0));
-
 
 
         public IMatrix MassMatrix(IElement element)
