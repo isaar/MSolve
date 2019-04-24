@@ -259,7 +259,7 @@ namespace ISAAR.MSolve.FEM.Embedding
             return dofs;
         }
 
-        public IList<INode> GetNodesForMatrixAssembly(IElement element)
+        public IReadOnlyList<INode> GetNodesForMatrixAssembly(IElement element)
         {
             var nodes = new List<INode>();
             INode currentNode = null;

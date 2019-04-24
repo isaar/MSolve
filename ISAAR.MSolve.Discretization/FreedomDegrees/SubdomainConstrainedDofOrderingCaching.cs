@@ -40,7 +40,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
 
         private (int numAllElementDofs, int[] elementDofIndices, int[] subdomainDofIndices) ProcessElement(IElement element)
         {
-            IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
+            IReadOnlyList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
             IList<IList<IDofType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
 
             // Count the dof superset (free and constrained) to allocate enough memory and avoid resizing

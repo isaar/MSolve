@@ -100,7 +100,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
         }
 
         public static (Matrix [] J_0inv,  double[] detJ_0) 
-            GetJ_0invAndDetJ_0(Matrix[] J_0a, IList<INode> elementNodes, double[][] oVn_i, int nGaussPoints)
+            GetJ_0invAndDetJ_0(Matrix[] J_0a, IReadOnlyList<INode> elementNodes, double[][] oVn_i, int nGaussPoints)
         {
             double[][] ox_i = new double[8][];
             for (int j = 0; j < 8; j++)

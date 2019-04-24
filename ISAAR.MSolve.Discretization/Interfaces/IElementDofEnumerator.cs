@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.Discretization.Interfaces
         /// When using embedding, these are the nodes of the superelement: nodes that have not been embedded and (right now all) 
         /// nodes of the host element. 
         /// </summary>
-		IList<INode> GetNodesForMatrixAssembly(IElement element);
+		IReadOnlyList<INode> GetNodesForMatrixAssembly(IElement element);
 
 		IMatrix GetTransformedMatrix(IMatrix matrix);
 

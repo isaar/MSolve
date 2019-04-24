@@ -106,7 +106,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
                 //TODO: perhaps the 2 outer loops could be done at once to avoid a lot of dof indexing. Could I update minDof
                 //      and colHeights[] at once? At least I could store the dofIndices somewhere
 
-                IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
+                IReadOnlyList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
 
                 // To determine the col height, first find the min of the dofs of this element. All these are 
                 // considered to interact with each other, even if there are 0.0 entries in the element stiffness matrix.

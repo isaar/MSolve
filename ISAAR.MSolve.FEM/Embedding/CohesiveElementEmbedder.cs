@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
@@ -41,7 +42,7 @@ namespace ISAAR.MSolve.FEM.Embedding
             int index = 0;
             foreach (var embeddedNode in e.EmbeddedNodes)
             {
-                int nodeOrderInEmbeddedElement = embeddedElement.Nodes.IndexOf(embeddedNode.Node);
+                int nodeOrderInEmbeddedElement = embeddedElement.Nodes.FindFirstIndex(embeddedNode.Node);
                 var currentEmbeddedNodeDOFs = embeddedElement.ElementType.DofEnumerator.GetDOFTypes(embeddedElement)[nodeOrderInEmbeddedElement];
                 //var currentNodeDOFs = currentEmbeddedNodeDOFs.Intersect(embeddedNode.DependentDOFs);
                 var independentEmbeddedDOFs = currentEmbeddedNodeDOFs.Except(embeddedNode.DependentDOFs);
@@ -79,7 +80,7 @@ namespace ISAAR.MSolve.FEM.Embedding
 
             foreach (var node in embeddedElement.Nodes.Except(e.EmbeddedNodes.Select(x => x.Node)))
             {
-                int nodeOrderInEmbeddedElement = embeddedElement.Nodes.IndexOf(node);
+                int nodeOrderInEmbeddedElement = embeddedElement.Nodes.FindFirstIndex(node);
                 var currentNodeDOFs = embeddedElement.ElementType.DofEnumerator.GetDOFTypes(embeddedElement)[nodeOrderInEmbeddedElement];
                 foreach (var dof in currentNodeDOFs)
                 {
@@ -106,7 +107,7 @@ namespace ISAAR.MSolve.FEM.Embedding
             {
                 var localTransformationMatrix = transformation.GetTransformationVector(embeddedNode);
                 var localHostDOFs = transformation.GetDOFTypesOfHost(embeddedNode);
-                int nodeOrderInEmbeddedElement = embeddedElement.Nodes.IndexOf(embeddedNode.Node);
+                int nodeOrderInEmbeddedElement = embeddedElement.Nodes.FindFirstIndex(embeddedNode.Node);
                 var embeddedNodeDOFQuantity = embeddedElement.ElementType.DofEnumerator.GetDOFTypes(embeddedElement)[nodeOrderInEmbeddedElement].Count;
                 int dependentDOFs = transformation.GetDependentDOFTypes.Count;
 
@@ -136,7 +137,7 @@ namespace ISAAR.MSolve.FEM.Embedding
 
             foreach (var node in embeddedElement.Nodes.Except(e.EmbeddedNodes.Select(x => x.Node)))
             {
-                int nodeOrderInEmbeddedElement = embeddedElement.Nodes.IndexOf(node);
+                int nodeOrderInEmbeddedElement = embeddedElement.Nodes.FindFirstIndex(node);
                 var currentNodeDOFs = embeddedElement.ElementType.DofEnumerator.GetDOFTypes(embeddedElement)[nodeOrderInEmbeddedElement];
                 for (int j = 0; j < currentNodeDOFs.Count; j++)
                 {
@@ -277,7 +278,7 @@ namespace ISAAR.MSolve.FEM.Embedding
             return dofs;
         }
 
-        public IList<INode> GetNodesForMatrixAssembly(IElement element)
+        public IReadOnlyList<INode> GetNodesForMatrixAssembly(IElement element)
         {
             var nodes = new List<INode>();
             INode currentNode = null;

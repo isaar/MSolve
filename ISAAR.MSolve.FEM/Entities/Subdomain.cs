@@ -203,7 +203,7 @@ namespace ISAAR.MSolve.FEM.Entities
             Table<INode, IDofType, double> constraints)
         {
             int elementDofIdx = 0;
-            IList<INode> nodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
+            IReadOnlyList<INode> nodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
             IList<IList<IDofType>> dofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
             for (int i = 0; i < nodes.Count; ++i)
             {

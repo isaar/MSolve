@@ -9,7 +9,7 @@ using ISAAR.MSolve.FEM;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-//using ISAAR.MSolve.Materials.Interfaces; //using ISAAR.MSolve.PreProcessor.Interfaces;
+using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.MultiscaleAnalysis.Interfaces;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
