@@ -33,11 +33,11 @@ namespace ISAAR.MSolve.FEM.Elements
             set { dofEnumerator = value; }
         }
 
-        public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element)
         {
             if (element == null) return dofs;
 
-            var d = new List<IList<IDofType>>();
+            var d = new List<IReadOnlyList<IDofType>>();
             foreach (var node in element.Nodes)
             {
                 var nodeDofs = new List<IDofType>();

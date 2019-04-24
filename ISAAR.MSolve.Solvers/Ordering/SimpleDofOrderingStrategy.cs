@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
             {
                 //IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element); //this is wrong
                 IReadOnlyList<INode> elementNodes = element.Nodes;
-                IList<IList<IDofType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypesForDOFEnumeration(element);
+                IReadOnlyList<IReadOnlyList<IDofType>> elementDofs = element.ElementType.DofEnumerator.GetDofTypesForDofEnumeration(element);
                 for (int nodeIdx = 0; nodeIdx < elementNodes.Count; ++nodeIdx)
                 {
                     bool isNodeConstrained = constraints.TryGetDataOfRow(elementNodes[nodeIdx],

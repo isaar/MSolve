@@ -127,7 +127,7 @@ namespace ISAAR.MSolve.Logging
                 if (e == null) continue;
 
                 var superElementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
-                var superElementDOFs = element.ElementType.DofEnumerator.GetDOFTypes(element);
+                var superElementDOFs = element.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(element);
                 var superElementVector = new double[superElementDOFs.SelectMany(x => x).Count()];
 
                 int index = 0;
@@ -142,7 +142,7 @@ namespace ISAAR.MSolve.Logging
 
                 index = 0;
                 var elementVector = e.GetLocalDOFValues(element, superElementVector);
-                var elementDOFs = element.ElementType.GetElementDOFTypes(element);
+                var elementDOFs = element.ElementType.GetElementDofTypes(element);
                 for (int i = 0; i < elementDOFs.Count; i++)
                     for (int j = 0; j < elementDOFs[i].Count; j++)
                     {

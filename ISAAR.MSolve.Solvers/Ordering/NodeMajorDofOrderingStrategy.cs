@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
                 {
                     if (!nodalDOFTypesDictionary.ContainsKey(element.Nodes[i].ID))
                         nodalDOFTypesDictionary.Add(element.Nodes[i].ID, new List<IDofType>());
-                    nodalDOFTypesDictionary[element.Nodes[i].ID].AddRange(element.ElementType.DofEnumerator.GetDOFTypesForDOFEnumeration(element)[i]);
+                    nodalDOFTypesDictionary[element.Nodes[i].ID].AddRange(element.ElementType.DofEnumerator.GetDofTypesForDofEnumeration(element)[i]);
                 }
             }
 

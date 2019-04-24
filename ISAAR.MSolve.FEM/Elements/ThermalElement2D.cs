@@ -157,7 +157,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return Matrix.CreateFromArray(shapeFunctions, 1, shapeFunctions.Length);
         }
 
-        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element) => dofTypes;
 
         public void ResetMaterialModified()
         {

@@ -17,9 +17,9 @@ namespace ISAAR.MSolve.Discretization.Interfaces
             return Math.Sqrt(dx * dx + dy * dy + dz * dz);
         }
 
-        public static CartesianPoint ToCartesian2D(this INode node) => new CartesianPoint(node.X, node.Y);
+        public static CartesianPoint ToCartesianPoint(this INode node) => new CartesianPoint(node.X, node.Y);
 
-        public static IReadOnlyList<CartesianPoint> ToCartesian2D<TNode>(this IReadOnlyList<TNode> nodes) where TNode : INode
+        public static IReadOnlyList<CartesianPoint> ToCartesianPoints<TNode>(this IReadOnlyList<TNode> nodes) where TNode : INode
             => nodes.Select(node => new CartesianPoint(node.X, node.Y)).ToArray();
     }
 }

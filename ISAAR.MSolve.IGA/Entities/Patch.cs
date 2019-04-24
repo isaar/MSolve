@@ -60,7 +60,7 @@ namespace ISAAR.MSolve.IGA.Entities
 		{
 			int elementDofIdx = 0;
 			IReadOnlyList<INode> nodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
-            IList<IList<IDofType>> dofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
+            IReadOnlyList<IReadOnlyList<IDofType>> dofs = element.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(element);
 			for (int i = 0; i < nodes.Count; ++i)
 			{
 				//bool isConstrainedNode = constraintsDictionary.TryGetValue(nodes[i].ID, 

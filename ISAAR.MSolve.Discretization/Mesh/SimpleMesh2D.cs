@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.Discretization.Mesh
             var containingElements = new List<TElement>();
             foreach (TElement element in Elements) // O(elementsCount)
             {
-                var outline = ConvexPolygon2D.CreateUnsafe(element.Nodes.ToCartesian2D());
+                var outline = ConvexPolygon2D.CreateUnsafe(element.Nodes.ToCartesianPoints());
                 PolygonPointPosition pos = outline.FindRelativePositionOfPoint(point);
                 if ((pos == PolygonPointPosition.Inside) || (pos == PolygonPointPosition.OnEdge) ||
                     (pos == PolygonPointPosition.OnVertex)) containingElements.Add(element);
@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.Discretization.Mesh
             var intersectedElements = new List<TElement>();
             foreach (TElement element in Elements)
             {
-                var outline = ConvexPolygon2D.CreateUnsafe(element.Nodes.ToCartesian2D());
+                var outline = ConvexPolygon2D.CreateUnsafe(element.Nodes.ToCartesianPoints());
                 CirclePolygonPosition relativePosition = outline.FindRelativePositionOfCircle(circle);
                 if (relativePosition == CirclePolygonPosition.Intersecting) intersectedElements.Add(element);
             }
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.Discretization.Mesh
             var internalElements = new List<TElement>();
             foreach (TElement element in Elements)
             {
-                var outline = ConvexPolygon2D.CreateUnsafe(element.Nodes.ToCartesian2D());
+                var outline = ConvexPolygon2D.CreateUnsafe(element.Nodes.ToCartesianPoints());
                 CirclePolygonPosition relativePosition = outline.FindRelativePositionOfCircle(circle);
                 if ((relativePosition == CirclePolygonPosition.Intersecting) ||
                     (relativePosition == CirclePolygonPosition.PolygonInsideCircle)) internalElements.Add(element);

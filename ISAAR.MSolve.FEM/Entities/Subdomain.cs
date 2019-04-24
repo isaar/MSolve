@@ -204,7 +204,7 @@ namespace ISAAR.MSolve.FEM.Entities
         {
             int elementDofIdx = 0;
             IReadOnlyList<INode> nodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
-            IList<IList<IDofType>> dofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
+            IReadOnlyList<IReadOnlyList<IDofType>> dofs = element.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(element);
             for (int i = 0; i < nodes.Count; ++i)
             {
                 //bool isConstrainedNode = constraintsDictionary.TryGetValue(nodes[i].ID, 
@@ -272,7 +272,7 @@ namespace ISAAR.MSolve.FEM.Entities
             int nIncrement, int totalIncrements)
         {
 
-            var elementDOFTypes = element.ElementType.DofEnumerator.GetDOFTypes(element);
+            var elementDOFTypes = element.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(element);
             var matrixAssemblyNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
             int iElementMatrixColumn = 0;
             for (int j = 0; j < elementDOFTypes.Count; j++)
@@ -304,7 +304,7 @@ namespace ISAAR.MSolve.FEM.Entities
             int nIncrement, int totalIncrements)
         {
 
-            var elementDOFTypes = element.ElementType.DofEnumerator.GetDOFTypes(element);
+            var elementDOFTypes = element.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(element);
             var matrixAssemblyNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
             int iElementMatrixColumn = 0;
             for (int j = 0; j < elementDOFTypes.Count; j++)

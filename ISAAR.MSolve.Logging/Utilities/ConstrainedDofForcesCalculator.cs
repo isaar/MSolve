@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -47,8 +48,8 @@ namespace ISAAR.MSolve.Logging.Utilities
         {
             int localNodeIdx = element.Nodes.IndexOf(node);
             Debug.Assert(localNodeIdx != -1, "The element does not contain this node.");
-            IList<IList<IDofType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
-            int localDofIdx = elementDofs[localNodeIdx].IndexOf(dofType);
+            IReadOnlyList<IReadOnlyList<IDofType>> elementDofs = element.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(element);
+            int localDofIdx = elementDofs[localNodeIdx].FindFirstIndex(dofType);
             int multNum = elementDofs[localNodeIdx].Count;
             int dofIdx = multNum * (localNodeIdx + 1) - (localDofIdx + 1);
             return dofIdx;

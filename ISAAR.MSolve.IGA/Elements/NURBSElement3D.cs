@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
             }
         }
 
-        public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element)
         {
 	        var nurbsElement = (NURBSElement3D) element;
 			dofTypes = new IDofType[nurbsElement.ControlPoints.Count][];

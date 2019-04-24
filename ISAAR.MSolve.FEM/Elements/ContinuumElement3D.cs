@@ -60,7 +60,7 @@ namespace ISAAR.MSolve.FEM.Elements
         public IElementDofEnumerator DofEnumerator { get; set; } = new GenericDofEnumerator();
         public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
         public IGaussPointExtrapolation3D GaussPointExtrapolation { get; }
-        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element) => dofTypes;
 
         public int ID => throw new NotImplementedException(
             "Element type codes should be in a settings class. Even then it's a bad design choice");

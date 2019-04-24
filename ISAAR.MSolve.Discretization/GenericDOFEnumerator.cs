@@ -7,11 +7,11 @@ namespace ISAAR.MSolve.Discretization
 {
 	public class GenericDofEnumerator : IElementDofEnumerator
 	{
-		public IList<IList<IDofType>> GetDOFTypes(IElement element) 
-            => element.ElementType.GetElementDOFTypes(element);
+		public IReadOnlyList<IReadOnlyList<IDofType>> GetDofTypesForMatrixAssembly(IElement element) 
+            => element.ElementType.GetElementDofTypes(element);
 
-        public IList<IList<IDofType>> GetDOFTypesForDOFEnumeration(IElement element) 
-            => element.ElementType.GetElementDOFTypes(element);
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetDofTypesForDofEnumeration(IElement element) 
+            => element.ElementType.GetElementDofTypes(element);
 
         public IReadOnlyList<INode> GetNodesForMatrixAssembly(IElement element) => element.Nodes;
 

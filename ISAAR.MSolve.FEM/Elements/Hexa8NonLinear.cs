@@ -652,7 +652,7 @@ namespace ISAAR.MSolve.FEM.Elements
             foreach (IContinuumMaterial3D m in materialsAtGaussPoints) m.ClearStresses();
         }
 
-        public virtual IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public virtual IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element) => dofTypes;
 
         #region not implemented
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)

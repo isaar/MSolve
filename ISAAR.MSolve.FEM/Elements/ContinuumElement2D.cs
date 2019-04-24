@@ -246,7 +246,7 @@ namespace ISAAR.MSolve.FEM.Elements
         public CartesianPoint FindCentroid()
             => Interpolation.TransformNaturalToCartesian(Nodes, new NaturalPoint(0.0, 0.0));
 
-        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element) => dofTypes;
 
         /// <summary>
         /// The returned structure is a list with as many entries as the number of nodes of this element. Each entry contains 

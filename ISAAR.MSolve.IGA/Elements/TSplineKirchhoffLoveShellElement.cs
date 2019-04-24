@@ -91,7 +91,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
+		public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element)
 		{
 			var nurbsElement = (TSplineKirchhoffLoveShellElement)element;
 			dofTypes = new IDofType[nurbsElement.ControlPoints.Count][];

@@ -446,7 +446,7 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         public IMatrix DampingMatrix(IElement element) => throw new NotImplementedException();
 
-        public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element)
         { 
             //TODO: should they enriched dofs also be cached per element?
             if (EnrichmentItems.Count == 0) return standardDofTypes;

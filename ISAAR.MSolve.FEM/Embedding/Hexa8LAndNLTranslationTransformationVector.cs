@@ -12,9 +12,9 @@ namespace ISAAR.MSolve.FEM.Embedding
 
         public IList<IDofType> GetDependentDOFTypes { get { return translationOnlyDOFTypes; } }
 
-        public IList<IList<IDofType>> GetDOFTypesOfHost(EmbeddedNode node)
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetDOFTypesOfHost(EmbeddedNode node)
         {
-            return node.EmbeddedInElement.ElementType.GetElementDOFTypes(node.EmbeddedInElement);
+            return node.EmbeddedInElement.ElementType.GetElementDofTypes(node.EmbeddedInElement);
         }
 
         public double[][] GetTransformationVector(EmbeddedNode node)

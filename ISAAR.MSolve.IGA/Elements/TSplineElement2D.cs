@@ -95,7 +95,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
+		public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element)
 		{
 			var nurbsElement = (TSplineElement2D)element;
 			dofTypes = new IDofType[nurbsElement.ControlPoints.Count][];
