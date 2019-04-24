@@ -15,14 +15,14 @@ namespace ISAAR.MSolve.XFEM.Entities
     /// <summary>
     /// Only for enriched dofs.
     /// </summary>
-    class XSubdomain2D: IComparable<XSubdomain2D>
+    class XSubdomain2D_old: IComparable<XSubdomain2D_old>
     {
         private readonly HashSet<XContinuumElement2D> elements;
         private readonly SortedSet<XNode> allNodes; // Having it sorted is better for ordering
         private readonly HashSet<XNode> boundaryNodes;
         private readonly HashSet<XNode> internalNodes;
 
-        public XSubdomain2D(int id)
+        public XSubdomain2D_old(int id)
         {
             this.ID = id;
             this.allNodes = new SortedSet<XNode>();
@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.XFEM.Entities
             this.internalNodes = new HashSet<XNode>();
         }
 
-        public XSubdomain2D(int id, HashSet<XContinuumElement2D> elements, HashSet<XNode> internalNodes, 
+        public XSubdomain2D_old(int id, HashSet<XContinuumElement2D> elements, HashSet<XNode> internalNodes, 
             HashSet<XNode> boundaryNodes)
         {
             this.ID = id;
@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.XFEM.Entities
             allNodes.Add(node);
         }
 
-        public int CompareTo(XSubdomain2D other)
+        public int CompareTo(XSubdomain2D_old other)
         {
             return this.ID - other.ID;
         }

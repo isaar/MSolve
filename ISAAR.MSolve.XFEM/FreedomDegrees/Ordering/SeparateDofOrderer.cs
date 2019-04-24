@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         {
         }
 
-        public static SeparateDofOrderer Create(Model2D model)
+        public static SeparateDofOrderer Create(Model2D_old model)
         {
             // TODO: I should probably have a Constraint or Constraints class, to decouple this class from the collections 
             // used to represent constraints

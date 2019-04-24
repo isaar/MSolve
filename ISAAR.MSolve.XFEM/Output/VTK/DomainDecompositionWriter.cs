@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
         private static readonly string directory =
             Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName + "\\Resources\\";
 
-        public void WriteBoundaryNodes(string path, IReadOnlyList<XSubdomain2D> subdomains)
+        public void WriteBoundaryNodes(string path, IReadOnlyList<XSubdomain2D_old> subdomains)
         {
             var boundaryNodes = new Dictionary<INode, double>();
             foreach (var subdomain in subdomains)
@@ -84,7 +84,7 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
             }
         }
 
-        public void WriteSubdomainElements(string path, IReadOnlyList<XSubdomain2D> subdomains)
+        public void WriteSubdomainElements(string path, IReadOnlyList<XSubdomain2D_old> subdomains)
         {
             using (var writer = new StreamWriter(path))
             {

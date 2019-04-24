@@ -12,10 +12,10 @@ namespace ISAAR.MSolve.XFEM.Output
 {
     class DisplacementOutput
     {
-        private readonly Model2D model;
+        private readonly Model2D_old model;
         private readonly IDofOrderer dofOrderer;
 
-        public DisplacementOutput(Model2D model, IDofOrderer dofOrderer)
+        public DisplacementOutput(Model2D_old model, IDofOrderer dofOrderer)
         {
             this.model = model;
             this.dofOrderer = dofOrderer;

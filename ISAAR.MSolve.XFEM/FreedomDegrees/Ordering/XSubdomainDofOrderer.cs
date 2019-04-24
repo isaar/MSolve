@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         public Dictionary<XNode, HashSet<IEnrichmentItem2D>> SingularHeavisideEnrichments { get; }
 
 
-        public static XSubdomainDofOrderer CreateNodeMajor(ICrackDescription crack, XSubdomain2D subdomain) //TODO: also add AMD reordering
+        public static XSubdomainDofOrderer CreateNodeMajor(ICrackDescription crack, XSubdomain2D_old subdomain) //TODO: also add AMD reordering
         {
             // Handle nodes with singular Heaviside enrichment
             Dictionary<XNode, HashSet<IEnrichmentItem2D>> singularityHeavisideEnrichments =
@@ -238,7 +238,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         /// <param name="subdomain"></param>
         /// <returns></returns>
         private static Dictionary<XNode, HashSet<IEnrichmentItem2D>> FindBoundaryNodesWithSingularHeaviside(
-            ICrackDescription crack, XSubdomain2D subdomain)
+            ICrackDescription crack, XSubdomain2D_old subdomain)
         {
             var singularNodeEnrichments = new Dictionary<XNode, HashSet<IEnrichmentItem2D>>();
 
@@ -294,10 +294,10 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             return singularNodeEnrichments;
         }
 
-        private XSubdomain2D FindSubdomainWhereNodeEnrichmentIsNotSingular(XCluster2D cluster, XNode node,
+        private XSubdomain2D_old FindSubdomainWhereNodeEnrichmentIsNotSingular(XCluster2D cluster, XNode node,
             IEnrichmentItem2D enrichment)
         {
-            foreach (XSubdomain2D subdomain in cluster.Subdomains)
+            foreach (XSubdomain2D_old subdomain in cluster.Subdomains)
             {
                 if (subdomain.BoundaryNodes.Contains(node))
                 {

@@ -14,10 +14,10 @@ namespace ISAAR.MSolve.XFEM.Output
     // extrapolated, etc and how
     class TensorOutput
     {
-        private readonly Model2D model;
+        private readonly Model2D_old model;
         private readonly IDofOrderer dofOrderer;
 
-        public TensorOutput(Model2D model, IDofOrderer dofOrderer)
+        public TensorOutput(Model2D_old model, IDofOrderer dofOrderer)
         {
             this.model = model;
             this.dofOrderer = dofOrderer;

@@ -14,12 +14,12 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
     class LevelSetLogger
     {
         private readonly TrackingExteriorCrackLSM lsm;
-        private readonly Model2D model;
+        private readonly Model2D_old model;
         private readonly string outputDirectory;
         private readonly VtkMesh<XNode> vtkMesh;
         private int iteration;
 
-        public LevelSetLogger(Model2D model, TrackingExteriorCrackLSM lsm, string outputDirectory)
+        public LevelSetLogger(Model2D_old model, TrackingExteriorCrackLSM lsm, string outputDirectory)
         {
             this.model = model;
             this.lsm = lsm;

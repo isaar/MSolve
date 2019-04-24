@@ -82,7 +82,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             return Vector.CreateFromArray(elementVector);
         }
 
-        public ITable<XNode, EnrichedDof, double> GatherEnrichedNodalDisplacements(Model2D model, Vector solution)
+        public ITable<XNode, EnrichedDof, double> GatherEnrichedNodalDisplacements(Model2D_old model, Vector solution)
         {
             var table = new Table<XNode, EnrichedDof, double>();
             foreach (var row in enrichedDofs)
@@ -98,7 +98,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         /// <param name="model"></param>
         /// <param name="solution"></param>
         /// <returns>A nodesCount x 2 array, where each row stores the x and y displacements of that node</returns>
-        public double[,] GatherNodalDisplacements(Model2D model, Vector solution)
+        public double[,] GatherNodalDisplacements(Model2D_old model, Vector solution)
         {
             double[,] result = new double[model.Nodes.Count, 2];
             for (int i = 0; i < model.Nodes.Count; ++i)

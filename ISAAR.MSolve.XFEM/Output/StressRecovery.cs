@@ -13,10 +13,10 @@ namespace ISAAR.MSolve.XFEM.Output
 {
     class StressRecovery
     {
-        private readonly Model2D model;
+        private readonly Model2D_old model;
         private readonly IDofOrderer dofOrderer;
 
-        public StressRecovery(Model2D model, IDofOrderer dofOrderer)
+        public StressRecovery(Model2D_old model, IDofOrderer dofOrderer)
         {
             this.model = model;
             this.dofOrderer = dofOrderer;

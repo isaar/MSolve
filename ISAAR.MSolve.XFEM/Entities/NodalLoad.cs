@@ -4,13 +4,13 @@ using ISAAR.MSolve.XFEM.FreedomDegrees;
 
 namespace ISAAR.MSolve.XFEM.Entities
 {
-    class NodalLoad2D
+    class NodalLoad
     {
         public Node Node { get; }
         public StructuralDof DofType { get; }
         public double Value { get; }
 
-        public NodalLoad2D(Node node, StructuralDof dofType, double value)
+        public NodalLoad(Node node, StructuralDof dofType, double value)
         {
             this.Node = node;
             this.DofType = dofType;

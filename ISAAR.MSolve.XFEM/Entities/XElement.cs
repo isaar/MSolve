@@ -29,6 +29,7 @@ namespace ISAAR.MSolve.XFEM.Entities
         IReadOnlyList<INode> IElement.Nodes => ElementType.Nodes;
         public IReadOnlyList<XNode> Nodes => ElementType.Nodes;
 
-        public ISubdomain Subdomain => throw new NotImplementedException();
+        ISubdomain IElement.Subdomain => this.Subdomain;
+        public XSubdomain Subdomain { get; set; }
     }
 }

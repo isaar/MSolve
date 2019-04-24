@@ -14,7 +14,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         {
         }
 
-        public static InterleavedDofOrderer Create(Model2D model)
+        public static InterleavedDofOrderer Create(Model2D_old model)
         {
             // TODO: I should probably have a Constraint or Constraints class, to decouple this class from the collections 
             // used to represent constraints
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         /// <param name="model"></param>
         /// <returns></returns>
         private static (DofTable<StructuralDof> standardDofs, DofTable<EnrichedDof> enrichedDofs) 
-            OrderUnconstrainedDofs(Model2D model)
+            OrderUnconstrainedDofs(Model2D_old model)
         {
             ITable<XNode, StructuralDof, double> constraints = model.Constraints;
             var standardDofs = new DofTable<StructuralDof>();

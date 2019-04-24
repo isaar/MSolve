@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.XFEM.Entities
     /// This class both manages and assembles the FEM entities. TODO: Those 2 should be split. I could have a nested 
     /// Builder or better yet a UI class for assembling the model.
     /// </summary>
-    class Model2D
+    class Model2D_old
     {
         private readonly List<XNode> nodes;
         private readonly List<XContinuumElement2D> elements;
@@ -31,7 +31,7 @@ namespace ISAAR.MSolve.XFEM.Entities
         public IReadOnlyList<IEnrichmentItem2D> Enrichments { get { return enrichments; } }
         public ITable<XNode, StructuralDof, double> Constraints { get { return constraints; } }
 
-        public Model2D()
+        public Model2D_old()
         {
             this.nodes = new List<XNode>();
             this.elements = new List<XContinuumElement2D>();

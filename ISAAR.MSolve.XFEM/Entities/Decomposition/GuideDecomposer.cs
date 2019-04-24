@@ -38,7 +38,7 @@ namespace ISAAR.MSolve.XFEM.Entities.Decomposition
             var cluster = new XCluster2D();
             for (int i = 0; i < numRegions; ++i)
             {
-                cluster.AddSubdomain(new XSubdomain2D(i, subdomains[i], internalNodes[i], boundaryNodes[i]));
+                cluster.AddSubdomain(new XSubdomain2D_old(i, subdomains[i], internalNodes[i], boundaryNodes[i]));
             }
             return cluster;
         }

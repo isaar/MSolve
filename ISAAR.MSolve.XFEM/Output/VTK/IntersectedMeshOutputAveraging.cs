@@ -30,12 +30,12 @@ namespace ISAAR.MSolve.XFEM.Output.VTK
     class IntersectedMeshOutputAveraging: IXfemOutput
     {
         private readonly ICrackDescription crackGeometry;
-        private readonly Model2D model;
+        private readonly Model2D_old model;
         private readonly string pathNoExtension;
         private readonly Triangulator2D<CartesianPoint> triangulator;
 
 
-        public IntersectedMeshOutputAveraging(Model2D model, ICrackDescription crackGeometry, string pathNoExtension)
+        public IntersectedMeshOutputAveraging(Model2D_old model, ICrackDescription crackGeometry, string pathNoExtension)
         {
             this.crackGeometry = crackGeometry;
             this.model = model;

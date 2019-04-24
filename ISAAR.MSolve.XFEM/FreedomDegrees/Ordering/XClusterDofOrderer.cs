@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         /// <param name="model"></param>
         /// <param name="cluster"></param>
         /// <returns></returns>
-        public static XClusterDofOrderer CreateNodeMajor(Model2D model, XCluster2D cluster)
+        public static XClusterDofOrderer CreateNodeMajor(Model2D_old model, XCluster2D cluster)
         {
             (int numConstrainedDofs, DofTable<StructuralDof> constrainedDofs) = OrderConstrainedDofs(model.Constraints);
             (int numStandardDofs, DofTable<StructuralDof> standardDofs) = OrderStandardDofs(model);
@@ -97,11 +97,11 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         /// <returns></returns>
         public Vector ExtractEnrichedDisplacementsOfElementFromGlobal(XContinuumElement2D element, Vector globalFreeVector)
         {
-            XSubdomain2D subdomain = cluster.FindSubdomainOfElement(element);
+            XSubdomain2D_old subdomain = cluster.FindSubdomainOfElement(element);
             return subdomain.DofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(cluster, element, globalFreeVector);
         }
 
-        public ITable<XNode, EnrichedDof, double> GatherEnrichedNodalDisplacements(Model2D model, Vector solution)
+        public ITable<XNode, EnrichedDof, double> GatherEnrichedNodalDisplacements(Model2D_old model, Vector solution)
         {
             throw new InvalidOperationException("This method does not make sense for this dofOrderer. Refactor them.");
         }
@@ -112,7 +112,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         /// <param name="model"></param>
         /// <param name="solution"></param>
         /// <returns>A nodesCount x 2 array, where each row stores the x and y displacements of that node</returns>
-        public double[,] GatherNodalDisplacements(Model2D model, Vector solution)
+        public double[,] GatherNodalDisplacements(Model2D_old model, Vector solution)
         {
             double[,] result = new double[model.Nodes.Count, 2];
             for (int i = 0; i < model.Nodes.Count; ++i)
@@ -212,7 +212,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
         /// <returns></returns>
         public IReadOnlyDictionary<int, int> MatchElementToGlobalEnrichedDofsOf(XContinuumElement2D element) //TODO: this can be an array. 
         {
-            XSubdomain2D subdomain = cluster.FindSubdomainOfElement(element);
+            XSubdomain2D_old subdomain = cluster.FindSubdomainOfElement(element);
             return subdomain.DofOrderer.MatchElementToGlobalEnrichedDofs(element);
         }
 
@@ -238,7 +238,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             elementToGlobalConstrainedDofs = globalConstrainedDofs;
         }
 
-        public void OrderSubdomainDofs(ISet<XSubdomain2D> enrichedSubdomains, ISet<XSubdomain2D> modifiedSubdomains,
+        public void OrderSubdomainDofs(ISet<XSubdomain2D_old> enrichedSubdomains, ISet<XSubdomain2D_old> modifiedSubdomains,
             ICrackDescription crack)
         {
             int numTotalDofs = NumStandardDofs;
@@ -297,7 +297,7 @@ namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
             return (counter, constrainedDofs);
         }
 
-        private static (int numStandardDofs, DofTable<StructuralDof> standardDofs) OrderStandardDofs(Model2D model)
+        private static (int numStandardDofs, DofTable<StructuralDof> standardDofs) OrderStandardDofs(Model2D_old model)
         {
             ITable<XNode, StructuralDof, double> constraints = model.Constraints;
             var standardDofs = new DofTable<StructuralDof>();
