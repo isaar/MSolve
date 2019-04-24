@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.XFEM.Elements
     ///     Pros: only need to track one set of Gauss points, which simplifies non linear analysis. 
     ///     Cons: calculating Kss with the Gauss points of an enriched element is much more expensive
     /// </summary>
-    public class XContinuumElement2D : ICell<XNode>, IFiniteElement2DView<XNode, IIsoparametricInterpolation2D>, IElementType
+    public class XContinuumElement2D : ICell<XNode>, IXFiniteElement
     {
         private readonly IDofType[][] standardDofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
 
