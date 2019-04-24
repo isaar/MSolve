@@ -1,26 +1,19 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.LinearAlgebra.Reordering;
-using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: This should be thread safe.
 namespace ISAAR.MSolve.Discretization.FreedomDegrees
 {
-    public class SubdomainConstrainedDofOrderingCaching : ISubdomainConstrainedDofOrdering
+    public class SubdomainConstrainedDofOrderingCaching : SubdomainConstrainedDofOrderingBase
     {
         private readonly Dictionary<IElement, (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices)> 
             elementDofsCache = new Dictionary<IElement, (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices)>();
 
-        public SubdomainConstrainedDofOrderingCaching(int numConstrainedDofs, DofTable subdomainConstrainedDofs)
-        {
-            this.NumConstrainedDofs = numConstrainedDofs;
-            this.ConstrainedDofs = subdomainConstrainedDofs;
-        }
+        public SubdomainConstrainedDofOrderingCaching(int numConstrainedDofs, DofTable subdomainConstrainedDofs) :
+            base(numConstrainedDofs, subdomainConstrainedDofs) { }
 
-        public DofTable ConstrainedDofs { get; }
-        public int NumConstrainedDofs { get; }
-
-        public (int[] elementDofIndices, int[] subdomainDofIndices) MapConstrainedDofsElementToSubdomain(IElement element)
+        public override (int[] elementDofIndices, int[] subdomainDofIndices) 
+            MapConstrainedDofsElementToSubdomain(IElement element)
         {
             (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) = GetElementData(element);
             return (elementDofIndices, subdomainDofIndices);
@@ -32,39 +25,10 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             if (isStored) return elementData;
             else
             {
-                elementData = ProcessElement(element);
+                elementData = base.ProcessConstrainedDofsOfElement(element);
                 elementDofsCache.Add(element, elementData);
                 return elementData;
             }
-        }
-
-        private (int numAllElementDofs, int[] elementDofIndices, int[] subdomainDofIndices) ProcessElement(IElement element)
-        {
-            IReadOnlyList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
-            IReadOnlyList<IReadOnlyList<IDofType>> elementDofs = element.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(element);
-
-            // Count the dof superset (free and constrained) to allocate enough memory and avoid resizing
-            int allElementDofs = 0;
-            for (int i = 0; i < elementNodes.Count; ++i) allElementDofs += elementDofs[i].Count;
-            var elementDofIndices = new List<int>(allElementDofs);
-            var subdomainDofIndices = new List<int>(allElementDofs);
-
-            int elementDofIdx = 0;
-            for (int nodeIdx = 0; nodeIdx < elementNodes.Count; ++nodeIdx)
-            {
-                for (int dofIdx = 0; dofIdx < elementDofs[nodeIdx].Count; ++dofIdx)
-                {
-                    bool isConstrained = ConstrainedDofs.TryGetValue(elementNodes[nodeIdx], elementDofs[nodeIdx][dofIdx],
-                        out int subdomainDofIdx);
-                    if (isConstrained)
-                    {
-                        elementDofIndices.Add(elementDofIdx);
-                        subdomainDofIndices.Add(subdomainDofIdx);
-                    }
-                    ++elementDofIdx; // This must be incremented for free dofs as well
-                }
-            }
-            return (allElementDofs, elementDofIndices.ToArray(), subdomainDofIndices.ToArray());
         }
     }
 }

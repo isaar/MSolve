@@ -60,14 +60,14 @@ namespace ISAAR.MSolve.FEM.Entities
         public double[] CalculateElementIncrementalConstraintDisplacements(IElement element, double constraintScalingFactor)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
         {
             var elementNodalDisplacements = new double[FreeDofOrdering.CountElementDofs(element)];
-            ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
+            SubdomainConstrainedDofOrderingBase.ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
             return elementNodalDisplacements;
         }
 
         public double[] CalculateElementDisplacements(Element element, IVectorView globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
         {
             double[] elementNodalDisplacements = FreeDofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector);
-            ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
+            SubdomainConstrainedDofOrderingBase.ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
             return elementNodalDisplacements;
         }
 
@@ -194,40 +194,6 @@ namespace ISAAR.MSolve.FEM.Entities
         //TODO: I am against modifying the constraints table of the subdomain. Instead the analyzer should keep a constraint
         //      displacements vector at global/subdomain scale and modify that.
         public void ScaleConstraints(double scalingFactor) => Constraints.ModifyValues((u) => scalingFactor * u);
-
-        //TODO: this should probably belong to a dedicated class, which is abstracted by an interface. That class can be reused
-        //      by various analyzer classes and as such does not need rewriting for IGA, XFEM or other problem types. Also it 
-        //      can perform optimizations, such as using a prescribed displacements vector and element constrained dof maps,
-        //      similarly to how free displacements are handled by ISubdomainFreeDofOrdering
-        private static void ApplyConstraintDisplacements(IElement element, double[] elementNodalDisplacements,
-            Table<INode, IDofType, double> constraints)
-        {
-            int elementDofIdx = 0;
-            IReadOnlyList<INode> nodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
-            IReadOnlyList<IReadOnlyList<IDofType>> dofs = element.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(element);
-            for (int i = 0; i < nodes.Count; ++i)
-            {
-                //bool isConstrainedNode = constraintsDictionary.TryGetValue(nodes[i].ID, 
-                //    out Dictionary<DOFType, double> constrainedDOFs);
-                bool isConstrainedNode = constraints.TryGetDataOfRow(nodes[i],
-                    out IReadOnlyDictionary<IDofType, double> constrainedDOFs);
-                if (isConstrainedNode)
-                {
-                    foreach (IDofType dofType in dofs[i])
-                    {
-                        bool isConstrainedDof = constrainedDOFs.TryGetValue(dofType, out double constraintDisplacement);
-                        //if (isConstrainedNode && isConstrainedDof)
-                        if (isConstrainedDof)
-                        {
-                            Debug.Assert(elementNodalDisplacements[elementDofIdx] == 0); // TODO: and why is this an assumption?
-                            elementNodalDisplacements[elementDofIdx] = constraintDisplacement;
-                        }
-                        ++elementDofIdx;
-                    }
-                }
-                else elementDofIdx += dofs[i].Count;
-            }
-        }
 
         //ADDED1
         public IVector GetRHSFromSolutionWithInitialDisplacemntsEffect(IVectorView solution, IVectorView dSolution, Dictionary<int, Node> boundaryNodes,
