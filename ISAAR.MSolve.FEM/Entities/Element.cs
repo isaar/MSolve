@@ -40,7 +40,6 @@ namespace ISAAR.MSolve.FEM.Entities
 
         ISubdomain IElement.Subdomain => this.Subdomain;
         public Subdomain Subdomain { get; set; }
-        public int[] DOFs { get; set; }
 
         public void AddNode(Node node) => nodesDictionary.Add(node.ID, node);
 

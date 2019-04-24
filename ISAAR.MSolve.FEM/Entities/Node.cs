@@ -6,6 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+//TODO: Elements and Subdomains should not be stored inside the node by default. E.g. for elements there should be 
+//      a lightweiht unidirectional mesh class, where only elements store nodes, and a birectional mesh class, where a 
+//      Dictionary of nodes -> elements is stored. Thus extra memory for these associations is not always required.
 namespace ISAAR.MSolve.FEM.Entities
 {
     /// <summary>

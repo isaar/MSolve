@@ -25,6 +25,8 @@ namespace ISAAR.MSolve.FEM.Entities
         public IList<Cluster> Clusters => ClustersDictionary.Values.ToList();
         public Dictionary<int, Cluster> ClustersDictionary { get; } = new Dictionary<int, Cluster>();
 
+        public Table<INode, IDofType, double> Constraints { get; private set; } = new Table<INode, IDofType, double>();//TODOMaria: maybe it's useless in model class
+
         IReadOnlyList<IElement> IStructuralModel.Elements => ElementsDictionary.Values.ToList();
         public IList<Element> Elements => ElementsDictionary.Values.ToList();
         public Dictionary<int, Element> ElementsDictionary { get; } = new Dictionary<int, Element>();
@@ -46,8 +48,6 @@ namespace ISAAR.MSolve.FEM.Entities
         public Dictionary<int, Subdomain> SubdomainsDictionary { get; } = new Dictionary<int, Subdomain>();
 
         public IList<ITimeDependentNodalLoad> TimeDependentNodalLoads { get; private set; } = new List<ITimeDependentNodalLoad>();
-
-        public Table<INode, IDofType, double> Constraints { get; private set; } = new Table<INode, IDofType, double>();//TODOMaria: maybe it's useless in model class
 
         public IGlobalFreeDofOrdering GlobalDofOrdering { get; set; }
 

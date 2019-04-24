@@ -4,7 +4,7 @@ using ISAAR.MSolve.XFEM.FreedomDegrees;
 
 namespace ISAAR.MSolve.XFEM.Entities
 {
-    class NodalLoad
+    public class NodalLoad
     {
         public Node Node { get; }
         public StructuralDof DofType { get; }
