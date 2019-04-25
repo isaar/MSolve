@@ -15,7 +15,7 @@ using ISAAR.MSolve.XFEM.Utilities;
 // Also it should be immutable, rather than having a settable TipSystem property. 
 namespace ISAAR.MSolve.XFEM.Enrichments.Items
 {
-    class CrackTipEnrichments2D : IEnrichmentItem2D
+    public class CrackTipEnrichments2D : IEnrichmentItem2D
     {
         private readonly IReadOnlyList<ITipFunction> enrichmentFunctions;
         private readonly ISingleCrack crackDescription;

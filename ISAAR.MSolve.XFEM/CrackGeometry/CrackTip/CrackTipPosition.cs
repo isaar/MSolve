@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry.CrackTip
 {
-    enum CrackTipPosition
+    public enum CrackTipPosition
     {
         Start, End, Single
     }

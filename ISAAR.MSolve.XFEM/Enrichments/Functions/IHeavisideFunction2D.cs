@@ -7,7 +7,7 @@ using ISAAR.MSolve.XFEM.Utilities;
 
 namespace ISAAR.MSolve.XFEM.Enrichments.Functions
 {
-    interface IHeavisideFunction2D : IEnrichmentFunction2D
+    public interface IHeavisideFunction2D : IEnrichmentFunction2D
     {
         double EvaluateAt(double signedDistance);
         EvaluatedFunction2D EvaluateAllAt(double signedDistance);

@@ -4,7 +4,7 @@ using ISAAR.MSolve.XFEM.Elements;
 
 namespace ISAAR.MSolve.XFEM.Integration
 {
-    class SimpleIntegration2D : IIntegrationStrategy2D<XContinuumElement2D>
+    public class SimpleIntegration2D : IIntegrationStrategy2D<XContinuumElement2D>
     {
         public SimpleIntegration2D()
         {

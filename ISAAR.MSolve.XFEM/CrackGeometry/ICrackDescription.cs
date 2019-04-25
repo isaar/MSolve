@@ -11,7 +11,7 @@ using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 //TODO: decide on consistent collections, indexes/keys and naming
 namespace ISAAR.MSolve.XFEM.CrackGeometry
 {
-    interface ICrackDescription
+    public interface ICrackDescription
     {
         /// <summary>
         /// All nodes enriched with Heaviside.

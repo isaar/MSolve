@@ -12,7 +12,7 @@ using ISAAR.MSolve.XFEM.Elements;
 namespace ISAAR.MSolve.XFEM.Integration
 {
     // TODO: Needs option to refine the mesh for the J-integral and tip blending elements.
-    class IntegrationWithSubtriangles: IIntegrationStrategy2D<XContinuumElement2D>
+    public class IntegrationWithSubtriangles: IIntegrationStrategy2D<XContinuumElement2D>
     {
         private readonly TriangleQuadratureSymmetricGaussian triangleIntegrationRule;
         private readonly ITriangulator2D<NaturalPoint> triangulator;

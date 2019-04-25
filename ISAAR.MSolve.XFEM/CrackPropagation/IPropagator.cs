@@ -11,7 +11,7 @@ using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation
 {
-    interface IPropagator
+    public interface IPropagator
     {
         PropagationLogger Logger { get; }
 

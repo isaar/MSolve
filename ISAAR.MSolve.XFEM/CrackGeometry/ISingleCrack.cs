@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
     /// A crack that has one tip point and: a) a mouth point (exterior crack), b) another tip point (interior crack) or 
     /// c) a junction point (branch of a crack tree)
     /// </summary>
-    interface ISingleCrack: ICrackDescription
+    public interface ISingleCrack: ICrackDescription
     {
         CrackBodyEnrichment2D CrackBodyEnrichment { get; }
         CrackTipEnrichments2D CrackTipEnrichments { get; }

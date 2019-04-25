@@ -5,7 +5,7 @@ using ISAAR.MSolve.XFEM.Entities;
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
 {
-    interface IHeavisideSingularityResolver
+    public interface IHeavisideSingularityResolver
     {
         ISet<XNode> FindHeavisideNodesToRemove(ISingleCrack crack, IMesh2D<XNode, XContinuumElement2D> mesh, 
             ISet<XNode> heavisideNodes);

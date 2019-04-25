@@ -9,7 +9,7 @@ namespace ISAAR.MSolve.XFEM.Integration
     /// static manner. Should I put it with the standard quadratures?
     /// TODO: Ensure this is not used for anything other than Quadrilaterals.
     /// </summary>
-    class RectangularSubgridIntegration2D<TElement> : IIntegrationStrategy2D<TElement>
+    public class RectangularSubgridIntegration2D<TElement> : IIntegrationStrategy2D<TElement>
     {
         private readonly int subgridsPerAxis;
         private readonly GaussLegendre2D  gaussQuadrature;

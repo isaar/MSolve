@@ -13,7 +13,7 @@ using ISAAR.MSolve.XFEM.Utilities;
 // TODO: this class should not be associated with the whole crack geometry, just the part that stores a single branch.
 namespace ISAAR.MSolve.XFEM.Enrichments.Items
 {
-    class CrackBodyEnrichment2D : IEnrichmentItem2D
+    public class CrackBodyEnrichment2D : IEnrichmentItem2D
     {
         private readonly IHeavisideFunction2D enrichmentFunction;
         public IReadOnlyList<EnrichedDof> Dofs { get; }

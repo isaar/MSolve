@@ -6,7 +6,7 @@ using ISAAR.MSolve.XFEM.Entities;
 
 namespace ISAAR.MSolve.XFEM.Integration
 {
-    class IntegrationForCrackPropagation2D: IIntegrationStrategy2D<XContinuumElement2D>
+    public class IntegrationForCrackPropagation2D: IIntegrationStrategy2D<XContinuumElement2D>
     {
         // TODO: verify the need to use higher order integration for tip blending elements
         private readonly IIntegrationStrategy2D<XContinuumElement2D> integrationForTipBlendingElements;

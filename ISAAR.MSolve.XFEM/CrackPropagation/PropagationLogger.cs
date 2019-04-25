@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation
 {
-    class PropagationLogger
+    public class PropagationLogger
     {
         public List<double> InteractionIntegralsMode1 { get; }
         public List<double> InteractionIntegralsMode2 { get; }

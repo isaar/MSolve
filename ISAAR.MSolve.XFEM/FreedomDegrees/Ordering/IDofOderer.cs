@@ -8,7 +8,7 @@ using ISAAR.MSolve.XFEM.Entities;
 //TODO: Clean this up: Not all these methods are actually necessary. Some are only used for testing specific orderers.  
 namespace ISAAR.MSolve.XFEM.FreedomDegrees.Ordering
 {
-    interface IDofOrderer
+    public interface IDofOrderer
     {
         int NumConstrainedDofs { get; }
         int NumEnrichedDofs { get ; }

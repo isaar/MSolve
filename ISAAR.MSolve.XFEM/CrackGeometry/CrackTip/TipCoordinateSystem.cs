@@ -10,7 +10,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.CrackTip
     // and for operations. Implement convenience methods for those operations on these data types.
     // Perhaps vector-vector operations could be abstracted. 
     // Actually wouldn't all methods be clearer if I operated directly with cosa, sina, instead of rotation matrices?
-    class TipCoordinateSystem
+    public class TipCoordinateSystem
     {
         private readonly Vector2 localCoordinatesOfGlobalOrigin;
 
@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.CrackTip
             double sina = Math.Sin(tipRotationAngle);
             RotationMatrixGlobalToLocal = Matrix2by2.CreateFromArray(new double[,] { { cosa, sina }, { -sina, cosa } });
             TransposeRotationMatrixGlobalToLocal = RotationMatrixGlobalToLocal.Transpose();
-            localCoordinatesOfGlobalOrigin = -1 * (RotationMatrixGlobalToLocal * Vector2.CreateFromArray(tipCoordinates.Coordinates));
+            localCoordinatesOfGlobalOrigin = -1 * (RotationMatrixGlobalToLocal * Vector2.Create(tipCoordinates.X, tipCoordinates.Y));
             DeterminantOfJacobianGlobalToLocalCartesian = 1.0; // det = (cosa)^2 +(sina)^2 = 1
         }
 
@@ -59,7 +59,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.CrackTip
 
         public PolarPoint2D TransformPointGlobalCartesianToLocalPolar(CartesianPoint cartesianGlobalPoint)
         {
-            Vector2 local = RotationMatrixGlobalToLocal * Vector2.CreateFromArray(cartesianGlobalPoint.Coordinates);
+            Vector2 local = RotationMatrixGlobalToLocal * Vector2.Create(cartesianGlobalPoint.X, cartesianGlobalPoint.Y);
             local.AddIntoThis(localCoordinatesOfGlobalOrigin);
             double x1 = local[0];
             double x2 = local[1];
