@@ -11,9 +11,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
     /// vector. These serve as a default implementation when a smarter one is not readily available.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    internal static class DenseStrategies
+    public static class DenseStrategies
     {
-        internal static void AddNonContiguouslyFrom(IVector thisVector, int[] thisIndices, IVectorView otherVector, 
+        public static void AddNonContiguouslyFrom(IVector thisVector, int[] thisIndices, IVectorView otherVector, 
             int[] otherIndices)
         {
             Debug.Assert(thisIndices.Length == otherIndices.Length);
@@ -24,12 +24,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             }
         }
 
-        internal static void AddNonContiguouslyFrom(IVector thisVector, int[] thisIndices, IVectorView otherVector)
+        public static void AddNonContiguouslyFrom(IVector thisVector, int[] thisIndices, IVectorView otherVector)
         {
             for (int i = 0; i < otherVector.Length; ++i) thisVector.Set(thisIndices[i], otherVector[i]);
         }
 
-        internal static bool AreEqual(IIndexable2D matrix1, IIndexable2D matrix2, double tolerance = 1e-13)
+        public static bool AreEqual(IIndexable2D matrix1, IIndexable2D matrix2, double tolerance = 1e-13)
         {
             if ((matrix1.NumRows != matrix2.NumRows) || (matrix1.NumColumns != matrix2.NumColumns)) return false;
             var comparer = new ValueComparer(tolerance);
@@ -43,19 +43,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             return true;
         }
 
-        internal static void CopyNonContiguouslyFrom(IVector thisVector, IVectorView otherVector, int[] otherIndices)
+        public static void CopyNonContiguouslyFrom(IVector thisVector, IVectorView otherVector, int[] otherIndices)
         {
             for (int i = 0; i < thisVector.Length; ++i) thisVector.Set(i, otherVector[otherIndices[i]]);
         }
 
-        internal static void CopyNonContiguouslyFrom(IVector thisVector, int[] thisIndices, IVectorView otherVector, 
+        public static void CopyNonContiguouslyFrom(IVector thisVector, int[] thisIndices, IVectorView otherVector, 
             int[] otherIndices)
         {
             Debug.Assert(thisIndices.Length == otherIndices.Length);
             for (int i = 0; i < thisIndices.Length; ++i) thisVector.Set(thisIndices[i], otherVector[otherIndices[i]]);
         }
 
-        internal static double[,] CopyToArray2D(IIndexable2D matrix)
+        public static double[,] CopyToArray2D(IIndexable2D matrix)
         {
             var result = new double[matrix.NumRows, matrix.NumColumns];
             for (int j = 0; j < matrix.NumColumns; ++j)
@@ -68,7 +68,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             return result;
         }
 
-        internal static Matrix CopyToFullMatrix(IIndexable2D matrix)
+        public static Matrix CopyToFullMatrix(IIndexable2D matrix)
         {
             int m = matrix.NumRows;
             int n = matrix.NumColumns;
@@ -83,7 +83,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             return Matrix.CreateFromArray(result, m, n, false);
         }
 
-        internal static Vector DoEntrywise(IVectorView vector1, IVectorView vector2,
+        public static Vector DoEntrywise(IVectorView vector1, IVectorView vector2,
             Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckVectorDimensions(vector1, vector2);
@@ -92,7 +92,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             return result;
         }
 
-        internal static Matrix DoEntrywise(IIndexable2D matrix1, IIndexable2D matrix2, 
+        public static Matrix DoEntrywise(IIndexable2D matrix1, IIndexable2D matrix2, 
             Func<double, double, double> binaryOperation)
         {
             Preconditions.CheckSameMatrixDimensions(matrix1, matrix2);
@@ -107,21 +107,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             return result;
         }
 
-        internal static Vector GetColumn(IIndexable2D matrix, int colIdx)
+        public static Vector GetColumn(IIndexable2D matrix, int colIdx)
         {
             var column = new double[matrix.NumRows];
             for (int i = 0; i < matrix.NumRows; ++i) column[i] = matrix[i, colIdx];
             return Vector.CreateFromArray(column, false);
         }
 
-        internal static Vector GetRow(IIndexable2D matrix, int rowIdx)
+        public static Vector GetRow(IIndexable2D matrix, int rowIdx)
         {
             var row = new double[matrix.NumColumns];
             for (int j = 0; j < matrix.NumColumns; ++j) row[j] = matrix[rowIdx, j];
             return Vector.CreateFromArray(row, false);
         }
 
-        internal static Matrix GetSubmatrix(IIndexable2D matrix, int[] rowIndices, int[] colIndices)
+        public static Matrix GetSubmatrix(IIndexable2D matrix, int[] rowIndices, int[] colIndices)
         {
             var submatrix = Matrix.CreateZero(rowIndices.Length, colIndices.Length);
             for (int j = 0; j < colIndices.Length; ++j)
@@ -131,7 +131,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             return submatrix;
         }
 
-        internal static Matrix GetSubmatrix(IIndexable2D matrix, int rowStartInclusive, int rowEndExclusive, 
+        public static Matrix GetSubmatrix(IIndexable2D matrix, int rowStartInclusive, int rowEndExclusive, 
             int colStartInclusive, int colEndExclusive)
         {
             int numNewRows = rowEndExclusive - rowStartInclusive;
@@ -149,7 +149,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
         /// </summary>
         /// <param name="tolerance">Can be zero</param>
         /// <returns></returns>
-        internal static bool IsZero(double[] array, double tolerance)
+        public static bool IsZero(double[] array, double tolerance)
         {
             if (tolerance == 0)
             {
@@ -169,7 +169,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             }
         }
 
-        internal static Vector LinearCombination(IIndexable1D vector1, double coefficient1, IIndexable1D vector2,
+        public static Vector LinearCombination(IIndexable1D vector1, double coefficient1, IIndexable1D vector2,
             double coefficient2)
         {
             Preconditions.CheckVectorDimensions(vector1, vector2);
@@ -178,7 +178,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             return result;
         }
 
-        internal static Matrix LinearCombination(IIndexable2D matrix1, double coefficient1, IIndexable2D matrix2, 
+        public static Matrix LinearCombination(IIndexable2D matrix1, double coefficient1, IIndexable2D matrix2, 
             double coefficient2)
         {
             Preconditions.CheckSameMatrixDimensions(matrix1, matrix2);
@@ -193,7 +193,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             return result;
         }
 
-        internal static Matrix Transpose(IMatrixView matrix)
+        public static Matrix Transpose(IMatrixView matrix)
         {
             var result = Matrix.CreateZero(matrix.NumColumns, matrix.NumRows);
             for (int j = 0; j < matrix.NumColumns; ++j)
@@ -206,7 +206,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             return result;
         }
 
-        internal static Matrix Multiply(IMatrixView matrix1, IMatrixView matrix2, bool transpose1, bool transpose2)
+        public static Matrix Multiply(IMatrixView matrix1, IMatrixView matrix2, bool transpose1, bool transpose2)
         {
             if (transpose1)
             {
@@ -280,7 +280,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             }
         }
 
-        internal static Vector Multiply(IMatrixView matrix, IVectorView vector, bool transposeMatrix)
+        public static Vector Multiply(IMatrixView matrix, IVectorView vector, bool transposeMatrix)
         {
             if (transposeMatrix)
             {
@@ -310,7 +310,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             }
         }
 
-        internal static void MultiplyIntoResult(IMatrixView matrix, IVectorView lhsVector, IVector rhsVector, 
+        public static void MultiplyIntoResult(IMatrixView matrix, IVectorView lhsVector, IVector rhsVector, 
             bool transposeMatrix)
         {
             if (transposeMatrix)
@@ -340,7 +340,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
         }
 
         // This will be replaced with LAPACK SVD. 
-        internal static void SVD(Matrix matrix, double[] w, double[,] v)
+        public static void SVD(Matrix matrix, double[] w, double[,] v)
         {
             //      double precision a(nm,n),w(n),u(nm,n),v(nm,n),rv1(n)
             //      double precision dsqrt,dmax1,dabs,dsign
