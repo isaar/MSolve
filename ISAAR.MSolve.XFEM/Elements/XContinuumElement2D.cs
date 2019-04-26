@@ -180,87 +180,6 @@ namespace ISAAR.MSolve.XFEM.Elements
         }
 
         /// <summary>
-        /// Calculates the deformation matrix B. Dimensions = 3x8.
-        /// B is a linear transformation FROM the nodal values of the displacement field TO the the derivatives of
-        /// the displacement field in respect to the cartesian axes (i.e. the stresses): {dU/dX} = [B] * {d} => 
-        /// {u,x v,y u,y, v,x} = [... Bk ...] * {u1 v1 u2 v2 u3 v3 u4 v4}, where k = 1, ... nodesCount is a node and
-        /// Bk = [dNk/dx 0; 0 dNk/dY; dNk/dy dNk/dx] (3x2)
-        /// </summary>
-        /// <param name="evaluatedInterpolation">The shape function derivatives calculated at a specific 
-        ///     integration point</param>
-        /// <returns></returns>
-        internal Matrix CalculateStandardDeformationMatrix(Matrix shapeGradientsCartesian)
-        {
-            var deformation = Matrix.CreateZero(3, NumStandardDofs);
-            for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
-            {
-                int col0 = 2 * nodeIdx;
-                int col1 = 2 * nodeIdx + 1;
-
-                deformation[0, col0] = shapeGradientsCartesian[nodeIdx, 0];
-                deformation[1, col1] = shapeGradientsCartesian[nodeIdx, 1];
-                deformation[2, col0] = shapeGradientsCartesian[nodeIdx, 1];
-                deformation[2, col1] = shapeGradientsCartesian[nodeIdx, 0];
-            }
-            return deformation;
-        }
-
-        // TODO: the argument asrtificialDofsCount was added when this method was private and only called by 
-        // BuildStiffnessMatrix() that already counted the dofs. Since it is now used by other modules 
-        // (J-integral, output), it would be better to obscure it, at the cost of recounting the dofs in some cases.
-        internal Matrix CalculateEnrichedDeformationMatrix(int artificialDofsCount,
-            NaturalPoint gaussPoint, EvalInterpolation2D evaluatedInterpolation)
-        {
-            //CartesianPoint cartesianPoint = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian(gaussPoint);
-            var uniqueEnrichments = new Dictionary<IEnrichmentItem2D, EvaluatedFunction2D[]>();
-
-            var deformationMatrix = Matrix.CreateZero(3, artificialDofsCount);
-            int currentColumn = 0;
-            for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
-            {
-                double N = evaluatedInterpolation.ShapeFunctions[nodeIdx];
-                double dNdx = evaluatedInterpolation.ShapeGradientsCartesian[nodeIdx, 0];
-                double dNdy = evaluatedInterpolation.ShapeGradientsCartesian[nodeIdx, 1];
-
-                foreach (var enrichment in Nodes[nodeIdx].EnrichmentItems)
-                {
-                    IEnrichmentItem2D enrichmentItem = enrichment.Key;
-                    double[] nodalEnrichmentValues = enrichment.Value;
-
-                    // The enrichment function probably has been evaluated when processing a previous node. Avoid reevaluation.
-                    EvaluatedFunction2D[] evaluatedEnrichments;
-                    if (!(uniqueEnrichments.TryGetValue(enrichmentItem, out evaluatedEnrichments)))
-                    {
-                        evaluatedEnrichments = enrichmentItem.EvaluateAllAt(gaussPoint, this, evaluatedInterpolation);
-                        uniqueEnrichments[enrichmentItem] = evaluatedEnrichments;
-                    }
-
-                    for (int i = 0; i < evaluatedEnrichments.Length; ++i)
-                    {
-                        // For each node and with all derivatives w.r.t. cartesian coordinates, the enrichment derivatives 
-                        // are: Bx = enrN,x = N,x(x,y) * [H(x,y) - H(node)] + N(x,y) * H,x(x,y), where H is the enrichment 
-                        // function
-                        double Bx = dNdx * (evaluatedEnrichments[i].Value - nodalEnrichmentValues[i])
-                            + N * evaluatedEnrichments[i].CartesianDerivatives[0];
-                        double By = dNdy * (evaluatedEnrichments[i].Value - nodalEnrichmentValues[i])
-                            + N * evaluatedEnrichments[i].CartesianDerivatives[1];
-
-                        // This depends on the convention: node major or enrichment major. The following is node major.
-                        int col1 = currentColumn++;
-                        int col2 = currentColumn++;
-
-                        deformationMatrix[0, col1] = Bx;
-                        deformationMatrix[1, col2] = By;
-                        deformationMatrix[2, col1] = By;
-                        deformationMatrix[2, col2] = Bx;
-                    }
-                }
-            }
-            Debug.Assert(currentColumn == artificialDofsCount);
-            return deformationMatrix;
-        }
-
-        /// <summary>
         /// This only works for points that do not lie on the crack interface. As such it is safe to pass GPs only
         /// </summary>
         /// <param name="gaussPoint"></param>
@@ -268,7 +187,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="standardNodalDisplacements"></param>
         /// <param name="enrichedNodalDisplacements"></param>
         /// <returns></returns>
-        internal Vector2 CalculateDisplacementField(NaturalPoint gaussPoint, EvalInterpolation2D evaluatedInterpolation,
+        public Vector2 CalculateDisplacementField(NaturalPoint gaussPoint, EvalInterpolation2D evaluatedInterpolation,
             Vector standardNodalDisplacements, Vector enrichedNodalDisplacements)
         {
             #region debug
@@ -322,7 +241,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// <param name="nodalDisplacementsX"></param>
         /// <param name="nodalDisplacementsY"></param>
         /// <returns></returns>
-        internal Matrix2by2 CalculateDisplacementFieldGradient(NaturalPoint gaussPoint,
+        public Matrix2by2 CalculateDisplacementFieldGradient(NaturalPoint gaussPoint,
             EvalInterpolation2D evaluatedInterpolation, Vector standardNodalDisplacements,
             Vector enrichedNodalDisplacements) //TODO: this must only allow evaluations at Gauss points. It doesn't work for points on the crack interface
         {
@@ -394,17 +313,128 @@ namespace ISAAR.MSolve.XFEM.Elements
             return new Tensor2D(stressXX, stressYY, stressXY);
         }
 
-        #region Dofs (perhaps all these should be delegated to element specific std and enr DofOrderers)
+        public IMatrix DampingMatrix(IElement element) => throw new NotImplementedException();
+
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element) => OrderDofsNodeMajor();
+
+        public IMatrix MassMatrix(IElement element) => throw new NotImplementedException();
+
+        public IMatrix StiffnessMatrix(IElement element) => JoinStiffnessesNodeMajor();
+
+        // TODO: the argument asrtificialDofsCount was added when this method was private and only called by 
+        // BuildStiffnessMatrix() that already counted the dofs. Since it is now used by other modules 
+        // (J-integral, output), it would be better to obscure it, at the cost of recounting the dofs in some cases.
+        private Matrix CalculateEnrichedDeformationMatrix(int artificialDofsCount,
+            NaturalPoint gaussPoint, EvalInterpolation2D evaluatedInterpolation)
+        {
+            //CartesianPoint cartesianPoint = evaluatedInterpolation.TransformPointNaturalToGlobalCartesian(gaussPoint);
+            var uniqueEnrichments = new Dictionary<IEnrichmentItem2D, EvaluatedFunction2D[]>();
+
+            var deformationMatrix = Matrix.CreateZero(3, artificialDofsCount);
+            int currentColumn = 0;
+            for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
+            {
+                double N = evaluatedInterpolation.ShapeFunctions[nodeIdx];
+                double dNdx = evaluatedInterpolation.ShapeGradientsCartesian[nodeIdx, 0];
+                double dNdy = evaluatedInterpolation.ShapeGradientsCartesian[nodeIdx, 1];
+
+                foreach (var enrichment in Nodes[nodeIdx].EnrichmentItems)
+                {
+                    IEnrichmentItem2D enrichmentItem = enrichment.Key;
+                    double[] nodalEnrichmentValues = enrichment.Value;
+
+                    // The enrichment function probably has been evaluated when processing a previous node. Avoid reevaluation.
+                    EvaluatedFunction2D[] evaluatedEnrichments;
+                    if (!(uniqueEnrichments.TryGetValue(enrichmentItem, out evaluatedEnrichments)))
+                    {
+                        evaluatedEnrichments = enrichmentItem.EvaluateAllAt(gaussPoint, this, evaluatedInterpolation);
+                        uniqueEnrichments[enrichmentItem] = evaluatedEnrichments;
+                    }
+
+                    for (int i = 0; i < evaluatedEnrichments.Length; ++i)
+                    {
+                        // For each node and with all derivatives w.r.t. cartesian coordinates, the enrichment derivatives 
+                        // are: Bx = enrN,x = N,x(x,y) * [H(x,y) - H(node)] + N(x,y) * H,x(x,y), where H is the enrichment 
+                        // function
+                        double Bx = dNdx * (evaluatedEnrichments[i].Value - nodalEnrichmentValues[i])
+                            + N * evaluatedEnrichments[i].CartesianDerivatives[0];
+                        double By = dNdy * (evaluatedEnrichments[i].Value - nodalEnrichmentValues[i])
+                            + N * evaluatedEnrichments[i].CartesianDerivatives[1];
+
+                        // This depends on the convention: node major or enrichment major. The following is node major.
+                        int col1 = currentColumn++;
+                        int col2 = currentColumn++;
+
+                        deformationMatrix[0, col1] = Bx;
+                        deformationMatrix[1, col2] = By;
+                        deformationMatrix[2, col1] = By;
+                        deformationMatrix[2, col2] = Bx;
+                    }
+                }
+            }
+            Debug.Assert(currentColumn == artificialDofsCount);
+            return deformationMatrix;
+        }
+
+        /// <summary>
+        /// Calculates the deformation matrix B. Dimensions = 3x8.
+        /// B is a linear transformation FROM the nodal values of the displacement field TO the the derivatives of
+        /// the displacement field in respect to the cartesian axes (i.e. the stresses): {dU/dX} = [B] * {d} => 
+        /// {u,x v,y u,y, v,x} = [... Bk ...] * {u1 v1 u2 v2 u3 v3 u4 v4}, where k = 1, ... nodesCount is a node and
+        /// Bk = [dNk/dx 0; 0 dNk/dY; dNk/dy dNk/dx] (3x2)
+        /// </summary>
+        /// <param name="evaluatedInterpolation">The shape function derivatives calculated at a specific 
+        ///     integration point</param>
+        /// <returns></returns>
+        private Matrix CalculateStandardDeformationMatrix(Matrix shapeGradientsCartesian)
+        {
+            var deformation = Matrix.CreateZero(3, NumStandardDofs);
+            for (int nodeIdx = 0; nodeIdx < Nodes.Count; ++nodeIdx)
+            {
+                int col0 = 2 * nodeIdx;
+                int col1 = 2 * nodeIdx + 1;
+
+                deformation[0, col0] = shapeGradientsCartesian[nodeIdx, 0];
+                deformation[1, col1] = shapeGradientsCartesian[nodeIdx, 1];
+                deformation[2, col0] = shapeGradientsCartesian[nodeIdx, 1];
+                deformation[2, col1] = shapeGradientsCartesian[nodeIdx, 0];
+            }
+            return deformation;
+        }
+
+        //TODO: This should be delegated to element specific std and enr DofOrderers
         //TODO: This should be cached and, along with other dof data, updated when the element's enrichments change, which must 
         //      happen with a single call. 
-        public int CountEnrichedDofs() 
+        internal int CountEnrichedDofs()
         {
             int count = 0;
             foreach (XNode node in Nodes) count += node.EnrichedDofsCount; // in all nodes or in enriched interpolation nodes?
             return count;
         }
 
+        private IReadOnlyDictionary<IEnrichmentItem2D, EvaluatedFunction2D[]> EvaluateEnrichments(
+            NaturalPoint gaussPoint, EvalInterpolation2D evaluatedInterpolation)
+        {
+            var cachedEvalEnrichments = new Dictionary<IEnrichmentItem2D, EvaluatedFunction2D[]>();
+            foreach (XNode node in Nodes)
+            {
+                foreach (var enrichment in node.EnrichmentItems)
+                {
+                    IEnrichmentItem2D enrichmentItem = enrichment.Key;
+                    double[] nodalEnrichmentValues = enrichment.Value;
 
+                    // The enrichment function probably has been evaluated when processing a previous node. Avoid reevaluation.
+                    if (!(cachedEvalEnrichments.TryGetValue(enrichmentItem, out EvaluatedFunction2D[] evaluatedEnrichments)))
+                    {
+                        evaluatedEnrichments = enrichmentItem.EvaluateAllAt(gaussPoint, this, evaluatedInterpolation);
+                        cachedEvalEnrichments[enrichmentItem] = evaluatedEnrichments;
+                    }
+                }
+            }
+            return cachedEvalEnrichments;
+        }
+
+        //TODO: This should be delegated to element specific std and enr DofOrderers
         internal FreedomDegrees.Ordering.DofTable<EnrichedDof> GetEnrichedDofs()
         {
             var elementDofs = new FreedomDegrees.Ordering.DofTable<EnrichedDof>();
@@ -422,13 +452,11 @@ namespace ISAAR.MSolve.XFEM.Elements
             return elementDofs;
         }
 
-        /// <summary>
-        /// TODO: Perhaps this should be saved as a DofOrderer object (the dofs themselves would be created on  
-        /// demand though). XElement will have a mutable one, while others will get a view. I could still use a  
-        /// DofOrderer even if I do not save it. Transfering most of the code to the Enumerator class, also reduces  
-        /// code duplication with the standard ContinuumElement2D
-        /// </summary>
-        /// <returns></returns>
+        // TODO: Perhaps this should be saved as a DofOrderer object (the dofs themselves would be created on  
+        // demand though). XElement will have a mutable one, while others will get a view. I could still use a  
+        // DofOrderer even if I do not save it. Transfering most of the code to the Enumerator class, also reduces  
+        // code duplication with the standard ContinuumElement2D
+        //TODO: This should be delegated to element specific std and enr DofOrderers
         internal FreedomDegrees.Ordering.DofTable<StructuralDof> GetStandardDofs()
         {
             var elementDofs = new FreedomDegrees.Ordering.DofTable<StructuralDof>();
@@ -440,44 +468,15 @@ namespace ISAAR.MSolve.XFEM.Elements
             }
             return elementDofs;
         }
-        #endregion
 
-        public IMatrix DampingMatrix(IElement element) => throw new NotImplementedException();
-
-        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element)
-            => GetElementDofTypesNodeMajor();
-
-        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypesNodeMajor()
-        {
-            //TODO: should they enriched dofs also be cached per element?
-            if (EnrichmentItems.Count == 0) return standardDofTypes;
-            else
-            {
-                // The dof order in increasing frequency of change is: node, enrichment item, enrichment function, axis.
-                // A similar convention should also hold for each enrichment item: enrichment function major, axis minor.
-                // WARNING: The order here must match the order in StiffnessMatrix().
-                var dofTypes = new List<IDofType>[Nodes.Count];
-                for (int i = 0; i < Nodes.Count; ++i)
-                {
-                    dofTypes[i] = new List<IDofType>(4); // At least 2 * num std dofs
-                    dofTypes[i].AddRange(standardDofTypes[i]);
-                    foreach (IEnrichmentItem2D enrichment in Nodes[i].EnrichmentItems.Keys)
-                    {
-                        dofTypes[i].AddRange(enrichment.Dofs);
-                    }
-                }
-                return dofTypes;
-            }
-        }
-
-        public IMatrix JoinStifnessesNodeMajor()
+        internal IMatrix JoinStiffnessesNodeMajor()
         {
             //TODO: Perhaps it is more efficient to do this by just appending Kse and Kee to Kss.
             if (EnrichmentItems.Count == 0) return BuildStandardStiffnessMatrix();
             else
             {
                 // The dof order in increasing frequency of change is: node, enrichment item, enrichment function, axis.
-                // WARNING: The order here must match the order in GetElementDOFTypes() and BuildEnrichedStiffnessMatricesUpper()
+                // WARNING: The order here must match the order in OrderDofsNodeMajor() and BuildEnrichedStiffnessMatricesUpper()
 
                 // Find the mapping from Kss, Kse, Kee to a total matrix for the element. TODO: This could be a different method.
                 int numEnrichedDofs = CountEnrichedDofs();
@@ -534,30 +533,65 @@ namespace ISAAR.MSolve.XFEM.Elements
             }
         }
 
-        public IMatrix MassMatrix(IElement element) => throw new NotImplementedException();
-
-        public IMatrix StiffnessMatrix(IElement element) => JoinStifnessesNodeMajor();
-
-        private IReadOnlyDictionary<IEnrichmentItem2D, EvaluatedFunction2D[]> EvaluateEnrichments(
-            NaturalPoint gaussPoint, EvalInterpolation2D evaluatedInterpolation)
+        internal IMatrix JoinStiffnessesStandardFirst()
         {
-            var cachedEvalEnrichments = new Dictionary<IEnrichmentItem2D, EvaluatedFunction2D[]>();
-            foreach (XNode node in Nodes)
-            {
-                foreach (var enrichment in node.EnrichmentItems)
-                {
-                    IEnrichmentItem2D enrichmentItem = enrichment.Key;
-                    double[] nodalEnrichmentValues = enrichment.Value;
+            // WARNING: The order here must match the order in OrderDofsNodeMajor() and BuildEnrichedStiffnessMatricesUpper()
+            Matrix Kss = BuildStandardStiffnessMatrix();
+            (Matrix Kee, Matrix Kse) = BuildEnrichedStiffnessMatricesUpper();
+            return new CoupledSymmetricMatrix(Kss, Kse, Kee);
+        }
 
-                    // The enrichment function probably has been evaluated when processing a previous node. Avoid reevaluation.
-                    if (!(cachedEvalEnrichments.TryGetValue(enrichmentItem, out EvaluatedFunction2D[] evaluatedEnrichments)))
+        internal IReadOnlyList<IReadOnlyList<IDofType>> OrderDofsNodeMajor()
+        {
+            //TODO: should they enriched dofs also be cached per element?
+            if (EnrichmentItems.Count == 0) return standardDofTypes;
+            else
+            {
+                // The dof order in increasing frequency of change is: node, enrichment item, enrichment function, axis.
+                // A similar convention should also hold for each enrichment item: enrichment function major, axis minor.
+                // WARNING: The order here must match the order in JoinStiffnessesNodeMajor().
+                var dofTypes = new List<IDofType>[Nodes.Count];
+                for (int i = 0; i < Nodes.Count; ++i)
+                {
+                    dofTypes[i] = new List<IDofType>(4); // At least 2 * num std dofs
+                    dofTypes[i].AddRange(standardDofTypes[i]);
+                    foreach (IEnrichmentItem2D enrichment in Nodes[i].EnrichmentItems.Keys)
                     {
-                        evaluatedEnrichments = enrichmentItem.EvaluateAllAt(gaussPoint, this, evaluatedInterpolation);
-                        cachedEvalEnrichments[enrichmentItem] = evaluatedEnrichments;
+                        dofTypes[i].AddRange(enrichment.Dofs);
                     }
                 }
+                return dofTypes;
             }
-            return cachedEvalEnrichments;
+        }
+
+        internal IReadOnlyList<IReadOnlyList<IDofType>> OrderDofsStandardFirst()
+        {
+            //TODO: should they enriched dofs also be cached per element?
+            if (EnrichmentItems.Count == 0) return standardDofTypes;
+            else
+            {
+                // The dof order in increasing frequency of change is: node, enrichment item, enrichment function, axis.
+                // A similar convention should also hold for each enrichment item: enrichment function major, axis minor.
+                // WARNING: The order here must match the order in JoinStiffnessesStandardFirst().
+                var dofTypes = new List<IDofType>[Nodes.Count];
+
+                // Standard dofs first
+                for (int i = 0; i < Nodes.Count; ++i)
+                {
+                    dofTypes[i] = new List<IDofType>(4); // At least 2 * num std dofs
+                    dofTypes[i].AddRange(standardDofTypes[i]);
+                }
+
+                // Then enriched dofs
+                for (int i = 0; i < Nodes.Count; ++i)
+                {
+                    foreach (IEnrichmentItem2D enrichment in Nodes[i].EnrichmentItems.Keys)
+                    {
+                        dofTypes[i].AddRange(enrichment.Dofs);
+                    }
+                }
+                return dofTypes;
+            }
         }
     }
 }
