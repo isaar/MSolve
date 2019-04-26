@@ -20,16 +20,14 @@ using ISAAR.MSolve.XFEM.Integration;
 using ISAAR.MSolve.XFEM.Materials;
 using ISAAR.MSolve.XFEM.Utilities;
 
+//TODO: Enumerating artificial dofs may be needed to be done by this class. (e.g if structural FE introduce more 
+//      artificial dofs than continuum FE)
+//TODO: The calculation of Kss uses the same gauss points as the calculation of Kes, Kee. 
+//      Pros: only need to track one set of Gauss points, which simplifies non linear analysis 
+//         & shape functions and their natural derivatives are cached for the standard quadrature.
+//      Cons: calculating Kss with the Gauss points of an enriched element is much more expensive
 namespace ISAAR.MSolve.XFEM.Elements
 {
-    /// <summary>
-    /// TODO: Uses the same interpolation and nodes as the underlying std element! This must change
-    /// TODO: Enumerating artificial dofs may be needed to be done by this class. (e.g if structural FE introduce more 
-    ///     artificial dofs than continuum FE)
-    /// TODO: The calculation of Kss uses the same gauss points as the calculation of Kes, Kee. 
-    ///     Pros: only need to track one set of Gauss points, which simplifies non linear analysis. 
-    ///     Cons: calculating Kss with the Gauss points of an enriched element is much more expensive
-    /// </summary>
     public class XContinuumElement2D : ICell<XNode>, IXFiniteElement
     {
         private readonly IDofType[][] standardDofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
@@ -83,27 +81,27 @@ namespace ISAAR.MSolve.XFEM.Elements
         /// </summary>
         public IReadOnlyList<XNode> Nodes { get; }
         public int NumStandardDofs { get; }
-        internal IQuadrature2D StandardQuadrature { get; }
+        internal IQuadrature2D StandardQuadrature { get; } //TODO: This should not always be used for Kss. E.g. it doesn't work for bimaterial interface.
 
-        // TODO: return a symmetric matrix
+        //TODO: In some cases this could use a the Gauss points of standard quadrature to save time.
         public Matrix BuildStandardStiffnessMatrix()
         {
             var stiffness = Matrix.CreateZero(NumStandardDofs, NumStandardDofs);
             IReadOnlyList<EvalInterpolation2D> evaluatedInterpolations = 
                 Interpolation.EvaluateAllAtGaussPoints(Nodes, StandardQuadrature);
 
-            for (int gp = 0; gp < StandardQuadrature.IntegrationPoints.Count; ++gp)
+            foreach (GaussPoint gaussPoint in IntegrationStrategy.GenerateIntegrationPoints(this))
             {
-                GaussPoint gaussPoint = StandardQuadrature.IntegrationPoints[gp];
+                EvalInterpolation2D evaluatedInterpolation = Interpolation.EvaluateAllAt(Nodes, gaussPoint);
 
                 // Material properties
-                Matrix constitutive = Material.CalculateConstitutiveMatrixAt(gaussPoint, evaluatedInterpolations[gp]);
+                Matrix constitutive = Material.CalculateConstitutiveMatrixAt(gaussPoint, evaluatedInterpolation);
                 //TODO: The thickness is constant per element in FEM, but what about XFEM? Different materials within the same element are possible.
-                double thickness = Material.GetThicknessAt(gaussPoint, evaluatedInterpolations[gp]);
+                double thickness = Material.GetThicknessAt(gaussPoint, evaluatedInterpolation);
 
                 // Calculate the necessary quantities for the integration
-                var jacobian = evaluatedInterpolations[gp].Jacobian;
-                Matrix deformation = CalculateStandardDeformationMatrix(evaluatedInterpolations[gp].ShapeGradientsCartesian);
+                var jacobian = evaluatedInterpolation.Jacobian;
+                Matrix deformation = CalculateStandardDeformationMatrix(evaluatedInterpolation.ShapeGradientsCartesian);
 
                 // Contribution of this gauss point to the element stiffness matrix
                 Matrix partial = deformation.ThisTransposeTimesOtherTimesThis(constitutive);

@@ -6,7 +6,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Geometry.Shapes
 {
-    public class PolyLine2D
+    public class PolyLine2D : ICurve2D
     {
         private readonly List<double> angles;
         private readonly List<DirectedSegment2D> segments;
