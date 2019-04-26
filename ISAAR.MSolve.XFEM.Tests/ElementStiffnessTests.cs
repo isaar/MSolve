@@ -24,7 +24,36 @@ namespace ISAAR.MSolve.XFEM.Tests
     public static class ElementStiffnessTests
     {
         [Fact]
-        public static void TestElementWithStrongDiscontinuity()
+        public static void TestJointStiffnessMatrixOfCrackBodyElement()
+        {
+            double equalityTolerance = 1E-13;
+            Matrix expectedK = 1E6 * Matrix.CreateFromArray(new double[,]
+            {
+                {  1.154,  0.481,  0.962,  0.240, -0.769,  0.096,  0.769,  0.144, -0.577, -0.481,  0.577,  0.433,  0.192, -0.096,  0.385, -0.048 },
+                {  0.481,  1.154,  0.240,  0.481, -0.096,  0.192,  0.337, -0.192, -0.481, -0.577,  0.529,  0.577,  0.096, -0.769,  0.048, -0.096 },
+                {  0.962,  0.240,  1.923,  0.481, -0.769,  0.337,  0.000,  0.000, -0.577, -0.529,  0.000,  0.000,  0.385, -0.048,  0.769, -0.096 },
+                {  0.240,  0.481,  0.481,  0.962,  0.144,  0.192,  0.000,  0.000, -0.433, -0.577,  0.000,  0.000,  0.048, -0.096,  0.096, -0.192 },
+                { -0.769, -0.096, -0.769,  0.144,  1.154, -0.481, -0.962,  0.240,  0.192,  0.096, -0.385, -0.048, -0.577,  0.481, -0.577,  0.433 },
+                {  0.096,  0.192,  0.337,  0.192, -0.481,  1.154,  0.240, -0.481, -0.096, -0.769,  0.048,  0.096,  0.481, -0.577,  0.529, -0.577 },
+                {  0.769,  0.337,  0.000,  0.000, -0.962,  0.240,  1.923, -0.481, -0.385, -0.048,  0.769,  0.096,  0.577, -0.529,  0.000,  0.000 },
+                {  0.144, -0.192,  0.000,  0.000,  0.240, -0.481, -0.481,  0.962,  0.048,  0.096, -0.096, -0.192, -0.433,  0.577,  0.000,  0.000 },
+                { -0.577, -0.481, -0.577, -0.433,  0.192, -0.096, -0.385,  0.048,  1.154,  0.481, -0.962, -0.240, -0.769,  0.096, -0.769, -0.144 },
+                { -0.481, -0.577, -0.529, -0.577,  0.096, -0.769, -0.048,  0.096,  0.481,  1.154, -0.240, -0.481, -0.096,  0.192, -0.337,  0.192 },
+                {  0.577,  0.529,  0.000,  0.000, -0.385,  0.048,  0.769, -0.096, -0.962, -0.240,  1.923,  0.481,  0.769, -0.337,  0.000,  0.000 },
+                {  0.433,  0.577,  0.000,  0.000, -0.048,  0.096,  0.096, -0.192, -0.240, -0.481,  0.481,  0.962, -0.144, -0.192,  0.000,  0.000 },
+                {  0.192,  0.096,  0.385,  0.048, -0.577,  0.481,  0.577, -0.433, -0.769, -0.096,  0.769, -0.144,  1.154, -0.481,  0.962, -0.240 },
+                { -0.096, -0.769, -0.048, -0.096,  0.481, -0.577, -0.529,  0.577,  0.096,  0.192, -0.337, -0.192, -0.481,  1.154, -0.240,  0.481 },
+                {  0.385,  0.048,  0.769,  0.096, -0.577,  0.529,  0.000,  0.000, -0.769, -0.337,  0.000,  0.000,  0.962, -0.240,  1.923, -0.481 },
+                { -0.048, -0.096, -0.096, -0.192,  0.433, -0.577,  0.000,  0.000, -0.144,  0.192,  0.000,  0.000, -0.240,  0.481, -0.481,  0.962 }
+            });
+
+            XContinuumElement2D element = CreateCrackBodyElement();
+            IMatrix K = element.StiffnessMatrix(null);
+            Assert.True(expectedK.Equals(K.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
+        }
+
+        [Fact]
+        public static void TestStiffnessSubmatricesOfCrackBodyElement()
         {
             double equalityTolerance = 1E-13;
             Matrix expectedKss = 1E6 * Matrix.CreateFromArray(new double[,]
@@ -75,49 +104,10 @@ namespace ISAAR.MSolve.XFEM.Tests
                 { -0.096, -0.192, +0.000, +0.000, +0.000, +0.000, -0.481, +0.962 }
             });
 
-            XNode[] nodes = new XNode[]
-            {
-                new XNode(0, 20.0, 0.0),
-                new XNode(1, 40.0, 0.0),
-                new XNode(2, 40.0, 20.0),
-                new XNode(3, 20.0, 20.0),
-
-                new XNode(4, 20.0, -40.0),
-                new XNode(5, 40.0, -40.0),
-                new XNode(6, 40.0, -20.0),
-                new XNode(7, 20.0, -20.0)
-            };
-
-            double E = 2e6;
-            double v = 0.3;
-            var material = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
-
-            var integrationStrategy = new IntegrationForCrackPropagation2D(
-                new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.GetQuadratureWithOrder(2, 2)),
-                new SimpleIntegration2D());
-            //var integrationStrategy = new IntegrationForCrackPropagation2D(GaussLegendre2D.GetQuadratureWithOrder(2, 2),
-            //  new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.GetQuadratureWithOrder(2, 2)));
-            var factory = new XContinuumElement2DFactory(integrationStrategy, integrationStrategy, material);
-            var bodyElement = factory.CreateElement(CellType.Quad4, new XNode[] { nodes[0], nodes[1], nodes[2], nodes[3] });
-            var blendingElement = factory.CreateElement(CellType.Quad4, new XNode[] { nodes[7], nodes[6], nodes[1], nodes[0] });
-            var tipElement = factory.CreateElement(CellType.Quad4, new XNode[] { nodes[4], nodes[5], nodes[6], nodes[7] });
-            var boundary = new Rectangular2DBoundary(20.0, 40.0, -40.0, 20.0);
-            var mesh = new SimpleMesh2D<XNode, XContinuumElement2D>(nodes,
-                new XContinuumElement2D[] { bodyElement, blendingElement, tipElement }, boundary);
-
-            var crack = new BasicExplicitCrack2D();
-            crack.Mesh = mesh;
-            crack.CrackBodyEnrichment = new CrackBodyEnrichment2D(crack);
-            crack.CrackTipEnrichments = new CrackTipEnrichments2D(crack, CrackTipPosition.Single);
-
-            var point1 = new CartesianPoint(30.0, 20.0);
-            var point2 = new CartesianPoint(30.0, -30.0);
-            crack.InitializeGeometry(point1, point2);
-            crack.UpdateEnrichments();
-
-            Matrix Kss = bodyElement.BuildStandardStiffnessMatrix();
-            (Matrix Kee1, Matrix Kes) = bodyElement.BuildEnrichedStiffnessMatricesLower();
-            (Matrix Kee2, Matrix Kse) = bodyElement.BuildEnrichedStiffnessMatricesUpper();
+            XContinuumElement2D element = CreateCrackBodyElement();
+            Matrix Kss = element.BuildStandardStiffnessMatrix();
+            (Matrix Kee1, Matrix Kes) = element.BuildEnrichedStiffnessMatricesLower();
+            (Matrix Kee2, Matrix Kse) = element.BuildEnrichedStiffnessMatricesUpper();
 
             Assert.True(expectedKss.Equals(Kss.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
             Assert.True(expectedKee.Equals(Kee1.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
@@ -127,7 +117,7 @@ namespace ISAAR.MSolve.XFEM.Tests
         }
 
         [Fact]
-        public static void TestElementWithWeakDiscontinuity()
+        public static void TestStiffnessSubmatricesOfMaterialInterfaceElement()
         {
             double equalityTolerance = 1E-13;
             Matrix expectedKss = 1E6 * Matrix.CreateFromArray(new double[,]
@@ -178,6 +168,65 @@ namespace ISAAR.MSolve.XFEM.Tests
                 {  1.2020,  -8.213,  13.221, -9.014,   8.413,  28.245,  6.010, 46.675 }
             });
 
+            XContinuumElement2D element = CreateMaterialInterfaceElement();
+            Matrix Kss = element.BuildStandardStiffnessMatrix();
+            (Matrix Kee1, Matrix Kes) = element.BuildEnrichedStiffnessMatricesLower();
+            (Matrix Kee2, Matrix Kse) = element.BuildEnrichedStiffnessMatricesUpper();
+
+            Assert.True(expectedKss.Equals(Kss.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
+            Assert.True(expectedKee.Equals(Kee1.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
+            Assert.True(expectedKee.Equals(Kee2.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
+            Assert.True(expectedKes.Equals(Kes.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
+            Assert.True(expectedKse.Equals(Kse.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
+        }
+
+        private static XContinuumElement2D CreateCrackBodyElement()
+        {
+            XNode[] nodes = new XNode[]
+            {
+                new XNode(0, 20.0, 0.0),
+                new XNode(1, 40.0, 0.0),
+                new XNode(2, 40.0, 20.0),
+                new XNode(3, 20.0, 20.0),
+
+                new XNode(4, 20.0, -40.0),
+                new XNode(5, 40.0, -40.0),
+                new XNode(6, 40.0, -20.0),
+                new XNode(7, 20.0, -20.0)
+            };
+
+            double E = 2e6;
+            double v = 0.3;
+            var material = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
+
+            var integrationStrategy = new IntegrationForCrackPropagation2D(
+                new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.GetQuadratureWithOrder(2, 2)),
+                new SimpleIntegration2D());
+            //var integrationStrategy = new IntegrationForCrackPropagation2D(GaussLegendre2D.GetQuadratureWithOrder(2, 2),
+            //  new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.GetQuadratureWithOrder(2, 2)));
+            var factory = new XContinuumElement2DFactory(integrationStrategy, integrationStrategy, material);
+            var bodyElement = factory.CreateElement(CellType.Quad4, new XNode[] { nodes[0], nodes[1], nodes[2], nodes[3] });
+            var blendingElement = factory.CreateElement(CellType.Quad4, new XNode[] { nodes[7], nodes[6], nodes[1], nodes[0] });
+            var tipElement = factory.CreateElement(CellType.Quad4, new XNode[] { nodes[4], nodes[5], nodes[6], nodes[7] });
+            var boundary = new Rectangular2DBoundary(20.0, 40.0, -40.0, 20.0);
+            var mesh = new SimpleMesh2D<XNode, XContinuumElement2D>(nodes,
+                new XContinuumElement2D[] { bodyElement, blendingElement, tipElement }, boundary);
+
+            var crack = new BasicExplicitCrack2D();
+            crack.Mesh = mesh;
+            crack.CrackBodyEnrichment = new CrackBodyEnrichment2D(crack);
+            crack.CrackTipEnrichments = new CrackTipEnrichments2D(crack, CrackTipPosition.Single);
+
+            var point1 = new CartesianPoint(30.0, 20.0);
+            var point2 = new CartesianPoint(30.0, -30.0);
+            crack.InitializeGeometry(point1, point2);
+            crack.UpdateEnrichments();
+
+            return bodyElement;
+        }
+
+        private static XContinuumElement2D CreateMaterialInterfaceElement()
+        {
             XNode[] nodes = new XNode[]
             {
                 new XNode(0, 20.0, 0.0),
@@ -211,15 +260,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             enrichmentItem.EnrichNode(nodes[2]);
             enrichmentItem.EnrichNode(nodes[3]);
 
-            Matrix Kss = element.BuildStandardStiffnessMatrix();
-            (Matrix Kee1, Matrix Kes) = element.BuildEnrichedStiffnessMatricesLower();
-            (Matrix Kee2, Matrix Kse) = element.BuildEnrichedStiffnessMatricesUpper();
-
-            Assert.True(expectedKss.Equals(Kss.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
-            Assert.True(expectedKee.Equals(Kee1.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
-            Assert.True(expectedKee.Equals(Kee2.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
-            Assert.True(expectedKes.Equals(Kes.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
-            Assert.True(expectedKse.Equals(Kse.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
+            return element;
         }
     }
 }

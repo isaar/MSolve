@@ -445,10 +445,13 @@ namespace ISAAR.MSolve.XFEM.Elements
         public IMatrix DampingMatrix(IElement element) => throw new NotImplementedException();
 
         public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element)
-        { 
+            => GetElementDofTypesNodeMajor();
+
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypesNodeMajor()
+        {
             //TODO: should they enriched dofs also be cached per element?
             if (EnrichmentItems.Count == 0) return standardDofTypes;
-            else 
+            else
             {
                 // The dof order in increasing frequency of change is: node, enrichment item, enrichment function, axis.
                 // A similar convention should also hold for each enrichment item: enrichment function major, axis minor.
@@ -465,13 +468,11 @@ namespace ISAAR.MSolve.XFEM.Elements
                 }
                 return dofTypes;
             }
-
         }
 
-        public IMatrix MassMatrix(IElement element) => throw new NotImplementedException();
-
-        public IMatrix StiffnessMatrix(IElement element)
+        public IMatrix JoinStifnessesNodeMajor()
         {
+            //TODO: Perhaps it is more efficient to do this by just appending Kse and Kee to Kss.
             if (EnrichmentItems.Count == 0) return BuildStandardStiffnessMatrix();
             else
             {
@@ -486,8 +487,8 @@ namespace ISAAR.MSolve.XFEM.Elements
                 for (int n = 0; n < Nodes.Count; ++n)
                 {
                     // Std dofs
-                    stdDofIndices[n] = totDofCounter;           // std X
-                    stdDofIndices[n + 1] = totDofCounter + 1;   // std Y
+                    stdDofIndices[2 * n] = totDofCounter;           // std X
+                    stdDofIndices[2 * n + 1] = totDofCounter + 1;   // std Y
                     totDofCounter += 2;
 
                     // Enr dofs
@@ -517,7 +518,7 @@ namespace ISAAR.MSolve.XFEM.Elements
                     int totColIdx = enrDofIndices[enrCol];
 
                     // Whole Kse
-                    for (int stdRow = 0; stdRow <= NumStandardDofs; ++stdRow)
+                    for (int stdRow = 0; stdRow < NumStandardDofs; ++stdRow)
                     {
                         Ktotal[stdDofIndices[stdRow], totColIdx] = Kse[stdRow, enrCol];
                     }
@@ -532,6 +533,10 @@ namespace ISAAR.MSolve.XFEM.Elements
                 return Ktotal;
             }
         }
+
+        public IMatrix MassMatrix(IElement element) => throw new NotImplementedException();
+
+        public IMatrix StiffnessMatrix(IElement element) => JoinStifnessesNodeMajor();
 
         private IReadOnlyDictionary<IEnrichmentItem2D, EvaluatedFunction2D[]> EvaluateEnrichments(
             NaturalPoint gaussPoint, EvalInterpolation2D evaluatedInterpolation)
