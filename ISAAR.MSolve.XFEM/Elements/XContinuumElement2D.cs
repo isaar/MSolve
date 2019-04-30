@@ -315,11 +315,11 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         public IMatrix DampingMatrix(IElement element) => throw new NotImplementedException();
 
-        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element) => OrderDofsNodeMajor();
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element) => OrderDofsStandardFirst();
 
         public IMatrix MassMatrix(IElement element) => throw new NotImplementedException();
 
-        public IMatrix StiffnessMatrix(IElement element) => JoinStiffnessesNodeMajor();
+        public IMatrix StiffnessMatrix(IElement element) => JoinStiffnessesStandardFirst();
 
         // TODO: the argument asrtificialDofsCount was added when this method was private and only called by 
         // BuildStiffnessMatrix() that already counted the dofs. Since it is now used by other modules 

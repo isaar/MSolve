@@ -111,8 +111,8 @@ namespace ISAAR.MSolve.XFEM.Utilities
         public IVector Multiply(IVectorView vector, bool transposeThis = false)
             => throw new NotImplementedException(); //TODO: Implement multiply subvector or even better GetSubvectorView, which just offsets indices.
 
-        public void MultiplyIntoResult(IVectorView lhsVector, IVector rhsVector, bool transposeThis = false)
-            => throw new NotImplementedException();
+        public void MultiplyIntoResult(IVectorView lhsVector, IVector rhsVector, bool transposeThis = false) //TODO: implement this properly. It is used for Kfc * uc
+            => DenseStrategies.MultiplyIntoResult(this, lhsVector, rhsVector, transposeThis);
 
         public Matrix MultiplyLeft(IMatrixView other, bool transposeThis = false, bool transposeOther = false)
             => throw new NotImplementedException();

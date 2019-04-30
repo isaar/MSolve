@@ -8,12 +8,15 @@ namespace ISAAR.MSolve.XFEM.Materials
     // avoid redundant object creation and copying doubles in the concrete classes.
     public interface IMaterialField2D
     {
+        IMaterialField2D Clone();
+
         double GetYoungModulusAt(NaturalPoint point, EvalInterpolation2D interpolation);
         double GetEquivalentYoungModulusAt(NaturalPoint point, EvalInterpolation2D interpolation);
         double GetPoissonRatioAt(NaturalPoint point, EvalInterpolation2D interpolation);
         double GetEquivalentPoissonRatioAt(NaturalPoint point, EvalInterpolation2D interpolation);
         double GetThicknessAt(NaturalPoint point, EvalInterpolation2D interpolation);
         Matrix CalculateConstitutiveMatrixAt(NaturalPoint point, EvalInterpolation2D interpolation);
+
 
         /// <summary>
         /// Used in material stochasticity, XFEM inclusions, etc

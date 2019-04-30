@@ -23,6 +23,8 @@ namespace ISAAR.MSolve.XFEM.Tests
     /// </summary>
     public static class ElementStiffnessTests
     {
+        private static readonly Func<double, double> round = x => 1E6 * Math.Round(x * 1E-6, 3);
+
         [Fact]
         public static void TestJointStiffnessMatrixOfCrackBodyElement()
         {
@@ -47,7 +49,7 @@ namespace ISAAR.MSolve.XFEM.Tests
                 { -0.048, -0.096, -0.096, -0.192,  0.433, -0.577,  0.000,  0.000, -0.144,  0.192,  0.000,  0.000, -0.240,  0.481, -0.481,  0.962 }
             });
 
-            Matrix expectedStiffnessStdFirst= 1E6 * Matrix.CreateFromArray(new double[,]
+            Matrix expectedStiffnessStdFirst = 1E6 * Matrix.CreateFromArray(new double[,]
             {
                 {  1.154,  0.481, -0.769,  0.096, -0.577, -0.481,  0.192, -0.096,  0.962,  0.240,  0.769,  0.144,  0.577,  0.433,  0.385, -0.048 },
                 {  0.481,  1.154, -0.096,  0.192, -0.481, -0.577,  0.096, -0.769,  0.240,  0.481,  0.337, -0.192,  0.529,  0.577,  0.048, -0.096 },
@@ -72,9 +74,9 @@ namespace ISAAR.MSolve.XFEM.Tests
             IMatrix stiffnessStdFirst = element.JoinStiffnessesStandardFirst();
 
             Assert.True(expectedStiffnessNodeMajor.Equals(
-                stiffnessNodeMajor.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
+                stiffnessNodeMajor.DoToAllEntries(round), equalityTolerance));
             Assert.True(expectedStiffnessStdFirst.Equals(
-                stiffnessStdFirst.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
+                stiffnessStdFirst.DoToAllEntries(round), equalityTolerance));
         }
 
         [Fact]
@@ -134,11 +136,11 @@ namespace ISAAR.MSolve.XFEM.Tests
             (Matrix Kee1, Matrix Kes) = element.BuildEnrichedStiffnessMatricesLower();
             (Matrix Kee2, Matrix Kse) = element.BuildEnrichedStiffnessMatricesUpper();
 
-            Assert.True(expectedKss.Equals(Kss.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
-            Assert.True(expectedKee.Equals(Kee1.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
-            Assert.True(expectedKee.Equals(Kee2.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
-            Assert.True(expectedKes.Equals(Kes.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
-            Assert.True(expectedKse.Equals(Kse.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
+            Assert.True(expectedKss.Equals(Kss.DoToAllEntries(round), equalityTolerance));
+            Assert.True(expectedKee.Equals(Kee1.DoToAllEntries(round), equalityTolerance));
+            Assert.True(expectedKee.Equals(Kee2.DoToAllEntries(round), equalityTolerance));
+            Assert.True(expectedKes.Equals(Kes.DoToAllEntries(round), equalityTolerance));
+            Assert.True(expectedKse.Equals(Kse.DoToAllEntries(round), equalityTolerance));
         }
 
         [Fact]
@@ -198,11 +200,12 @@ namespace ISAAR.MSolve.XFEM.Tests
             (Matrix Kee1, Matrix Kes) = element.BuildEnrichedStiffnessMatricesLower();
             (Matrix Kee2, Matrix Kse) = element.BuildEnrichedStiffnessMatricesUpper();
 
-            Assert.True(expectedKss.Equals(Kss.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
-            Assert.True(expectedKee.Equals(Kee1.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
-            Assert.True(expectedKee.Equals(Kee2.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
-            Assert.True(expectedKes.Equals(Kes.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
-            Assert.True(expectedKse.Equals(Kse.DoToAllEntries(x => 1E6 * Math.Round(x * 1E-6, 3)), equalityTolerance));
+            
+            Assert.True(expectedKss.Equals(Kss.DoToAllEntries(round), equalityTolerance));
+            Assert.True(expectedKee.Equals(Kee1.DoToAllEntries(round), equalityTolerance));
+            Assert.True(expectedKee.Equals(Kee2.DoToAllEntries(round), equalityTolerance));
+            Assert.True(expectedKes.Equals(Kes.DoToAllEntries(round), equalityTolerance));
+            Assert.True(expectedKse.Equals(Kse.DoToAllEntries(round), equalityTolerance));
         }
 
         private static XContinuumElement2D CreateCrackBodyElement()

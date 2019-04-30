@@ -99,7 +99,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             interpolations[cellType].CheckElementNodes(nodes);
 #endif
             return new XContinuumElement2D(nodes, interpolations[cellType], extrapolations[cellType],
-                standardIntegrationsForStiffness[cellType], xIntegrationStrategy, jIntegralStrategy, commonMaterial);
+                standardIntegrationsForStiffness[cellType], xIntegrationStrategy, jIntegralStrategy, commonMaterial.Clone());
         }
     }
 }
