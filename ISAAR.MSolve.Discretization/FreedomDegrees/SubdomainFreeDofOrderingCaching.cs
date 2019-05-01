@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         public void AddVectorElementToSubdomain(IElement element, double[] elementVector, IVector subdomainVector)
         {
             (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) = GetElementData(element);
-            subdomainVector.AddNonContiguouslyFrom(
+            subdomainVector.AddIntoThisNonContiguouslyFrom(
                 subdomainDofIndices, Vector.CreateFromArray(elementVector), elementDofIndices);
         }
 

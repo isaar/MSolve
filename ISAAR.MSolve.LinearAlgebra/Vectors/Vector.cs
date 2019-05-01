@@ -155,9 +155,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         #endregion
 
         /// <summary>
-        /// See <see cref="IVector.AddNonContiguouslyFrom(int[], IVectorView, int[])"/>
+        /// See <see cref="IVector.AddIntoThisNonContiguouslyFrom(int[], IVectorView, int[])"/>
         /// </summary>
-        public void AddNonContiguouslyFrom(int[] thisIndices, IVectorView otherVector, int[] otherIndices)
+        public void AddIntoThisNonContiguouslyFrom(int[] thisIndices, IVectorView otherVector, int[] otherIndices)
         {
             if (thisIndices.Length != otherIndices.Length) throw new NonMatchingDimensionsException(
                 "thisIndices and otherIndices must have the same length.");
@@ -175,9 +175,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// See <see cref="IVector.AddNonContiguouslyFrom(int[], IVectorView)"/>
+        /// See <see cref="IVector.AddIntoThisNonContiguouslyFrom(int[], IVectorView)"/>
         /// </summary>
-        public void AddNonContiguouslyFrom(int[] thisIndices, IVectorView otherVector)
+        public void AddIntoThisNonContiguouslyFrom(int[] thisIndices, IVectorView otherVector)
         {
             if (thisIndices.Length != otherVector.Length) throw new NonMatchingDimensionsException(
                 "thisIndices and otherVector must have the same length.");
@@ -192,20 +192,34 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// Performs the operation: this[<paramref name="destinationIndex"/> + i] = this[<paramref name="destinationIndex"/> + i]
-        /// + <paramref name="subvector"/>[i], for 0 &lt;= i &lt; <paramref name="subvector"/>.<see cref="Length"/>.
+        /// Performs the operation: this[<paramref name="destinationIdx"/> + i] = this[<paramref name="destinationIdx"/> + i]
+        /// + <paramref name="sourceVector"/>[<paramref name="sourceIdx"/> + j], for 0 &lt;= j &lt; <paramref name="length"/>.
         /// </summary>
-        /// <param name="subvector">The vector that will be added to a part of this <see cref="Vector"/> instance.</param>
-        /// <param name="destinationIndex">The index into this <see cref="Vector"/> instance, at which to start the vector 
-        ///     addition. Constraints: 0 &lt;= <paramref name="destinationIndex"/>, <paramref name="destinationIndex"/> + 
-        ///     <paramref name="subvector"/>.<see cref="Length"/> &lt;= this.<see cref="Length"/>.</param>
-        /// <exception cref="NonMatchingDimensionsException">Thrown if the <paramref name="destinationIndex"/> violates the 
-        ///     described constraint.</exception>
-        public void AddSubvector(Vector subvector, int destinationIndex)
+        /// <param name="length">The number of entries to add.</param>
+        /// <param name="destinationIdx">
+        /// The index into this <see cref="Vector"/> instance, at which to start adding entries to. Constraints: 
+        /// 0 &lt;= <paramref name="destinationIdx"/>, 
+        /// <paramref name="destinationIdx"/> + <paramref name="Length"/> &lt;= this.<see cref="Length"/>.
+        /// </param>
+        /// <param name="sourceVector">The vector that will be added to a part of this <see cref="Vector"/> instance.</param>
+        /// <param name="sourceIdx">
+        /// The index into <paramref name="sourceVector"/>, at which to start adding entries from. Constraints:
+        /// 0 &lt;= <paramref name="sourceIdx"/>, 
+        /// <paramref name="sourceIdx"/> + <paramref name="length"/> &lt;= <paramref name="sourceVector"/>.<see cref="Length"/>.
+        /// </param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if <paramref name="destinationIdx"/>, <paramref name="sourceVector"/> or <paramref name="sourceIdx"/> 
+        /// violate the described constraints.
+        /// </exception>
+        public void AddSubvectorIntoThis(int destinationIdx, IVectorView sourceVector, int sourceIdx, int length)
         {
-            if (destinationIndex + subvector.Length > this.Length) throw new NonMatchingDimensionsException(
+            if (destinationIdx + sourceVector.Length > this.Length) throw new NonMatchingDimensionsException(
                 "The entries to set exceed this vector's length");
-            Blas.Daxpy(subvector.Length, 1.0, subvector.data, 0, 1, this.data, destinationIndex, 1);
+            if (sourceVector is Vector subvectorDense)
+            {
+                Blas.Daxpy(length, 1.0, subvectorDense.data, sourceIdx, 1, this.data, destinationIdx, 1);
+            }
+            else this.AddSubvectorIntoThis(destinationIdx, sourceVector, 0, sourceVector.Length);
         }
 
         /// <summary>

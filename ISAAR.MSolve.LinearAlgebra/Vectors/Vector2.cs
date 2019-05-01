@@ -136,15 +136,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
-        /// See <see cref="IVector.AddNonContiguouslyFrom(int[], IVectorView, int[])"/>
+        /// See <see cref="IVector.AddIntoThisNonContiguouslyFrom(int[], IVectorView, int[])"/>
         /// </summary>
-        public void AddNonContiguouslyFrom(int[] thisIndices, IVectorView otherVector, int[] otherIndices)
+        public void AddIntoThisNonContiguouslyFrom(int[] thisIndices, IVectorView otherVector, int[] otherIndices)
             => DenseStrategies.AddNonContiguouslyFrom(this, thisIndices, otherVector, otherIndices);
 
         /// <summary>
-        /// See <see cref="IVector.AddNonContiguouslyFrom(int[], IVectorView)"/>
+        /// See <see cref="IVector.AddIntoThisNonContiguouslyFrom(int[], IVectorView)"/>
         /// </summary>
-        public void AddNonContiguouslyFrom(int[] thisIndices, IVectorView otherVector)
+        public void AddIntoThisNonContiguouslyFrom(int[] thisIndices, IVectorView otherVector)
             => DenseStrategies.AddNonContiguouslyFrom(this, thisIndices, otherVector);
 
         /// <summary>

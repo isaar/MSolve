@@ -33,13 +33,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <exception cref="IndexOutOfRangeException">
         /// Thrown if <paramref name="thisIndices"/> or <paramref name="otherIndices"/> violate the described constraints.
         /// </exception>
-        void AddNonContiguouslyFrom(int[] thisIndices, IVectorView otherVector, int[] otherIndices);
+        void AddIntoThisNonContiguouslyFrom(int[] thisIndices, IVectorView otherVector, int[] otherIndices);
 
         /// <summary>
         /// Adds selected entries from <paramref name="otherVector"/> to this vector:
         /// this[<paramref name="thisIndices"/>[i]] += <paramref name="otherVector"/>[i], for 0 &lt;= i
         /// &lt; <paramref name="otherVector"/>.<see cref="IIndexable1D.Length"/> = <paramref name="thisIndices"/>.Length.
-        /// Contrary to <see cref="AddNonContiguouslyFrom(int[], IVectorView, int[])"/>, access to the entries of 
+        /// Contrary to <see cref="AddIntoThisNonContiguouslyFrom(int[], IVectorView, int[])"/>, access to the entries of 
         /// <paramref name="otherVector"/> is contiguous.
         /// </summary>
         /// <param name="thisIndices">
@@ -54,7 +54,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         /// <exception cref="IndexOutOfRangeException">
         /// Thrown if <paramref name="thisIndices"/> violates the described constraints.
         /// </exception>
-        void AddNonContiguouslyFrom(int[] thisIndices, IVectorView otherVector);
+        void AddIntoThisNonContiguouslyFrom(int[] thisIndices, IVectorView otherVector);
 
         /// <summary>
         /// Performs the following operation for all i:
