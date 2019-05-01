@@ -15,7 +15,7 @@ using ISAAR.MSolve.XFEM.Integration;
 using ISAAR.MSolve.XFEM.Materials;
 using Xunit;
 
-namespace ISAAR.MSolve.XFEM.Tests
+namespace ISAAR.MSolve.XFEM.Tests.Khoei
 {
     /// <summary>
     /// Tests taken from "Extended Finite Element Method: Theory and Applications, Amir R. Khoei, 2015", sections 2.8.3 & 3.8.4.
@@ -233,9 +233,9 @@ namespace ISAAR.MSolve.XFEM.Tests
             //var integrationStrategy = new IntegrationForCrackPropagation2D(GaussLegendre2D.GetQuadratureWithOrder(2, 2),
             //  new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.GetQuadratureWithOrder(2, 2)));
             var factory = new XContinuumElement2DFactory(integrationStrategy, integrationStrategy, material);
-            var bodyElement = factory.CreateElement(CellType.Quad4, new XNode[] { nodes[0], nodes[1], nodes[2], nodes[3] });
-            var blendingElement = factory.CreateElement(CellType.Quad4, new XNode[] { nodes[7], nodes[6], nodes[1], nodes[0] });
-            var tipElement = factory.CreateElement(CellType.Quad4, new XNode[] { nodes[4], nodes[5], nodes[6], nodes[7] });
+            var bodyElement = factory.CreateElement(0, CellType.Quad4, new XNode[] { nodes[0], nodes[1], nodes[2], nodes[3] });
+            var blendingElement = factory.CreateElement(1, CellType.Quad4, new XNode[] { nodes[7], nodes[6], nodes[1], nodes[0] });
+            var tipElement = factory.CreateElement(2, CellType.Quad4, new XNode[] { nodes[4], nodes[5], nodes[6], nodes[7] });
             var boundary = new Rectangular2DBoundary(20.0, 40.0, -40.0, 20.0);
             var mesh = new SimpleMesh2D<XNode, XContinuumElement2D>(nodes,
                 new XContinuumElement2D[] { bodyElement, blendingElement, tipElement }, boundary);
@@ -279,7 +279,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             //var integrationStrategy = new IntegrationForCrackPropagation2D(GaussLegendre2D.Order2x2,
             //    new RectangularSubgridIntegration2D<XContinuumElement2D>(2, GaussLegendre2D.Order2x2));
             var factory = new XContinuumElement2DFactory(integrationStrategy, integrationStrategy, material);
-            var element = factory.CreateElement(CellType.Quad4, nodes);
+            var element = factory.CreateElement(0, CellType.Quad4, nodes);
 
             //discontinuity.ElementIntersections.Add(element, new CartesianPoint2D[] { point1, point2 });
 

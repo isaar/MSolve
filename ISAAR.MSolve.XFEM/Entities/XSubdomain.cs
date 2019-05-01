@@ -4,6 +4,7 @@ using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.XFEM.Elements;
 
 namespace ISAAR.MSolve.XFEM.Entities
 {
@@ -22,7 +23,7 @@ namespace ISAAR.MSolve.XFEM.Entities
         public ISubdomainFreeDofOrdering FreeDofOrdering { get; set; }
 
         IReadOnlyList<IElement> ISubdomain.Elements => Elements;
-        public List<XElement> Elements { get; } = new List<XElement>();
+        public List<IXFiniteElement> Elements { get; } = new List<IXFiniteElement>();
 
         public Vector Forces { get; set; } //TODO: this doesn't belong here
 
@@ -40,7 +41,7 @@ namespace ISAAR.MSolve.XFEM.Entities
             return elementNodalDisplacements;
         }
 
-        public double[] CalculateElementDisplacements(XElement element, IVectorView globalDisplacementVector)
+        public double[] CalculateElementDisplacements(IXFiniteElement element, IVectorView globalDisplacementVector)
         {
             double[] elementNodalDisplacements = 
                 FreeDofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector);
@@ -55,7 +56,7 @@ namespace ISAAR.MSolve.XFEM.Entities
             nodes.Clear();
             var nodeComparer = Comparer<XNode>.Create((XNode node1, XNode node2) => node1.ID - node2.ID);
             var nodeSet = new SortedSet<XNode>(nodeComparer);
-            foreach (XElement element in Elements)
+            foreach (IXFiniteElement element in Elements)
             {
                 foreach (XNode node in element.Nodes) nodeSet.Add(node);
             }

@@ -33,12 +33,14 @@ using ISAAR.MSolve.XFEM.Integration;
 using ISAAR.MSolve.XFEM.Materials;
 using Xunit;
 
-namespace ISAAR.MSolve.XFEM.Tests
+namespace ISAAR.MSolve.XFEM.Tests.Khoei
 {
+    /// <summary>
+    /// Tests taken from "Extended Finite Element Method: Theory and Applications, Amir R. Khoei, 2015", section 7.6.1.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     public static class DoubleCantileverBeamTests
     {
-        private const int subdomainID = 0;
-
         [Fact]
         public static void TestDCB3x1Stiffnesses()
         {
@@ -93,9 +95,11 @@ namespace ISAAR.MSolve.XFEM.Tests
             });
 
             // Create and analyze model, in order to get the global stiffness
-            double elementLength = 20.0;
-            (XModel model, TrackingExteriorCrackLSM crack) = CreateModel(elementLength);
-            (IVectorView globalU, IMatrixView globalK) = SolveModel(model);
+            var dcb = new DoubleCantileverBeam();
+            dcb.Create3x1Model();
+            XModel model = dcb.Model;
+            TrackingExteriorCrackLSM crack = dcb.Crack;
+            (IVectorView globalU, IMatrixView globalK) = dcb.SolveModel();
 
             // Print matrix
             var writer = new FullMatrixWriter();
@@ -103,11 +107,10 @@ namespace ISAAR.MSolve.XFEM.Tests
             writer.ArrayFormat = new Array2DFormat("", "", "", "\n", ",");
             writer.WriteToFile(globalK/*.DoToAllEntries(x => Math.Round(x * 1E-6, 3))*/, @"C:\Users\Serafeim\Desktop\xfem.txt");
 
-
             // Calculate relevant stiffness submatrix global
             XNode node7 = model.Nodes[7];
             var node7GlobalDofs = new int[10];
-            DofTable freeDofs = model.Subdomains[subdomainID].FreeDofOrdering.FreeDofs;
+            DofTable freeDofs = model.Subdomains[DoubleCantileverBeam.subdomainID].FreeDofOrdering.FreeDofs;
             node7GlobalDofs[0] = freeDofs[node7, StructuralDof.TranslationX];
             node7GlobalDofs[1] = freeDofs[node7, StructuralDof.TranslationY];
             for (int i = 0; i < 8; ++i) node7GlobalDofs[2 + i] = freeDofs[node7, crack.CrackTipEnrichments.Dofs[i]];
@@ -156,12 +159,14 @@ namespace ISAAR.MSolve.XFEM.Tests
             double[] expectedEnrDisplNode6 = { -15.69E-3, 49.88E-3 };
 
             // Analyze the model
-            double elementLength = 20.0;
-            (XModel model, TrackingExteriorCrackLSM crack) = CreateModel(elementLength);
-            (IVectorView globalU, IMatrixView globalK) = SolveModel(model);
+            var dcb = new DoubleCantileverBeam();
+            dcb.Create3x1Model();
+            XModel model = dcb.Model;
+            TrackingExteriorCrackLSM crack = dcb.Crack;
+            (IVectorView globalU, IMatrixView globalK) = dcb.SolveModel();
 
             // Extract displacements of standard dofs
-            DofTable freeDofs = model.Subdomains[subdomainID].FreeDofOrdering.FreeDofs;
+            DofTable freeDofs = model.Subdomains[DoubleCantileverBeam.subdomainID].FreeDofOrdering.FreeDofs;
             double ux5 = globalU[freeDofs[model.Nodes[5], StructuralDof.TranslationX]];
             double ux6 = globalU[freeDofs[model.Nodes[6], StructuralDof.TranslationX]];
 
@@ -186,110 +191,6 @@ namespace ISAAR.MSolve.XFEM.Tests
                 Assert.Equal(expectedEnrDisplNode5[i], round(enrDisplNode5[i]));
                 Assert.Equal(expectedEnrDisplNode6[i], round(enrDisplNode6[i]));
             }
-        }
-
-        private static (XModel model, TrackingExteriorCrackLSM crack) CreateModel(double elementSize)
-        {
-            var model = new XModel();
-            model.Subdomains[subdomainID] = new XSubdomain(subdomainID);
-
-            //Nodes
-            model.Nodes.Add(new XNode(0, 0.0, 0.0));
-            model.Nodes.Add(new XNode(1, elementSize, 0.0));
-            model.Nodes.Add(new XNode(2, elementSize, elementSize));
-            model.Nodes.Add(new XNode(3, 0.0, elementSize));
-            model.Nodes.Add(new XNode(4, 2 * elementSize, 0.0));
-            model.Nodes.Add(new XNode(5, 3 * elementSize, 0.0));
-            model.Nodes.Add(new XNode(6, 3 * elementSize, elementSize));
-            model.Nodes.Add(new XNode(7, 2 * elementSize, elementSize));
-
-            // Material
-            double E = 2e6, v = 0.3;
-            var commonMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
-
-            // Integration rules
-            IIntegrationStrategy2D<XContinuumElement2D> integration, jIntegration;
-            integration = new IntegrationForCrackPropagation2D(
-                    new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.GetQuadratureWithOrder(2, 2)),
-                    new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.GetQuadratureWithOrder(2, 2)));
-            jIntegration =
-                new RectangularSubgridIntegration2D<XContinuumElement2D>(8, GaussLegendre2D.GetQuadratureWithOrder(4, 4));
-
-            // Elements
-            XNode[][] connectivity = new XNode[3][];
-            connectivity[0] = new XNode[] { model.Nodes[0], model.Nodes[1], model.Nodes[2], model.Nodes[3] };
-            connectivity[1] = new XNode[] { model.Nodes[1], model.Nodes[4], model.Nodes[7], model.Nodes[2] };
-            connectivity[2] = new XNode[] { model.Nodes[4], model.Nodes[5], model.Nodes[6], model.Nodes[7] };
-            
-            var factory = new XContinuumElement2DFactory(integration, jIntegration, commonMaterial);
-            var cells = new XContinuumElement2D[3];
-            for (int e = 0; e < 3; ++e)
-            {
-                XContinuumElement2D element = factory.CreateElement(CellType.Quad4, connectivity[e]);
-                cells[e] = element;
-                model.Elements.Add(new XElement(e, element));
-                model.Subdomains[subdomainID].Elements.Add(model.Elements[e]);
-            }
-
-            // Mesh
-            var boundary = new Rectangular2DBoundary(0, 3 * elementSize, 0, elementSize);
-            var mesh = new BidirectionalMesh2D<XNode, XContinuumElement2D>(model.Nodes,
-                model.Elements.Select(e => (XContinuumElement2D)e.ElementType).ToArray(), boundary);
-
-            // Boundary conditions
-            model.Nodes[0].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationX, Amount = 0.0 });
-            model.Nodes[0].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationY, Amount = 0.0 });
-            model.Nodes[3].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationX, Amount = 0.0 });
-            model.Nodes[3].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationY, Amount = 0.0 });
-            model.Nodes[5].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationY, Amount = -0.05 });
-            model.Nodes[6].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationY, Amount = +0.05 });
-
-            return (model, CreateCrack(elementSize, model, mesh, commonMaterial));
-        }
-
-        private static TrackingExteriorCrackLSM CreateCrack(double elementSize, XModel model,
-            BidirectionalMesh2D<XNode, XContinuumElement2D> mesh, HomogeneousElasticMaterial2D material)
-        {
-            var propagator = new Propagator(mesh, 2.0, new HomogeneousMaterialAuxiliaryStates(material),
-                new HomogeneousSIFCalculator(material), new MaximumCircumferentialTensileStressCriterion(),
-                new ConstantIncrement2D(2.0 * elementSize));
-            var crack = new TrackingExteriorCrackLSM(propagator);
-            crack.Mesh = mesh;
-
-            // Create enrichments          
-            crack.CrackBodyEnrichment = new CrackBodyEnrichment2D(crack, new SignFunctionOpposite2D());
-            crack.CrackTipEnrichments = new CrackTipEnrichments2D(crack, CrackTipPosition.Single);
-            //crackTip = new CrackTip2D(CrackTip2D.TipCurvePosition.CurveStart, polyline, new SingleElementEnrichment(),
-            //    2.0, new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
-            //    new HomogeneousSIFCalculator(globalHomogeneousMaterial));
-
-            // Mesh geometry interaction
-            var crackMouth = new CartesianPoint(3 * elementSize, 0.5 * elementSize);
-            var crackTip = new CartesianPoint(1.5 * elementSize, 0.5 * elementSize);
-            crack.InitializeGeometry(crackMouth, crackTip);
-            crack.UpdateEnrichments(); //TODO: elements are not enriched properly.
-
-            return crack;
-        }
-
-        private static (IVectorView globalU, IMatrixView globalK) SolveModel(XModel model)
-        {
-            // Solver
-            SkylineSolver solver = new SkylineSolver.Builder().BuildSolver(model);
-            solver.PreventFromOverwrittingSystemMatrices(); // Necessary to extract the stiffness matrix.
-
-            // Problem type
-            var provider = new ProblemStructural(model, solver);
-
-            // Analyzers
-            var childAnalyzer = new LinearAnalyzer(model, solver, provider);
-            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
-
-            // Run the anlaysis 
-            parentAnalyzer.Initialize();
-            parentAnalyzer.Solve();
-
-            return (solver.LinearSystems[0].Solution, solver.LinearSystems[0].Matrix);
         }
     }
 }

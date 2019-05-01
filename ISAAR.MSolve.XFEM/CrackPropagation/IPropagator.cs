@@ -8,6 +8,7 @@ using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.XFEM.Entities;
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation
 {
@@ -15,8 +16,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
     {
         PropagationLogger Logger { get; }
 
-        (double growthAngle, double growthLength) Propagate(
-            IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements,
+        (double growthAngle, double growthLength) Propagate(Vector totalFreeDisplacements, Vector totalConstrainedDisplacements,
             CartesianPoint crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements);
     }
 }

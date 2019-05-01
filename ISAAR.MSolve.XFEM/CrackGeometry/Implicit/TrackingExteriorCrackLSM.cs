@@ -360,9 +360,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             return triangleVertices;
         }
 
-        public void Propagate(IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements)
+        public void Propagate(Vector totalFreeDisplacements, Vector totalConstrainedDisplacements)
         {
-            (double growthAngle, double growthLength) = propagator.Propagate(dofOrderer, totalFreeDisplacements,
+            (double growthAngle, double growthLength) = propagator.Propagate(totalFreeDisplacements,
                 totalConstrainedDisplacements, crackTip, tipSystem, tipElements);
             UpdateGeometry(growthAngle, growthLength);
         }

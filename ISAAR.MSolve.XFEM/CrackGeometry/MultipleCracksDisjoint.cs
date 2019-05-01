@@ -199,9 +199,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         public IReadOnlyList<ISingleCrack> SingleCracks { get {return cracks;} }
 
-        public void Propagate(IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements)
+        public void Propagate(Vector totalFreeDisplacements, Vector totalConstrainedDisplacements)
         {
-            foreach (var crack in cracks) crack.Propagate(dofOrderer, totalFreeDisplacements, totalConstrainedDisplacements);
+            foreach (var crack in cracks) crack.Propagate(totalFreeDisplacements, totalConstrainedDisplacements);
         }
 
         public void UpdateEnrichments()

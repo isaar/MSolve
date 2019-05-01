@@ -6,8 +6,9 @@ using ISAAR.MSolve.XFEM.Entities;
 
 namespace ISAAR.MSolve.XFEM.Elements
 {
-    public interface IXFiniteElement : IElementType
+    public interface IXFiniteElement : IElement, IElementType
     {
         IReadOnlyList<XNode> Nodes { get; }
+        XSubdomain Subdomain { get; set; }
     }
 }

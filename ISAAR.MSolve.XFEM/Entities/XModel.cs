@@ -9,6 +9,7 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.XFEM.Elements;
 
 //TODO: There is a lot of repetition between this FEM.Model and IGA.Model with regards to interconnection data. That code should 
 //      be moved to a common class. Same goes for the interconnection methods of XSubdomain.
@@ -19,7 +20,7 @@ namespace ISAAR.MSolve.XFEM.Entities
         public Table<INode, IDofType, double> Constraints { get; private set; } = new Table<INode, IDofType, double>();
 
         IReadOnlyList<IElement> IStructuralModel.Elements => Elements;
-        public List<XElement> Elements { get; } = new List<XElement>();
+        public List<IXFiniteElement> Elements { get; } = new List<IXFiniteElement>();
 
         public IGlobalFreeDofOrdering GlobalDofOrdering { get; set; }
 
@@ -88,7 +89,7 @@ namespace ISAAR.MSolve.XFEM.Entities
         {
             foreach (XSubdomain subdomain in Subdomains.Values)
             {
-                foreach (XElement element in subdomain.Elements) element.Subdomain = subdomain;
+                foreach (IXFiniteElement element in subdomain.Elements) element.Subdomain = subdomain;
             }
         }
 

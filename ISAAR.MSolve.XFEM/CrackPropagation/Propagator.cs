@@ -56,11 +56,11 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         }
 
         public (double growthAngle, double growthLength) Propagate(
-            IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements, 
+            Vector totalFreeDisplacements, Vector totalConstrainedDisplacements, 
             CartesianPoint crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
         {
             // TODO: Also check if the sifs do not violate the material toughness
-            (double sifMode1, double sifMode2) = ComputeSIFS(dofOrderer, totalFreeDisplacements, totalConstrainedDisplacements, 
+            (double sifMode1, double sifMode2) = ComputeSIFS(totalFreeDisplacements, totalConstrainedDisplacements, 
                 crackTip, tipSystem, tipElements);
             double growthAngle = growthDirectionLaw.ComputeGrowthAngle(sifMode1, sifMode2);
             double growthLength = growthLengthLaw.ComputeGrowthLength(sifMode1, sifMode2);
@@ -71,7 +71,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         }
 
         private (double sifMode1, double sifMode2) ComputeSIFS(
-            IDofOrderer dofOrderer, Vector totalFreeDisplacements, Vector totalConstrainedDisplacements,
+            Vector totalFreeDisplacements, Vector totalConstrainedDisplacements,
             CartesianPoint crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
         {
             double interactionIntegralMode1 = 0.0, interactionIntegralMode2 = 0.0;
@@ -81,14 +81,21 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             {
                 XContinuumElement2D element = pair.Key;
                 double[] nodalWeights = pair.Value;
-                Vector standardElementDisplacements = dofOrderer.ExtractDisplacementVectorOfElementFromGlobal(
-                    element, totalFreeDisplacements, totalConstrainedDisplacements);
-                Vector enrichedElementDisplacements = dofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(
-                    element, totalFreeDisplacements);
+
+                //TODO: This needs refactoring ASAP.
+                double[] elementDisplacements = element.Subdomain.CalculateElementDisplacements(element, totalFreeDisplacements);
+                (double[] standardElementDisplacements, double[] enrichedElementDisplacements) = 
+                    element.SeparateStdEnrVector(elementDisplacements);
+
+                //Vector standardElementDisplacements = dofOrderer.ExtractDisplacementVectorOfElementFromGlobal(
+                //    element, totalFreeDisplacements, totalConstrainedDisplacements);
+                //Vector enrichedElementDisplacements = dofOrderer.ExtractEnrichedDisplacementsOfElementFromGlobal(
+                //    element, totalFreeDisplacements);
 
                 double partialIntegralMode1, partialIntegralMode2;
-                ComputeInteractionIntegrals(element, standardElementDisplacements, enrichedElementDisplacements,
-                    nodalWeights, tipSystem, out partialIntegralMode1, out partialIntegralMode2);
+                ComputeInteractionIntegrals(element, Vector.CreateFromArray(standardElementDisplacements), 
+                    Vector.CreateFromArray(enrichedElementDisplacements), nodalWeights, tipSystem, 
+                    out partialIntegralMode1, out partialIntegralMode2);
 
                 interactionIntegralMode1 += partialIntegralMode1;
                 interactionIntegralMode2 += partialIntegralMode2;

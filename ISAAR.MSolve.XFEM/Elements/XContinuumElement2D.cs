@@ -28,15 +28,17 @@ using ISAAR.MSolve.XFEM.Utilities;
 //      Cons: calculating Kss with the Gauss points of an enriched element is much more expensive
 namespace ISAAR.MSolve.XFEM.Elements
 {
-    public class XContinuumElement2D : ICell<XNode>, IXFiniteElement
+    public class XContinuumElement2D : ICell<XNode>, IXFiniteElement 
     {
+        private readonly int id;
         private readonly IDofType[][] standardDofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
 
-        public XContinuumElement2D(IReadOnlyList<XNode> nodes, IIsoparametricInterpolation2D interpolation,
+        public XContinuumElement2D(int id, IReadOnlyList<XNode> nodes, IIsoparametricInterpolation2D interpolation,
             IGaussPointExtrapolation2D gaussPointExtrapolation, IQuadrature2D standardQuadrature, 
             IIntegrationStrategy2D<XContinuumElement2D> integrationStrategy, 
             IIntegrationStrategy2D<XContinuumElement2D> jIntegralStrategy, IMaterialField2D material)
         {
+            this.id = id;
             this.Nodes = nodes;
             this.Interpolation = interpolation;
             this.GaussPointExtrapolation = gaussPointExtrapolation;
@@ -59,6 +61,8 @@ namespace ISAAR.MSolve.XFEM.Elements
         public CellType CellType => Interpolation.CellType;
         public IElementDofEnumerator DofEnumerator { get; set; } = new GenericDofEnumerator();
 
+        public IElementType ElementType => this;
+
         // TODO: Perhaps elements should not be enriched explicitly. 
         // Instead the enrichment items should store which elements they interact with. 
         // If the element needs to access the enrichment items it should do so through its nodes.
@@ -77,6 +81,9 @@ namespace ISAAR.MSolve.XFEM.Elements
         }
 
         public IGaussPointExtrapolation2D GaussPointExtrapolation { get; }
+
+        public int ID { get => id; set => throw new NotImplementedException(); }
+
         internal IIntegrationStrategy2D<XContinuumElement2D> IntegrationStrategy { get; }
 
         /// <summary>
@@ -87,12 +94,17 @@ namespace ISAAR.MSolve.XFEM.Elements
         internal IIntegrationStrategy2D<XContinuumElement2D> JintegralStrategy { get; }
         internal IMaterialField2D Material { get; }
 
+        IReadOnlyList<INode> IElement.Nodes => Nodes;
         /// <summary>
         /// All nodes are enriched for now.
         /// </summary>
         public IReadOnlyList<XNode> Nodes { get; }
+
         public int NumStandardDofs { get; }
         internal IQuadrature2D StandardQuadrature { get; } //TODO: This should not always be used for Kss. E.g. it doesn't work for bimaterial interface.
+
+        ISubdomain IElement.Subdomain => this.Subdomain;
+        public XSubdomain Subdomain { get; set; }
 
         //TODO: In some cases this could use a the Gauss points of standard quadrature to save time.
         public Matrix BuildStandardStiffnessMatrix()
@@ -329,6 +341,10 @@ namespace ISAAR.MSolve.XFEM.Elements
         public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element) => OrderDofsNodeMajor();
 
         public IMatrix MassMatrix(IElement element) => throw new NotImplementedException();
+
+        public (double[] standardElementDisplacements, double[] enrichedElementDisplacements)
+            SeparateStdEnrVector(double[] elementDisplacements)
+            => SeparateStdEnrVectorNodeMajor(elementDisplacements);
 
         public IMatrix StiffnessMatrix(IElement element) => JoinStiffnessesNodeMajor();
 
@@ -609,6 +625,28 @@ namespace ISAAR.MSolve.XFEM.Elements
                 }
                 return dofTypes;
             }
+        }
+
+        internal (double[] standardElementDisplacements, double[] enrichedElementDisplacements)
+            SeparateStdEnrVectorNodeMajor(double[] elementDisplacements)
+        {
+            int numEnrichedDofs = CountEnrichedDofs();
+            var standardElementDisplacements = new double[NumStandardDofs];
+            var enrichedElementDisplacements = new double[numEnrichedDofs];
+
+            int totalIdx = 0;
+            int enrichedIdx = 0;
+            for (int n = 0; n < Nodes.Count; ++n)
+            {
+                standardElementDisplacements[2 * n] = elementDisplacements[totalIdx++];
+                standardElementDisplacements[2 * n + 1] = elementDisplacements[totalIdx++];
+
+                for (int e = 0; e < Nodes[n].EnrichedDofsCount; ++e)
+                {
+                    enrichedElementDisplacements[enrichedIdx++] = elementDisplacements[totalIdx++];
+                }
+            }
+            return (standardElementDisplacements, enrichedElementDisplacements);
         }
     }
 }

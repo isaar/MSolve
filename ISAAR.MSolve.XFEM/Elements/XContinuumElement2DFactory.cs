@@ -93,12 +93,12 @@ namespace ISAAR.MSolve.XFEM.Elements
             this.jIntegralStrategy = jIntegralStrategy;
         }
 
-        public XContinuumElement2D CreateElement(CellType cellType, IReadOnlyList<XNode> nodes)
+        public XContinuumElement2D CreateElement(int id, CellType cellType, IReadOnlyList<XNode> nodes)
         {
 #if DEBUG
             interpolations[cellType].CheckElementNodes(nodes);
 #endif
-            return new XContinuumElement2D(nodes, interpolations[cellType], extrapolations[cellType],
+            return new XContinuumElement2D(id, nodes, interpolations[cellType], extrapolations[cellType],
                 standardIntegrationsForStiffness[cellType], xIntegrationStrategy, jIntegralStrategy, commonMaterial.Clone());
         }
     }
