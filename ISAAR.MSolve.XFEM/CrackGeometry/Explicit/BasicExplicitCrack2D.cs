@@ -223,7 +223,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
                         }
                         else completelyInside = false;
                     }
-                    if (completelyInside) element.EnrichmentItems.Add(CrackTipEnrichments);
+
+                    //OBSOLETE: Elements access their enrichments from nodes now.
+                    //if (completelyInside) element.EnrichmentItems.Add(CrackTipEnrichments);
                 }
 
                 #region alternatively
@@ -318,18 +320,24 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             var bothElements = new HashSet<XContinuumElement2D>();
             foreach (var element in Mesh.Elements)
             {
-                element.EnrichmentItems.Clear();
+                //OBSOLETE: Elements access their enrichments from nodes now.
+                //element.EnrichmentItems.Clear();
+
                 ElementEnrichmentType type = CharacterizeElementEnrichment(element);
                 if (type == ElementEnrichmentType.Tip)
                 {
                     tipElements.Add(element);
                     foreach (var node in element.Nodes) tipNodes.Add(node);
-                    element.EnrichmentItems.Add(CrackTipEnrichments);
+
+                    //OBSOLETE: Elements access their enrichments from nodes now.
+                    //element.EnrichmentItems.Add(CrackTipEnrichments);
                 }
                 else if (type == ElementEnrichmentType.Heaviside)
                 {
                     foreach (var node in element.Nodes) bodyNodes.Add(node);
-                    element.EnrichmentItems.Add(CrackBodyEnrichment);
+
+                    //OBSOLETE: Elements access their enrichments from nodes now.
+                    //element.EnrichmentItems.Add(CrackBodyEnrichment);
                 }
                 else if (type == ElementEnrichmentType.Both)
                 {
@@ -340,8 +348,10 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
                         tipNodes.Add(node);
                         bodyNodes.Add(node);
                     }
-                    element.EnrichmentItems.Add(CrackTipEnrichments);
-                    element.EnrichmentItems.Add(CrackBodyEnrichment);
+
+                    //OBSOLETE: Elements access their enrichments from nodes now.
+                    //element.EnrichmentItems.Add(CrackTipEnrichments);
+                    //element.EnrichmentItems.Add(CrackBodyEnrichment);
                 }
             }
 

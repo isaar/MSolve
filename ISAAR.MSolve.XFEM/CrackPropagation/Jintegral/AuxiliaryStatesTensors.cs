@@ -6,7 +6,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
     /// <summary>
     /// All quantities are with respect to the local cartesian system of the crack tip.
     /// </summary>
-    class AuxiliaryStatesTensors
+    public class AuxiliaryStatesTensors
     {
         /// <summary>
         /// The derivatives of the displacement field of an imaginary pure Mode I (opening crack extension) state 

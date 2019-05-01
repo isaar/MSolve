@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
 {
-    interface ISIFCalculator
+    public interface ISIFCalculator
     {
         double CalculateSIF(double interactionIntegral);
     }

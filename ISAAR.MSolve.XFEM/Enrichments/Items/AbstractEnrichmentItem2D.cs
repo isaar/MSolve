@@ -26,14 +26,15 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             node.EnrichmentItems.Add(this, enrichmentValues);
         }
 
-        public void EnrichElement(XContinuumElement2D element)
-        {
-            if (!affectedElements.Contains(element))
-            {
-                affectedElements.Add(element);
-                element.EnrichmentItems.Add(this);
-            }
-        }
+        //OBSOLETE: Elements access their enrichments from nodes now.
+        //public void EnrichElement(XContinuumElement2D element)
+        //{
+        //    if (!affectedElements.Contains(element))
+        //    {
+        //        affectedElements.Add(element);
+        //        element.EnrichmentItems.Add(this);
+        //    }
+        //}
 
         public abstract double[] EvaluateFunctionsAt(XNode node);
         public abstract EvaluatedFunction2D[] EvaluateAllAt(NaturalPoint point, XContinuumElement2D element,

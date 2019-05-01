@@ -8,7 +8,7 @@ using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation.Jintegral
 {
-    interface IAuxiliaryStates
+    public interface IAuxiliaryStates
     {
         AuxiliaryStatesTensors ComputeTensorsAt(CartesianPoint globalIntegrationPoint, 
             TipCoordinateSystem tipCoordinateSystem);

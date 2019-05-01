@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace ISAAR.MSolve.XFEM.CrackPropagation.Direction
 {
     // TODO: Perhaps it should be (-pi/2, pi/2)
-    interface ICrackGrowthDirectionLaw2D
+    public interface ICrackGrowthDirectionLaw2D
     {
         /// <summary>
         /// Computes the angle coordinate of the next crack tip in the local polar system of the current crack tip.

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace ISAAR.MSolve.XFEM.CrackPropagation.Length
 {
     // TODO: Not sure what arguments must be used tbh. Using Paris's law for the increment needs the SIFs.
-    interface ICrackGrowthLengthLaw2D
+    public interface ICrackGrowthLengthLaw2D
     {
         /// <summary>
         /// Computes the length of the next crack growth increment.

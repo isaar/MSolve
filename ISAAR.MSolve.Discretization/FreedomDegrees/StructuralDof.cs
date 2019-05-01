@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         /// <summary>
         /// This dof corresponds to translation along X axis.
         /// </summary>
-        public static readonly StructuralDof TranslationX = new StructuralDof("TranslationX.");
+        public static readonly StructuralDof TranslationX = new StructuralDof("TranslationX");
 
         /// <summary>
         /// This dof corresponds to translation along Y axis.

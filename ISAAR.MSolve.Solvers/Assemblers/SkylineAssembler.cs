@@ -38,11 +38,18 @@ namespace ISAAR.MSolve.Solvers.Assemblers
 
             foreach (IElement element in elements)
             {
+                //if (element.ID != 2) continue;
                 // TODO: perhaps that could be done and cached during the dof enumeration to avoid iterating over the dofs twice
                 (int[] elementDofIndices, int[] subdomainDofIndices) = dofOrdering.MapFreeDofsElementToSubdomain(element);
                 IMatrix elementMatrix = matrixProvider.Matrix(element);
                 skylineBuilder.AddSubmatrixSymmetric(elementMatrix, elementDofIndices, subdomainDofIndices);
             }
+
+            //// Print matrix
+            //var writer = new LinearAlgebra.Output.FullMatrixWriter();
+            ////writer.NumericFormat = new FixedPointFormat() { NumDecimalDigits = 2 };
+            //writer.ArrayFormat = new LinearAlgebra.Output.Formatting.Array2DFormat("", "", "", "\n", ",");
+            //writer.WriteToFile(skylineBuilder.BuildSkylineMatrix()/*.DoToAllEntries(x => Math.Round(x * 1E-6, 3))*/, @"C:\Users\Serafeim\Desktop\xfem.txt");
 
             return skylineBuilder.BuildSkylineMatrix();
         }

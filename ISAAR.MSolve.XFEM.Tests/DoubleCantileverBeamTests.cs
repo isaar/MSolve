@@ -9,13 +9,21 @@ using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Triangulation;
+using ISAAR.MSolve.LinearAlgebra.Input;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Output;
+using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 using ISAAR.MSolve.XFEM.CrackGeometry.Explicit;
+using ISAAR.MSolve.XFEM.CrackGeometry.Implicit;
+using ISAAR.MSolve.XFEM.CrackPropagation;
+using ISAAR.MSolve.XFEM.CrackPropagation.Direction;
+using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
+using ISAAR.MSolve.XFEM.CrackPropagation.Length;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Functions;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
@@ -86,8 +94,15 @@ namespace ISAAR.MSolve.XFEM.Tests
 
             // Create and analyze model, in order to get the global stiffness
             double elementLength = 20.0;
-            (XModel model, BasicExplicitCrack2D crack) = CreateModel(elementLength);
+            (XModel model, TrackingExteriorCrackLSM crack) = CreateModel(elementLength);
             (IVectorView globalU, IMatrixView globalK) = SolveModel(model);
+
+            // Print matrix
+            var writer = new FullMatrixWriter();
+            //writer.NumericFormat = new FixedPointFormat() { NumDecimalDigits = 2 };
+            writer.ArrayFormat = new Array2DFormat("", "", "", "\n", ",");
+            writer.WriteToFile(globalK/*.DoToAllEntries(x => Math.Round(x * 1E-6, 3))*/, @"C:\Users\Serafeim\Desktop\xfem.txt");
+
 
             // Calculate relevant stiffness submatrix global
             XNode node7 = model.Nodes[7];
@@ -142,7 +157,7 @@ namespace ISAAR.MSolve.XFEM.Tests
 
             // Analyze the model
             double elementLength = 20.0;
-            (XModel model, BasicExplicitCrack2D crack) = CreateModel(elementLength);
+            (XModel model, TrackingExteriorCrackLSM crack) = CreateModel(elementLength);
             (IVectorView globalU, IMatrixView globalK) = SolveModel(model);
 
             // Extract displacements of standard dofs
@@ -173,7 +188,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             }
         }
 
-        private static (XModel model, BasicExplicitCrack2D crack) CreateModel(double elementSize)
+        private static (XModel model, TrackingExteriorCrackLSM crack) CreateModel(double elementSize)
         {
             var model = new XModel();
             model.Subdomains[subdomainID] = new XSubdomain(subdomainID);
@@ -218,7 +233,7 @@ namespace ISAAR.MSolve.XFEM.Tests
 
             // Mesh
             var boundary = new Rectangular2DBoundary(0, 3 * elementSize, 0, elementSize);
-            var mesh = new SimpleMesh2D<XNode, XContinuumElement2D>(model.Nodes,
+            var mesh = new BidirectionalMesh2D<XNode, XContinuumElement2D>(model.Nodes,
                 model.Elements.Select(e => (XContinuumElement2D)e.ElementType).ToArray(), boundary);
 
             // Boundary conditions
@@ -229,13 +244,16 @@ namespace ISAAR.MSolve.XFEM.Tests
             model.Nodes[5].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationY, Amount = -0.05 });
             model.Nodes[6].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationY, Amount = +0.05 });
 
-            return (model, CreateCrack(elementSize, model, mesh));
+            return (model, CreateCrack(elementSize, model, mesh, commonMaterial));
         }
 
-        private static BasicExplicitCrack2D CreateCrack(double elementSize, XModel model, 
-            IMesh2D<XNode, XContinuumElement2D> mesh)
+        private static TrackingExteriorCrackLSM CreateCrack(double elementSize, XModel model,
+            BidirectionalMesh2D<XNode, XContinuumElement2D> mesh, HomogeneousElasticMaterial2D material)
         {
-            var crack = new BasicExplicitCrack2D();
+            var propagator = new Propagator(mesh, 2.0, new HomogeneousMaterialAuxiliaryStates(material),
+                new HomogeneousSIFCalculator(material), new MaximumCircumferentialTensileStressCriterion(),
+                new ConstantIncrement2D(2.0 * elementSize));
+            var crack = new TrackingExteriorCrackLSM(propagator);
             crack.Mesh = mesh;
 
             // Create enrichments          
@@ -249,7 +267,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             var crackMouth = new CartesianPoint(3 * elementSize, 0.5 * elementSize);
             var crackTip = new CartesianPoint(1.5 * elementSize, 0.5 * elementSize);
             crack.InitializeGeometry(crackMouth, crackTip);
-            crack.UpdateEnrichments();
+            crack.UpdateEnrichments(); //TODO: elements are not enriched properly.
 
             return crack;
         }

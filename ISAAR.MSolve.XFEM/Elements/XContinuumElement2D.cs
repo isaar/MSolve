@@ -44,26 +44,37 @@ namespace ISAAR.MSolve.XFEM.Elements
             this.IntegrationStrategy = integrationStrategy;
             this.JintegralStrategy = jIntegralStrategy;
             this.Material = material;
-            this.EnrichmentItems = new List<IEnrichmentItem2D>();
-            this.NumStandardDofs = 2 * nodes.Count;
 
+            this.NumStandardDofs = 2 * nodes.Count;
             standardDofTypes = new IDofType[nodes.Count][];
             for (int i = 0; i < nodes.Count; ++i)
             {
                 standardDofTypes[i] = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY };
             }
+
+            //OBSOLETE: Elements access their enrichments from nodes now.
+            //this.EnrichmentItems = new List<IEnrichmentItem2D>();
         }
 
         public CellType CellType => Interpolation.CellType;
         public IElementDofEnumerator DofEnumerator { get; set; } = new GenericDofEnumerator();
 
-        /// <summary>
-        /// TODO: Perhaps elements should not be enriched explicitly. 
-        /// Instead the enrichment items should store which elements they interact with. 
-        /// If the element needs to access the enrichment items it should do so through its nodes.
-        /// Ok, but how would the integration strategy access the enrichment item?
-        /// </summary>
-        public List<IEnrichmentItem2D> EnrichmentItems { get; }
+        // TODO: Perhaps elements should not be enriched explicitly. 
+        // Instead the enrichment items should store which elements they interact with. 
+        // If the element needs to access the enrichment items it should do so through its nodes.
+        // Ok, but how would the integration strategy access the enrichment item?
+        public HashSet<IEnrichmentItem2D> EnrichmentItems
+        {
+            get
+            {
+                var allEnrichments = new HashSet<IEnrichmentItem2D>();
+                foreach (XNode node in Nodes)
+                {
+                    foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys) allEnrichments.Add(enrichment);
+                }
+                return allEnrichments;
+            }
+        }
 
         public IGaussPointExtrapolation2D GaussPointExtrapolation { get; }
         internal IIntegrationStrategy2D<XContinuumElement2D> IntegrationStrategy { get; }
@@ -315,11 +326,11 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         public IMatrix DampingMatrix(IElement element) => throw new NotImplementedException();
 
-        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element) => OrderDofsStandardFirst();
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element) => OrderDofsNodeMajor();
 
         public IMatrix MassMatrix(IElement element) => throw new NotImplementedException();
 
-        public IMatrix StiffnessMatrix(IElement element) => JoinStiffnessesStandardFirst();
+        public IMatrix StiffnessMatrix(IElement element) => JoinStiffnessesNodeMajor();
 
         // TODO: the argument asrtificialDofsCount was added when this method was private and only called by 
         // BuildStiffnessMatrix() that already counted the dofs. Since it is now used by other modules 
@@ -533,6 +544,9 @@ namespace ISAAR.MSolve.XFEM.Elements
             }
         }
 
+        /// <summary>
+        /// BUG: This does not work. MSolve assumes all dofs of the same node have consecutive indices in the stiffness matrix.
+        /// </summary>
         internal IMatrix JoinStiffnessesStandardFirst()
         {
             // WARNING: The order here must match the order in OrderDofsNodeMajor() and BuildEnrichedStiffnessMatricesUpper()
@@ -564,6 +578,9 @@ namespace ISAAR.MSolve.XFEM.Elements
             }
         }
 
+        /// <summary>
+        /// BUG: This does not work. MSolve assumes all dofs of the same node have consecutive indices in the stiffness matrix.
+        /// </summary>
         internal IReadOnlyList<IReadOnlyList<IDofType>> OrderDofsStandardFirst()
         {
             //TODO: should they enriched dofs also be cached per element?

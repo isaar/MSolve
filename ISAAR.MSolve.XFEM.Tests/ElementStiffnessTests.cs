@@ -282,7 +282,9 @@ namespace ISAAR.MSolve.XFEM.Tests
             var element = factory.CreateElement(CellType.Quad4, nodes);
 
             //discontinuity.ElementIntersections.Add(element, new CartesianPoint2D[] { point1, point2 });
-            enrichmentItem.EnrichElement(element);
+
+            //OBSOLETE: Elements access their enrichments from nodes now.
+            //enrichmentItem.EnrichElement(element);
             enrichmentItem.EnrichNode(nodes[0]);
             enrichmentItem.EnrichNode(nodes[1]);
             enrichmentItem.EnrichNode(nodes[2]);

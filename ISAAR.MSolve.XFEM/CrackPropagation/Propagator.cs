@@ -19,7 +19,7 @@ using ISAAR.MSolve.XFEM.FreedomDegrees.Ordering;
 
 namespace ISAAR.MSolve.XFEM.CrackPropagation
 {
-    class Propagator: IPropagator
+    public class Propagator: IPropagator
     {
         private readonly IMesh2D<XNode, XContinuumElement2D> mesh;
         private readonly double magnificationOfJintegralRadius;

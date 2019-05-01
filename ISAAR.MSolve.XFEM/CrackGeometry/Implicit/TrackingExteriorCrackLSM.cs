@@ -236,6 +236,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             this.crackTip = crackTip;
             crackPath.Add(crackTip);
             tipSystem = new TipCoordinateSystem(crackTip, tangentSlope);
+            CrackTipEnrichments.TipSystem = tipSystem;
 
             tangentX /= length;
             tangentY /= length;
@@ -481,7 +482,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
                         }
                         else completelyInside = false;
                     }
-                    if (completelyInside) element.EnrichmentItems.Add(CrackTipEnrichments);
+
+                    //OBSOLETE: Elements access their enrichments from nodes now. Besides this doesn't work for blending elements.
+                    //if (completelyInside) element.EnrichmentItems.Add(CrackTipEnrichments);
                 }
 
                 #region alternatively
@@ -509,13 +512,17 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         {
             foreach (var element in Mesh.Elements)
             {
-                element.EnrichmentItems.Clear(); //TODO: not too fond of saving enrichment state in elements. It should be confined in nodes
+                //OBSOLETE: Elements access their enrichments from nodes now.
+                //element.EnrichmentItems.Clear(); //TODO: not too fond of saving enrichment state in elements. It should be confined in nodes
+
                 CrackElementPosition relativePosition = meshInteraction.FindRelativePositionOf(element);
                 if (relativePosition == CrackElementPosition.ContainsTip)
                 {
                     tipElements.Add(element);
                     foreach (var node in element.Nodes) crackTipNodesNew.Add(node);
-                    element.EnrichmentItems.Add(CrackTipEnrichments);
+
+                    //OBSOLETE: Elements access their enrichments from nodes now.
+                    //element.EnrichmentItems.Add(CrackTipEnrichments);
                 }
                 else if (relativePosition == CrackElementPosition.Intersected)
                 {
@@ -524,10 +531,12 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
                         bool isNew = crackBodyNodesAll.Add(node);
                         if (isNew) crackBodyNodesNew.Add(node);
                     }
+
+                    //OBSOLETE: Elements access their enrichments from nodes now.
                     // Cut elements next to tip elements will be enriched with both Heaviside and tip functions. If all 
                     // nodes were enriched with tip functions, the element would not be enriched with Heaviside, but then it 
                     // would be a tip element and not fall under this case.
-                    element.EnrichmentItems.Add(CrackBodyEnrichment);
+                    //element.EnrichmentItems.Add(CrackBodyEnrichment);
                 }
             }
             foreach (var node in crackTipNodesNew) // tip element's nodes are not enriched with Heaviside
