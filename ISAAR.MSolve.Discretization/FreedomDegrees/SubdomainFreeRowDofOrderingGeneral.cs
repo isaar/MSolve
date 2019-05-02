@@ -3,6 +3,7 @@ using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace ISAAR.MSolve.Discretization.FreedomDegrees
@@ -104,11 +105,12 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
             //IList<IList<DOFType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
 
             // Count the dof superset (free and constrained) to allocate enough memory and avoid resizing
-            int allElementDofs = 2;
+            var rowDofs = collocationElement.GetDOFTypesForDOFEnumeration(element);
+            int allElementDofs = rowDofs.Count;
             var elementDofIndices = new List<int>(allElementDofs);
             var subdomainDofIndices = new List<int>(allElementDofs);
-            var elementDofs = new StructuralDof[1][];
-            elementDofs[0] = new StructuralDof[]{ StructuralDof.TranslationX, StructuralDof.TranslationY };
+            var elementDofs = new IDofType[1][];
+            elementDofs[0] = rowDofs.ToArray();
 
             int elementDofIdx = 0;
                 for (int dofIdx = 0; dofIdx < elementDofs[0].Length; ++dofIdx)

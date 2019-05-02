@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Geometry.Coordinates;
@@ -24,9 +25,25 @@ namespace ISAAR.MSolve.IGA.Elements
 	/// </summary>
 	public class NURBSElement3DCollocation:Element, IStructuralIsogeometricElement, ICollocationElement
 	{
-		public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
-		public IElementDofEnumerator DofEnumerator { get; set; }
-		public bool MaterialModified { get; }
+        protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
+        protected IDofType[][] dofTypes;
+        protected readonly static IDofType[] controlPointDOFTypes = new StructuralDof[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ };
+
+
+        public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
+        public IElementDofEnumerator DofEnumerator
+        {
+            get
+            {
+                return dofEnumerator;
+            }
+
+            set
+            {
+                this.dofEnumerator = value;
+            }
+        }
+        public bool MaterialModified { get; }
 
         private CollocationPoint3D _collocationPoint;
 
@@ -211,7 +228,7 @@ namespace ISAAR.MSolve.IGA.Elements
 		{
 			var ddR2 = hessianMatrix * dR;
 
-			var ddR3 = new double[3, nurbs.NurbsSecondDerivativeValueKsi.NumRows];
+			var ddR3 = new double[6, nurbs.NurbsSecondDerivativeValueKsi.NumRows];
 			for (int i = 0; i < ddR3.GetLength(1); i++)
 			{
 				ddR3[0, i] = nurbs.NurbsSecondDerivativeValueKsi[i, 0] - ddR2[0, i];
@@ -223,7 +240,7 @@ namespace ISAAR.MSolve.IGA.Elements
 				ddR3[5, i] = nurbs.NurbsSecondDerivativeValueHetaZeta[i, 0] - ddR2[5, i];
 			}
 
-			var ddR = new double[3, nurbs.NurbsSecondDerivativeValueKsi.NumRows];
+			var ddR = new double[6, nurbs.NurbsSecondDerivativeValueKsi.NumRows];
 
 			var LU=squareDerivatives.FactorLU();
 
@@ -325,29 +342,29 @@ namespace ISAAR.MSolve.IGA.Elements
 			var hessianMatrix = Matrix.CreateZero(6,3);
 			for (int k = 0; k < controlPoints.Count; k++)
 			{
-				hessianMatrix[0, 0] += nurbs.NurbsSecondDerivativeValueKsi[k, 0] * ControlPoints[k].X;
-				hessianMatrix[0, 1] += nurbs.NurbsSecondDerivativeValueKsi[k, 0] * ControlPoints[k].Y;
-				hessianMatrix[0, 2] += nurbs.NurbsSecondDerivativeValueKsi[k, 0] * ControlPoints[k].Z;
+				hessianMatrix[0, 0] += nurbs.NurbsSecondDerivativeValueKsi[k, 0] * controlPoints[k].X;
+				hessianMatrix[0, 1] += nurbs.NurbsSecondDerivativeValueKsi[k, 0] * controlPoints[k].Y;
+				hessianMatrix[0, 2] += nurbs.NurbsSecondDerivativeValueKsi[k, 0] * controlPoints[k].Z;
 
-				hessianMatrix[1, 0] += nurbs.NurbsSecondDerivativeValueHeta[k, 0] * ControlPoints[k].X;
-				hessianMatrix[1, 1] += nurbs.NurbsSecondDerivativeValueHeta[k, 0] * ControlPoints[k].Y;
-				hessianMatrix[1, 2] += nurbs.NurbsSecondDerivativeValueHeta[k, 0] * ControlPoints[k].Z;
+				hessianMatrix[1, 0] += nurbs.NurbsSecondDerivativeValueHeta[k, 0] * controlPoints[k].X;
+				hessianMatrix[1, 1] += nurbs.NurbsSecondDerivativeValueHeta[k, 0] * controlPoints[k].Y;
+				hessianMatrix[1, 2] += nurbs.NurbsSecondDerivativeValueHeta[k, 0] * controlPoints[k].Z;
 
-				hessianMatrix[2, 0] += nurbs.NurbsSecondDerivativeValueZeta[k, 0] * ControlPoints[k].X;
-				hessianMatrix[2, 1] += nurbs.NurbsSecondDerivativeValueZeta[k, 0] * ControlPoints[k].Y;
-				hessianMatrix[2, 2] += nurbs.NurbsSecondDerivativeValueZeta[k, 0] * ControlPoints[k].Z;
+				hessianMatrix[2, 0] += nurbs.NurbsSecondDerivativeValueZeta[k, 0] * controlPoints[k].X;
+				hessianMatrix[2, 1] += nurbs.NurbsSecondDerivativeValueZeta[k, 0] * controlPoints[k].Y;
+				hessianMatrix[2, 2] += nurbs.NurbsSecondDerivativeValueZeta[k, 0] * controlPoints[k].Z;
 
-				hessianMatrix[3, 0] += nurbs.NurbsSecondDerivativeValueKsiHeta[k, 0] * ControlPoints[k].X;
-				hessianMatrix[3, 1] += nurbs.NurbsSecondDerivativeValueKsiHeta[k, 0] * ControlPoints[k].Y;
-				hessianMatrix[3, 2] += nurbs.NurbsSecondDerivativeValueKsiHeta[k, 0] * ControlPoints[k].Z;
+				hessianMatrix[3, 0] += nurbs.NurbsSecondDerivativeValueKsiHeta[k, 0] * controlPoints[k].X;
+				hessianMatrix[3, 1] += nurbs.NurbsSecondDerivativeValueKsiHeta[k, 0] * controlPoints[k].Y;
+				hessianMatrix[3, 2] += nurbs.NurbsSecondDerivativeValueKsiHeta[k, 0] * controlPoints[k].Z;
 
-				hessianMatrix[4, 0] += nurbs.NurbsSecondDerivativeValueKsiZeta[k, 0] * ControlPoints[k].X;
-				hessianMatrix[4, 1] += nurbs.NurbsSecondDerivativeValueKsiZeta[k, 0] * ControlPoints[k].Y;
-				hessianMatrix[4, 2] += nurbs.NurbsSecondDerivativeValueKsiZeta[k, 0] * ControlPoints[k].Z;
+				hessianMatrix[4, 0] += nurbs.NurbsSecondDerivativeValueKsiZeta[k, 0] * controlPoints[k].X;
+				hessianMatrix[4, 1] += nurbs.NurbsSecondDerivativeValueKsiZeta[k, 0] * controlPoints[k].Y;
+				hessianMatrix[4, 2] += nurbs.NurbsSecondDerivativeValueKsiZeta[k, 0] * controlPoints[k].Z;
 
-				hessianMatrix[5, 0] += nurbs.NurbsSecondDerivativeValueHetaZeta[k, 0] * ControlPoints[k].X;
-				hessianMatrix[5, 1] += nurbs.NurbsSecondDerivativeValueHetaZeta[k, 0] * ControlPoints[k].Y;
-				hessianMatrix[5, 2] += nurbs.NurbsSecondDerivativeValueHetaZeta[k, 0] * ControlPoints[k].Z;
+				hessianMatrix[5, 0] += nurbs.NurbsSecondDerivativeValueHetaZeta[k, 0] * controlPoints[k].X;
+				hessianMatrix[5, 1] += nurbs.NurbsSecondDerivativeValueHetaZeta[k, 0] * controlPoints[k].Y;
+				hessianMatrix[5, 2] += nurbs.NurbsSecondDerivativeValueHetaZeta[k, 0] * controlPoints[k].Z;
 			}
 
 			return hessianMatrix;
@@ -385,7 +402,14 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
 		{
-			throw new NotImplementedException();
-		}
+            var nurbsElement = (NURBSElement3DCollocation)element;
+            dofTypes = new IDofType[nurbsElement.ControlPoints.Count][];
+            for (int i = 0; i < nurbsElement.ControlPoints.Count; i++)
+            {
+                dofTypes[i] = controlPointDOFTypes;
+            }
+
+            return dofTypes;
+        }
 	}
 }

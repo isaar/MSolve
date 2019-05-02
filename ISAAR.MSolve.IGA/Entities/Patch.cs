@@ -245,7 +245,7 @@ namespace ISAAR.MSolve.IGA.Entities
                         coordinateZeta /= DegreeZeta;
 
                         var isBoundary = (i == 0 || i == NumberOfControlPointsKsi - 1 || j == 0 ||
-                                          j == NumberOfControlPointsHeta - 1 || k == 0 || k == NumberOfControlPointsZeta);
+                                          j == NumberOfControlPointsHeta - 1 || k == 0 || k == NumberOfControlPointsZeta-1);
                         collocationPoints.Add(new CollocationPoint3D(index++, coordinateKsi, coordinateHeta, coordinateZeta, isBoundary));
                     }
                 }
@@ -347,17 +347,18 @@ namespace ISAAR.MSolve.IGA.Entities
                         }
 
                         var elementCollocationPoints = collocationPoints.Where(cp =>
-                            knotsOfElement[0].Ksi <= cp.Xi && cp.Xi < knotsOfElement[7].Ksi &&
-                            knotsOfElement[0].Heta <= cp.Eta && cp.Eta < knotsOfElement[7].Heta &&
-                            knotsOfElement[0].Zeta <= cp.Zeta && cp.Zeta < knotsOfElement[7].Zeta).ToList();
+                            knotsOfElement[0].Ksi <= cp.Xi && cp.Xi <= knotsOfElement[7].Ksi &&
+                            knotsOfElement[0].Heta <= cp.Eta && cp.Eta <= knotsOfElement[7].Heta &&
+                            knotsOfElement[0].Zeta <= cp.Zeta && cp.Zeta <= knotsOfElement[7].Zeta).ToList();
 
                         foreach (var point in elementCollocationPoints)
                         {
+                            if (Elements.Any(e => e.ID == point.ID)) continue;
                             Element element = new NURBSElement3DCollocation
                             {
                                 ID = point.ID,
                                 Patch = this,
-                                ElementType = new NURBSElement3D(),
+                                ElementType = new NURBSElement3DCollocation(),
                                 CollocationPoint = point
                             };
                             element.AddKnots(knotsOfElement);
@@ -474,11 +475,12 @@ namespace ISAAR.MSolve.IGA.Entities
 					}
 
 					var elementCollocationPoints = collocationPoints.Where(cp =>
-						knotsOfElement[0].Ksi <= cp.Xi && cp.Xi < knotsOfElement[3].Ksi &&
-						knotsOfElement[0].Heta <= cp.Eta && cp.Eta < knotsOfElement[3].Heta).ToList();
+						knotsOfElement[0].Ksi <= cp.Xi && cp.Xi <= knotsOfElement[3].Ksi &&
+						knotsOfElement[0].Heta <= cp.Eta && cp.Eta <= knotsOfElement[3].Heta).ToList();
 
 					foreach (var point in elementCollocationPoints)
-					{
+                    {
+                        if (Elements.Any(e => e.ID == point.ID)) continue;
                         Element element = new NURBSElement2DCollocation
                         {
                             ID = point.ID,

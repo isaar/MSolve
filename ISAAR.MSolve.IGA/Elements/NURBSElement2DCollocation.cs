@@ -12,6 +12,7 @@ using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Materials;
 
 namespace ISAAR.MSolve.IGA.Elements
 {
@@ -112,6 +113,8 @@ namespace ISAAR.MSolve.IGA.Elements
 
             var inverseJacobian = jacobianMatrix.Invert();
             var dR = CalculateNaturalDerivatives(nurbs, inverseJacobian);
+            //if (elementCollocation.Patch.Material is ElasticMaterial2D elasticMaterial2D&& elasticMaterial2D.StressState!=StressState2D.PlaneStress)
+            //    throw  new NotSupportedException("Cannot use Plane stress with collocation for the time being");
 
             if (elementCollocation.CollocationPoint.IsBoundary)
             {
@@ -136,17 +139,18 @@ namespace ISAAR.MSolve.IGA.Elements
             var collocationPointStiffness = Matrix.CreateZero(2, elementCollocation.ControlPoints.Count * 2);
             var E = elementCollocation.Patch.Material.YoungModulus;
             var nu = elementCollocation.Patch.Material.PoissonRatio;
-            var lambda = E * nu / (1 + nu) / (1 - 2 * nu);
-            var m = E / (2 * (1 + nu));
+            //var lambda = E * nu / (1 + nu) / (1 - 2 * nu);
+            //var m = E / (2 * (1 + nu));
+            var aux = E / (1 - nu * nu);
 
             for (int i = 0; i < elementCollocation.ControlPoints.Count * 2; i += 2)
             {
                 var index = i / 2;
-                collocationPointStiffness[0, i] = (lambda + 2 * m) * xGaussPoint * dR[0, index] + m * yGaussPoint * dR[1, index];
-                collocationPointStiffness[0, i + 1] = lambda * xGaussPoint * dR[1, index] + m * yGaussPoint * dR[0, index];
+                collocationPointStiffness[0, i] = aux * (xGaussPoint * dR[0, index] + yGaussPoint * (1 - nu) / 2 * dR[1, index]);
+                collocationPointStiffness[0, i + 1] = aux*(xGaussPoint*nu*dR[1,index]+yGaussPoint*(1-nu)/2*dR[0,index]);
 
-                collocationPointStiffness[1, i] = lambda * yGaussPoint * dR[0, index] + m * xGaussPoint * dR[1, index];
-                collocationPointStiffness[1, i + 1] = (lambda + 2 * m) * yGaussPoint * dR[1, index] + m * xGaussPoint * dR[0, index];
+                collocationPointStiffness[1, i] = aux * (yGaussPoint * nu * dR[0, index] + xGaussPoint * (1 - nu) / 2 * dR[1, index]);
+                collocationPointStiffness[1, i + 1] = aux * (yGaussPoint * dR[1, index] + xGaussPoint * (1 - nu) / 2 * dR[0, index]);
             }
 
             return collocationPointStiffness;
