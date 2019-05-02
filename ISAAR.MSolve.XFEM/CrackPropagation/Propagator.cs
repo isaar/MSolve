@@ -55,13 +55,11 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             this.Logger = new PropagationLogger();
         }
 
-        public (double growthAngle, double growthLength) Propagate(
-            Vector totalFreeDisplacements, Vector totalConstrainedDisplacements, 
+        public (double growthAngle, double growthLength) Propagate(Vector totalFreeDisplacements, 
             CartesianPoint crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
         {
             // TODO: Also check if the sifs do not violate the material toughness
-            (double sifMode1, double sifMode2) = ComputeSIFS(totalFreeDisplacements, totalConstrainedDisplacements, 
-                crackTip, tipSystem, tipElements);
+            (double sifMode1, double sifMode2) = ComputeSIFS(totalFreeDisplacements, crackTip, tipSystem, tipElements);
             double growthAngle = growthDirectionLaw.ComputeGrowthAngle(sifMode1, sifMode2);
             double growthLength = growthLengthLaw.ComputeGrowthLength(sifMode1, sifMode2);
             Logger.GrowthAngles.Add(growthAngle);
@@ -70,9 +68,8 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
 
         }
 
-        private (double sifMode1, double sifMode2) ComputeSIFS(
-            Vector totalFreeDisplacements, Vector totalConstrainedDisplacements,
-            CartesianPoint crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
+        private (double sifMode1, double sifMode2) ComputeSIFS(Vector totalFreeDisplacements, CartesianPoint crackTip, 
+            TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
         {
             double interactionIntegralMode1 = 0.0, interactionIntegralMode2 = 0.0;
             IReadOnlyDictionary<XContinuumElement2D, double[]> elementWeights = 

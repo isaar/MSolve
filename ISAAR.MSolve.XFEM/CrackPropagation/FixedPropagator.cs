@@ -76,9 +76,8 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         //}
 
         
-        public (double growthAngle, double growthLength) Propagate(Vector totalFreeDisplacements, 
-            Vector totalConstrainedDisplacements, CartesianPoint crackTip, TipCoordinateSystem tipSystem, 
-            IReadOnlyList<XContinuumElement2D> tipElements)
+        public (double growthAngle, double growthLength) Propagate(Vector totalFreeDisplacements, CartesianPoint crackTip, 
+            TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
         {
             if (iteration >= Logger.GrowthLengths.Count) throw new IndexOutOfRangeException(
                 $"Only {Logger.GrowthLengths.Count} iterations have been recorder.");
@@ -86,8 +85,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             double length = Logger.GrowthLengths[iteration];
             if (checkPropagation)
             {
-                actualPropagator.Propagate(totalFreeDisplacements, totalConstrainedDisplacements, 
-                    crackTip, tipSystem, tipElements);
+                actualPropagator.Propagate(totalFreeDisplacements, crackTip, tipSystem, tipElements);
                 Console.Write($"Growth angle: expected = {angle}");
                 Console.WriteLine($"   -   computed = {actualPropagator.Logger.GrowthAngles[iteration]}");
                 Console.Write($"Growth length: expected = {length}");

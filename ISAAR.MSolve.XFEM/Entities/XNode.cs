@@ -16,6 +16,11 @@ namespace ISAAR.MSolve.XFEM.Entities
             this.EnrichmentItems = new Dictionary<IEnrichmentItem2D, double[]>();
         }
 
+        public XNode(int id, double x, double y, double z) : base(id, x, y, z)
+        {
+            this.EnrichmentItems = new Dictionary<IEnrichmentItem2D, double[]>();
+        }
+
         public Dictionary<IEnrichmentItem2D, double[]> EnrichmentItems { get; }
         public bool IsEnriched { get { return EnrichmentItems.Count > 0; } }
 
