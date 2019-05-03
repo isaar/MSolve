@@ -134,7 +134,7 @@ namespace ISAAR.MSolve.IGA.Elements
             }
             else
             {
-                var hessianMatrix = CalculateHessian(elementCollocation.ControlPoints, nurbs);
+                var hessianMatrix = CalculateHessian(elementCollocation.ControlPoints, nurbs,0);
                 var squareDerivatives = CalculateSquareDerivatives(jacobianMatrix);
                 var ddR = CalculateNaturalSecondDerivatives(nurbs, hessianMatrix, dR, squareDerivatives);
 
@@ -241,15 +241,13 @@ namespace ISAAR.MSolve.IGA.Elements
 			}
 
 			var ddR = new double[6, nurbs.NurbsSecondDerivativeValueKsi.NumRows];
-
-			var LU=squareDerivatives.FactorLU();
+            var squareInvert = squareDerivatives.Invert();
 
 			for (int i = 0; i < ddR.GetLength(1); i++)
 			{
-				var solution = Vector.CreateZero(6);
 				var rhs = Vector.CreateFromArray(new[]
 					{ddR3[0, i], ddR3[1, i], ddR3[2, i], ddR3[3, i], ddR3[4, i], ddR3[5, i]});
-				LU.SolveLinearSystem(rhs, solution);
+                var solution = squareInvert * rhs;
 				ddR[0, i] = solution[0];
 				ddR[1, i] = solution[1];
 				ddR[2, i] = solution[2];
@@ -337,34 +335,34 @@ namespace ISAAR.MSolve.IGA.Elements
 			return squareDerivatives;
 		}
 
-		private Matrix CalculateHessian(IList<ControlPoint> controlPoints, NURBS3D nurbs)
+		private Matrix CalculateHessian(IList<ControlPoint> controlPoints, NURBS3D nurbs, int j)
 		{
 			var hessianMatrix = Matrix.CreateZero(6,3);
 			for (int k = 0; k < controlPoints.Count; k++)
 			{
-				hessianMatrix[0, 0] += nurbs.NurbsSecondDerivativeValueKsi[k, 0] * controlPoints[k].X;
-				hessianMatrix[0, 1] += nurbs.NurbsSecondDerivativeValueKsi[k, 0] * controlPoints[k].Y;
-				hessianMatrix[0, 2] += nurbs.NurbsSecondDerivativeValueKsi[k, 0] * controlPoints[k].Z;
+				hessianMatrix[0, 0] += nurbs.NurbsSecondDerivativeValueKsi[k, j] * controlPoints[k].X;
+				hessianMatrix[0, 1] += nurbs.NurbsSecondDerivativeValueKsi[k, j] * controlPoints[k].Y;
+				hessianMatrix[0, 2] += nurbs.NurbsSecondDerivativeValueKsi[k, j] * controlPoints[k].Z;
 
-				hessianMatrix[1, 0] += nurbs.NurbsSecondDerivativeValueHeta[k, 0] * controlPoints[k].X;
-				hessianMatrix[1, 1] += nurbs.NurbsSecondDerivativeValueHeta[k, 0] * controlPoints[k].Y;
-				hessianMatrix[1, 2] += nurbs.NurbsSecondDerivativeValueHeta[k, 0] * controlPoints[k].Z;
+				hessianMatrix[1, 0] += nurbs.NurbsSecondDerivativeValueHeta[k, j] * controlPoints[k].X;
+				hessianMatrix[1, 1] += nurbs.NurbsSecondDerivativeValueHeta[k, j] * controlPoints[k].Y;
+				hessianMatrix[1, 2] += nurbs.NurbsSecondDerivativeValueHeta[k, j] * controlPoints[k].Z;
 
-				hessianMatrix[2, 0] += nurbs.NurbsSecondDerivativeValueZeta[k, 0] * controlPoints[k].X;
-				hessianMatrix[2, 1] += nurbs.NurbsSecondDerivativeValueZeta[k, 0] * controlPoints[k].Y;
-				hessianMatrix[2, 2] += nurbs.NurbsSecondDerivativeValueZeta[k, 0] * controlPoints[k].Z;
+				hessianMatrix[2, 0] += nurbs.NurbsSecondDerivativeValueZeta[k, j] * controlPoints[k].X;
+				hessianMatrix[2, 1] += nurbs.NurbsSecondDerivativeValueZeta[k, j] * controlPoints[k].Y;
+				hessianMatrix[2, 2] += nurbs.NurbsSecondDerivativeValueZeta[k, j] * controlPoints[k].Z;
 
-				hessianMatrix[3, 0] += nurbs.NurbsSecondDerivativeValueKsiHeta[k, 0] * controlPoints[k].X;
-				hessianMatrix[3, 1] += nurbs.NurbsSecondDerivativeValueKsiHeta[k, 0] * controlPoints[k].Y;
-				hessianMatrix[3, 2] += nurbs.NurbsSecondDerivativeValueKsiHeta[k, 0] * controlPoints[k].Z;
+				hessianMatrix[3, 0] += nurbs.NurbsSecondDerivativeValueKsiHeta[k, j] * controlPoints[k].X;
+				hessianMatrix[3, 1] += nurbs.NurbsSecondDerivativeValueKsiHeta[k, j] * controlPoints[k].Y;
+				hessianMatrix[3, 2] += nurbs.NurbsSecondDerivativeValueKsiHeta[k, j] * controlPoints[k].Z;
 
-				hessianMatrix[4, 0] += nurbs.NurbsSecondDerivativeValueKsiZeta[k, 0] * controlPoints[k].X;
-				hessianMatrix[4, 1] += nurbs.NurbsSecondDerivativeValueKsiZeta[k, 0] * controlPoints[k].Y;
-				hessianMatrix[4, 2] += nurbs.NurbsSecondDerivativeValueKsiZeta[k, 0] * controlPoints[k].Z;
+				hessianMatrix[4, 0] += nurbs.NurbsSecondDerivativeValueKsiZeta[k, j] * controlPoints[k].X;
+				hessianMatrix[4, 1] += nurbs.NurbsSecondDerivativeValueKsiZeta[k, j] * controlPoints[k].Y;
+				hessianMatrix[4, 2] += nurbs.NurbsSecondDerivativeValueKsiZeta[k, j] * controlPoints[k].Z;
 
-				hessianMatrix[5, 0] += nurbs.NurbsSecondDerivativeValueHetaZeta[k, 0] * controlPoints[k].X;
-				hessianMatrix[5, 1] += nurbs.NurbsSecondDerivativeValueHetaZeta[k, 0] * controlPoints[k].Y;
-				hessianMatrix[5, 2] += nurbs.NurbsSecondDerivativeValueHetaZeta[k, 0] * controlPoints[k].Z;
+				hessianMatrix[5, 0] += nurbs.NurbsSecondDerivativeValueHetaZeta[k, j] * controlPoints[k].X;
+				hessianMatrix[5, 1] += nurbs.NurbsSecondDerivativeValueHetaZeta[k, j] * controlPoints[k].Y;
+				hessianMatrix[5, 2] += nurbs.NurbsSecondDerivativeValueHetaZeta[k, j] * controlPoints[k].Z;
 			}
 
 			return hessianMatrix;
