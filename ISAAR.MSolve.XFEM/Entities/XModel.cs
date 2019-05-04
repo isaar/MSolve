@@ -6,6 +6,7 @@ using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -17,6 +18,8 @@ namespace ISAAR.MSolve.XFEM.Entities
 {
     public class XModel : IStructuralModel
     {
+        public IDomain2DBoundary Boundary { get; set; }
+
         public Table<INode, IDofType, double> Constraints { get; private set; } = new Table<INode, IDofType, double>();
 
         IReadOnlyList<IElement> IStructuralModel.Elements => Elements;

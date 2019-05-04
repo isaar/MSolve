@@ -9,7 +9,7 @@ using ISAAR.MSolve.XFEM.Output.VTK;
 //      starts there will not be any enrichment output files for those updates, whcih will cause a mismatch in the numbering.
 namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
 {
-    class EnrichmentLogger
+    public class EnrichmentLogger
     {
         private readonly TrackingExteriorCrackLSM lsm;
         private readonly Model2D_old model;

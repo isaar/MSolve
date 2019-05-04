@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
     /// <summary>
     /// Warning: may misclassify elements as tip elements, causing gross errors.
     /// </summary>
-    class TrackingExteriorCrackLSM : IExteriorCrack
+    public class TrackingExteriorCrackLSM : IExteriorCrack
     {
         private static readonly bool reports = false;
         private static readonly IComparer<CartesianPoint> pointComparer = new Point2DComparerXMajor();

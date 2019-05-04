@@ -11,7 +11,7 @@ using ISAAR.MSolve.Logging.VTK;
 //      in which case, there is no need for generics but construction is harder and possibly needs builders.
 namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
 {
-    class LevelSetLogger
+    public class LevelSetLogger
     {
         private readonly TrackingExteriorCrackLSM lsm;
         private readonly Model2D_old model;

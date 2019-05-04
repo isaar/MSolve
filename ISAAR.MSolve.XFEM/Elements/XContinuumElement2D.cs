@@ -28,7 +28,7 @@ using ISAAR.MSolve.XFEM.Utilities;
 //      Cons: calculating Kss with the Gauss points of an enriched element is much more expensive
 namespace ISAAR.MSolve.XFEM.Elements
 {
-    public class XContinuumElement2D : ICell<XNode>, IXFiniteElement 
+    public class XContinuumElement2D : IXFiniteElement 
     {
         private readonly int id;
         private readonly IDofType[][] standardDofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.

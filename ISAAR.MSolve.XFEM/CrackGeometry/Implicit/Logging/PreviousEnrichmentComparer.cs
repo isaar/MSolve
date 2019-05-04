@@ -7,7 +7,7 @@ using ISAAR.MSolve.XFEM.Entities;
 
 namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
 {
-    class PreviousLevelSetComparer
+    public class PreviousLevelSetComparer
     {
         private readonly TrackingExteriorCrackLSM lsm;
         private readonly string outputDirectory;
