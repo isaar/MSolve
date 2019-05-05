@@ -177,6 +177,14 @@ namespace ISAAR.MSolve.Problems
         }
 
         #region IAnalyzerProvider Members
+        public void ClearMatrices()
+        {
+            ms = null;
+            cs = null;
+            ks = null;
+            qs = null;
+        }
+
         public void Reset()
         {
             foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)

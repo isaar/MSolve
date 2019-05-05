@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using ISAAR.MSolve.Analyzers.CrackPropagation;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
@@ -12,8 +12,7 @@ using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
-using ISAAR.MSolve.Solvers.Direct;
-using ISAAR.MSolve.XFEM.CrackGeometry;
+using ISAAR.MSolve.XFEM.Analyzers;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 using ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving;
 using ISAAR.MSolve.XFEM.CrackGeometry.Implicit;
@@ -26,7 +25,6 @@ using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Integration;
 using ISAAR.MSolve.XFEM.Materials;
-using Xunit;
 
 namespace ISAAR.MSolve.XFEM.Tests
 {
@@ -72,6 +70,9 @@ namespace ISAAR.MSolve.XFEM.Tests
         private const double infCrackHeight = 90.0, supCrackHeight = 105.0; //mm
 
         private const int subdomainID = 0;
+
+        private static readonly string meshPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
+            + @"\Resources\fillet_1272dofs.msh";
         #endregion
 
         private readonly bool rigidBCs;
@@ -89,7 +90,6 @@ namespace ISAAR.MSolve.XFEM.Tests
         /// </summary>
         private readonly double jIntegralRadiusOverElementSize;
 
-        private readonly string meshPath;
         private readonly string lsmPlotDirectory;
         private readonly string propagationPath;
         private readonly bool writePropagation;
@@ -108,11 +108,10 @@ namespace ISAAR.MSolve.XFEM.Tests
         /// 
         /// </summary>
         /// <param name="growthLength">The length by which the crack grows in each iteration.</param>
-        public FilletBenchmark(string meshPath, double growthLength, double jIntegralRadiusOverElementSize,
+        public FilletBenchmark(double growthLength, double jIntegralRadiusOverElementSize,
              string lsmOutputDirectory, string propagationPath, bool writePropagation, int maxIterations,
               bool rigidBCs, double heavisideTol, int numSubdomains)
         {
-            this.meshPath = meshPath;
             this.growthLength = growthLength;
             this.jIntegralRadiusOverElementSize = jIntegralRadiusOverElementSize;
             this.lsmPlotDirectory = lsmOutputDirectory;
@@ -145,17 +144,19 @@ namespace ISAAR.MSolve.XFEM.Tests
         public void Analyze(ISolver solver)
         {
             var probelm = new ProblemStructural(Model, solver);
-            var analysis = new QuasiStaticCrackPropagationAnalyzer(Model, solver, probelm, crack, fractureToughness, 
+            var analyzer = new QuasiStaticCrackPropagationAnalyzer(Model, solver, probelm, crack, fractureToughness, 
                 maxIterations);
-            analysis.Analyze();
+
+            analyzer.Initialize();
+            analyzer.Analyze();
 
             // Write crack path
-            Console.WriteLine("Crack path:");
-            foreach (var point in crack.CrackPath)
-            {
-                Console.WriteLine("{0} {1}", point.X, point.Y);
-            }
-            Console.WriteLine();
+            //Console.WriteLine("Crack path:");
+            //foreach (var point in crack.CrackPath)
+            //{
+            //    Console.WriteLine("{0} {1}", point.X, point.Y);
+            //}
+            //Console.WriteLine();
 
             // Write growth angles, lengths and SIFs if necessary
             //if (writePropagation)
@@ -249,11 +250,10 @@ namespace ISAAR.MSolve.XFEM.Tests
                 Model.Subdomains[subdomainID].Elements.Add(Model.Elements[e]);
             }
 
-            
-
             // Mesh usable for crack-mesh interaction
-
-            mesh = new BidirectionalMesh2D<XNode, XContinuumElement2D>(Model.Nodes, cells, new FilletBoundary());
+            var boundary = new FilletBoundary();
+            Model.Boundary = boundary;
+            mesh = new BidirectionalMesh2D<XNode, XContinuumElement2D>(Model.Nodes, cells, boundary);
         }
 
         private void InitializeCrack()
@@ -300,7 +300,6 @@ namespace ISAAR.MSolve.XFEM.Tests
         public class Builder //: IBenchmarkBuilder
         {
             private readonly double growthLength;
-            private readonly string meshPath;
             private readonly string propagationPath;
 
             /// <summary>
@@ -309,10 +308,9 @@ namespace ISAAR.MSolve.XFEM.Tests
             /// <param name="meshPath">The absolute path of the mesh file.</param>
             /// <param name="growthLength">The length by which the crack grows in each iteration.</param>
             /// <param name="timingDirectory">The absolute path of the file where slover timing will be written.</param>
-            public Builder(double growthLength, string meshPath /*, string timingDirectory, string propagationPath*/)
+            public Builder(double growthLength /*, string timingDirectory, string propagationPath*/)
             {
                 this.growthLength = growthLength;
-                this.meshPath = meshPath;
                 //this.TimingOutputDirectory = timingDirectory;
                 //this.propagationPath = propagationPath;
             }
@@ -362,7 +360,7 @@ namespace ISAAR.MSolve.XFEM.Tests
 
             public FilletBenchmark BuildBenchmark()
             {
-                return new FilletBenchmark(meshPath, growthLength, JintegralRadiusOverElementSize, LsmPlotDirectory,
+                return new FilletBenchmark(growthLength, JintegralRadiusOverElementSize, LsmPlotDirectory,
                     propagationPath, WritePropagation, MaxIterations, RigidBCs, HeavisideEnrichmentTolerance, NumSubdomains);
             }
         }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ISAAR.MSolve.Analyzers.CrackPropagation
+namespace ISAAR.MSolve.XFEM.Analyzers
 {
     public enum CrackPropagationTermination
     {

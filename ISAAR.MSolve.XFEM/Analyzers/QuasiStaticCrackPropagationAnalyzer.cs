@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics;
 using ISAAR.MSolve.Analyzers.Interfaces;
-using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Logging.Interfaces;
 using ISAAR.MSolve.Solvers;
@@ -11,7 +10,7 @@ using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Entities;
 
 // TODO: fix a bug that happens when the crack has almost reached the boundary, is inside but no tip can be found
-namespace ISAAR.MSolve.Analyzers.CrackPropagation
+namespace ISAAR.MSolve.XFEM.Analyzers
 {
     /// <summary>
     /// Implements crack propagation under static loading with linear material behavior. Based on Linear Elastic Fracture 
@@ -24,16 +23,16 @@ namespace ISAAR.MSolve.Analyzers.CrackPropagation
         private readonly IReadOnlyDictionary<int, ILinearSystem> linearSystems;
         private readonly int maxIterations;
         private readonly XModel model;
-        private readonly IStaticProvider provider;
+        private readonly IStaticProvider problem;
         private readonly ISolver solver;
 
-        public QuasiStaticCrackPropagationAnalyzer(XModel model, ISolver solver, IStaticProvider provider,
+        public QuasiStaticCrackPropagationAnalyzer(XModel model, ISolver solver, IStaticProvider problem,
             ICrackDescription crack, double fractureToughness, int maxIterations)
         {
             this.model = model;
             this.solver = solver;
             this.linearSystems = solver.LinearSystems;
-            this.provider = provider;
+            this.problem = problem;
             this.crack = crack;
             this.fractureToughness = fractureToughness;
             this.maxIterations = maxIterations;
@@ -47,7 +46,7 @@ namespace ISAAR.MSolve.Analyzers.CrackPropagation
         {
             foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
-                linearSystem.Matrix = provider.CalculateMatrix(linearSystem.Subdomain);
+                linearSystem.Matrix = problem.CalculateMatrix(linearSystem.Subdomain);
             }
         }
 
@@ -68,6 +67,8 @@ namespace ISAAR.MSolve.Analyzers.CrackPropagation
             int iteration;
             for (iteration = 0; iteration < maxIterations; ++iteration)
             {
+                Debug.WriteLine($"Iteration {iteration}");
+
                 // Apply the updated enrichements.
                 crack.UpdateEnrichments();
 
@@ -80,6 +81,7 @@ namespace ISAAR.MSolve.Analyzers.CrackPropagation
                 }
 
                 // Create the stiffness matrix and then the forces vector
+                problem.ClearMatrices();
                 BuildMatrices();
                 model.AssignLoads(solver.DistributeNodalLoads);
                 foreach (ILinearSystem linearSystem in linearSystems.Values)
