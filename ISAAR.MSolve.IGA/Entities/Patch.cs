@@ -189,7 +189,7 @@ namespace ISAAR.MSolve.IGA.Entities
 		private void CreateCollocationPoints2D()
 		{
 			#region CollocationPoints
-			var collocationPoints= new List<CollocationPoint2D>();
+			var collocationPoints= new List<CollocationPoint>();
 			var index = 0;
 			for (int i = 1; i < NumberOfControlPointsKsi-1; i++)
 			{
@@ -206,7 +206,7 @@ namespace ISAAR.MSolve.IGA.Entities
 
 					coordinateHeta /= DegreeHeta;
 
-					collocationPoints.Add( new CollocationPoint2D(index++,coordinateKsi, coordinateHeta));
+					collocationPoints.Add( new CollocationPoint(index++,coordinateKsi, coordinateHeta));
 				}
 			}
 			#endregion

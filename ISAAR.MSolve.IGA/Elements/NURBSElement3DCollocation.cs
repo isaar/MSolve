@@ -28,15 +28,15 @@ namespace ISAAR.MSolve.IGA.Elements
 		public IElementDofEnumerator DofEnumerator { get; set; }
 		public bool MaterialModified { get; }
 
-        private CollocationPoint3D _collocationPoint;
+        private CollocationPoint _collocationPoint;
 
-        public CollocationPoint3D CollocationPoint
+        public CollocationPoint CollocationPoint
         {
             get => _collocationPoint;
             set => _collocationPoint = value;
         }
 
-        INode ICollocationElement.CollocationPoint { get => _collocationPoint; set => _collocationPoint = (CollocationPoint3D)value; }
+        INode ICollocationElement.CollocationPoint { get => _collocationPoint; set => _collocationPoint = (CollocationPoint)value; }
 
         public Dictionary<int, double> CalculateLoadingCondition(Element element, Edge edge, NeumannBoundaryCondition neumann)
 		{
@@ -319,7 +319,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
+		public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element)
 		{
 			throw new NotImplementedException();
 		}

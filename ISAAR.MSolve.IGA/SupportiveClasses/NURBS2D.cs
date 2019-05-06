@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
 		public Matrix NurbsSecondDerivativeValueKsiHeta { get; private set; }
 
 
-        public NURBS2D(int degreeKsi, int degreeHeta, Vector knotValueVectorKsi, Vector knotValueVectorHeta, NaturalPoint2D collocationPoint, IList<ControlPoint> controlPoints)
+        public NURBS2D(int degreeKsi, int degreeHeta, Vector knotValueVectorKsi, Vector knotValueVectorHeta, NaturalPoint collocationPoint, IList<ControlPoint> controlPoints)
         {
             var numberOfControlPointsHeta = knotValueVectorHeta.Length - degreeHeta - 1;
 

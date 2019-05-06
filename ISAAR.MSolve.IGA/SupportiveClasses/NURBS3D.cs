@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
         public NURBS3D(int numberOfControlPointsKsi, int numberOfControlPointsHeta, int numberOfControlPointsZeta,
             int degreeKsi, int degreeHeta, int degreeZeta, Vector knotValueVectorKsi,
             Vector knotValueVectorHeta, Vector knotValueVectorZeta, ControlPoint[] controlPoints,
-            NaturalPoint3D collocationPoint)
+            NaturalPoint collocationPoint)
         {
             BSPLines1D bsplinesKsi =
                 new BSPLines1D(degreeKsi, knotValueVectorKsi, Vector.CreateFromArray(new double[] { collocationPoint.Xi }));
