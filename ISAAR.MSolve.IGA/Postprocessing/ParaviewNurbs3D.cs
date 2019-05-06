@@ -136,9 +136,9 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 
 		}
 
-		public static Vector SolidPoint3D(int numberOfCPKsi, int degreeKsi, IVector knotValueVectorKsi,
-			int numberOfCPHeta, int degreeHeta, IVector knotValueVectorHeta, int numberOfCPZeta, int degreeZeta,
-			IVector knotValueVectorZeta, double[,] projectiveControlPointCoordinates, double ksiCoordinate, double hetaCoordinate,
+		public static Vector SolidPoint3D(int numberOfCPKsi, int degreeKsi, Vector knotValueVectorKsi,
+			int numberOfCPHeta, int degreeHeta, Vector knotValueVectorHeta, int numberOfCPZeta, int degreeZeta,
+			Vector knotValueVectorZeta, double[,] projectiveControlPointCoordinates, double ksiCoordinate, double hetaCoordinate,
 			double zetaCoordinate)
 		{
 			var spanKsi = ParaviewNurbs2D.FindSpan(numberOfCPKsi, degreeKsi, ksiCoordinate, knotValueVectorKsi);

@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
         {
             // The original matrix is not stored. Only the inverse and the determinant
             DirectMatrix = CalculateJacobianMatrix(nodes, naturalDerivatives);
-            (InverseMatrix, DirectDeterminant) = DirectMatrix.InvertAndDetermninant();
+            (InverseMatrix, DirectDeterminant) = DirectMatrix.InvertAndDeterminant();
             //(InverseMatrix, DirectDeterminant) = InvertAndDeterminant(DirectMatrix);
             if (DirectDeterminant < determinantTolerance)
             {

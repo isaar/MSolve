@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
 
 		public double [,] BSPLineSecondDerivativeValues { get; private set; }
 
-        public BSPLines1D(int degree, IVector knotValueVector, IVector parametricCoordinates)
+        public BSPLines1D(int degree, Vector knotValueVector, IVector parametricCoordinates)
         {
             if (degree <= 0)
             {

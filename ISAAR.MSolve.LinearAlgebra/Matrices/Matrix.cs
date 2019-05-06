@@ -326,7 +326,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
 
         /// <summary>
         /// Calculates the determinant of this matrix, which must be square. If the inverse matrix is also needed, use
-        /// <see cref="InvertAndDetermninant"/> instead.
+        /// <see cref="InvertAndDeterminant"/> instead.
         /// </summary>
         /// <exception cref="NonMatchingDimensionsException">Thrown if this matrix is not square.</exception>
         public double CalcDeterminant()
@@ -643,7 +643,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// Calculates the inverse matrix and returns it in a new <see cref="Matrix"/> instance. This only works if this 
         /// <see cref="Matrix"/> is square and invertible. If the determinant matrix is also needed, use 
-        /// <see cref="InvertAndDetermninant"/> instead.
+        /// <see cref="InvertAndDeterminant"/> instead.
         /// </summary>
         /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
         /// <exception cref="SingularMatrixException">Thrown if the matrix is not invertible.</exception>
@@ -697,7 +697,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
         /// <exception cref="SingularMatrixException">Thrown if the matrix is not invertible.</exception>
         /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
-        public (Matrix inverse, double determinant) InvertAndDetermninant()
+        public (Matrix inverse, double determinant) InvertAndDeterminant()
         {
             if ((NumRows == 2) && (NumColumns == 2))
             {

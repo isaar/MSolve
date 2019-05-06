@@ -204,7 +204,7 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 		/// <param name="pointCoordinate"></param>
 		/// <param name="knotValueVector"></param>
 		/// <returns></returns>
-		public static int FindSpan(int numberOfBasisFunctions, int degree, double pointCoordinate, IVector knotValueVector)
+		public static int FindSpan(int numberOfBasisFunctions, int degree, double pointCoordinate, Vector knotValueVector)
 		{
 			if (pointCoordinate == knotValueVector[numberOfBasisFunctions + 1]) return numberOfBasisFunctions;
 			int minimum = degree;
@@ -231,7 +231,7 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 		/// <param name="degree"></param>
 		/// <param name="knotValueVector"></param>
 		/// <returns></returns>
-		public static Vector BasisFunctions(int spanId, double pointCoordinate, int degree, IVector knotValueVector)
+		public static Vector BasisFunctions(int spanId, double pointCoordinate, int degree, Vector knotValueVector)
 		{
 			var basisFunctions = Vector.CreateZero(degree + 1);
 			var left = Vector.CreateZero(degree + 1);
@@ -270,8 +270,8 @@ namespace ISAAR.MSolve.IGA.Postprocessing
 		/// <param name="coordinateKsi"></param>
 		/// <param name="coordinateHeta"></param>
 		/// <returns></returns>
-		public static Vector SurfacePoint2D(int numberOfCPKsi, int degreeKsi, IVector knotValueVectorKsi, int numberOfCPHeta,
-			int degreeHeta, IVector knotValueVectorHeta, double[,] projectiveControlPointCoordinates,
+		public static Vector SurfacePoint2D(int numberOfCPKsi, int degreeKsi, Vector knotValueVectorKsi, int numberOfCPHeta,
+			int degreeHeta, Vector knotValueVectorHeta, double[,] projectiveControlPointCoordinates,
 			double coordinateKsi, double coordinateHeta)
 		{
 			var spanKsi = FindSpan(numberOfCPKsi, degreeKsi, coordinateKsi, knotValueVectorKsi);
