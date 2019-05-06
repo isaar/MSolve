@@ -269,7 +269,7 @@ namespace ISAAR.MSolve.IGA.Elements
             throw new NotImplementedException();
         }
 
-        public IList<IList<IDofType>> GetElementDOFTypes(Element element)
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDOFTypes(Element element)
         {
             dofTypes = new IDofType[element.ControlPoints.Count][];
             for (int i = 0; i < element.ControlPoints.Count; i++)
@@ -319,7 +319,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-		public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
+		public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element)
 		{
 			throw new NotImplementedException();
 		}

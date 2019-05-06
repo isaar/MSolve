@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using ISAAR.MSolve.Discretization.Mesh;
-using ISAAR.MSolve.Discretization.Mesh.Custom;
+using ISAAR.MSolve.Discretization.Mesh.Generation;
+using ISAAR.MSolve.Discretization.Mesh.Generation.Custom;
 using ISAAR.MSolve.FEM.Entities;
 
 namespace ISAAR.MSolve.SamplesConsole.MeshGeneration
@@ -10,7 +10,6 @@ namespace ISAAR.MSolve.SamplesConsole.MeshGeneration
     {
         public static void Generate2DMesh()
         {
-
         }
 
         public static void Generate3DMesh()
@@ -22,7 +21,7 @@ namespace ISAAR.MSolve.SamplesConsole.MeshGeneration
             var generator = new UniformMeshGenerator3D<Node>(minX, minY, minZ, maxX, maxY, maxZ, cellsPerX, cellsPerY, cellsPerZ);
             generator.StartIDsAt0 = false;
             (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity<Node>> cells) = 
-                generator.CreateMesh((id, x, y, z) => new Node() { ID = id, X = x, Y = y, Z = z });
+                generator.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
 
             Console.WriteLine($"{vertices.Count} vertices:");
             foreach (var vertex in vertices)

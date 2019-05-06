@@ -129,20 +129,20 @@ namespace ISAAR.MSolve.Problems
                 IMatrix q = e.CouplingMatrix(element);
 
                 int iElementMatrixRow = 0;
-                for (int i = 0; i < element.ElementType.DofEnumerator.GetDOFTypes(element).Count; i++)
+                for (int i = 0; i < element.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(element).Count; i++)
                 {
                     Node nodeRow = element.Nodes[i];
-                    foreach (IDofType dofTypeRow in element.ElementType.DofEnumerator.GetDOFTypes(element)[i])
+                    foreach (IDofType dofTypeRow in element.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(element)[i])
                     {
                         if (dofTypeRow != PorousMediaDof.Pressure) continue;
 
                         int dofRow = allDofs[nodeRow, dofTypeRow];
                         int iElementMatrixColumn = 0;
 
-                        for (int j = 0; j < element.ElementType.DofEnumerator.GetDOFTypes(element).Count; j++)
+                        for (int j = 0; j < element.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(element).Count; j++)
                         {
                             Node nodeColumn = element.Nodes[j];
-                            foreach (IDofType dofTypeColumn in element.ElementType.DofEnumerator.GetDOFTypes(element)[j])
+                            foreach (IDofType dofTypeColumn in element.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(element)[j])
                             {
                                 if (dofTypeColumn == PorousMediaDof.Pressure) continue;
 
@@ -177,6 +177,14 @@ namespace ISAAR.MSolve.Problems
         }
 
         #region IAnalyzerProvider Members
+        public void ClearMatrices()
+        {
+            ms = null;
+            cs = null;
+            ks = null;
+            qs = null;
+        }
+
         public void Reset()
         {
             foreach (Subdomain subdomain in model.SubdomainsDictionary.Values)

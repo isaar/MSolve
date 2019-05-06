@@ -1,8 +1,10 @@
-﻿using ISAAR.MSolve.FEM.Entities;
+﻿using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Logging.Interfaces;
 using ISAAR.MSolve.Materials.VonMisesStress;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace ISAAR.MSolve.Logging.VTK
@@ -16,11 +18,22 @@ namespace ISAAR.MSolve.Logging.VTK
     {
         private readonly string directory;
         private readonly Model model;
+        private readonly VtkMesh<Node> vtkMesh;
 
         public VtkLogFactory(Model model, string directory)
         {
             this.model = model;
             this.directory = directory;
+            try
+            {
+                Node[] nodes = model.Nodes.ToArray();
+                ICell<Node>[] elements = model.Elements.Select(element => (ICell<Node>)element).ToArray();
+                this.vtkMesh = new VtkMesh<Node>(nodes, elements);
+            }
+            catch (InvalidCastException ex)
+            {
+                throw new InvalidCastException("VtkLogFactory only works for models with elements that implement ICell.", ex);
+            }
         }
 
         public bool LogDisplacements { get; set; } = true;
@@ -35,10 +48,9 @@ namespace ISAAR.MSolve.Logging.VTK
 
         public IAnalyzerLog[] CreateLogs()
         {
-            var mesh = new VtkMesh2D(model);
             return new IAnalyzerLog[]
             {
-                new VtkLog2D(directory, Filename, model, mesh, LogDisplacements, LogStrains, LogStresses, 
+                new VtkLog2D(directory, Filename, model, vtkMesh, LogDisplacements, LogStrains, LogStresses, 
                     VonMisesStressCalculator)
             };
         }

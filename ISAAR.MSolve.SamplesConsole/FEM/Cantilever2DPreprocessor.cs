@@ -4,10 +4,10 @@ using System.IO;
 using System.Linq;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Mesh;
-using ISAAR.MSolve.Discretization.Mesh.Custom;
-using ISAAR.MSolve.Discretization.Mesh.GMSH;
+using ISAAR.MSolve.Discretization.Mesh.Generation;
+using ISAAR.MSolve.Discretization.Mesh.Generation.Custom;
+using ISAAR.MSolve.Discretization.Mesh.Generation.GMSH;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.SamplesConsole.Preprocessing;
@@ -117,16 +117,16 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
         {
             Node[] nodes =
             {
-                new Node { ID = 0, X = 0.0,    Y = 0.0 },
-                new Node { ID = 1, X = length, Y = 0.0 },
-                new Node { ID = 2, X = 0.0,    Y = 0.25 * height },
-                new Node { ID = 3, X = length, Y = 0.25 * height },
-                new Node { ID = 4, X = 0.0,    Y = 0.50 * height },
-                new Node { ID = 5, X = length, Y = 0.50 * height },
-                new Node { ID = 6, X = 0.0,    Y = 0.75 * height },
-                new Node { ID = 7, X = length, Y = 0.75 * height },
-                new Node { ID = 8, X = 0.0,    Y = height },
-                new Node { ID = 9, X = length, Y = height }
+                new Node( id: 0, x: 0.0,    y: 0.0 ),
+                new Node( id: 1, x: length, y:  0.0 ),
+                new Node( id: 2, x: 0.0,    y: 0.25 * height ),
+                new Node( id: 3, x: length, y:  0.25 * height ),
+                new Node( id: 4, x: 0.0,    y: 0.50 * height ),
+                new Node( id: 5, x: length, y:  0.50 * height ),
+                new Node( id: 6, x: 0.0,    y: 0.75 * height ),
+                new Node( id: 7, x: length, y:  0.75 * height ),
+                new Node( id: 8, x: 0.0,    y: height ),
+                new Node( id: 9, x: length, y:  height )
             };
 
             CellType[] cellTypes = { CellType.Quad4, CellType.Quad4, CellType.Quad4, CellType.Quad4 };
@@ -147,22 +147,31 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
         {
             using (var reader = new GmshReader<Node>(path))
             {
-                return reader.CreateMesh((id, x, y, z) => new Node() { ID = id, X = x, Y = y, Z = z });
+                return reader.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
             }
         }
 
         private static (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements) GenerateUniformMesh()
         {
             var meshGen = new UniformMeshGenerator2D<Node>(0.0, 0.0, length, height, 4, 20);
-            return meshGen.CreateMesh((id, x, y, z) => new Node() { ID = id, X = x, Y = y, Z = z });
+            return meshGen.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
         }
 
         private static void PrintMeshOnly(Model model)
         {
-            var mesh = new VtkMesh2D(model);
-            using (var writer = new VtkFileWriter(workingDirectory + "\\mesh.vtk"))
+            try
             {
-                writer.WriteMesh(mesh.Points, mesh.Cells);
+                Node[] nodes = model.Nodes.ToArray();
+                ICell<Node>[] elements = model.Elements.Select(element => (ICell<Node>)element).ToArray();
+                var mesh = new VtkMesh<Node>(nodes, elements);
+                using (var writer = new VtkFileWriter(workingDirectory + "\\mesh.vtk"))
+                {
+                    writer.WriteMesh(mesh);
+                }
+            }
+            catch (InvalidCastException ex)
+            {
+                throw new InvalidCastException("VtkLogFactory only works for models with elements that implement ICell.", ex);
             }
         }
 

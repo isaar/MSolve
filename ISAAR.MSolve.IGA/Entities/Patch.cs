@@ -52,45 +52,15 @@ namespace ISAAR.MSolve.IGA.Entities
 		public double[] CalculateElementIncrementalConstraintDisplacements(IElement element, double constraintScalingFactor)
 		{
 			var elementNodalDisplacements = new double[FreeDofOrdering.CountElementDofs(element)];
-			ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
+            SubdomainConstrainedDofOrderingBase.ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
 			return elementNodalDisplacements;
-		}
-
-		private static void ApplyConstraintDisplacements(IElement element, double[] elementNodalDisplacements,
-			Table<INode, IDofType, double> constraints)
-		{
-			int elementDofIdx = 0;
-			IList<INode> nodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
-            IList<IList<IDofType>> dofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
-			for (int i = 0; i < nodes.Count; ++i)
-			{
-				//bool isConstrainedNode = constraintsDictionary.TryGetValue(nodes[i].ID, 
-				//    out Dictionary<DOFType, double> constrainedDOFs);
-				bool isConstrainedNode = constraints.TryGetDataOfRow(nodes[i],
-					out IReadOnlyDictionary<IDofType, double> constrainedDOFs);
-				if (isConstrainedNode)
-				{
-					foreach (IDofType dofType in dofs[i])
-					{
-						bool isConstrainedDof = constrainedDOFs.TryGetValue(dofType, out double constraintDisplacement);
-						//if (isConstrainedNode && isConstrainedDof)
-						if (isConstrainedDof)
-						{
-                            Debug.Assert(elementNodalDisplacements[elementDofIdx] == 0); // TODO: and why is this an assumption?
-							elementNodalDisplacements[elementDofIdx] = constraintDisplacement;
-						}
-						++elementDofIdx;
-					}
-				}
-				else elementDofIdx += dofs[i].Count;
-			}
 		}
 
 		public double[] CalculateElementDisplacements(Element element, IVectorView globalDisplacementVector)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
 		{
 			var elementNodalDisplacements = new double[FreeDofOrdering.CountElementDofs(element)];
 			FreeDofOrdering.ExtractVectorElementFromSubdomain(element, globalDisplacementVector);
-			ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
+            SubdomainConstrainedDofOrderingBase.ApplyConstraintDisplacements(element, elementNodalDisplacements, Constraints);
 			return elementNodalDisplacements;
 		}
 
@@ -219,7 +189,7 @@ namespace ISAAR.MSolve.IGA.Entities
 		private void CreateCollocationPoints2D()
 		{
 			#region CollocationPoints
-			var collocationPoints= new List<CollocationPoint2D>();
+			var collocationPoints= new List<CollocationPoint>();
 			var index = 0;
 			for (int i = 1; i < NumberOfControlPointsKsi-1; i++)
 			{
@@ -236,7 +206,7 @@ namespace ISAAR.MSolve.IGA.Entities
 
 					coordinateHeta /= DegreeHeta;
 
-					collocationPoints.Add( new CollocationPoint2D(index++,coordinateKsi, coordinateHeta));
+					collocationPoints.Add( new CollocationPoint(index++,coordinateKsi, coordinateHeta));
 				}
 			}
 			#endregion

@@ -29,8 +29,8 @@ namespace ISAAR.MSolve.Solvers.Ordering
             foreach (IElement element in elements)
             {
                 //IList<INode> elementNodes = element.IElementType.DOFEnumerator.GetNodesForMatrixAssembly(element); //this is wrong
-                IList<INode> elementNodes = element.Nodes;
-                IList<IList<IDofType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypesForDOFEnumeration(element);
+                IReadOnlyList<INode> elementNodes = element.Nodes;
+                IReadOnlyList<IReadOnlyList<IDofType>> elementDofs = element.ElementType.DofEnumerator.GetDofTypesForDofEnumeration(element);
                 for (int nodeIdx = 0; nodeIdx < elementNodes.Count; ++nodeIdx)
                 {
                     bool isNodeConstrained = constraints.TryGetDataOfRow(elementNodes[nodeIdx],

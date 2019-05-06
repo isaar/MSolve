@@ -9,19 +9,19 @@ namespace ISAAR.MSolve.Discretization.Interfaces
         /// <summary>
         /// These are the dofs of the nodes returned by <see cref="GetNodesForMatrixAssembly"/>
         /// </summary>
-		IList<IList<IDofType>> GetDOFTypes(IElement element); //TODO: rename GetDofTypesForMatrixAssembly()
+		IReadOnlyList<IReadOnlyList<IDofType>> GetDofTypesForMatrixAssembly(IElement element);
 
         /// <summary>
         /// The returned outer list will include nested lists for all <see cref="IElement.Nodes"/>. When using embedding, the
-        /// nested lists, that correspond to embedded nodes, will be empty.
+        /// nested lists that correspond to embedded nodes, will be empty.
         /// </summary>
-		IList<IList<IDofType>> GetDOFTypesForDOFEnumeration(IElement element);
+		IReadOnlyList<IReadOnlyList<IDofType>> GetDofTypesForDofEnumeration(IElement element);
 
         /// <summary>
         /// When using embedding, these are the nodes of the superelement: nodes that have not been embedded and (right now all) 
         /// nodes of the host element. 
         /// </summary>
-		IList<INode> GetNodesForMatrixAssembly(IElement element);
+		IReadOnlyList<INode> GetNodesForMatrixAssembly(IElement element);
 
 		IMatrix GetTransformedMatrix(IMatrix matrix);
 

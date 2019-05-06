@@ -18,25 +18,25 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
 		private InterpolationWedge15() : base(15)
 		{
-			NodalNaturalCoordinates = new NaturalPoint3D[]
+			NodalNaturalCoordinates = new NaturalPoint[]
 			{
-				new NaturalPoint3D(-1, 1, 0),
-				new NaturalPoint3D(-1, 0, 1),
-				new NaturalPoint3D(-1, 0, 0),
-				new NaturalPoint3D(1, 1, 0),
-				new NaturalPoint3D(1, 0, 1),
-				new NaturalPoint3D(1, 0, 0),
+				new NaturalPoint(-1, 1, 0),
+				new NaturalPoint(-1, 0, 1),
+				new NaturalPoint(-1, 0, 0),
+				new NaturalPoint(1, 1, 0),
+				new NaturalPoint(1, 0, 1),
+				new NaturalPoint(1, 0, 0),
 
-				new NaturalPoint3D(-1, 0.5, 0.5),
-				new NaturalPoint3D(-1, 0.5, 0),
-				new NaturalPoint3D(0, 1, 0),
-				new NaturalPoint3D(-1, 0, 0.5),
+				new NaturalPoint(-1, 0.5, 0.5),
+				new NaturalPoint(-1, 0.5, 0),
+				new NaturalPoint(0, 1, 0),
+				new NaturalPoint(-1, 0, 0.5),
 
-				new NaturalPoint3D(0, 0, 1),
-				new NaturalPoint3D(0, 0, 0),
-				new NaturalPoint3D(1, 0.5, 0.5),
-				new NaturalPoint3D(1, 0.5, 0),
-				new NaturalPoint3D(1, 0, 0.5)
+				new NaturalPoint(0, 0, 1),
+				new NaturalPoint(0, 0, 0),
+				new NaturalPoint(1, 0.5, 0.5),
+				new NaturalPoint(1, 0.5, 0),
+				new NaturalPoint(1, 0, 0.5)
 			};
 		}
 
@@ -44,19 +44,29 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// The coordinates of the finite element's nodes in the natural (element local) coordinate system. The order
 		/// of these nodes matches the order of the shape functions and is always the same for each element.
 		/// </summary>
-		public override IReadOnlyList<NaturalPoint3D> NodalNaturalCoordinates { get; }
+		public override IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
 		/// <summary>
 		/// Get the unique instance <see cref="InterpolationWedge15"/> object for the whole program. Thread safe.
 		/// </summary>
 		public static InterpolationWedge15 UniqueInstance => uniqueInstance;
 
-		/// <summary>
-		/// The reverse mapping for this interpolation, namely from global cartesian coordinates to natural (element local) coordinate system.
-		/// </summary>
-		/// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
-		/// <returns></returns>
-		public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> node) =>
+        /// <summary>
+        /// See <see cref="IIsoparametricInterpolation2D.CheckElementNodes(IReadOnlyList{Node})"/>
+        /// </summary>
+        public override void CheckElementNodes(IReadOnlyList<Node> nodes)
+        {
+            if (nodes.Count != 15) throw new ArgumentException(
+                $"A Wedge15 finite element has 15 nodes, but {nodes.Count} nodes were provided.");
+            // TODO: Also check the order of the nodes too and perhaps even the shape
+        }
+
+        /// <summary>
+        /// The reverse mapping for this interpolation, namely from global cartesian coordinates to natural (element local) coordinate system.
+        /// </summary>
+        /// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
+        /// <returns></returns>
+        public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> node) =>
 			throw new NotImplementedException("Iterative procedure needed");
 
 		// Evaluated according to https://www.code-aster.org/V2/doc/v11/en/man_r/r3/r3.01.01.pdf

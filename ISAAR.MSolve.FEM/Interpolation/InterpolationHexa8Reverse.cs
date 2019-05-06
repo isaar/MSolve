@@ -13,22 +13,32 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
         private InterpolationHexa8Reverse() : base(8)
         {
-            NodalNaturalCoordinates = new NaturalPoint3D[]
+            NodalNaturalCoordinates = new NaturalPoint[]
             {
-                new NaturalPoint3D(1, 1, 1),
-                new NaturalPoint3D(-1, 1, 1),
-                new NaturalPoint3D(-1, -1, 1),
-                new NaturalPoint3D(1, -1, 1),
-                new NaturalPoint3D(1, 1, -1),
-                new NaturalPoint3D(-1, 1, -1),
-                new NaturalPoint3D(-1, -1, -1),
-                new NaturalPoint3D(1, -1, -1)
+                new NaturalPoint(1, 1, 1),
+                new NaturalPoint(-1, 1, 1),
+                new NaturalPoint(-1, -1, 1),
+                new NaturalPoint(1, -1, 1),
+                new NaturalPoint(1, 1, -1),
+                new NaturalPoint(-1, 1, -1),
+                new NaturalPoint(-1, -1, -1),
+                new NaturalPoint(1, -1, -1)
             };
         }
 
-        public override IReadOnlyList<NaturalPoint3D> NodalNaturalCoordinates { get; }
+        public override IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
         public static InterpolationHexa8Reverse UniqueInstance => uniqueInstance;
+
+        /// <summary>
+        /// See <see cref="IIsoparametricInterpolation2D.CheckElementNodes(IReadOnlyList{Node})"/>
+        /// </summary>
+        public override void CheckElementNodes(IReadOnlyList<Node> nodes)
+        {
+            if (nodes.Count != 8) throw new ArgumentException(
+                $"A Hexa8 finite element has 8 nodes, but {nodes.Count} nodes were provided.");
+            // TODO: Also check the order of the nodes too and perhaps even the shape
+        }
 
         public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> nodes) 
             => throw new NotImplementedException();

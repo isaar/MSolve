@@ -92,7 +92,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             {
                 //ADDED these lines from another part of UpdateSubdomainKffAndCalculateKfpDqAndKppDqp
                 var isEmbeddedElement = element.ElementType is ISAAR.MSolve.FEM.Interfaces.IEmbeddedElement;
-                var elementDOFTypes = element.ElementType.DofEnumerator.GetDOFTypes(element);
+                var elementDOFTypes = element.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(element);
                 var matrixAssemblyNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
 
 

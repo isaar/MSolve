@@ -23,7 +23,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         public void AddVectorElementToSubdomain(IElement element, double[] elementVector, IVector subdomainVector)
         {
             (int numAllDofs, int[] elementDofIndices, int[] subdomainDofIndices) = GetElementData(element);
-            subdomainVector.AddNonContiguouslyFrom(
+            subdomainVector.AddIntoThisNonContiguouslyFrom(
                 subdomainDofIndices, Vector.CreateFromArray(elementVector), elementDofIndices);
         }
 
@@ -93,8 +93,8 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
 
         private (int numAllElementDofs, int[] elementDofIndices, int[] subdomainDofIndices) ProcessElement(IElement element)
         {
-            IList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
-            IList<IList<IDofType>> elementDofs = element.ElementType.DofEnumerator.GetDOFTypes(element);
+            IReadOnlyList<INode> elementNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
+            IReadOnlyList<IReadOnlyList<IDofType>> elementDofs = element.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(element);
 
             // Count the dof superset (free and constrained) to allocate enough memory and avoid resizing
             int allElementDofs = 0;

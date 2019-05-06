@@ -873,18 +873,18 @@ namespace ISAAR.MSolve.IGA.Tests
 		{
 			return new List<ControlPoint>
 			{
-				new ControlPoint {ID = 0, X = 0.0, Y = 0.0, Z = 0.0, WeightFactor = 1.0},
-				new ControlPoint {ID = 1, X = 0.0, Y = 0.5, Z = 0.0, WeightFactor = 1.0},
-				new ControlPoint {ID = 2, X = 0.0, Y = 1.0, Z = 0.0, WeightFactor = 1.0},
-				new ControlPoint {ID = 3, X = 16.66666667, Y = 0.0, Z = 0.0, WeightFactor = 1.0},
-				new ControlPoint {ID = 4, X = 16.66666667, Y = 0.5, Z = 0.0, WeightFactor = 1.0},
-				new ControlPoint {ID = 5, X = 16.66666667, Y = 1.0, Z = 0.0, WeightFactor = 1.0},
-				new ControlPoint {ID = 6, X = 33.33333333, Y = 0.0, Z = 0.0, WeightFactor = 1.0},
-				new ControlPoint {ID = 7, X = 33.33333333, Y = 0.5, Z = 0.0, WeightFactor = 1.0},
-				new ControlPoint {ID = 8, X = 33.33333333, Y = 1.0, Z = 0.0, WeightFactor = 1.0},
-				new ControlPoint {ID = 9, X = 50.0, Y = 0.0, Z = 0.0, WeightFactor = 1.0},
-				new ControlPoint {ID = 10, X = 50.0, Y = 0.5, Z = 0.0, WeightFactor = 1.0},
-				new ControlPoint {ID = 11, X = 50.0, Y = 1.0, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 0, X = 0.0, Y =  0.0, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 1, X = 0.0, Y =  0.5, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 2, X = 0.0, Y =  1.0, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 3, X = 16.66666667, Y =  0.0, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 4, X = 16.66666667, Y =  0.5, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 5, X = 16.66666667, Y =  1.0, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 6, X = 33.33333333, Y =  0.0, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 7, X = 33.33333333, Y =  0.5, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 8, X = 33.33333333, Y =  1.0, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 9, X = 50.0, Y =  0.0, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 10, X = 50.0, Y =  0.5, Z = 0.0, WeightFactor = 1.0},
+				new ControlPoint {ID = 11, X = 50.0, Y =  1.0, Z = 0.0, WeightFactor = 1.0},
 			};
 		}
 

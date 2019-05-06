@@ -119,21 +119,21 @@ namespace ISAAR.MSolve.Tests.FEM
             double startZ = 0;
             for (int l = 0; l < 3; l++)
             {
-                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX, Y = startY + l * 0.25, Z = startZ });
+                model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX, y:  startY + l * 0.25, z: startZ ));
                 nodeID++;
             }
 
             startX = 0.25;
             for (int l = 0; l < 2; l++)
             {
-                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX, Y = startY + l * 0.5, Z = startZ });
+                model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX, y:  startY + l * 0.5, z: startZ ));
                 nodeID++;
             }
 
             startX = 0.5;
             for (int l = 0; l < 3; l++)
             {
-                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX, Y = startY + l * 0.25, Z = startZ });
+                model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX, y:  startY + l * 0.25, z: startZ ));
                 nodeID++;
             }
 
@@ -142,21 +142,21 @@ namespace ISAAR.MSolve.Tests.FEM
             startX = 0;
             for (int l = 0; l < 3; l++)
             {
-                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX, Y = startY + l * 0.25, Z = startZ - 0.5 * Tk });
+                model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX, y:  startY + l * 0.25, z: startZ - 0.5 * Tk ));
                 nodeID++;
             }
 
             startX = 0.25;
             for (int l = 0; l < 2; l++)
             {
-                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX, Y = startY + l * 0.5, Z = startZ - 0.5 * Tk });
+                model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX, y:  startY + l * 0.5, z: startZ - 0.5 * Tk ));
                 nodeID++;
             }
 
             startX = 0.5;
             for (int l = 0; l < 3; l++)
             {
-                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX, Y = startY + l * 0.25, Z = startZ - 0.5 * Tk });
+                model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX, y:  startY + l * 0.25, z: startZ - 0.5 * Tk ));
                 nodeID++;
             }
 

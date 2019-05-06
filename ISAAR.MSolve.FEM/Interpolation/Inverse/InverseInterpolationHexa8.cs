@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
 		    
 	    }
 
-		public NaturalPoint3D TransformPointCartesianToNatural(CartesianPoint3D point)
+		public NaturalPoint TransformPointCartesianToNatural(CartesianPoint point)
 		{
 			throw new NotImplementedException();
 		}

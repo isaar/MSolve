@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Commons;
-using ISAAR.MSolve.Discretization.Integration.Points;
+using ISAAR.MSolve.Discretization.Integration;
 
 //TODO: A thread safe Table3D is needed with an atomic method: 
 //      GetOrAddNew(int orderXi, int orderEta, int orderZeta Func<int, int, int, GaussLegendre3D> createFunc). This quadrature  
@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.Discretization.Integration.Quadratures
             GaussLegendre1D quadratureXi = GaussLegendre1D.GetQuadratureWithOrder(orderXi);
             GaussLegendre1D quadratureEta = GaussLegendre1D.GetQuadratureWithOrder(orderEta);
             GaussLegendre1D quadratureZeta = GaussLegendre1D.GetQuadratureWithOrder(orderZeta);
-            var points3D = new List<GaussPoint3D>();
+            var points3D = new List<GaussPoint>();
 
             // Combine the integration rules of each axis. The order is Xi minor - Eta middle - Zeta major
             // WARNING: Do not change their order. Other classes, such as the ones that implement extrapolations, depend on it.
@@ -47,7 +47,7 @@ namespace ISAAR.MSolve.Discretization.Integration.Quadratures
                 {
                     foreach (var pointXi in quadratureXi.IntegrationPoints)
                     {
-                        points3D.Add(new GaussPoint3D(pointXi.Xi, pointEta.Xi, pointZeta.Xi,
+                        points3D.Add(new GaussPoint(pointXi.Xi, pointEta.Xi, pointZeta.Xi,
                             pointXi.Weight * pointEta.Weight * pointZeta.Weight));
                     }
                 }
@@ -59,6 +59,6 @@ namespace ISAAR.MSolve.Discretization.Integration.Quadratures
         /// <summary>
         /// The integration points are sorted based on an order strictly defined for each quadrature.
         /// </summary>
-        public IReadOnlyList<GaussPoint3D> IntegrationPoints { get; }
+        public IReadOnlyList<GaussPoint> IntegrationPoints { get; }
     }
 }

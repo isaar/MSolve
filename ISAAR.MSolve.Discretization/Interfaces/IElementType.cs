@@ -18,6 +18,6 @@ namespace ISAAR.MSolve.Discretization.Interfaces
         IMatrix StiffnessMatrix(IElement element);
         IMatrix MassMatrix(IElement element);
         IMatrix DampingMatrix(IElement element);
-        IList<IList<IDofType>> GetElementDOFTypes(IElement element);
+        IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element);
     }
 }

@@ -21,11 +21,11 @@ namespace ISAAR.MSolve.IGA.Entities
             get { return controlPointDictionary.Values.ToList<ControlPoint>(); }
         }
 
-	    public IList<INode> Nodes
+	    public IReadOnlyList<INode> Nodes
 	    {
 		    get
 		    {
-			    IList<INode> a = new List<INode>();
+			    var a = new List<INode>();
 			    foreach (var controlPoint in controlPointDictionary.Values)
 				    a.Add(controlPoint);
 			    return a;

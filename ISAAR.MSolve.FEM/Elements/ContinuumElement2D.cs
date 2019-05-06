@@ -4,6 +4,7 @@ using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Interpolation;
@@ -32,7 +33,7 @@ namespace ISAAR.MSolve.FEM.Elements
     /// of this element is uniform, therefore it is necessary to use finer meshes to simulate domains with variable thickness.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class ContinuumElement2D : IStructuralFiniteElement
+    public class ContinuumElement2D : IStructuralFiniteElement, ICell<Node>
     {
         private readonly static IDofType[] nodalDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY };
         private readonly IDofType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
@@ -54,9 +55,14 @@ namespace ISAAR.MSolve.FEM.Elements
             this.Thickness = thickness;
 
             dofTypes = new IDofType[nodes.Count][];
-            for (int i = 0; i < interpolation.NumFunctions; ++i) dofTypes[i] = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY };
+            for (int i = 0; i < nodes.Count; ++i)
+            {
+                dofTypes[i] = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY };
+            }
         }
 
+        public CellType CellType => Interpolation.CellType;
+        public IElementDofEnumerator DofEnumerator { get; set; } = new GenericDofEnumerator();
         public ElementDimensions ElementDimensions => ElementDimensions.TwoD;
 
         public int ID => throw new NotImplementedException(
@@ -64,6 +70,17 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public IGaussPointExtrapolation2D GaussPointExtrapolation { get; }
         public IIsoparametricInterpolation2D Interpolation { get; }
+
+        public bool MaterialModified
+        {
+            get
+            {
+                foreach (ElasticMaterial2D material in materialsAtGaussPoints)
+                    if (material.Modified) return true;
+                return false;
+            }
+        }
+
         public IReadOnlyList<Node> Nodes { get; }
         public IQuadrature2D QuadratureForConsistentMass { get; }
         public IQuadrature2D QuadratureForStiffness { get; }
@@ -223,15 +240,13 @@ namespace ISAAR.MSolve.FEM.Elements
             return damping;
         }
 
-        public IElementDofEnumerator DofEnumerator { get; set; } = new GenericDofEnumerator();
-
         /// <summary>
         /// Calculates the coordinates of the centroid of this element.
         /// </summary>
-        public CartesianPoint2D FindCentroid()
-            => Interpolation.TransformNaturalToCartesian(Nodes, new NaturalPoint2D(0.0, 0.0));
+        public CartesianPoint FindCentroid()
+            => Interpolation.TransformNaturalToCartesian(Nodes, new NaturalPoint(0.0, 0.0));
 
-        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element) => dofTypes;
 
         /// <summary>
         /// The returned structure is a list with as many entries as the number of nodes of this element. Each entry contains 
@@ -250,9 +265,6 @@ namespace ISAAR.MSolve.FEM.Elements
             }
             return allDofs;
         }
-
-        //TODO: This must be a property or returned with the count. Clients should not have to iterate it once, just to count. 
-        public int GetNodalDofsCount() => 2 * Nodes.Count;
 
         //TODO: This is for the case when we also number constrained dofs globally.
         //// Perhaps this should be more minimalistic
@@ -273,16 +285,6 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             return BuildConsistentMassMatrix();
             //return BuildLumpedMassMatrix();
-        }
-
-        public bool MaterialModified
-        {
-            get
-            {
-                foreach (ElasticMaterial2D material in materialsAtGaussPoints)
-                    if (material.Modified) return true;
-                return false;
-            }
         }
 
         public void ResetMaterialModified()

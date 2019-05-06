@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
-using ISAAR.MSolve.Discretization.Mesh;
-using ISAAR.MSolve.Discretization.Mesh.Custom;
+using ISAAR.MSolve.Discretization.Mesh.Generation;
+using ISAAR.MSolve.Discretization.Mesh.Generation.Custom;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Input;
@@ -65,7 +65,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
             double depthY = numElementsY;
             var mesher = new UniformMeshGenerator2D<Node>(0, 0, lengthX, depthY, numElementsX, numElementsY);
             (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> connectivity) = 
-                mesher.CreateMesh((id, x, y, z) => new Node() { ID = id, X = x, Y = y, Z = z });
+                mesher.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
 
             // Add nodes to the model
             for (int n = 0; n < nodes.Count; ++n) model.NodesDictionary.Add(n, nodes[n]);
@@ -211,7 +211,7 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
             double depthY = numElementsY;
             var mesher = new UniformMeshGenerator2D<Node>(0, 0, lengthX, depthY, numElementsX, numElementsY);
             (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> connectivity) = 
-                mesher.CreateMesh((id, x, y, z) => new Node() { ID = id, X = x, Y = y, Z = z });
+                mesher.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
 
             // Add nodes to the model
             for (int n = 0; n < nodes.Count; ++n) model.NodesDictionary.Add(n, nodes[n]);

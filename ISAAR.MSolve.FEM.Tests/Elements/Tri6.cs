@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using ISAAR.MSolve.Discretization.Integration.Points;
+using ISAAR.MSolve.Discretization.Integration;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
@@ -35,12 +35,12 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         /// </summary>
         private static readonly IReadOnlyList<Node> nodeSet0 = new Node[]
         {
-            new Node { ID = 0, X = 1.5, Y = 3.8 },
-            new Node { ID = 1, X = 1.0, Y = 1.0 },
-            new Node { ID = 2, X = 4.0, Y = 0.8 },
-            new Node { ID = 3, X = 1.4, Y = 2.3 },
-            new Node { ID = 4, X = 2.6, Y = 1.2 },
-            new Node { ID = 5, X = 2.9, Y = 2.6 }
+            new Node( id: 0, x: 1.5, y:  3.8 ),
+            new Node( id: 1, x: 1.0, y:  1.0 ),
+            new Node( id: 2, x: 4.0, y:  0.8 ),
+            new Node( id: 3, x: 1.4, y:  2.3 ),
+            new Node( id: 4, x: 2.6, y:  1.2 ),
+            new Node( id: 5, x: 2.9, y:  2.6 )
         };
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
             IQuadrature2D quadratureForMass = TriangleQuadratureSymmetricGaussian.Order4Points6;
 
             var materialsAtGaussPoints = new List<ElasticMaterial2D>();
-            foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
+            foreach (GaussPoint gaussPoint in quadratureForMass.IntegrationPoints)
             {
                 materialsAtGaussPoints.Add(material0.Clone());
             }

@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public ElementDimensions ElementDimensions => ElementDimensions.TwoD;
 
-        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofs;
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element) => dofs;
 
         public IList<Node> GetNodesForMatrixAssembly(Element element) => element.Nodes;
 

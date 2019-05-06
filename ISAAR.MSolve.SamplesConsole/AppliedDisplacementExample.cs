@@ -20,8 +20,8 @@ namespace ISAAR.MSolve.SamplesConsole
         private static IList<Node> CreateNodes()
         {
             IList<Node> nodes = new List<Node>();
-            Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
-            Node node2 = new Node { ID = 2, X = 1.0, Y = 0.0, Z = 0.0 };
+            Node node1 = new Node( id: 1, x: 0.0, y:  0.0, z: 0.0 );
+            Node node2 = new Node( id: 2, x: 1.0, y:  0.0, z: 0.0 );
             nodes.Add(node1);
             nodes.Add(node2);
             return nodes;

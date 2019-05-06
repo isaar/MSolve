@@ -27,11 +27,11 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
             det = (x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1);
         }
 
-        public NaturalPoint2D TransformPointCartesianToNatural(CartesianPoint2D point)
+        public NaturalPoint TransformPointCartesianToNatural(CartesianPoint point)
         {
             double detXi = (point.X - x1) * (y3 - y1) - (x3 - x1) * (point.Y - y1);
             double detEta = (x2 - x1) * (point.Y - y1) - (point.X - x1) * (y2 - y1);
-            return new NaturalPoint2D(detXi / det, detEta / det);
+            return new NaturalPoint(detXi / det, detEta / det);
         }
     }
 }

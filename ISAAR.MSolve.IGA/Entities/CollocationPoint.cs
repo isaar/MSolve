@@ -7,11 +7,11 @@ using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-	public class CollocationPoint2D:NaturalPoint2D, INode
+	public class CollocationPoint: NaturalPoint, INode
     {
         private int _id;
         public int ID => _id;
-        int INode.ID { get => _id; set => _id = value; }
+        int INode.ID { get => _id; }
         public double X { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public double Y { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public double Z { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
@@ -20,14 +20,16 @@ namespace ISAAR.MSolve.IGA.Entities
 
         public Dictionary<int, ISubdomain> SubdomainsDictionary => throw new NotImplementedException();
 
-        public CollocationPoint2D(int id, double xi, double eta) : base(xi, eta)
+        public CollocationPoint(int id, double xi, double eta) : base(xi, eta)
 		{
             _id = id;
 		}
 
-		public CollocationPoint2D(int id, double[] coordinates) : base(coordinates)
+		public CollocationPoint(int id, double[] coordinates) : base(coordinates)
 		{
             _id = id;
 		}
-	}
+
+        public int CompareTo(INode other) => this.ID - other.ID;
+    }
 }

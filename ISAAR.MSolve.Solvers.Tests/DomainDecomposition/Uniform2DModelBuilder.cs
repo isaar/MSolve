@@ -5,7 +5,8 @@ using System.Linq;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Mesh;
-using ISAAR.MSolve.Discretization.Mesh.Custom;
+using ISAAR.MSolve.Discretization.Mesh.Generation;
+using ISAAR.MSolve.Discretization.Mesh.Generation.Custom;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Materials;
@@ -58,7 +59,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
             var meshGenerator = new UniformMeshGenerator2D<Node>(0, 0, DomainLengthX, DomainLengthY,
                 NumTotalElementsX, NumTotalElementsY);
             (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity<Node>> cells) = 
-                meshGenerator.CreateMesh((id, x, y, z) => new Node() { ID = id, X = x, Y = y, Z = z });
+                meshGenerator.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
 
             // Define subdomain boundaries
             int numTotalSubdomains = NumSubdomainsX * NumSubdomainsY;

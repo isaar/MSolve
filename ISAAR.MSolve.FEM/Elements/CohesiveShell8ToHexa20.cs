@@ -724,7 +724,7 @@ namespace ISAAR.MSolve.FEM.Elements
             }
         }
 
-        public virtual IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public virtual IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element) => dofTypes;
 
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {

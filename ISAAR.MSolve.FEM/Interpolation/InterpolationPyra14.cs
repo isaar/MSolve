@@ -18,24 +18,24 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
 	    private InterpolationPyra14() : base(14)
 	    {
-		    NodalNaturalCoordinates = new NaturalPoint3D[]
+		    NodalNaturalCoordinates = new NaturalPoint[]
 		    {
-				new NaturalPoint3D(-1,-1,-1),
-			    new NaturalPoint3D(1,-1,-1),
-			    new NaturalPoint3D(1,1,-1),
-			    new NaturalPoint3D(-1,1,-1),
-			    new NaturalPoint3D(0,0,1),
+				new NaturalPoint(-1,-1,-1),
+			    new NaturalPoint(1,-1,-1),
+			    new NaturalPoint(1,1,-1),
+			    new NaturalPoint(-1,1,-1),
+			    new NaturalPoint(0,0,1),
 
-			    new NaturalPoint3D(0,-1,-1),
-			    new NaturalPoint3D(-1,0,-1),
-			    new NaturalPoint3D(-0.5,-0.5,0),
-			    new NaturalPoint3D(1,0,-1),
-			    new NaturalPoint3D(0.5,-0.5,0),
+			    new NaturalPoint(0,-1,-1),
+			    new NaturalPoint(-1,0,-1),
+			    new NaturalPoint(-0.5,-0.5,0),
+			    new NaturalPoint(1,0,-1),
+			    new NaturalPoint(0.5,-0.5,0),
 
-			    new NaturalPoint3D(0,1,-1),
-			    new NaturalPoint3D(0.5,0.5,0),
-			    new NaturalPoint3D(-0.5,0.5,0),
-				new NaturalPoint3D(0, 0, -1),
+			    new NaturalPoint(0,1,-1),
+			    new NaturalPoint(0.5,0.5,0),
+			    new NaturalPoint(-0.5,0.5,0),
+				new NaturalPoint(0, 0, -1),
 		    };
 	    }
 
@@ -43,19 +43,29 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// The coordinates of the finite element's nodes in the natural (element local) coordinate system. The order
 		/// of these nodes matches the order of the shape functions and is always the same for each element.
 		/// </summary>
-		public override IReadOnlyList<NaturalPoint3D> NodalNaturalCoordinates { get; }
+		public override IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
 		/// <summary>
 		/// Get the unique instance <see cref="InterpolationPyra14"/> object for the whole program. Thread safe.
 		/// </summary>
 		public static InterpolationPyra14 UniqueInstance => uniqueInstance;
 
-	    /// <summary>
-	    /// The reverse mapping for this interpolation, namely from global cartesian coordinates to natural (element local) coordinate system.
-	    /// </summary>
-	    /// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
-	    /// <returns></returns>
-	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> node) 
+        /// <summary>
+        /// See <see cref="IIsoparametricInterpolation2D.CheckElementNodes(IReadOnlyList{Node})"/>
+        /// </summary>
+        public override void CheckElementNodes(IReadOnlyList<Node> nodes)
+        {
+            if (nodes.Count != 14) throw new ArgumentException(
+                $"A Pyra14 finite element has 14 nodes, but {nodes.Count} nodes were provided.");
+            // TODO: Also check the order of the nodes too and perhaps even the shape
+        }
+
+        /// <summary>
+        /// The reverse mapping for this interpolation, namely from global cartesian coordinates to natural (element local) coordinate system.
+        /// </summary>
+        /// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
+        /// <returns></returns>
+        public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> node) 
             => throw new NotImplementedException("Iterative procedure required");
 
 		// based on https://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/AFEM.Ch12.d/AFEM.Ch12.pdf

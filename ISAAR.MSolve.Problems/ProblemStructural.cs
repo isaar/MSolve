@@ -130,6 +130,15 @@ namespace ISAAR.MSolve.Problems
         private void BuildDamping() => damping = solver.BuildGlobalMatrices(dampingProvider);
 
         #region IAnalyzerProvider Members
+        public void ClearMatrices()
+        {
+            damping = null;
+            stiffnessFreeFree = null;
+            stiffnessConstrFree = null;
+            stiffnessConstrConstr = null;
+            mass = null;
+        }
+
         public void Reset()
         {
             foreach (ISubdomain subdomain in model.Subdomains)

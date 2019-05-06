@@ -9,7 +9,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
     public class JacobianHexa8Reverse
     {
         public static (Matrix[] J_0inv_hexa, double[] detJ_0) 
-            GetJ_0invHexaAndDetJ_0(IReadOnlyList<Matrix> ll1_hexa, IList<INode> elementNodes, int nGaussPoints)
+            GetJ_0invHexaAndDetJ_0(IReadOnlyList<Matrix> ll1_hexa, IReadOnlyList<INode> elementNodes, int nGaussPoints)
         {
             double[][,] J_0b_hexa; // dimension [] number of gpoints
             double[][,] J_0_hexa;

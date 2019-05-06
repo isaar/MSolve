@@ -4,6 +4,7 @@ using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
@@ -18,11 +19,11 @@ using ISAAR.MSolve.Materials;
 //TODO: Is there any point in having different material properties per Gauss point?
 namespace ISAAR.MSolve.FEM.Elements
 {
-    public class ThermalElement2D : IFiniteElement, IEmbeddedHostElement
+    public class ThermalElement2D : IFiniteElement, IEmbeddedHostElement, ICell<Node>
     {
         private readonly IDofType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
         private readonly ThermalMaterial material;
-        //private readonly Dictionary<GaussPoint2D, ThermalMaterial> materialsAtGaussPoints;
+        //private readonly Dictionary<GaussPoint, ThermalMaterial> materialsAtGaussPoints;
 
 
         public ThermalElement2D(double thickness, IReadOnlyList<Node> nodes, IIsoparametricInterpolation2D interpolation,
@@ -42,6 +43,7 @@ namespace ISAAR.MSolve.FEM.Elements
             for (int i = 0; i < interpolation.NumFunctions; ++i) dofTypes[i] = new IDofType[] { ThermalDof.Temperature };
         }
 
+        public CellType CellType => Interpolation.CellType;
         public ElementDimensions ElementDimensions => ElementDimensions.TwoD;
 
         public int ID => throw new NotImplementedException(
@@ -155,7 +157,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return Matrix.CreateFromArray(shapeFunctions, 1, shapeFunctions.Length);
         }
 
-        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element) => dofTypes;
 
         public void ResetMaterialModified()
         {
@@ -210,7 +212,7 @@ namespace ISAAR.MSolve.FEM.Elements
         public EmbeddedNode BuildHostElementEmbeddedNode(Element element, Node node, IEmbeddedDOFInHostTransformationVector transformationVector)
         {
             IInverseInterpolation2D inverseInterpolation = Interpolation.CreateInverseMappingFor(Nodes);
-            double[] naturalCoordinates = inverseInterpolation.TransformPointCartesianToNatural(new CartesianPoint2D(node.X, node.Y)).Coordinates;
+            double[] naturalCoordinates = inverseInterpolation.TransformPointCartesianToNatural(new CartesianPoint(node.X, node.Y)).Coordinates;
 
             if (naturalCoordinates.Length == 0) return null;
 
@@ -223,7 +225,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public double[] GetShapeFunctionsForNode(Element element, EmbeddedNode node)
         {
-            return Interpolation.EvaluateFunctionsAt(new NaturalPoint2D(node.Coordinates[0], node.Coordinates[1]));
+            return Interpolation.EvaluateFunctionsAt(new NaturalPoint(node.Coordinates[0], node.Coordinates[1]));
 
             //TODO: This method originally returned an array containing the shape functions, shape function derivatives and entries of the inverse jacobian matrix.
             //      a) This is retarded and extremely difficult to work with. b) This array is used in Hexa8TranslationAndRotationTransformationVector. Cohesive embedding 

@@ -13,13 +13,13 @@ doorHeight = 2.032;
 
 // Window 1 params
 window1CenterX = wallLength / 5;
-window1TopY = doorHeight;
+window1Topy: doorHeight;
 window1Width = 0.6096;
 window1Height = 0.9144;
 
 // Window 2 params
 window2CenterX = wallLength - window1CenterX;
-window2TopY = doorHeight;
+window2Topy: doorHeight;
 window2Width = window1Width;
 window2Height = window1Height;
 
@@ -27,13 +27,13 @@ window2Height = window1Height;
 doorLeftX = doorCenterX - doorWidth / 2;
 doorRightX = doorCenterX + doorWidth / 2;
 window1MinX = window1CenterX - window1Width / 2;
-window1MinY = window1TopY - window1Height;
+window1Miny: window1TopY - window1Height;
 window1MaxX = window1CenterX + window1Width / 2;
-window1MaxY = window1TopY;
+window1Maxy: window1TopY;
 window2MinX = window2CenterX - window2Width / 2;
-window2MinY = window2TopY - window2Height;
+window2Miny: window2TopY - window2Height;
 window2MaxX = window2CenterX + window2Width / 2;
-window2MaxY = window2TopY;
+window2Maxy: window2TopY;
 
 // Points definitions
 // External

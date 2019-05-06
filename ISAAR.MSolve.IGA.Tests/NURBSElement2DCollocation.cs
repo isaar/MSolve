@@ -134,7 +134,7 @@ namespace ISAAR.MSolve.IGA.Tests
 				patch.KnotValueVectorKsi = KnotValueVectorKsi();
 				patch.KnotValueVectorHeta = KnotValueVectorHeta();
 				element.Patch = patch;
-				element.CollocationPoint=new CollocationPoint2D(0,0.00625000000000000, 0.0125000000000000);
+				element.CollocationPoint=new CollocationPoint(0,0.00625000000000000, 0.0125000000000000);
 				return element;
 			}
 		}
@@ -778,7 +778,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		}
 		
 		[Fact]
-		private void TestCollocationPoint2DStiffness()
+		private void TestCollocationPointStiffness()
 		{
 			var stiffnessMatrix = Element.StiffnessMatrix(Element);
 

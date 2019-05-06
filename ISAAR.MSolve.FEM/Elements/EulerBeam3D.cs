@@ -294,7 +294,7 @@ namespace ISAAR.MSolve.FEM.Elements
             get { return ElementDimensions.ThreeD; }
         }
 
-        private IList<Tuple<Node, IList<IDofType>>> GetDOFTypesInternal(Element element)
+        private IList<Tuple<Node, IReadOnlyList<IDofType>>> GetDOFTypesInternal(Element element)
         {
             if (element == null) throw new ArgumentException();
 
@@ -303,12 +303,12 @@ namespace ISAAR.MSolve.FEM.Elements
             {
                 var embeddedNode = embeddedNodes.Where(x => x.Node == node).FirstOrDefault();
                 if (embeddedNode != null)
-                    hostDOFTypes.AddRange(embeddedNode.EmbeddedInElement.ElementType.DofEnumerator.GetDOFTypes(null).SelectMany(x => x));
+                    hostDOFTypes.AddRange(embeddedNode.EmbeddedInElement.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(null).SelectMany(x => x));
             }
             hostDOFTypes = hostDOFTypes.Distinct().ToList();
 
-            var d = new Dictionary<Node, IList<IDofType>>();
-            var l = new List<Tuple<Node, IList<IDofType>>>();
+            var d = new Dictionary<Node, IReadOnlyList<IDofType>>();
+            var l = new List<Tuple<Node, IReadOnlyList<IDofType>>>();
             foreach (var node in element.Nodes)
             {
                 var embeddedNode = embeddedNodes.Where(x => x.Node == node).FirstOrDefault();
@@ -318,17 +318,17 @@ namespace ISAAR.MSolve.FEM.Elements
                     var nodeDofs = new List<IDofType>();
                     nodeDofs.AddRange(nodalDOFTypes.Except(hostDOFTypes));
                     d.Add(node, nodeDofs);
-                    l.Add(new Tuple<Node, IList<IDofType>>(node, nodeDofs));
+                    l.Add(new Tuple<Node, IReadOnlyList<IDofType>>(node, nodeDofs));
                 }
                 else
                 {
                     //d.AddRange(node.EmbeddedInElement.ElementType.GetDOFTypes(null));
-                    var hostDOFsPerNode = embeddedNode.EmbeddedInElement.ElementType.DofEnumerator.GetDOFTypes(null);
+                    var hostDOFsPerNode = embeddedNode.EmbeddedInElement.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(null);
                     for (int i = 0; i < hostDOFsPerNode.Count; i++)
                     {
                         if (!d.ContainsKey(embeddedNode.EmbeddedInElement.Nodes[i]))
                             d.Add(embeddedNode.EmbeddedInElement.Nodes[i], hostDOFsPerNode[i]);
-                        l.Add(new Tuple<Node, IList<IDofType>>(embeddedNode.EmbeddedInElement.Nodes[i], hostDOFsPerNode[i]));
+                        l.Add(new Tuple<Node, IReadOnlyList<IDofType>>(embeddedNode.EmbeddedInElement.Nodes[i], hostDOFsPerNode[i]));
                     }
                 }
             }
@@ -347,7 +347,7 @@ namespace ISAAR.MSolve.FEM.Elements
                         d.Add(node, uniqueDOFTypes);
                     else
                         d[node] = d[node].Concat(uniqueDOFTypes).ToArray();
-                    l.Add(new Tuple<Node, IList<IDofType>>(node, uniqueDOFTypes));
+                    l.Add(new Tuple<Node, IReadOnlyList<IDofType>>(node, uniqueDOFTypes));
                 }
 
             return l;
@@ -365,7 +365,7 @@ namespace ISAAR.MSolve.FEM.Elements
         //    return d;
         //}
 
-        public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element)
         {
             if (dofsWhenNoRotations == null) return dofs;
             return dofsWhenNoRotations;

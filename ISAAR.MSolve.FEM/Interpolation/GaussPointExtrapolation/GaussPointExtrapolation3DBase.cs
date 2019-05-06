@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 		///     (element local) system, instead of the coordinate system defined by the integration points.</param>
 		/// <returns></returns>
 		public double ExtrapolateScalarFromGaussPoints(IReadOnlyList<double> scalarAtGaussPoints,
-		    NaturalPoint3D naturalPoint)
+		    NaturalPoint naturalPoint)
 		{
 			double[] extrapolationFunctions = EvaluateExtrapolationFunctionsAt(naturalPoint);
 			double scalar = 0;
@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 		    IIsoparametricInterpolation3D interpolation)
 	    {
 		    double[][] nodalExtrapolationFunctions = EvaluateExtrapolationFunctionsAtNodes(interpolation);
-		    IReadOnlyList<NaturalPoint3D> nodes = interpolation.NodalNaturalCoordinates;
+		    IReadOnlyList<NaturalPoint> nodes = interpolation.NodalNaturalCoordinates;
 		    var nodalScalars = new double[nodes.Count];
 		    for (int i = 0; i < nodes.Count; i++)
 		    {
@@ -92,7 +92,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 		///     (element local) system, instead of the coordinate system defined by the integration points.</param>
 		/// <returns></returns>
 		public double[] ExtrapolateTensorFromGaussPoints(IReadOnlyList<double[]> tensorsAtGaussPoints,
-		    NaturalPoint3D naturalPoint)
+		    NaturalPoint naturalPoint)
 	    {
 		    double[] extrapolationFunctions = EvaluateExtrapolationFunctionsAt(naturalPoint);
 		    var tensor = new double[6];
@@ -121,7 +121,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 		    IReadOnlyList<double[]> tensorsAtGaussPoints, IIsoparametricInterpolation3D interpolation)
 	    {
 		    double[][] nodalExtrapolationFunctions = EvaluateExtrapolationFunctionsAtNodes(interpolation);
-		    IReadOnlyList<NaturalPoint3D> nodes = interpolation.NodalNaturalCoordinates;
+		    IReadOnlyList<NaturalPoint> nodes = interpolation.NodalNaturalCoordinates;
 		    var nodalTensors = new double[nodes.Count][];
 		    for (int i = 0; i < nodes.Count; i++)
 		    {
@@ -152,7 +152,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 		///     (element local) system, instead of the coordinate system defined by the integration points.</param>
 		/// <returns></returns>
 		public double[] ExtrapolateVectorFromGaussPoints(IReadOnlyList<double[]> vectorsAtGaussPoints,
-		    NaturalPoint3D naturalPoint)
+		    NaturalPoint naturalPoint)
 	    {
 		    double[] extrapolationFunctions = EvaluateExtrapolationFunctionsAt(naturalPoint);
 		    var vector = new double[3];
@@ -178,7 +178,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 		    IReadOnlyList<double[]> vectorsAtGaussPoints, IIsoparametricInterpolation3D interpolation)
 	    {
 		    double[][] nodalExtrapolationFunctions = EvaluateExtrapolationFunctionsAtNodes(interpolation);
-		    IReadOnlyList<NaturalPoint3D> nodes = interpolation.NodalNaturalCoordinates;
+		    IReadOnlyList<NaturalPoint> nodes = interpolation.NodalNaturalCoordinates;
 		    var nodalVectors = new double[nodes.Count][];
 		    for (int i = 0; i < nodes.Count; i++)
 		    {
@@ -203,7 +203,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 		/// <param name="naturalPoint">The coordinates of the point where the extrapolation functions will be calculated, in the 
 		///     natural (element local) system.</param>
 		/// <returns></returns>
-		protected abstract double[] EvaluateExtrapolationFunctionsAt(NaturalPoint3D naturalPoint);
+		protected abstract double[] EvaluateExtrapolationFunctionsAt(NaturalPoint naturalPoint);
 
 	    private double[][] EvaluateExtrapolationFunctionsAtNodes(IIsoparametricInterpolation3D interpolation)
 	    {
@@ -211,7 +211,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
 			    cachedExtrapolationFunctionsAtNodes.TryGetValue(interpolation, out double[][] nodalExtrapolationFunctions);
 		    if (!isCached)
 		    {
-			    IReadOnlyList<NaturalPoint3D> nodes = interpolation.NodalNaturalCoordinates;
+			    IReadOnlyList<NaturalPoint> nodes = interpolation.NodalNaturalCoordinates;
 			    nodalExtrapolationFunctions = new double[nodes.Count][];
 			    for (int i = 0; i < nodes.Count; i++)
 			    {

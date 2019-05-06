@@ -31,29 +31,29 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         // The nodes in the order of the Abaqus Hexa8 element
         private static readonly IReadOnlyList<Node> NodeSet0= new Node[]
         {
-            new Node { ID = 0, X = 0, Y = 5, Z = 5 },
-            new Node { ID = 1, X = 0, Y = 0, Z = 5 },
-            new Node { ID = 2, X = 0, Y = 0, Z = 0 },
-            new Node { ID = 3, X = 0, Y = 5, Z = 0 },
+            new Node( id: 0, x: 0, y:  5, z: 5 ),
+            new Node( id: 1, x: 0, y:  0, z: 5 ),
+            new Node( id: 2, x: 0, y:  0, z: 0 ),
+            new Node( id: 3, x: 0, y:  5, z: 0 ),
 
-            new Node { ID = 4, X = 5, Y = 5, Z = 5 },
-            new Node { ID = 5, X = 5, Y = 0, Z = 5 },
-            new Node { ID = 6, X = 5, Y = 0, Z = 0 },
-            new Node { ID = 7, X = 5, Y = 5, Z = 0 },
+            new Node( id: 4, x: 5, y:  5, z: 5 ),
+            new Node( id: 5, x: 5, y:  0, z: 5 ),
+            new Node( id: 6, x: 5, y:  0, z: 0 ),
+            new Node( id: 7, x: 5, y:  5, z: 0 ),
         };
 
         // The nodes in the order of the Abaqus Hexa8 element
         private static readonly IReadOnlyList<Node> NodeSet1 = new Node[]
         {
-            new Node { ID = 0, X = -1, Y =  1, Z = 2 },
-            new Node { ID = 1, X = -1, Y = -1, Z = 2 },
-            new Node { ID = 2, X = -1, Y = -1, Z = 0 },
-            new Node { ID = 3, X = -1, Y =  1, Z = 0 },
+            new Node( id: 0, x: -1, y:   1, z: 2 ),
+            new Node( id: 1, x: -1, y:  -1, z: 2 ),
+            new Node( id: 2, x: -1, y:  -1, z: 0 ),
+            new Node( id: 3, x: -1, y:   1, z: 0 ),
 
-            new Node { ID = 4, X =  1, Y =  1, Z = 2 },
-            new Node { ID = 5, X =  1, Y = -1, Z = 2 },
-            new Node { ID = 6, X =  1, Y = -1, Z = 0 },
-            new Node { ID = 7, X =  1, Y =  1, Z = 0 },
+            new Node( id: 4, x:  1, y:   1, z: 2 ),
+            new Node( id: 5, x:  1, y:  -1, z: 2 ),
+            new Node( id: 6, x:  1, y:  -1, z: 0 ),
+            new Node( id: 7, x:  1, y:   1, z: 0 ),
         };
 
         internal static IReadOnlyList<Node> AbaqusToMSolveHexa8Nodes(IReadOnlyList<Node> abaqusOrder)

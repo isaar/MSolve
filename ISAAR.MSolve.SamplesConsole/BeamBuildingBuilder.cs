@@ -97,7 +97,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 {
                     for (int k = 0; k < 5; k++)
                     {
-                        model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + k * beamWidth, Y = startY, Z = startZ + j * beamWidth });
+                        model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + k * beamWidth, y:  startY, z: startZ + j * beamWidth ));
                         model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
                         model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
                         model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
@@ -107,7 +107,7 @@ namespace ISAAR.MSolve.SamplesConsole
                         nodeID++;
                     }
                 }
-                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 2 * beamWidth, Y = startY, Z = startZ + 3 * beamWidth });
+                model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + 2 * beamWidth, y:  startY, z: startZ + 3 * beamWidth ));
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
@@ -115,7 +115,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationY });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationZ });
                 nodeID++;
-                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 3 * beamWidth, Y = startY, Z = startZ + 3 * beamWidth });
+                model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + 3 * beamWidth, y:  startY, z: startZ + 3 * beamWidth ));
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
@@ -123,7 +123,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationY });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationZ });
                 nodeID++;
-                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 4 * beamWidth, Y = startY, Z = startZ + 3 * beamWidth });
+                model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + 4 * beamWidth, y:  startY, z: startZ + 3 * beamWidth ));
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
                 model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
@@ -139,15 +139,15 @@ namespace ISAAR.MSolve.SamplesConsole
                 {
                     for (int k = 0; k < 5; k++)
                     {
-                        model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + k * beamWidth, Y = startY + i * beamHeight, Z = startZ + j * beamWidth });
+                        model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + k * beamWidth, y:  startY + i * beamHeight, z: startZ + j * beamWidth ));
                         nodeID++;
                     }
                 }
-                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 2 * beamWidth, Y = startY + i * beamHeight, Z = startZ + 3 * beamWidth });
+                model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + 2 * beamWidth, y:  startY + i * beamHeight, z: startZ + 3 * beamWidth ));
                 nodeID++;
-                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 3 * beamWidth, Y = startY + i * beamHeight, Z = startZ + 3 * beamWidth });
+                model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + 3 * beamWidth, y:  startY + i * beamHeight, z: startZ + 3 * beamWidth ));
                 nodeID++;
-                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 4 * beamWidth, Y = startY + i * beamHeight, Z = startZ + 3 * beamWidth });
+                model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + 4 * beamWidth, y:  startY + i * beamHeight, z: startZ + 3 * beamWidth ));
                 nodeID++;
             }
             List<Node> groundNodes = new List<Node>();
@@ -185,7 +185,7 @@ namespace ISAAR.MSolve.SamplesConsole
                             {
                                 Density = 7.85,
                                 SectionArea = b * h,
-                                MomentOfInertiaY = b * b * b * h,
+                                MomentOfInertiaY= b * b * b * h,
                                 MomentOfInertiaZ = b * h * h * h,
                             }
                         };
