@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual
             IDofSeparator dofSeparator, Dictionary<int, IMatrixView> stiffnesses)
         {
             var result = new Table<INode, IDofType, BoundaryDofLumpedStiffness>();
-            foreach (var nodeDofsPair in dofSeparator.GlobalBoundaryDofs)
+            foreach (var nodeDofsPair in dofSeparator.DualDofs)
             {
                 INode node = nodeDofsPair.Key;
                 foreach (IDofType dofType in nodeDofsPair.Value)

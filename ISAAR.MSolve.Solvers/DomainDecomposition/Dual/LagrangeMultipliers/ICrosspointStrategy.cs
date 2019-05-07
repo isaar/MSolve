@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Interfaces;
 
-//TODO: extend this to methods other than FEM.
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
 {
     /// <summary>

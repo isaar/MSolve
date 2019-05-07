@@ -114,13 +114,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
         private List<(INode node, IDofType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)> 
             DefineBoundaryDofConstraints(IDofSeparator dofSeparator)
         {
-            // Find boundary nodes and dofs
+            // Find boundary dual nodes and dofs
             var boundaryNodeData = new List<(INode node, IDofType[] dofs, ISubdomain[] subdomainsPlus, 
-                ISubdomain[] subdomainsMinus)>(dofSeparator.GlobalBoundaryDofs.Count);
+                ISubdomain[] subdomainsMinus)>(dofSeparator.DualDofs.Count);
 
             // Find continuity equations.
             NumLagrangeMultipliers = 0;
-            foreach (var nodeDofsPair in dofSeparator.GlobalBoundaryDofs)
+            foreach (var nodeDofsPair in dofSeparator.DualDofs)
             {
                 INode node = nodeDofsPair.Key;
                 IDofType[] dofsOfNode = nodeDofsPair.Value;
@@ -138,29 +138,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
                 NumLagrangeMultipliers += dofsOfNode.Length * subdomainsPlus.Length;
             }
 
-            //// Find boundary nodes and continuity equations.
-            //var boundaryNodeData =
-            //    new List<(INode node, DOFType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)>();
-            //NumLagrangeMultipliers = 0;
-            //foreach (INode node in model.Nodes) //TODO: this probably doesn't work if there are embedded nodes. It is time to isolate the embedded nodes.
-            //{
-            //    int nodeMultiplicity = node.SubdomainsDictionary.Count;
-            //    if (nodeMultiplicity > 1)
-            //    {
-            //        DOFType[] dofsOfNode = model.GlobalDofOrdering.GlobalFreeDofs.GetColumnsOfRow(node).ToArray(); //TODO: interacting with the table can be optimized.
-
-            //        // If all dofs of this node are constrained, then it is not considered boundary.
-            //        if (dofsOfNode.Length == 0) continue;
-
-            //        IEnumerable<ISubdomain> nodeSubdomains = node.SubdomainsDictionary.Values;
-            //        (ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus) =
-            //            crosspointStrategy.FindSubdomainCombinations(nodeMultiplicity, nodeSubdomains);
-
-            //        boundaryNodeData.Add((node, dofsOfNode, subdomainsPlus, subdomainsMinus));
-            //        NumLagrangeMultipliers += dofsOfNode.Length * subdomainsPlus.Length;
-            //    }
-            //}
-
             return boundaryNodeData;
         }
 
@@ -174,6 +151,35 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
                     new SignedBooleanMatrix(NumLagrangeMultipliers, subdomain.FreeDofOrdering.NumFreeDofs);
             }
         }
+
+        //private List<(INode node, IDofType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)>
+        //    DefineBoundaryDofConstraintsOLD(IDofSeparator dofSeparator)
+        //{
+        //// Find boundary nodes and continuity equations.
+        //var boundaryNodeData =
+        //    new List<(INode node, DOFType[] dofs, ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus)>();
+        //NumLagrangeMultipliers = 0;
+        //foreach (INode node in model.Nodes) //TODO: this probably doesn't work if there are embedded nodes. It is time to isolate the embedded nodes.
+        //{
+        //    int nodeMultiplicity = node.SubdomainsDictionary.Count;
+        //    if (nodeMultiplicity > 1)
+        //    {
+        //        DOFType[] dofsOfNode = model.GlobalDofOrdering.GlobalFreeDofs.GetColumnsOfRow(node).ToArray(); //TODO: interacting with the table can be optimized.
+
+        //        // If all dofs of this node are constrained, then it is not considered boundary.
+        //        if (dofsOfNode.Length == 0) continue;
+
+        //        IEnumerable<ISubdomain> nodeSubdomains = node.SubdomainsDictionary.Values;
+        //        (ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus) =
+        //            crosspointStrategy.FindSubdomainCombinations(nodeMultiplicity, nodeSubdomains);
+
+        //        boundaryNodeData.Add((node, dofsOfNode, subdomainsPlus, subdomainsMinus));
+        //        NumLagrangeMultipliers += dofsOfNode.Length * subdomainsPlus.Length;
+        //    }
+        //}
+
+        //return boundaryNodeData;
+        //}
 
         ////TODO: Perhaps optimizations with arrays or a dedicated DTO class are possible
         ///// <summary>

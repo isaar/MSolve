@@ -187,7 +187,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 
             // Define boundary / internal dofs
             dofSeparator = new Feti1DofSeparator();
-            dofSeparator.SeparateBoundaryInternalDofs(model);
+            dofSeparator.SeparateDofs(model);
 
             // Define lagrange multipliers and boolean matrices
             if (problemIsHomogeneous) lagrangeEnumerator.DefineBooleanMatrices(model, dofSeparator); // optimization in this case
