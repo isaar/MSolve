@@ -124,9 +124,15 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
             {
                 INode node = nodeDofsPair.Key;
                 IDofType[] dofsOfNode = nodeDofsPair.Value;
-                IEnumerable <ISubdomain> nodeSubdomains = node.SubdomainsDictionary.Values;
-                (ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus) =
-                    crosspointStrategy.FindSubdomainCombinations(nodeSubdomains.Count(), nodeSubdomains);
+                ISubdomain[] nodeSubdomains = node.SubdomainsDictionary.Values.ToArray();
+                ISubdomain[] subdomainsPlus, subdomainsMinus;
+                int multiplicity = nodeSubdomains.Length;
+                if (multiplicity == 2)
+                {
+                    subdomainsPlus = new ISubdomain[] { nodeSubdomains[0] };
+                    subdomainsMinus = new ISubdomain[] { nodeSubdomains[1] };
+                }
+                else (subdomainsPlus, subdomainsMinus) = crosspointStrategy.FindSubdomainCombinations(nodeSubdomains);
 
                 boundaryNodeData.Add((node, dofsOfNode, subdomainsPlus, subdomainsMinus));
                 NumLagrangeMultipliers += dofsOfNode.Length * subdomainsPlus.Length;

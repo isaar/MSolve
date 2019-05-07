@@ -6,6 +6,7 @@ using ISAAR.MSolve.Discretization.Interfaces;
 //TODO: Needs a proper name. This probably cannot be incorporated in the ISubdomainDofOrdering, as the intent is different and
 //      depending on the DD method the dof categories may be different (e.g. FETI-1: internal/boundary, 
 //      FETI-DP: corner/boundary/remainder)
+//TODO: Not sure about having the indexing data of all subdomains in the same class.
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 {
     public class Feti1DofSeparator : IDofSeparator

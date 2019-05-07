@@ -10,9 +10,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
     /// </summary>
     internal class FullyRedundantConstraints : ICrosspointStrategy
     {
-        public (ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus) FindSubdomainCombinations(int nodeMultiplicity,
-            IEnumerable<ISubdomain> nodeSubdomains)
+        public (ISubdomain[] subdomainsPlus, ISubdomain[] subdomainsMinus) FindSubdomainCombinations(ISubdomain[] nodeSubdomains)
         {
+            int nodeMultiplicity = nodeSubdomains.Length;
             Debug.Assert(nodeMultiplicity > 1);
             int numNodeCombos = (nodeMultiplicity * (nodeMultiplicity - 1)) / 2; //TODO: not sure about this
             var subdomainsPlus = new ISubdomain[numNodeCombos];
