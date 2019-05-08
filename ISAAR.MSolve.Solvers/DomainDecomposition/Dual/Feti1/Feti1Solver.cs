@@ -26,7 +26,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
     {
         internal const string name = "FETI Level-1 Solver"; // for error messages
         private readonly Dictionary<int, SkylineAssembler> assemblers;
-        private readonly LagrangeMultipliersEnumerator lagrangeEnumerator;
         private readonly ICrosspointStrategy crosspointStrategy = new FullyRedundantConstraints();
         private readonly IDofOrderer dofOrderer;
         private readonly double factorizationPivotTolerance;
@@ -48,6 +47,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         private Dictionary<int, SemidefiniteCholeskySkyline> factorizations;
         private Feti1FlexibilityMatrix flexibility;
         private bool isStiffnessModified = true;
+        private Feti1LagrangeMultipliersEnumerator lagrangeEnumerator;
         private Dictionary<int, List<Vector>> rigidBodyModes;
         private IFetiPreconditioner preconditioner;
         private Feti1Projection projection;
@@ -88,7 +88,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             // PCPG
             this.interfaceProblemSolver = interfaceProblemSolver;
 
-            this.lagrangeEnumerator = new LagrangeMultipliersEnumerator(crosspointStrategy);
 
             // Homogeneous/heterogeneous problems
             this.problemIsHomogeneous = problemIsHomogeneous;
@@ -190,8 +189,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             dofSeparator.SeparateDofs(model);
 
             // Define lagrange multipliers and boolean matrices
-            if (problemIsHomogeneous) lagrangeEnumerator.DefineBooleanMatrices(model, dofSeparator); // optimization in this case
-            else lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model, dofSeparator);
+            this.lagrangeEnumerator = new Feti1LagrangeMultipliersEnumerator(crosspointStrategy, dofSeparator);
+            if (problemIsHomogeneous) lagrangeEnumerator.DefineBooleanMatrices(model); // optimization in this case
+            else lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model);
 
             // Log dof statistics
             if (Logger != null)

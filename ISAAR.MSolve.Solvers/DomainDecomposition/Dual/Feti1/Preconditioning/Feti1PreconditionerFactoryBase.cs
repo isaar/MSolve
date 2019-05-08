@@ -12,11 +12,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
     public abstract class Feti1PreconditionerFactoryBase : IFetiPreconditionerFactory
     {
         public abstract IFetiPreconditioner CreatePreconditioner(IFeti1StiffnessDistribution stiffnessDistribution,
-            Feti1DofSeparator dofSeparator, LagrangeMultipliersEnumerator lagrangeEnumerator,
+            Feti1DofSeparator dofSeparator, ILagrangeMultipliersEnumerator lagrangeEnumerator,
             Dictionary<int, IMatrixView> stiffnessMatrices);
 
         protected Dictionary<int, Matrix> CalcBoundaryPreconditioningBooleanMatrices(IFeti1StiffnessDistribution stiffnessDistribution, 
-            Feti1DofSeparator dofSeparator, LagrangeMultipliersEnumerator lagrangeEnumerator)
+            Feti1DofSeparator dofSeparator, ILagrangeMultipliersEnumerator lagrangeEnumerator)
         {
             int numContinuityEquations = lagrangeEnumerator.NumLagrangeMultipliers;
             int[] rowsToKeep = Enumerable.Range(0, numContinuityEquations).ToArray(); // Same for all subdomains
@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
         }
 
         protected Dictionary<int, Matrix> ExtractBoundaryBooleanMatrices(Feti1DofSeparator dofSeparator,
-            LagrangeMultipliersEnumerator lagrangeEnumerator)
+            ILagrangeMultipliersEnumerator lagrangeEnumerator)
         {
             int numContinuityEquations = lagrangeEnumerator.NumLagrangeMultipliers;
             int[] rowsToKeep = Enumerable.Range(0, numContinuityEquations).ToArray(); // Same for all subdomains

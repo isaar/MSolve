@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
         public ISubdomainGlobalConversion SubdomainGlobalConversion { get; }
 
         public Dictionary<int, Matrix> CalcBoundaryPreconditioningSignedBooleanMatrices(
-            LagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, Matrix> boundarySignedBooleanMatrices)
+            ILagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, Matrix> boundarySignedBooleanMatrices)
         {
             var matricesBpb = new Dictionary<int, Matrix>();
             foreach (int id in boundarySignedBooleanMatrices.Keys)

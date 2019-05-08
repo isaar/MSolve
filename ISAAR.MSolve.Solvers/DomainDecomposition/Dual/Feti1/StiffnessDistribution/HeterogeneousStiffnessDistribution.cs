@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
         public ISubdomainGlobalConversion SubdomainGlobalConversion { get; }
 
         public Dictionary<int, Matrix> CalcBoundaryPreconditioningSignedBooleanMatrices(
-            LagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, Matrix> boundarySignedBooleanMatrices)
+            ILagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, Matrix> boundarySignedBooleanMatrices)
         {
             // According to Fragakis PhD (e.q. 3.28): 
             // Bpb = Dλ * Bb * inv(Db(s)), Dλ[λ,λ] = K(i)[b,b] * K(j)[b,b] / Sum(K(1)[b,b] + K(2)[b,b] + ...)
@@ -77,7 +77,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
             return relativeBoundaryStiffnesses;
         }
 
-        private Matrix BuildDlambda(LagrangeMultipliersEnumerator lagrangeEnumerator)
+        private Matrix BuildDlambda(ILagrangeMultipliersEnumerator lagrangeEnumerator)
         {
             int numLagranges = lagrangeEnumerator.NumLagrangeMultipliers;
             var Dlambda = Matrix.CreateZero(numLagranges, numLagranges);

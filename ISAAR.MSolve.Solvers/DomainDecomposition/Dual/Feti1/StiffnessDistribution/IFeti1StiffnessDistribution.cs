@@ -13,6 +13,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
         ISubdomainGlobalConversion SubdomainGlobalConversion { get;}
 
         Dictionary<int, Matrix> CalcBoundaryPreconditioningSignedBooleanMatrices(
-            LagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, Matrix> boundarySignedBooleanMatrices);
+            ILagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, Matrix> boundarySignedBooleanMatrices);
     }
 }

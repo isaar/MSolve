@@ -4,8 +4,10 @@ using System.Text;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using Xunit;
@@ -60,9 +62,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
                 subdomain.FreeDofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
             }
 
-            //SkylineSolver solver = new SkylineSolver.Builder().BuildSolver(model); //TODO: It should not be necessary to call another solver.
-            //solver.OrderDofs(false);
-
+            // Separate dofs
             var dofSeparator = new FetiDPDofSeparator();
             dofSeparator.SeparateDofs(model, cornerNodes);
 
@@ -73,6 +73,133 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
                 Utilities.CheckEqual(remainderDofsExpected[s], dofSeparator.RemainderIntoFreeDofIndices[s]);
                 Utilities.CheckEqual(boundaryRemainderDofsExpected[s], dofSeparator.BoundaryIntoRemainderDofIndices[s]);
                 Utilities.CheckEqual(internalRemainderDofsExpected[s], dofSeparator.InternalIntoRemainderDofIndices[s]);
+            }
+        }
+
+        [Fact]
+        public static void TestSignedBooleanMatrices()
+        {
+            // Expected results
+            int expectedNumLagrangeMultipliers = 8;
+            var expectedBr = new Dictionary<int, Matrix>();
+
+            expectedBr[0] = Matrix.CreateZero(8, 8);
+            expectedBr[0][0, 4] = +1;
+            expectedBr[0][1, 5] = +1;
+            expectedBr[0][2, 6] = +1;
+            expectedBr[0][3, 7] = +1;
+
+            expectedBr[1] = Matrix.CreateZero(8, 12);
+            expectedBr[1][0, 4] = -1;
+            expectedBr[1][1, 5] = -1;
+            expectedBr[1][4, 10] = +1;
+            expectedBr[1][5, 11] = +1;
+
+            expectedBr[2] = Matrix.CreateZero(8, 8);
+            expectedBr[2][2, 0] = -1;
+            expectedBr[2][3, 1] = -1;
+            expectedBr[2][6, 4] = +1;
+            expectedBr[2][7, 5] = +1;
+
+            expectedBr[3] = Matrix.CreateZero(8, 12);
+            expectedBr[3][4, 0] = -1;
+            expectedBr[3][5, 1] = -1;
+            expectedBr[3][6, 2] = -1;
+            expectedBr[3][7, 3] = -1;
+
+            // Create model
+            Model model = CreateModel();
+            Dictionary<int, INode[]> cornerNodes = DefineCornerNodes(model);
+            model.ConnectDataStructures();
+
+            // Order free dofs.
+            var dofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
+            IGlobalFreeDofOrdering globalOrdering = dofOrderer.OrderFreeDofs(model);
+            model.GlobalDofOrdering = globalOrdering;
+            foreach (ISubdomain subdomain in model.Subdomains)
+            {
+                subdomain.FreeDofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
+            }
+
+            // Separate dofs
+            var dofSeparator = new FetiDPDofSeparator();
+            dofSeparator.SeparateDofs(model, cornerNodes);
+
+            // Enumerate lagranges
+            var crosspointStrategy = new FullyRedundantConstraints();
+            var lagrangeEnumerator = new FetiDPLagrangeMultipliersEnumerator(crosspointStrategy, dofSeparator);
+            lagrangeEnumerator.DefineBooleanMatrices(model);
+
+            // Check
+            double tolerance = 1E-13;
+            Assert.Equal(expectedNumLagrangeMultipliers, lagrangeEnumerator.NumLagrangeMultipliers);
+            for (int id = 0; id < 4; ++id)
+            {
+                Matrix Br = lagrangeEnumerator.BooleanMatrices[id].CopyToFullMatrix(false);
+                Assert.True(expectedBr[id].Equals(Br, tolerance));
+            }
+        }
+
+        [Fact]
+        public static void TestUnsignedBooleanMatrices()
+        {
+            // Expected results
+            int expectedNumCornerDofs = 8;
+            var expectedLc = new Dictionary<int, Matrix>();
+
+            expectedLc[0] = Matrix.CreateZero(4, 8);
+            expectedLc[0][0, 0] = 1;
+            expectedLc[0][1, 1] = 1;
+            expectedLc[0][2, 2] = 1;
+            expectedLc[0][3, 3] = 1;
+
+            expectedLc[1] = Matrix.CreateZero(6, 8);
+            expectedLc[1][0, 0] = 1;
+            expectedLc[1][1, 1] = 1;
+            expectedLc[1][2, 2] = 1;
+            expectedLc[1][3, 3] = 1;
+            expectedLc[1][4, 4] = 1;
+            expectedLc[1][5, 5] = 1;
+
+            expectedLc[2] = Matrix.CreateZero(4, 8);
+            expectedLc[2][0, 2] = 1;
+            expectedLc[2][1, 3] = 1;
+            expectedLc[2][2, 6] = 1;
+            expectedLc[2][3, 7] = 1;
+
+            expectedLc[3] = Matrix.CreateZero(6, 8);
+            expectedLc[3][0, 2] = 1;
+            expectedLc[3][1, 3] = 1;
+            expectedLc[3][2, 4] = 1;
+            expectedLc[3][3, 5] = 1;
+            expectedLc[3][4, 6] = 1;
+            expectedLc[3][5, 7] = 1;
+
+            // Create model
+            Model model = CreateModel();
+            Dictionary<int, INode[]> cornerNodes = DefineCornerNodes(model);
+            model.ConnectDataStructures();
+
+            // Order free dofs.
+            var dofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
+            IGlobalFreeDofOrdering globalOrdering = dofOrderer.OrderFreeDofs(model);
+            model.GlobalDofOrdering = globalOrdering;
+            foreach (ISubdomain subdomain in model.Subdomains)
+            {
+                subdomain.FreeDofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
+            }
+
+            // Separate dofs
+            var dofSeparator = new FetiDPDofSeparator();
+            dofSeparator.DefineCornerMappingMatrices(model, cornerNodes);
+
+            // Check
+            double tolerance = 1E-13;
+            Assert.Equal(expectedNumCornerDofs, dofSeparator.NumGlobalCornerDofs);
+            for (int id = 0; id < 4; ++id)
+            {
+                Matrix Lc = dofSeparator.BooleanCornerMatrices[id];
+                Assert.True(expectedLc[id].Equals(Lc, tolerance));
             }
         }
 

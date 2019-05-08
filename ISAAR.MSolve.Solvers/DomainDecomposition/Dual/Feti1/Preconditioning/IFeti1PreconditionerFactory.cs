@@ -10,6 +10,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
     public interface IFetiPreconditionerFactory
     {
         IFetiPreconditioner CreatePreconditioner(IFeti1StiffnessDistribution stiffnessDistribution, Feti1DofSeparator dofSeparator,
-            LagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, IMatrixView> stiffnessMatrices);
+            ILagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, IMatrixView> stiffnessMatrices);
     }
 }

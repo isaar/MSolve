@@ -70,7 +70,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
         public class Factory : Feti1PreconditionerFactoryBase
         {
             public override IFetiPreconditioner CreatePreconditioner(IFeti1StiffnessDistribution stiffnessDistribution,
-                Feti1DofSeparator dofSeparator, LagrangeMultipliersEnumerator lagrangeEnumerator,
+                Feti1DofSeparator dofSeparator, ILagrangeMultipliersEnumerator lagrangeEnumerator,
                 Dictionary<int, IMatrixView> stiffnessMatrices)
             {
                 int[] subdomainIDs = dofSeparator.BoundaryDofIndices.Keys.ToArray();
