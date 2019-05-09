@@ -20,9 +20,9 @@ namespace ISAAR.MSolve.IGA.Elements
     {
         protected readonly static IDofType[] controlPointDOFTypes = new StructuralDof[] { StructuralDof.TranslationX, StructuralDof.TranslationY };
         protected IDofType[][] dofTypes;
-        private CollocationPoint _collocationPoint;
+        private CollocationPoint2D _collocationPoint;
 
-        public CollocationPoint CollocationPoint
+        public CollocationPoint2D CollocationPoint
         {
             get => _collocationPoint;
             set => _collocationPoint = value;
@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.IGA.Elements
             set { this.dofEnumerator = value; }
         }
         public bool MaterialModified { get; }
-        INode ICollocationElement.CollocationPoint { get => _collocationPoint; set => _collocationPoint=(CollocationPoint)value; }
+        INode ICollocationElement.CollocationPoint { get => _collocationPoint; set => _collocationPoint=(CollocationPoint2D)value; }
 
         protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
 

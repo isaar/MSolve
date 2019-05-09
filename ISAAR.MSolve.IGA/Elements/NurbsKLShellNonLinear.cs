@@ -504,6 +504,11 @@ namespace ISAAR.MSolve.IGA.Elements
             throw new NotImplementedException();
         }
 
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element)
+        {
+            throw new NotImplementedException();
+        }
+
         public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
         {
             var nurbsElement = (NURBSKirchhoffLoveShellElement)element;

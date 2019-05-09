@@ -7,7 +7,7 @@ using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-    public class CollocationPoint3D:NaturalPoint3D, INode
+    public class CollocationPoint3D:NaturalPoint, INode
     {
         public CollocationPoint3D(int id,double xi, double eta, double zeta, bool isBoundary=false) : base(xi, eta, zeta)
         {
@@ -34,14 +34,16 @@ namespace ISAAR.MSolve.IGA.Entities
         private int _id;
         private bool _isBoundary;
 
-        public int ID => _id;
+        public int ID  { get => _id; set => _id = value; }
 
-        int INode.ID { get => _id; set => _id = value; }
+        int INode.ID => _id;
         public double X { get; set; }
         public double Y { get; set; }
         public double Z { get; set; }
         public List<Constraint> Constraints { get; }
         public Dictionary<int, ISubdomain> SubdomainsDictionary { get; }
+
+        public int CompareTo(INode other) => this.ID - other.ID;
     }
 
     public enum Surface

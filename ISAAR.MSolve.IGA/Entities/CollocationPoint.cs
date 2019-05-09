@@ -7,12 +7,12 @@ using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-	public class CollocationPoint: NaturalPoint, INode
+	public class CollocationPoint2D: NaturalPoint, INode
     {
         private int _id;
         private bool _isBoundary;
-        public int ID => _id;
-        int INode.ID { get => _id; set => _id = value; }
+        public int ID { get => _id; set => ID = value; }
+    int INode.ID { get => _id; }
 
         public bool IsBoundary
         {
@@ -39,5 +39,7 @@ namespace ISAAR.MSolve.IGA.Entities
             _id = id;
             _isBoundary = isBoundary;
         }
-	}
+
+        public int CompareTo(INode other) => this.ID - other.ID;
+    }
 }
