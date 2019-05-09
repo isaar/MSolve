@@ -46,7 +46,9 @@ namespace ISAAR.MSolve.IGA.Elements
         public bool MaterialModified { get; }
 
         private CollocationPoint3D _collocationPoint;
+        public CollocationPatch Patch { get; set; }
 
+        public new IStructuralAsymmetricModel Model { get; set; }
         public CollocationPoint3D CollocationPoint
         {
             get => _collocationPoint;
@@ -59,6 +61,8 @@ namespace ISAAR.MSolve.IGA.Elements
         }
 
         INode ICollocationElement.CollocationPoint { get => _collocationPoint; set => _collocationPoint = (CollocationPoint3D)value; }
+        IAsymmetricSubdomain ICollocationElement.Patch { get => this.Patch; set => this.Patch=(CollocationPatch)value; }
+       
 
         public Dictionary<int, double> CalculateLoadingCondition(Element element, Edge edge, NeumannBoundaryCondition neumann)
 		{

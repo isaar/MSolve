@@ -12,7 +12,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 //      cannot be correct.
 namespace ISAAR.MSolve.IGA.Entities
 {
-	public class Model : IStructuralAsymmetricModel
+	public class Model : IStructuralModel
 	{
 		private int numberOfPatches = 0;
 		private int numberOfInterfaces = 0;
@@ -124,9 +124,7 @@ namespace ISAAR.MSolve.IGA.Entities
                 //EnumerateDOFMultiplicity();
             }
         }
-
-        public IReadOnlyList<IAsymmetricSubdomain> Subdomains => patchesDictionary.Values.ToList();
-
+        
         public void AssignLoads(NodalLoadsToSubdomainsDistributor distributeNodalLoads)
 		{
 			foreach (Patch patch in PatchesDictionary.Values) patch.Forces.Clear();

@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.IGA.Tests
         [Fact]
         public void CollocationPoint3DMatrix()
         {
-            Model model = new Model();
+            var model = new CollocationModel();
             ModelCreator modelCreator = new ModelCreator(model);
             string filename = "..\\..\\..\\InputFiles\\Collocation 3D.txt";
             IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filename);
@@ -45,8 +45,7 @@ namespace ISAAR.MSolve.IGA.Tests
             var k = solver.LinearSystems[0].Matrix;
             Matrix<double> stiffnessMatrixExpected =
                 MatlabReader.Read<double>("..\\..\\..\\InputFiles\\Kcol3D.mat", "Ktotal");
-
-
+            
 
             for (int i = 0; i < k.NumRows; i++)
             {

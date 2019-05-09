@@ -27,10 +27,18 @@ namespace ISAAR.MSolve.IGA.Elements
             get => _collocationPoint;
             set => _collocationPoint = value;
         }
+        public CollocationPatch Patch { get; set; }
+        public IStructuralAsymmetricModel Model { get; set; }
 
         public IList<IDofType> GetDOFTypesForDOFEnumeration(IElement element)
         {
             return new StructuralDof[] { StructuralDof.TranslationX, StructuralDof.TranslationY };
+        }
+
+        IAsymmetricSubdomain ICollocationElement.Patch
+        {
+            get => Patch;
+            set => Patch = (CollocationPatch)value;
         }
 
         public ElementDimensions ElementDimensions => ElementDimensions.TwoD;

@@ -115,7 +115,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			{
 				//var element = new NURBSElement2D();
 				NURBSElement2DCollocation element = new NURBSElement2DCollocation();
-				var patch = new Patch();
+				var patch = new CollocationPatch();
 				patch.Material = new ElasticMaterial2D(StressState2D.PlaneStrain)
 				{
 					YoungModulus = 100000,
@@ -145,7 +145,7 @@ namespace ISAAR.MSolve.IGA.Tests
             {
                 //var element = new NURBSElement2D();
                 NURBSElement2DCollocation element = new NURBSElement2DCollocation();
-                var patch = new Patch();
+                var patch = new CollocationPatch();
                 patch.Material = new ElasticMaterial2D(StressState2D.PlaneStrain)
                 {
                     YoungModulus = 100000,
@@ -831,7 +831,7 @@ namespace ISAAR.MSolve.IGA.Tests
 		[Fact]
 		private void TestCollocationPointCreation()
 		{
-			Model model = new Model();
+			var model = new CollocationModel();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\PlateWithHole.txt";
 			IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filename);
@@ -858,7 +858,7 @@ namespace ISAAR.MSolve.IGA.Tests
 
             var k = solver.LinearSystems[0].Matrix;
             
-Matrix<double> kmatlab=MathNet.Numerics.LinearAlgebra.CreateMatrix.Dense<double>(k.NumRows,k.NumColumns);
+            Matrix<double> kmatlab=MathNet.Numerics.LinearAlgebra.CreateMatrix.Dense<double>(k.NumRows,k.NumColumns);
             for (int i = 0; i < k.NumRows; i++)
             {
                 for (int j = 0; j < k.NumColumns; j++)

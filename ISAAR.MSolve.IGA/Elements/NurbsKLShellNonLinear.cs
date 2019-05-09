@@ -170,12 +170,66 @@ namespace ISAAR.MSolve.IGA.Elements
                     surfaceBasisVectorDerivative1*surfaceBasisVectorDerivative2-initialSurfaceBasisVectorDerivative1[j]*initialSurfaceBasisVectorDerivative2[j]
                 });
 
+                for (int i = 0; i < shellElement.ControlPoints.Count; i++)
+                {
+                    for (int k = 0; k < shellElement.ControlPoints.Count; k++)
+                    {
+                        var a11r = Matrix3by3.CreateIdentity().Scale(nurbs.NurbsSecondDerivativeValueKsi[i, j]);
+                        var a22r = Matrix3by3.CreateIdentity().Scale(nurbs.NurbsSecondDerivativeValueHeta[i, j]);
+                        var a12r = Matrix3by3.CreateIdentity().Scale(nurbs.NurbsSecondDerivativeValueKsiHeta[i, j]);
+
+
+                        var a11s = Matrix3by3.CreateIdentity().Scale(nurbs.NurbsSecondDerivativeValueKsi[k, j]);
+                        var a22s = Matrix3by3.CreateIdentity().Scale(nurbs.NurbsSecondDerivativeValueHeta[k, j]);
+                        var a12s = Matrix3by3.CreateIdentity().Scale(nurbs.NurbsSecondDerivativeValueKsiHeta[k, j]);
+
+                        var a3r = CalculateA3r(nurbs, i, j, surfaceBasisVector2, surfaceBasisVector1);
+                        var a3s = CalculateA3r(nurbs, k, j, surfaceBasisVector2, surfaceBasisVector1);
+
+                        var a1r = Matrix3by3.CreateIdentity().Scale(nurbs.NurbsDerivativeValuesKsi[i, j]);
+                        var a2s = Matrix3by3.CreateIdentity().Scale(nurbs.NurbsDerivativeValuesHeta[k, j]);
+
+                        //var a1
+                    }
+                }
+
                 stiffnessMatrixElement.AddIntoThis(Kmembrane);
                 stiffnessMatrixElement.AddIntoThis(KmembraneNL);
 
                 stiffnessMatrixElement.AddIntoThis(Kbending);
             }
             return stiffnessMatrixElement;
+        }
+
+        private Matrix3by3 CalculateA3r(NURBS2D nurbs, int i, int j, Vector surfaceBasisVector2, Vector surfaceBasisVector1)
+        {
+            var aux1 = Vector.CreateFromArray(new double[] {nurbs.NurbsDerivativeValuesKsi[i, j], 0, 0})
+                .CrossProduct(surfaceBasisVector2);
+            var aux2 = Vector.CreateFromArray(new double[] {0, nurbs.NurbsDerivativeValuesKsi[i, j], 0})
+                .CrossProduct(surfaceBasisVector2);
+            var aux3 = Vector.CreateFromArray(new double[] {0, 0, nurbs.NurbsDerivativeValuesKsi[i, j]})
+                .CrossProduct(surfaceBasisVector2);
+
+            var aux4 = surfaceBasisVector1.CrossProduct(Vector.CreateFromArray(new double[]
+                {nurbs.NurbsDerivativeValuesHeta[i, j], 0, 0}));
+            var aux5 = surfaceBasisVector1.CrossProduct(Vector.CreateFromArray(new double[]
+                {0, nurbs.NurbsDerivativeValuesHeta[i, j], 0}));
+            var aux6 = surfaceBasisVector1.CrossProduct(Vector.CreateFromArray(new double[]
+                {0, 0, nurbs.NurbsDerivativeValuesHeta[i, j]}));
+
+            var a3r = Matrix3by3.CreateZero();
+            a3r[0, 0] = aux1[0] + aux4[0];
+            a3r[0, 0] = aux1[1] + aux4[1];
+            a3r[0, 0] = aux1[2] + aux4[2];
+
+            a3r[0, 0] = aux2[0] + aux5[0];
+            a3r[0, 0] = aux2[1] + aux5[1];
+            a3r[0, 0] = aux2[2] + aux5[2];
+
+            a3r[0, 0] = aux3[0] + aux6[0];
+            a3r[0, 0] = aux3[1] + aux6[1];
+            a3r[0, 0] = aux3[2] + aux6[2];
+            return a3r;
         }
 
         private Matrix CalculateKmembraneNL(NurbsKLShellNonLinear shellElement, double membraneStiffness,

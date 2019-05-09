@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using DotNumerics.Optimization.TN;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 
 namespace ISAAR.MSolve.Discretization.Interfaces
@@ -11,5 +12,9 @@ namespace ISAAR.MSolve.Discretization.Interfaces
         INode CollocationPoint { get; set; }
 
         IList<IDofType> GetDOFTypesForDOFEnumeration(IElement element);
+
+        IAsymmetricSubdomain Patch { get; set; }
+
+        IStructuralAsymmetricModel Model { get; set; }
     }
 }
