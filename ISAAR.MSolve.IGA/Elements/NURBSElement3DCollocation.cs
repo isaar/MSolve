@@ -129,7 +129,7 @@ namespace ISAAR.MSolve.IGA.Elements
 
             if (elementCollocation.CollocationPoint.IsBoundary)
             {
-                var (normalX, normalY, normalZ) = CalculateNormalVectors(elementCollocation, nurbs);
+                var (normalX, normalY, normalZ) = CalculateNormalVectors(elementCollocation, jacobianMatrix);
                 return CalculateCollocationPointStiffnessBoundary(elementCollocation, normalX, normalY, normalZ, dR);
             }
             else
