@@ -3,6 +3,7 @@ using ISAAR.MSolve.IGA.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using ISAAR.MSolve.Materials.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -13,6 +14,9 @@ namespace ISAAR.MSolve.IGA
     {
         
         public Model Model { get; private set; }
+
+        public CollocationModel CollocationModel { get; set; }
+
         public int NumberOfDimensions { get; set; }
         public double Thickness { get; set; }
         public int NumberOfControlPoints { get; set; }
@@ -33,6 +37,11 @@ namespace ISAAR.MSolve.IGA
         public ModelCreator(Model model)
         {
             this.Model = model;
+        }
+
+        public ModelCreator(CollocationModel model)
+        {
+            this.CollocationModel = model;
         }
 
         private bool splitToContinuousPatches =false;
@@ -409,7 +418,7 @@ namespace ISAAR.MSolve.IGA
 	        int counterCPID = 0;
 	        for (int patchID = 0; patchID < NumberOfPatches; patchID++)
 	        {
-		        Patch patch = new Patch()
+		        var patch = new CollocationPatch()
 		        {
 			        NumberOfDimensions = this.NumberOfDimensions,
 			        DegreeKsi = DegreeKsiDictionary[patchID],
@@ -429,11 +438,11 @@ namespace ISAAR.MSolve.IGA
 			        ((List<ControlPoint>)patch.ControlPoints).Add(ControlPointsDictionary[ControlPointIDsDictionary[patchID][j]]);
 		        patch.CreateCollocationPatchData();
 		        foreach (var element in patch.Elements)
-			        Model.ElementsDictionary.Add(counterElementID++, element);
+			        CollocationModel.ElementsDictionary.Add(counterElementID++, element);
 		        foreach (var controlPoint in patch.ControlPoints)
-			        Model.ControlPointsDictionary.Add(counterCPID++, controlPoint);
+                    CollocationModel.ControlPointsDictionary.Add(counterCPID++, controlPoint);
 
-		        this.Model.PatchesDictionary.Add(patchID, patch);
+		        this.CollocationModel.PatchesDictionary.Add(patchID, patch);
 	        }
 		}
 

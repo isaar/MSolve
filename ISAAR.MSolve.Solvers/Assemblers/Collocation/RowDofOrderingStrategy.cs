@@ -11,8 +11,6 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
 {
 	public class RowDofOrderingStrategy : IAsymmetricDofOrderingStrategy
 	{
-		private readonly IReadOnlyList<IDofType> dofsPerNode= new List<StructuralDof> { StructuralDof.TranslationX, StructuralDof.TranslationY };
-
 		public (int numGlobalFreeDofs, DofTable globalFreeDofs) OrderGlobalDofs(IStructuralAsymmetricModel model)
 			=> OrderFreeDofsOfElementSet(model.Elements, model.Constraints);
 
@@ -22,7 +20,9 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
             int dofCounter = 0;
             foreach (var element in elements)
             {
+                var collocationElement = (ICollocationElement) element;
                 var collocationPoint = ((ICollocationElement)element).CollocationPoint;
+                var dofsPerNode = collocationElement.GetDOFTypesForDOFEnumeration(element);
                 bool isNodeConstrained = collocationPoint.Constraints?.Count != 0;
                 foreach (IDofType dof in dofsPerNode)
                 {
