@@ -16,6 +16,6 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
 		/// <param name="point">The coordinates of the point in the global cartesian system. The point must be internal to the 
 		///     element for the method to work, unless otherwise stated by the implementing class.</param>
 		/// <returns></returns>
-		NaturalPoint3D TransformPointCartesianToNatural(CartesianPoint3D point);
+		NaturalPoint TransformPointCartesianToNatural(CartesianPoint point);
 	}
 }

@@ -13,7 +13,7 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
     public class IsoparametricInterpolation2D
     {
         private const int numRandomPoints = 10;
-        private delegate NaturalPoint2D[] GenerateRandomPoints();
+        private delegate NaturalPoint[] GenerateRandomPoints();
 
         public static readonly IEnumerable<object[]> interpolations = new List<object[]>
         {
@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
         private static void TestPartitionOfUnity(IIsoparametricInterpolation2D interpolation)
         {
             double tolerance = 1e-10;
-            NaturalPoint2D[] points = pointGenerators[interpolation]();
+            NaturalPoint[] points = pointGenerators[interpolation]();
             for (int p = 0; p < points.Length; ++p)
             {
                 double[] shapeFuncs = interpolation.EvaluateFunctionsAt(points[p]);
@@ -69,15 +69,15 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
         /// Generates random point in the square: -1 &lt;= xi &lt; 1 , -1 &lt;= eta &lt; 1
         /// </summary>
         /// <returns></returns>
-        private static NaturalPoint2D[] GenerateRandomPointsInSquare()
+        private static NaturalPoint[] GenerateRandomPointsInSquare()
         {
             var rand = new Random();
-            var randomPoints = new NaturalPoint2D[numRandomPoints];
+            var randomPoints = new NaturalPoint[numRandomPoints];
             for (int i = 0; i < numRandomPoints; ++i)
             {
                 double xi = -1.0 + rand.NextDouble() * 2.0;
                 double eta = -1.0 + rand.NextDouble() * 2.0;
-                randomPoints[i] = new NaturalPoint2D(xi, eta);
+                randomPoints[i] = new NaturalPoint(xi, eta);
             }
             return randomPoints;
         }
@@ -86,15 +86,15 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
         /// Generates random point in the triangle: 0 &lt;= xi &lt; 1 , 0 &lt;= eta &lt; xi
         /// </summary>
         /// <returns></returns>
-        private static NaturalPoint2D[] GenerateRandomPointsInTriangle()
+        private static NaturalPoint[] GenerateRandomPointsInTriangle()
         {
             var rand = new Random();
-            var randomPoints = new NaturalPoint2D[numRandomPoints];
+            var randomPoints = new NaturalPoint[numRandomPoints];
             for (int i = 0; i < numRandomPoints; ++i)
             {
                 double xi = rand.NextDouble();
                 double eta = rand.NextDouble() * xi;
-                randomPoints[i] = new NaturalPoint2D(xi, eta);
+                randomPoints[i] = new NaturalPoint(xi, eta);
             }
             return randomPoints;
         }

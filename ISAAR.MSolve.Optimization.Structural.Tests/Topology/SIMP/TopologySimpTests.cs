@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh.Generation;
+using ISAAR.MSolve.Discretization.Mesh.Generation.Custom;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Input;
@@ -20,8 +20,6 @@ using ISAAR.MSolve.Optimization.Structural.Topology.SIMP;
 using ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Analysis;
 using ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Filtering;
 using ISAAR.MSolve.Optimization.Structural.Topology.SIMP.MaterialInterpolation;
-using ISAAR.MSolve.Preprocessor.Meshes;
-using ISAAR.MSolve.Preprocessor.Meshes.Custom;
 using ISAAR.MSolve.Solvers.Direct;
 using Xunit;
 
@@ -65,8 +63,9 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
             int numElementsX = 32, numElementsY = 20;
             double lengthX = numElementsX;
             double depthY = numElementsY;
-            var mesher = new UniformMeshGenerator2D(0, 0, lengthX, depthY, numElementsX, numElementsY);
-            (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity> connectivity) = mesher.CreateMesh();
+            var mesher = new UniformMeshGenerator2D<Node>(0, 0, lengthX, depthY, numElementsX, numElementsY);
+            (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> connectivity) = 
+                mesher.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
 
             // Add nodes to the model
             for (int n = 0; n < nodes.Count; ++n) model.NodesDictionary.Add(n, nodes[n]);
@@ -210,8 +209,9 @@ namespace ISAAR.MSolve.Optimization.Structural.Tests.Topology.SIMP
             int numElementsX = 60, numElementsY = 20;
             double lengthX = numElementsX;
             double depthY = numElementsY;
-            var mesher = new UniformMeshGenerator2D(0, 0, lengthX, depthY, numElementsX, numElementsY);
-            (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity> connectivity) = mesher.CreateMesh();
+            var mesher = new UniformMeshGenerator2D<Node>(0, 0, lengthX, depthY, numElementsX, numElementsY);
+            (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> connectivity) = 
+                mesher.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
 
             // Add nodes to the model
             for (int n = 0; n < nodes.Count; ++n) model.NodesDictionary.Add(n, nodes[n]);

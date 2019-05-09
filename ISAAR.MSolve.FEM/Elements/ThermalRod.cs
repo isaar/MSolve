@@ -70,7 +70,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return Matrix.CreateFromArray(conductivity);
         }
 
-        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element) => dofTypes;
 
         public void ResetMaterialModified()
         {

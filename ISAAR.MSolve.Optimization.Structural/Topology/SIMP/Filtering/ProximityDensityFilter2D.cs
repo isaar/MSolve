@@ -74,10 +74,10 @@ namespace ISAAR.MSolve.Optimization.Structural.Topology.SIMP.Filtering
             //      once until the radius is exceeded.
             var neighborIndices = new List<int>();
             var weightFactors = new List<double>();
-            CartesianPoint2D thisCentroid = allElements[elementIdx].FindCentroid();
+            CartesianPoint thisCentroid = allElements[elementIdx].FindCentroid();
             for (int f = 0; f < allElements.Length; ++f)
             {
-                CartesianPoint2D otherCentroid = allElements[f].FindCentroid();
+                CartesianPoint otherCentroid = allElements[f].FindCentroid();
                 double distance = otherCentroid.CalculateDistanceFrom(thisCentroid);
                 if (distance <= radius)
                 {

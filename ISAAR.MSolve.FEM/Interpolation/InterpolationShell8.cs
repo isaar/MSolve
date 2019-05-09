@@ -14,23 +14,33 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
         private InterpolationShell8() : base(8)
         {
-            NodalNaturalCoordinates = new NaturalPoint3D[]
+            NodalNaturalCoordinates = new NaturalPoint[]
             {
                 //TODO: validate this
-                new NaturalPoint3D(1, 1, 0),
-                new NaturalPoint3D(-1, 1, 0),
-                new NaturalPoint3D(-1, -1, 0),
-                new NaturalPoint3D(1, -1, 0),
-                new NaturalPoint3D(0, 1, 0),
-                new NaturalPoint3D(-1, 0, 0),
-                new NaturalPoint3D(0, -1, 0),
-                new NaturalPoint3D(1, 0, 0)
+                new NaturalPoint(1, 1, 0),
+                new NaturalPoint(-1, 1, 0),
+                new NaturalPoint(-1, -1, 0),
+                new NaturalPoint(1, -1, 0),
+                new NaturalPoint(0, 1, 0),
+                new NaturalPoint(-1, 0, 0),
+                new NaturalPoint(0, -1, 0),
+                new NaturalPoint(1, 0, 0)
             };
         }
 
-        public override IReadOnlyList<NaturalPoint3D> NodalNaturalCoordinates { get; }
+        public override IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
         public static InterpolationShell8 UniqueInstance => uniqueInstance;
+
+        /// <summary>
+        /// See <see cref="IIsoparametricInterpolation2D.CheckElementNodes(IReadOnlyList{Node})"/>
+        /// </summary>
+        public override void CheckElementNodes(IReadOnlyList<Node> nodes)
+        {
+            if (nodes.Count != 8) throw new ArgumentException(
+                $"A Shell8 finite element has 8 nodes, but {nodes.Count} nodes were provided.");
+            // TODO: Also check the order of the nodes too and perhaps even the shape
+        }
 
         public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> nodes) 
             => throw new NotImplementedException();

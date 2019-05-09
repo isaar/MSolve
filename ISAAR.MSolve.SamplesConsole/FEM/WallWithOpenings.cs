@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.Discretization.Mesh.Generation;
+using ISAAR.MSolve.Discretization.Mesh.Generation.GMSH;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Preprocessor.Meshes;
-using ISAAR.MSolve.Preprocessor.Meshes.GMSH;
-using ISAAR.MSolve.Preprocessor.UI;
+using ISAAR.MSolve.SamplesConsole.Preprocessing;
 
 namespace ISAAR.MSolve.SamplesConsole.FEM
 {
@@ -41,10 +41,10 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             // Read mesh from GMSH file
             string meshPath = workingDirectory + "\\wall.msh";
             IReadOnlyList<Node> nodes;
-            IReadOnlyList<CellConnectivity> elements;
-            using (var reader = new GmshReader(meshPath))
+            IReadOnlyList<CellConnectivity<Node>> elements;
+            using (var reader = new GmshReader<Node>(meshPath))
             {
-                (nodes, elements) = reader.CreateMesh();
+                (nodes, elements) = reader.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
             }
             model.AddMesh2D(nodes, elements, material);
 
@@ -100,10 +100,10 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             // Read mesh from GMSH file
             string meshPath = workingDirectory + "\\wall.msh";
             IReadOnlyList<Node> nodes;
-            IReadOnlyList<CellConnectivity> elements;
-            using (var reader = new GmshReader(meshPath))
+            IReadOnlyList<CellConnectivity<Node>> elements;
+            using (var reader = new GmshReader<Node>(meshPath))
             {
-                (nodes, elements) = reader.CreateMesh();
+                (nodes, elements) = reader.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
             }
             model.AddMesh2D(nodes, elements, material, dynamicProperties);
 

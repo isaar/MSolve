@@ -157,7 +157,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
 
-        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element) => dofTypes;
 
         public IList<Node> GetNodesForMatrixAssembly(Element element) => element.Nodes;
 

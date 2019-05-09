@@ -59,8 +59,9 @@ namespace ISAAR.MSolve.IGA.Entities
                 
         }
 
+        public int CompareTo(INode other) => this.ID - other.ID;
 
-		public override string ToString()
+        public override string ToString()
         {
             var header = String.Format("{0}: ({1}, {2}, {3})", ID, X, Y, Z);
             string constrainsDescription = string.Empty;

@@ -686,7 +686,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         // region IstructuralFiniteElement
 
-        public virtual IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public virtual IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element) => dofTypes;
 
         //IstructuralElement concerning material
         public void ClearMaterialState()

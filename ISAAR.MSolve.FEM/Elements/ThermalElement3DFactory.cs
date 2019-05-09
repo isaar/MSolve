@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
-using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.Materials;
 
 namespace ISAAR.MSolve.FEM.Elements
@@ -15,7 +15,7 @@ namespace ISAAR.MSolve.FEM.Elements
         private static readonly IReadOnlyDictionary<CellType, IQuadrature3D> integrationsForMass;
         private static readonly IReadOnlyDictionary<CellType, IIsoparametricInterpolation3D> interpolations;
 
-        private ThermalMaterial commonMaterial;
+        private readonly ThermalMaterial commonMaterial;
 
         static ThermalElement3DFactory()
         {
@@ -113,6 +113,10 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public ThermalElement3D CreateElement(CellType cellType, IReadOnlyList<Node> nodes)
         {
+            //TODO: check if nodes - interpolation and Gauss points - materials match
+#if DEBUG
+            interpolations[cellType].CheckElementNodes(nodes);
+#endif
             return new ThermalElement3D(nodes, interpolations[cellType],
                 integrationsForStiffness[cellType], integrationsForMass[cellType], extrapolations[cellType], commonMaterial);
         }

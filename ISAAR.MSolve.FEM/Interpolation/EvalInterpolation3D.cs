@@ -15,11 +15,20 @@ namespace ISAAR.MSolve.FEM.Interpolation
     /// </summary>
     public class EvalInterpolation3D
     {
-        public EvalInterpolation3D(double[] shapeFunctions, Matrix shapeGradientsNatural, IsoparametricJacobian3D jacobian)
+        private readonly IReadOnlyList<Node> elementNodes;
+
+        public EvalInterpolation3D(IReadOnlyList<Node> elementNodes, double[] shapeFunctions, Matrix shapeGradientsNatural,
+            IsoparametricJacobian3D jacobian)
         {
-            int numberOfNodes = shapeFunctions.Length;
-            if (shapeGradientsNatural.NumRows != numberOfNodes) throw new ArgumentException($"There are {shapeFunctions.Length}"
-                + $" evaluated shape functions, but {shapeGradientsNatural.NumRows} evaluated natural shape derivatives.");
+            int numNodes = elementNodes.Count;
+#if DEBUG
+            if ((shapeFunctions.Length != numNodes) || (shapeGradientsNatural.NumRows != numNodes))
+            {
+                throw new ArgumentException($"There are {numNodes} nodes, but {ShapeFunctions.Length} shape functions"
+                    + $" and {shapeGradientsNatural.NumRows} natural shape derivatives.");
+            }
+#endif
+            this.elementNodes = elementNodes;
             this.ShapeFunctions = shapeFunctions;
             this.ShapeGradientsNatural = shapeGradientsNatural;
             this.Jacobian = jacobian;
@@ -52,19 +61,17 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         public Matrix ShapeGradientsNatural { get; }
 
-        public CartesianPoint3D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node> nodes, NaturalPoint3D naturalCoordinates)
+        public CartesianPoint TransformPointNaturalToGlobalCartesian()
         {
-            if (nodes.Count != ShapeFunctions.Length) throw new ArgumentException(
-                $"There are {ShapeFunctions.Length} evaluated shape functions stored, but {nodes.Count} were passed in.");
             double x = 0, y = 0, z = 0;
             for (int i = 0; i < ShapeFunctions.Length; i++)
             {
-                Node node = nodes[i];
+                Node node = elementNodes[i];
                 x += ShapeFunctions[i] * node.X;
                 y += ShapeFunctions[i] * node.Y;
                 z += ShapeFunctions[i] * node.Z;
             }
-            return new CartesianPoint3D(x,y,z);
+            return new CartesianPoint(x,y,z);
         }
     }
 }

@@ -18,13 +18,13 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation.Inverse
         /// </summary>
         private static readonly IReadOnlyList<Node> nodeSet = new Node[]
         {
-            new Node { ID = 0, X = 0.7, Y = 2.0 },
-            new Node { ID = 1, X = 0.2, Y = 0.3 },
-            new Node { ID = 2, X = 2.0, Y = 0.9 },
-            new Node { ID = 3, X = 3.0, Y = 2.7 }
+            new Node( id: 0, x: 0.7, y:  2.0 ),
+            new Node( id: 1, x: 0.2, y:  0.3 ),
+            new Node( id: 2, x: 2.0, y:  0.9 ),
+            new Node( id: 3, x: 3.0, y:  2.7 )
         };
         
-        private static bool Coincide(NaturalPoint2D point1, NaturalPoint2D point2)
+        private static bool Coincide(NaturalPoint point1, NaturalPoint point2)
             => comparer.AreEqual(point1.Xi, point2.Xi) && comparer.AreEqual(point1.Eta, point2.Eta);
 
         /// <summary>
@@ -43,15 +43,15 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation.Inverse
         /// Generates random points in the square: -1 &lt;= xi &lt; 1 , -1 &lt;= eta &lt; 1
         /// </summary>
         /// <returns></returns>
-        private static NaturalPoint2D[] GenerateRandomPointsInSquare(int numRandomPoints)
+        private static NaturalPoint[] GenerateRandomPointsInSquare(int numRandomPoints)
         {
             var rand = new Random();
-            var randomPoints = new NaturalPoint2D[numRandomPoints];
+            var randomPoints = new NaturalPoint[numRandomPoints];
             for (int i = 0; i < numRandomPoints; ++i)
             {
                 double xi = -1.0 + rand.NextDouble() * 2.0;
                 double eta = -1.0 + rand.NextDouble() * 2.0;
-                randomPoints[i] = new NaturalPoint2D(xi, eta);
+                randomPoints[i] = new NaturalPoint(xi, eta);
             }
             return randomPoints;
         }
@@ -61,16 +61,16 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation.Inverse
         {
             var directMapping = InterpolationQuad4.UniqueInstance;
             int numRandomPoints = 10;
-            NaturalPoint2D[] naturalPoints = GenerateRandomPointsInSquare(numRandomPoints);
+            NaturalPoint[] naturalPoints = GenerateRandomPointsInSquare(numRandomPoints);
             IReadOnlyList<Node> elementNodes = nodeSet;
 
             for (int i = 0; i < 4; ++i)
             {
                 IInverseInterpolation2D inverseMapping = directMapping.CreateInverseMappingFor(elementNodes);
-                foreach (NaturalPoint2D originalPoint in naturalPoints)
+                foreach (NaturalPoint originalPoint in naturalPoints)
                 {
-                    CartesianPoint2D cartesianPoint = directMapping.TransformNaturalToCartesian(elementNodes, originalPoint);
-                    NaturalPoint2D remappedPoint = inverseMapping.TransformPointCartesianToNatural(cartesianPoint);
+                    CartesianPoint cartesianPoint = directMapping.TransformNaturalToCartesian(elementNodes, originalPoint);
+                    NaturalPoint remappedPoint = inverseMapping.TransformPointCartesianToNatural(cartesianPoint);
                     Assert.True(Coincide(originalPoint, remappedPoint));
                 }
 

@@ -4,7 +4,7 @@ using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.FEM.Interpolation
@@ -18,22 +18,32 @@ namespace ISAAR.MSolve.FEM.Interpolation
         private InterpolationShell8Cohesive() : base(CellType.Quad8,8)
         {
             cachedN3AtGPs = new Dictionary<IQuadrature2D, IReadOnlyList<Matrix>>();
-            NodalNaturalCoordinates = new NaturalPoint2D[]
+            NodalNaturalCoordinates = new NaturalPoint[]
             {
                 //TODO: validate this
-                new NaturalPoint2D(1, 1),
-                new NaturalPoint2D(-1, 1),
-                new NaturalPoint2D(-1, -1),
-                new NaturalPoint2D(1, -1),
-                new NaturalPoint2D(0, 1),
-                new NaturalPoint2D(-1, 0),
-                new NaturalPoint2D(0, -1),
-                new NaturalPoint2D(1, 0)
+                new NaturalPoint(1, 1),
+                new NaturalPoint(-1, 1),
+                new NaturalPoint(-1, -1),
+                new NaturalPoint(1, -1),
+                new NaturalPoint(0, 1),
+                new NaturalPoint(-1, 0),
+                new NaturalPoint(0, -1),
+                new NaturalPoint(1, 0)
             };
         }
-        public override IReadOnlyList<NaturalPoint2D> NodalNaturalCoordinates { get; }
+        public override IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
         public static InterpolationShell8Cohesive UniqueInstance => uniqueInstance;
+
+        /// <summary>
+        /// See <see cref="IIsoparametricInterpolation2D.CheckElementNodes(IReadOnlyList{Node})"/>
+        /// </summary>
+        public override void CheckElementNodes(IReadOnlyList<Node> nodes)
+        {
+            if (nodes.Count != 8) throw new ArgumentException(
+                $"A Shell8 finite element has 8 nodes, but {nodes.Count} nodes were provided.");
+            // TODO: Also check the order of the nodes too and perhaps even the shape
+        }
 
         public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node> nodes)
             => throw new NotImplementedException();

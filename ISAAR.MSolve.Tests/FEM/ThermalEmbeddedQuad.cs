@@ -2,14 +2,14 @@
 using System.Diagnostics;
 using System.Linq;
 using ISAAR.MSolve.Analyzers.Multiscale;
+using ISAAR.MSolve.Discretization.Mesh.Generation;
+using ISAAR.MSolve.Discretization.Mesh.Generation.Custom;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Preprocessor.Meshes;
-using ISAAR.MSolve.Preprocessor.Meshes.Custom;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 using Xunit;
@@ -56,8 +56,9 @@ namespace ISAAR.MSolve.Tests.FEM
             double c = 1.0;
 
             // Generate mesh
-            var meshGenerator = new UniformMeshGenerator2D(minX, minY, maxX, maxY, numElementsX, numElementsY);
-            (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity> cells) = meshGenerator.CreateMesh();
+            var meshGenerator = new UniformMeshGenerator2D<Node>(minX, minY, maxX, maxY, numElementsX, numElementsY);
+            (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity<Node>> cells) = 
+                meshGenerator.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
 
             // Add nodes to the model
             for (int n = 0; n < vertices.Count; ++n) model.NodesDictionary.Add(n, vertices[n]);
@@ -86,8 +87,8 @@ namespace ISAAR.MSolve.Tests.FEM
             int numNonEmbeddedNodes = model.NodesDictionary.Count;
             int embeddedNode1 = numNonEmbeddedNodes + 1; // We do not know if the non embedded node IDs start from 0 or 1. This way there are no duplicate IDs, but there may be a gap.
             int embeddedNode2 = numNonEmbeddedNodes + 2;
-            model.NodesDictionary.Add(embeddedNode1, new Node() { ID = embeddedNode1, X = minX, Y = minY + 0.25 });
-            model.NodesDictionary.Add(embeddedNode2, new Node() { ID = embeddedNode2, X = maxX, Y = minY + 0.25 });
+            model.NodesDictionary.Add(embeddedNode1, new Node(id: embeddedNode1, x: minX, y:  minY + 0.25 ));
+            model.NodesDictionary.Add(embeddedNode2, new Node(id: embeddedNode2, x: maxX, y:  minY + 0.25 ));
 
             // Elements
             Node[] startEndNodes = { model.NodesDictionary[embeddedNode1], model.NodesDictionary[embeddedNode2] };

@@ -4,7 +4,7 @@ using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Problems;
@@ -55,15 +55,15 @@ namespace ISAAR.MSolve.Tests.FEM
             // Nodes
             int numNodes = 9;
             var nodes = new Node[numNodes];
-            nodes[0] = new Node { ID = 0, X = 0.0, Y = 0.0 };
-            nodes[1] = new Node { ID = 1, X = 1.0, Y = 0.0 };
-            nodes[2] = new Node { ID = 2, X = 2.0, Y = 0.0 };
-            nodes[3] = new Node { ID = 3, X = 0.0, Y = 1.0 };
-            nodes[4] = new Node { ID = 4, X = 1.0, Y = 1.0 };
-            nodes[5] = new Node { ID = 5, X = 2.0, Y = 1.0 };
-            nodes[6] = new Node { ID = 6, X = 0.0, Y = 2.0 };
-            nodes[7] = new Node { ID = 7, X = 1.0, Y = 2.0 };
-            nodes[8] = new Node { ID = 8, X = 2.0, Y = 2.0 };
+            nodes[0] = new Node( id: 0, x: 0.0, y:  0.0 );
+            nodes[1] = new Node( id: 1, x: 1.0, y:  0.0 );
+            nodes[2] = new Node( id: 2, x: 2.0, y:  0.0 );
+            nodes[3] = new Node( id: 3, x: 0.0, y:  1.0 );
+            nodes[4] = new Node( id: 4, x: 1.0, y:  1.0 );
+            nodes[5] = new Node( id: 5, x: 2.0, y:  1.0 );
+            nodes[6] = new Node( id: 6, x: 0.0, y:  2.0 );
+            nodes[7] = new Node( id: 7, x: 1.0, y:  2.0 );
+            nodes[8] = new Node( id: 8, x: 2.0, y:  2.0 );
 
             for (int i = 0; i < numNodes; ++i) model.NodesDictionary[i] = nodes[i];
 

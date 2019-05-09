@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         {
             ISubdomainFreeDofOrdering subdomainOrdering = SubdomainDofOrderings[subdomain];
             int[] subdomainToGlobalDofs = subdomainToGlobalDofMaps[subdomain];
-            globalVector.AddNonContiguouslyFrom(subdomainToGlobalDofs, subdomainVector);
+            globalVector.AddIntoThisNonContiguouslyFrom(subdomainToGlobalDofs, subdomainVector);
         }
 
         public void AddVectorSubdomainToGlobalMeanValue(ISubdomain subdomain, IVectorView subdomainVector, 

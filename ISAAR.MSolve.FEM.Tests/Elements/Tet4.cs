@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
 using Xunit;
@@ -24,10 +24,10 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
 
 		private static readonly IReadOnlyList<Node> NodeSet0 = new Node[]
 		{
-			new Node { ID = 0, X = 2, Y = 3, Z = 4 },
-			new Node { ID = 1, X = 6, Y = 3, Z = 2 },
-			new Node { ID = 2, X = 2, Y = 5, Z = 1 },
-			new Node { ID = 3, X = 4, Y = 3, Z = 6 },
+			new Node( id: 0, x: 2, y:  3, z: 4 ),
+			new Node( id: 1, x: 6, y:  3, z: 2 ),
+			new Node( id: 2, x: 2, y:  5, z: 1 ),
+			new Node( id: 3, x: 4, y:  3, z: 6 ),
 		};
 
 		/// <summary>

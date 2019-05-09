@@ -17,9 +17,9 @@ namespace ISAAR.MSolve.FEM.Embedding
 
         public IList<IDofType> GetDependentDOFTypes { get { return translationAndRotationDOFTypes; } }
 
-        public IList<IList<IDofType>> GetDOFTypesOfHost(EmbeddedNode node)
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetDOFTypesOfHost(EmbeddedNode node)
         {
-            return node.EmbeddedInElement.ElementType.GetElementDOFTypes(node.EmbeddedInElement);
+            return node.EmbeddedInElement.ElementType.GetElementDofTypes(node.EmbeddedInElement);
         }
 
         private Tuple<double[,], double[,]> GetJacobiansFromShapeFunctionsVector(double[] shapeFunctionsVector)

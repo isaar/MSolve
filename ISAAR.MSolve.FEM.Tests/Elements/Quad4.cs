@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
-using ISAAR.MSolve.Discretization.Integration.Points;
+using ISAAR.MSolve.Discretization.Integration;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
-using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
 using Xunit;
@@ -37,10 +37,10 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         /// </summary>
         private static readonly IReadOnlyList<Node> nodeSet0 = new Node[]
         {
-            new Node { ID = 0, X = 0.7, Y = 2.0 },
-            new Node { ID = 1, X = 0.2, Y = 0.3 },
-            new Node { ID = 2, X = 2.0, Y = 0.9 },
-            new Node { ID = 3, X = 3.0, Y = 2.7 }
+            new Node( id: 0, x: 0.7, y:  2.0 ),
+            new Node( id: 1, x: 0.2, y:  0.3 ),
+            new Node( id: 2, x: 2.0, y:  0.9 ),
+            new Node( id: 3, x: 3.0, y:  2.7 )
         };
 
         /// <summary>
@@ -48,10 +48,10 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         /// </summary>
         private static readonly IReadOnlyList<Node> nodeSet1 = new Node[]
         {
-            new Node { ID = 0, X =  0.0, Y =  0.0 },
-            new Node { ID = 1, X = 20.0, Y =  0.0 },
-            new Node { ID = 2, X = 20.0, Y = 10.0 },
-            new Node { ID = 3, X =  0.0, Y = 10.0 }
+            new Node( id: 0, x:  0.0, y:   0.0 ),
+            new Node( id: 1, x: 20.0, y:   0.0 ),
+            new Node( id: 2, x: 20.0, y:  10.0 ),
+            new Node( id: 3, x:  0.0, y:  10.0 )
         };
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
             // reduced integration rule - bad idea
             IQuadrature2D quadratureForMass = GaussLegendre2D.GetQuadratureWithOrder(1, 1);
             var materialsAtGaussPoints = new List<ElasticMaterial2D>();
-            foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
+            foreach (GaussPoint gaussPoint in quadratureForMass.IntegrationPoints)
             {
                 materialsAtGaussPoints.Add(material0.Clone());
             }
@@ -105,7 +105,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
             // full integration rule
             IQuadrature2D quadratureForMass = GaussLegendre2D.GetQuadratureWithOrder(2, 2);
             var materialsAtGaussPoints = new List<ElasticMaterial2D>();
-            foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
+            foreach (GaussPoint gaussPoint in quadratureForMass.IntegrationPoints)
             {
                 materialsAtGaussPoints.Add(material0.Clone());
             }
@@ -239,18 +239,18 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
 
         private static readonly IReadOnlyList<Node> nodeSet2 = new Node[]
         {
-            new Node { ID = 0, X = -1.0, Y = -1.0 },
-            new Node { ID = 1, X = +1.0, Y = -1.0 },
-            new Node { ID = 2, X = +1.0, Y = +1.0 },
-            new Node { ID = 3, X = -1.0, Y = +1.0 }
+            new Node( id: 0, x: -1.0, y:  -1.0 ),
+            new Node( id: 1, x: +1.0, y:  -1.0 ),
+            new Node( id: 2, x: +1.0, y:  +1.0 ),
+            new Node( id: 3, x: -1.0, y:  +1.0 )
         };
 
         private static readonly IReadOnlyList<Node> nodeSet3 = new Node[]
         {
-            new Node { ID = 0, X = 0.2, Y = 0.3 },
-            new Node { ID = 1, X = 2.2, Y = 1.5 },
-            new Node { ID = 2, X = 3.0, Y = 2.7 },
-            new Node { ID = 3, X = 0.7, Y = 2.0 }
+            new Node( id: 0, x: 0.2, y:  0.3 ),
+            new Node( id: 1, x: 2.2, y:  1.5 ),
+            new Node( id: 2, x: 3.0, y:  2.7 ),
+            new Node( id: 3, x: 0.7, y:  2.0 )
         };
 
         [Fact]

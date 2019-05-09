@@ -7,7 +7,7 @@ using ISAAR.MSolve.Geometry.Coordinates;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-	public class CollocationPoint2D:NaturalPoint2D, INode
+	public class CollocationPoint: NaturalPoint, INode
     {
         private int _id;
         private bool _isBoundary;

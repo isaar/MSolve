@@ -20,9 +20,9 @@ namespace ISAAR.MSolve.IGA.Elements
     {
         protected readonly static IDofType[] controlPointDOFTypes = new StructuralDof[] { StructuralDof.TranslationX, StructuralDof.TranslationY };
         protected IDofType[][] dofTypes;
-        private CollocationPoint2D _collocationPoint;
+        private CollocationPoint _collocationPoint;
 
-        public CollocationPoint2D CollocationPoint
+        public CollocationPoint CollocationPoint
         {
             get => _collocationPoint;
             set => _collocationPoint = value;
@@ -49,7 +49,7 @@ namespace ISAAR.MSolve.IGA.Elements
             set { this.dofEnumerator = value; }
         }
         public bool MaterialModified { get; }
-        INode ICollocationElement.CollocationPoint { get => _collocationPoint; set => _collocationPoint=(CollocationPoint2D)value; }
+        INode ICollocationElement.CollocationPoint { get => _collocationPoint; set => _collocationPoint=(CollocationPoint)value; }
 
         protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
 
@@ -322,7 +322,7 @@ namespace ISAAR.MSolve.IGA.Elements
 			throw new NotImplementedException();
 		}
 
-        public IList<IList<IDofType>> GetElementDOFTypes(IElement element)
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element)
         {
             var nurbsElement = (NURBSElement2DCollocation)element;
             dofTypes = new IDofType[nurbsElement.ControlPoints.Count][];

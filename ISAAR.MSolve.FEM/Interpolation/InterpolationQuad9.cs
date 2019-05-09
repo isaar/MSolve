@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 // Quad9 nodes:
@@ -26,19 +26,19 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
         private InterpolationQuad9() : base(CellType.Quad9, 9)
         {
-            NodalNaturalCoordinates = new NaturalPoint2D[]
+            NodalNaturalCoordinates = new NaturalPoint[]
             {
-                new NaturalPoint2D(-1.0, -1.0),
-                new NaturalPoint2D(+1.0, -1.0),
-                new NaturalPoint2D(+1.0, +1.0),
-                new NaturalPoint2D(-1.0, +1.0),
+                new NaturalPoint(-1.0, -1.0),
+                new NaturalPoint(+1.0, -1.0),
+                new NaturalPoint(+1.0, +1.0),
+                new NaturalPoint(-1.0, +1.0),
 
-                new NaturalPoint2D(+0.0, -1.0),
-                new NaturalPoint2D(+1.0, +0.0),
-                new NaturalPoint2D(+0.0, +1.0),
-                new NaturalPoint2D(-1.0, +0.0),
+                new NaturalPoint(+0.0, -1.0),
+                new NaturalPoint(+1.0, +0.0),
+                new NaturalPoint(+0.0, +1.0),
+                new NaturalPoint(-1.0, +0.0),
 
-                new NaturalPoint2D(+0.0, +0.0)
+                new NaturalPoint(+0.0, +0.0)
             };
         }
 
@@ -46,12 +46,22 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// The coordinates of the finite element's nodes in the natural (element local) coordinate system. The order of these
         /// nodes matches the order of the shape functions and is always the same for each element.
         /// </summary>
-        public override IReadOnlyList<NaturalPoint2D> NodalNaturalCoordinates { get; }
+        public override IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
         /// <summary>
         /// Get the unique <see cref="InterpolationQuad9"/> object for the whole program. Thread safe.
         /// </summary>
         public static InterpolationQuad9 UniqueInstance => uniqueInstance;
+
+        /// <summary>
+        /// See <see cref="IIsoparametricInterpolation2D.CheckElementNodes(IReadOnlyList{Node})"/>
+        /// </summary>
+        public override void CheckElementNodes(IReadOnlyList<Node> nodes)
+        {
+            if (nodes.Count != 9) throw new ArgumentException(
+                $"A Quad9 finite element has 9 nodes, but {nodes.Count} nodes were provided.");
+            // TODO: Also check the order of the nodes too and perhaps even the shape
+        }
 
         /// <summary>
         /// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.

@@ -228,7 +228,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return transformMatrix;
         }
 
-        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element) => dofTypes;
 
         public IMatrix StiffnessMatrix(IElement element)
         {

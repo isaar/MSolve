@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         /// </summary>
         public static ExtrapolationGaussLegendre2x2 UniqueInstance => uniqueInstance;
 
-        protected override double[] EvaluateExtrapolationFunctionsAt(NaturalPoint2D point)
+        protected override double[] EvaluateExtrapolationFunctionsAt(NaturalPoint point)
         {
             // Coordinates of the point in the auxiliary coordinate system of an imaginary "Gauss element" that has the Gauss 
             // points as its nodes.

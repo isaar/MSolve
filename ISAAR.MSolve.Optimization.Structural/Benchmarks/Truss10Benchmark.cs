@@ -98,12 +98,12 @@ namespace ISAAR.MSolve.Optimization.Structural.Benchmarks
                 var model = new Model();
 
                 var nodes = new List<Node>();
-                var node1 = new Node { ID = 1, X = 720, Y = 360 };
-                var node2 = new Node { ID = 2, X = 720, Y = 0 };
-                var node3 = new Node { ID = 3, X = 360, Y = 360 };
-                var node4 = new Node { ID = 4, X = 360, Y = 0 };
-                var node5 = new Node { ID = 5, X = 0, Y = 360 };
-                var node6 = new Node { ID = 6, X = 0, Y = 0 };
+                var node1 = new Node( id: 1, x: 720, y:  360 );
+                var node2 = new Node( id: 2, x: 720, y:  0 );
+                var node3 = new Node( id: 3, x: 360, y:  360 );
+                var node4 = new Node( id: 4, x: 360, y:  0 );
+                var node5 = new Node( id: 5, x: 0, y:  360 );
+                var node6 = new Node( id: 6, x: 0, y:  0 );
 
                 nodes.Add(node1);
                 nodes.Add(node2);

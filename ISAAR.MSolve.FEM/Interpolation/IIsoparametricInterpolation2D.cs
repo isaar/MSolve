@@ -3,7 +3,7 @@ using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 //TODO: perhaps I should return lists instead of Dictionaries with Gauss points as keys. It would be faster. The order of GPs is
@@ -26,12 +26,18 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// The coordinates of the finite element's nodes in the natural (element local) coordinate system. The order of these
         /// nodes matches the order of the shape functions and is always the same for each element.
         /// </summary>
-        IReadOnlyList<NaturalPoint2D> NodalNaturalCoordinates { get; }
+        IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
         /// <summary>
         /// The number of shape functions that define this interpolation.
         /// </summary>
         int NumFunctions { get; }
+
+        /// <summary>
+        /// Checks the number and possibly the order of an element's nodes.
+        /// </summary>
+        /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
+        void CheckElementNodes(IReadOnlyList<Node> nodes);
 
         /// <summary>
         /// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.
@@ -46,13 +52,13 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <param name="naturalPoint">The coordinates of the point in the natural (element local) coordinate system of the 
         ///     element.</param>
-        EvalInterpolation2D EvaluateAllAt(IReadOnlyList<Node> nodes, NaturalPoint2D naturalPoint);
+        EvalInterpolation2D EvaluateAllAt(IReadOnlyList<Node> nodes, NaturalPoint naturalPoint);
 
         /// <summary>
         /// Evaluate the shape functions, the 1st order derivatives with respect to the global cartesian coordinate system and
         /// the jacobian at the integration points defined by a given quadrature. 
         /// This method caches all possible quantities from previous calls. Use it instead of 
-        /// <see cref="EvaluateAllAt(IReadOnlyList{Node}, NaturalPoint2D)"/> when the integration points of an element are
+        /// <see cref="EvaluateAllAt(IReadOnlyList{Node}, NaturalPoint)"/> when the integration points of an element are
         /// the same across multiple elements or multiple iterations of a non linear or dynamic analysis (in the latter cases
         /// we could also cache the <see cref="EvalInterpolation2D"/> at the integration points of each element). 
         /// The <see cref="EvalInterpolation2D"/>s per integration point are returned in the same order as the integration 
@@ -70,12 +76,12 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         /// <param name="naturalPoint">The coordinates of the point in the natural (element local) coordinate system of the 
         ///     element.</param>
-        double[] EvaluateFunctionsAt(NaturalPoint2D naturalPoint);
+        double[] EvaluateFunctionsAt(NaturalPoint naturalPoint);
 
         /// <summary>
         /// Evaluate the shape functions at the integration points defined by a given quadrature. 
         /// This method caches all possible quantities from previous calls. Use it instead of 
-        /// <see cref="EvaluateFunctionsAt(NaturalPoint2D)"/> when the integration points of an element are the same across 
+        /// <see cref="EvaluateFunctionsAt(NaturalPoint)"/> when the integration points of an element are the same across 
         /// multiple elements or multiple iterations of a non linear or dynamic analysis.
         /// The shape functions vectors per integration point are returned in the same order as the integration 
         /// points in <paramref name="quadrature"/>.<see cref="IQuadrature2D.IntegrationPoints"/>. Each vector contains the
@@ -94,13 +100,13 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
         /// <param name="naturalPoint">The coordinates of the point in the natural (element local) coordinate system of the 
         ///     element.</param>
-        Matrix EvaluateNaturalGradientsAt(NaturalPoint2D naturalPoint);
+        Matrix EvaluateNaturalGradientsAt(NaturalPoint naturalPoint);
 
         /// <summary>
         /// Evaluate the 1st order shape function derivatives with respect to the natural coordinate system 
         /// at the integration points defined by a given quadrature. 
         /// This method caches all possible quantities from previous calls. Use it instead of 
-        /// <see cref="EvaluateNaturalGradientsAt(NaturalPoint2D)"/>, when the integration points of an element 
+        /// <see cref="EvaluateNaturalGradientsAt(NaturalPoint)"/>, when the integration points of an element 
         /// are the same across multiple elements or multiple iterations of a non linear or dynamic analysis (in the latter 
         /// cases we could also cache the cartesian gradients at the integration points of each element). 
         /// The shape gradients matrices per integration point are returned in the same order as the integration 
@@ -119,6 +125,6 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <param name="nodes">The coordinates of the finite element's nodes in the global cartesian system.</param>
         /// <param name="naturalPoint">The coordinates in the natural system of a point that is internal to the finite 
         ///     element.</param>
-        CartesianPoint2D TransformNaturalToCartesian(IReadOnlyList<Node> nodes, NaturalPoint2D naturalPoint);
+        CartesianPoint TransformNaturalToCartesian(IReadOnlyList<Node> nodes, NaturalPoint naturalPoint);
     }
 }

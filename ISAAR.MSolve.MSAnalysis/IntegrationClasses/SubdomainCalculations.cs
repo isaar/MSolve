@@ -131,7 +131,7 @@ namespace ISAAR.MSolve.FEM
                 times["element"] += DateTime.Now - elStart;
 
                 elStart = DateTime.Now;
-                var elementDOFTypes = element.ElementType.DofEnumerator.GetDOFTypes(element);
+                var elementDOFTypes = element.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(element);
                 var matrixAssemblyNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
                 int iElementMatrixRow = 0;
                 for (int i = 0; i < elementDOFTypes.Count; i++)
@@ -182,7 +182,7 @@ namespace ISAAR.MSolve.FEM
                 times["element"] += DateTime.Now - elStart;
 
                 elStart = DateTime.Now;
-                var elementDOFTypes = element.ElementType.DofEnumerator.GetDOFTypes(element);
+                var elementDOFTypes = element.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(element);
                 var matrixAssemblyNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
                 int iElementMatrixRow = 0;
                 for (int i = 0; i < elementDOFTypes.Count; i++)

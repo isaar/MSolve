@@ -4,11 +4,12 @@ using System.Diagnostics;
 using System.Linq;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.Discretization.Mesh.Generation;
+using ISAAR.MSolve.Discretization.Mesh.Generation.Custom;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Preprocessor.Meshes;
-using ISAAR.MSolve.Preprocessor.Meshes.Custom;
 
 namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
 {
@@ -55,9 +56,10 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
             double dx = DomainLengthX / NumTotalElementsX;
             double dy = DomainLengthY / NumTotalElementsY;
             double meshTolerance = 1E-10 * Math.Min(dx, dy);
-            var meshGenerator = new UniformMeshGenerator2D(0, 0, DomainLengthX, DomainLengthY,
+            var meshGenerator = new UniformMeshGenerator2D<Node>(0, 0, DomainLengthX, DomainLengthY,
                 NumTotalElementsX, NumTotalElementsY);
-            (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity> cells) = meshGenerator.CreateMesh();
+            (IReadOnlyList<Node> vertices, IReadOnlyList<CellConnectivity<Node>> cells) = 
+                meshGenerator.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
 
             // Define subdomain boundaries
             int numTotalSubdomains = NumSubdomainsX * NumSubdomainsY;
@@ -196,7 +198,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
                 this.maxY = maxY;
             }
 
-            public bool Contains(CellConnectivity cell, double tol)
+            public bool Contains(CellConnectivity<Node> cell, double tol)
             {
                 return cell.Vertices.All(node =>
                      (node.X >= minX - tol) && (node.X <= maxX + tol) && (node.Y >= minY - tol) && (node.Y <= maxY + tol));

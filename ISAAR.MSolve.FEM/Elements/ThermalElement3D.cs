@@ -4,6 +4,7 @@ using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.FEM.Interpolation;
@@ -14,7 +15,7 @@ using ISAAR.MSolve.Materials;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
-    public class ThermalElement3D : IFiniteElement
+    public class ThermalElement3D : IFiniteElement, ICell<Node>
     {
         private readonly static IDofType[] nodalDOFTypes = new IDofType[] { ThermalDof.Temperature };
         private readonly IDofType[][] dofTypes; //TODO: this should not be stored for each element. Instead store it once for each Quad4, Tri3, etc. Otherwise create it on the fly.
@@ -34,6 +35,7 @@ namespace ISAAR.MSolve.FEM.Elements
             dofTypes = new IDofType[nodes.Count][];
             for (int i = 0; i < interpolation.NumFunctions; ++i) dofTypes[i] = new IDofType[] { ThermalDof.Temperature };
         }
+        public CellType CellType => Interpolation.CellType;
         public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
 
         public int ID => throw new NotImplementedException(
@@ -136,7 +138,7 @@ namespace ISAAR.MSolve.FEM.Elements
             return Matrix.CreateFromArray(shapeFunctions, 1, shapeFunctions.Length);
         }
 
-        public IList<IList<IDofType>> GetElementDOFTypes(IElement element) => dofTypes;
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element) => dofTypes;
 
         public void ResetMaterialModified()
         {

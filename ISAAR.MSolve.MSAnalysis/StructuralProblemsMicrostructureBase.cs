@@ -29,7 +29,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             {
                 bool containsBoundaryNode = false;
 
-                var elementDOFTypes = element.ElementType.DofEnumerator.GetDOFTypes(element);
+                var elementDOFTypes = element.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(element);
                 var matrixAssemblyNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
                 for (int j = 0; j < elementDOFTypes.Count; j++)
                 {
@@ -60,7 +60,7 @@ namespace ISAAR.MSolve.MultiscaleAnalysis
             {
                 bool containsBoundaryNode = false;
 
-                var elementDOFTypes = element.ElementType.DofEnumerator.GetDOFTypes(element);
+                var elementDOFTypes = element.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(element);
                 var matrixAssemblyNodes = element.ElementType.DofEnumerator.GetNodesForMatrixAssembly(element);
                 for (int j = 0; j < elementDOFTypes.Count; j++)
                 {

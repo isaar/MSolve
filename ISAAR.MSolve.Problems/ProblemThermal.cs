@@ -98,6 +98,15 @@ namespace ISAAR.MSolve.Problems
         private void BuildCapacity() => capacity = solver.BuildGlobalMatrices(capacityProvider);
 
         #region IAnalyzerProvider Members
+        public void ClearMatrices()
+        {
+            capacity = null;
+            conductivityFreeFree = null;
+            conductivityFreeConstr = null;
+            conductivityConstrFree = null;
+            conductivityConstrConstr = null;
+        }
+
         public void Reset()
         {
             foreach (ISubdomain subdomain in model.Subdomains)

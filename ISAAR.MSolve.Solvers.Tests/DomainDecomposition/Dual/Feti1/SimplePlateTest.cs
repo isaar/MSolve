@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
 
         private static Model CreateModel(int numElementsX, int numElementsY)
         {
-            // if numElementsX = numElementsY = 2:
+            // if numElementsX = numElementsy: 2:
             // 6 ----- 7 ----- 8  -->
             // |  (2)  |  (3)  |
             // |       |       |

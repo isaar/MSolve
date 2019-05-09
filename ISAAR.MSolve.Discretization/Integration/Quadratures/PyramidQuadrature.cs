@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using ISAAR.MSolve.Discretization.Integration.Points;
+using ISAAR.MSolve.Discretization.Integration;
 
 namespace ISAAR.MSolve.Discretization.Integration.Quadratures
 {
@@ -11,27 +11,27 @@ namespace ISAAR.MSolve.Discretization.Integration.Quadratures
     public sealed class PyramidQuadrature:IQuadrature3D
 	{
 		public static readonly PyramidQuadrature Points5 = new PyramidQuadrature(
-			new GaussPoint3D(0.5, 0, 0.1531754163448146, 2.0 / 15.0),
-			new GaussPoint3D(0, 0.5, 0.1531754163448146, 2.0 / 15.0),
-			new GaussPoint3D(-0.5, 0, 0.1531754163448146, 2.0 / 15.0),
-			new GaussPoint3D(0, -0.5, 0.1531754163448146, 2.0 / 15.0),
-			new GaussPoint3D(0, 0, 0.6372983346207416, 2.0 / 15.0));
+			new GaussPoint(0.5, 0, 0.1531754163448146, 2.0 / 15.0),
+			new GaussPoint(0, 0.5, 0.1531754163448146, 2.0 / 15.0),
+			new GaussPoint(-0.5, 0, 0.1531754163448146, 2.0 / 15.0),
+			new GaussPoint(0, -0.5, 0.1531754163448146, 2.0 / 15.0),
+			new GaussPoint(0, 0, 0.6372983346207416, 2.0 / 15.0));
 
 		public static readonly PyramidQuadrature Points6 = new PyramidQuadrature(
-			new GaussPoint3D(0.5702963741068025, 0, 0.1666666666666666, 0.1024890634400000),
-			new GaussPoint3D(0, 0.5702963741068025, 0.1666666666666666, 0.1024890634400000),
-			new GaussPoint3D(-0.5702963741068025, 0, 0.1666666666666666, 0.1024890634400000),
-			new GaussPoint3D(0, -0.5702963741068025, 0.1666666666666666, 0.1024890634400000),
-			new GaussPoint3D(0, 0, 0.08063183038464675, 0.1100000000000000),
-			new GaussPoint3D(0, 0, 0.6098484849057127, 0.1467104129066667));
+			new GaussPoint(0.5702963741068025, 0, 0.1666666666666666, 0.1024890634400000),
+			new GaussPoint(0, 0.5702963741068025, 0.1666666666666666, 0.1024890634400000),
+			new GaussPoint(-0.5702963741068025, 0, 0.1666666666666666, 0.1024890634400000),
+			new GaussPoint(0, -0.5702963741068025, 0.1666666666666666, 0.1024890634400000),
+			new GaussPoint(0, 0, 0.08063183038464675, 0.1100000000000000),
+			new GaussPoint(0, 0, 0.6098484849057127, 0.1467104129066667));
 
 		// Find and implement missing quadratures.
 
-		private PyramidQuadrature(params GaussPoint3D[] points)
+		private PyramidQuadrature(params GaussPoint[] points)
 	    {
-		    this.IntegrationPoints = new List<GaussPoint3D>(points);
+		    this.IntegrationPoints = new List<GaussPoint>(points);
 	    }
 
-	    public IReadOnlyList<GaussPoint3D> IntegrationPoints { get; }
+	    public IReadOnlyList<GaussPoint> IntegrationPoints { get; }
 	}
 }

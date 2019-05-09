@@ -50,7 +50,7 @@ namespace ISAAR.MSolve.Logging
             {
                 double[] localVector = e.Subdomain.FreeDofOrdering.ExtractVectorElementFromSubdomain(e, solutionVector);
                 var strainStresses = e.ElementType.CalculateStresses(e, localVector, 
-                    new double[e.ElementType.GetElementDOFTypes(e).SelectMany(x => x).Count()]);
+                    new double[e.ElementType.GetElementDofTypes(e).SelectMany(x => x).Count()]);
                 strains[e.ID] = new double[strainStresses.Item1.Length];
                 stresses[e.ID] = new double[strainStresses.Item2.Length];
                 Array.Copy(strainStresses.Item1, strains[e.ID], strains[e.ID].Length);

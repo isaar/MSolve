@@ -11,8 +11,8 @@ namespace MGroup.Stochastic.Structural
         public Model GetModel(RandomVariable randomVariable, IStochasticDomainMapper domainMapper, int iteration)
         {
             var m = new Model();
-            m.NodesDictionary.Add(0, new Node() { ID = 0, X = 0, Y = 0, Z = 0 });
-            m.NodesDictionary.Add(1, new Node() { ID = 1, X = 1, Y = 0, Z = 0 });
+            m.NodesDictionary.Add(0, new Node(id: 0, x: 0, y:  0, z: 0 ));
+            m.NodesDictionary.Add(1, new Node(id: 1, x: 1, y:  0, z: 0 ));
             m.ElementsDictionary.Add(1, new Element()
             {
                 ID = 1,

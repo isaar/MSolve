@@ -18,11 +18,20 @@ namespace ISAAR.MSolve.FEM.Interpolation
     /// </summary>
     public class EvalInterpolation2D
     {
-        public EvalInterpolation2D(double[] shapeFunctions, Matrix shapeGradientsNatural, IsoparametricJacobian2D jacobian)
+        private readonly IReadOnlyList<Node> elementNodes;
+
+        public EvalInterpolation2D(IReadOnlyList<Node> elementNodes, double[] shapeFunctions, Matrix shapeGradientsNatural, 
+            IsoparametricJacobian2D jacobian)
         {
-            int numNodes = shapeFunctions.Length;
-            if (shapeGradientsNatural.NumRows != numNodes) throw new ArgumentException($"There are {shapeFunctions.Length}"
-               + $" evaluated shape functions, but {shapeGradientsNatural.NumRows} evaluated natural shape derivatives.");
+            int numNodes = elementNodes.Count;
+#if DEBUG
+            if ((shapeFunctions.Length != numNodes) || (shapeGradientsNatural.NumRows != numNodes))
+            {
+                throw new ArgumentException($"There are {numNodes} nodes, but {ShapeFunctions.Length} shape functions" 
+                    + $" and {shapeGradientsNatural.NumRows} natural shape derivatives.");
+            }
+#endif
+            this.elementNodes = elementNodes;
             this.ShapeFunctions = shapeFunctions;
             this.ShapeGradientsNatural = shapeGradientsNatural;
             this.Jacobian = jacobian;
@@ -55,19 +64,18 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// </summary>
         public Matrix ShapeGradientsNatural { get; }
 
-        public CartesianPoint2D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node> nodes)
+        public CartesianPoint TransformPointNaturalToGlobalCartesian()
         {
-            if (nodes.Count != ShapeFunctions.Length) throw new ArgumentException(
-                $"There are {ShapeFunctions.Length} evaluated shape functions stored, but {nodes.Count} were passed in.");
+
             double x = 0, y = 0;
             for (int i = 0; i < ShapeFunctions.Length; ++i)
             {
-                Node node = nodes[i];
+                Node node = elementNodes[i];
                 double val = ShapeFunctions[i];
                 x += val * node.X;
                 y += val * node.Y;
             }
-            return new CartesianPoint2D(x, y);
+            return new CartesianPoint(x, y);
         }
     }
 }

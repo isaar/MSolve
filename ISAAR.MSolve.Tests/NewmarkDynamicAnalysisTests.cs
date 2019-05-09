@@ -25,7 +25,7 @@ namespace ISAAR.MSolve.Tests
             int subdomainID = 0;
             model.SubdomainsDictionary.Add(subdomainID, new Subdomain(subdomainID));
 
-            var n = new Node() { ID = 0 };
+            var n = new Node(id: 0, x: double.NaN );
             var e = new Element() { ID = 0 };
             e.NodesDictionary.Add(0, n);
             var m = new Mock<IFiniteElement>();
@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.Tests
             //m.Setup(x => x.StiffnessMatrix(e)).Returns(new Numerical.LinearAlgebra.SymmetricMatrix2D(new double[] { 6, -2, 4 }));
             //m.Setup(x => x.MassMatrix(e)).Returns(new Numerical.LinearAlgebra.SymmetricMatrix2D(new double[] { 2, 0, 1 }));
             //m.Setup(x => x.DampingMatrix(e)).Returns(new Numerical.LinearAlgebra.SymmetricMatrix2D(new double[] { 0, 0, 0 }));
-            m.Setup(x => x.GetElementDOFTypes(e)).Returns(new[] { new[] { StructuralDof.TranslationX, StructuralDof.TranslationY } });
+            m.Setup(x => x.GetElementDofTypes(e)).Returns(new[] { new[] { StructuralDof.TranslationX, StructuralDof.TranslationY } });
             m.SetupGet(x => x.DofEnumerator).Returns(new GenericDofEnumerator());
             e.ElementType = m.Object;
             model.NodesDictionary.Add(0, n);

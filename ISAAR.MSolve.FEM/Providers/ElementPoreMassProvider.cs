@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.FEM.Providers
         {
             IPorousFiniteElement elementType = (IPorousFiniteElement)element.ElementType;
             int dofs = 0;
-            foreach (IList<IDofType> dofTypes in elementType.DofEnumerator.GetDOFTypes(element))
+            foreach (IList<IDofType> dofTypes in elementType.DofEnumerator.GetDofTypesForMatrixAssembly(element))
                 foreach (IDofType dofType in dofTypes) dofs++;
             var poreMass = SymmetricMatrix.CreateZero(dofs);
 
@@ -29,12 +29,12 @@ namespace ISAAR.MSolve.FEM.Providers
 
             int matrixRow = 0;
             int solidRow = 0;
-            foreach (IList<IDofType> dofTypesRow in elementType.DofEnumerator.GetDOFTypes(element))
+            foreach (IList<IDofType> dofTypesRow in elementType.DofEnumerator.GetDofTypesForMatrixAssembly(element))
                 foreach (IDofType dofTypeRow in dofTypesRow)
                 {
                     int matrixCol = 0;
                     int solidCol = 0;
-                    foreach (IList<IDofType> dofTypesCol in elementType.DofEnumerator.GetDOFTypes(element))
+                    foreach (IList<IDofType> dofTypesCol in elementType.DofEnumerator.GetDofTypesForMatrixAssembly(element))
                         foreach (IDofType dofTypeCol in dofTypesCol)
                         {
                             if (dofTypeCol == PorousMediaDof.Pressure)

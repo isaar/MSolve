@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public Dictionary<IDofType, AbsorptionType> Absorptions => absorptions;
 
-        IList<INode> IElement.Nodes => nodesDictionary.Values.ToList<INode>();
+        IReadOnlyList<INode> IElement.Nodes => nodesDictionary.Values.ToList<INode>();
         public IList<Node> Nodes => nodesDictionary.Values.ToList();
 
 
@@ -40,7 +40,6 @@ namespace ISAAR.MSolve.FEM.Entities
 
         ISubdomain IElement.Subdomain => this.Subdomain;
         public Subdomain Subdomain { get; set; }
-        public int[] DOFs { get; set; }
 
         public void AddNode(Node node) => nodesDictionary.Add(node.ID, node);
 

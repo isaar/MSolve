@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 // Tri6 nodes:
@@ -28,15 +28,15 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
         private InterpolationTri6() : base(CellType.Tri6, 6)
         {
-            NodalNaturalCoordinates = new NaturalPoint2D[]
+            NodalNaturalCoordinates = new NaturalPoint[]
             {
-                new NaturalPoint2D(1.0, 0.0),
-                new NaturalPoint2D(0.0, 1.0),
-                new NaturalPoint2D(0.0, 0.0),
+                new NaturalPoint(1.0, 0.0),
+                new NaturalPoint(0.0, 1.0),
+                new NaturalPoint(0.0, 0.0),
 
-                new NaturalPoint2D(0.5, 0.5),
-                new NaturalPoint2D(0.0, 0.5),
-                new NaturalPoint2D(0.5, 0.0)
+                new NaturalPoint(0.5, 0.5),
+                new NaturalPoint(0.0, 0.5),
+                new NaturalPoint(0.5, 0.0)
             };
         }
 
@@ -44,12 +44,22 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// The coordinates of the finite element's nodes in the natural (element local) coordinate system. The order of these
         /// nodes matches the order of the shape functions and is always the same for each element.
         /// </summary>
-        public override IReadOnlyList<NaturalPoint2D> NodalNaturalCoordinates { get; }
+        public override IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
         /// <summary>
         /// Get the unique <see cref="InterpolationTri6"/> object for the whole program. Thread safe.
         /// </summary>
         public static InterpolationTri6 UniqueInstance => uniqueInstance;
+
+        /// <summary>
+        /// See <see cref="IIsoparametricInterpolation2D.CheckElementNodes(IReadOnlyList{Node})"/>
+        /// </summary>
+        public override void CheckElementNodes(IReadOnlyList<Node> nodes)
+        {
+            if (nodes.Count != 6) throw new ArgumentException(
+                $"A Tri6 finite element has 6 nodes, but {nodes.Count} nodes were provided.");
+            // TODO: Also check the order of the nodes too and perhaps even the shape
+        }
 
         /// <summary>
         /// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.

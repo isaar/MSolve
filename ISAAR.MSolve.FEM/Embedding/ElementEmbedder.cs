@@ -35,14 +35,14 @@ namespace ISAAR.MSolve.FEM.Embedding
             foreach (var embeddedNode in e.EmbeddedNodes)
             {
                 int nodeOrderInEmbeddedElement = embeddedElement.Nodes.IndexOf(embeddedNode.Node);
-                var currentEmbeddedNodeDOFs = embeddedElement.ElementType.DofEnumerator.GetDOFTypes(embeddedElement)[nodeOrderInEmbeddedElement];
+                var currentEmbeddedNodeDOFs = embeddedElement.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(embeddedElement)[nodeOrderInEmbeddedElement];
                 //var currentNodeDOFs = currentEmbeddedNodeDOFs.Intersect(embeddedNode.DependentDOFs);
                 var independentEmbeddedDOFs = currentEmbeddedNodeDOFs.Except(embeddedNode.DependentDOFs);
 
                 // TODO: Optimization to exclude host DOFs that embedded node does not depend on.
                 for (int i = 0; i < embeddedNode.EmbeddedInElement.Nodes.Count; i++)
                 {
-                    var currentNodeDOFs = embeddedNode.EmbeddedInElement.ElementType.DofEnumerator.GetDOFTypes(embeddedNode.EmbeddedInElement)[i];
+                    var currentNodeDOFs = embeddedNode.EmbeddedInElement.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(embeddedNode.EmbeddedInElement)[i];
                     foreach (var dof in currentNodeDOFs)
                     {
                         var superElementDOF = new SuperElementDof() { DOF = dof, EmbeddedNode = embeddedNode.Node, HostNode = embeddedNode.EmbeddedInElement.Nodes[i], Element = embeddedNode.EmbeddedInElement };
@@ -73,7 +73,7 @@ namespace ISAAR.MSolve.FEM.Embedding
             foreach (var node in embeddedElement.Nodes.Except(e.EmbeddedNodes.Select(x => x.Node)))
             {
                 int nodeOrderInEmbeddedElement = embeddedElement.Nodes.IndexOf(node);
-                var currentNodeDOFs = embeddedElement.ElementType.DofEnumerator.GetDOFTypes(embeddedElement)[nodeOrderInEmbeddedElement];
+                var currentNodeDOFs = embeddedElement.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(embeddedElement)[nodeOrderInEmbeddedElement];
                 foreach (var dof in currentNodeDOFs)
                 {
                     var superElementDOF = new SuperElementDof() { DOF = dof, EmbeddedNode = node, HostNode = null, Element = null };
@@ -91,7 +91,7 @@ namespace ISAAR.MSolve.FEM.Embedding
             var e = (IEmbeddedElement)(embeddedElement.ElementType);
             int row = 0;
             int col = 0;
-            int totalRows = embeddedElement.ElementType.DofEnumerator.GetDOFTypes(embeddedElement).SelectMany(x => x).Count();
+            int totalRows = embeddedElement.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(embeddedElement).SelectMany(x => x).Count();
             var matrix = new double[totalRows, superElementMap.Count];
 
             foreach (var embeddedNode in e.EmbeddedNodes)
@@ -99,7 +99,7 @@ namespace ISAAR.MSolve.FEM.Embedding
                 var localTransformationMatrix = transformation.GetTransformationVector(embeddedNode);
                 var localHostDOFs = transformation.GetDOFTypesOfHost(embeddedNode);
                 int nodeOrderInEmbeddedElement = embeddedElement.Nodes.IndexOf(embeddedNode.Node);
-                var embeddedNodeDOFQuantity = embeddedElement.ElementType.DofEnumerator.GetDOFTypes(embeddedElement)[nodeOrderInEmbeddedElement].Count;
+                var embeddedNodeDOFQuantity = embeddedElement.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(embeddedElement)[nodeOrderInEmbeddedElement].Count;
                 int dependentDOFs = transformation.GetDependentDOFTypes.Count;
 
                 for (int i = 0; i < dependentDOFs; i++)
@@ -117,7 +117,7 @@ namespace ISAAR.MSolve.FEM.Embedding
                 }
                 row += dependentDOFs;
 
-                var independentEmbeddedDOFs = embeddedElement.ElementType.DofEnumerator.GetDOFTypes(embeddedElement)[nodeOrderInEmbeddedElement].Except(embeddedNode.DependentDOFs).ToArray();
+                var independentEmbeddedDOFs = embeddedElement.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(embeddedElement)[nodeOrderInEmbeddedElement].Except(embeddedNode.DependentDOFs).ToArray();
                 for (int j = 0; j < independentEmbeddedDOFs.Length; j++)
                 {
                     var superelement = new SuperElementDof() { DOF = independentEmbeddedDOFs[j], Element = null, HostNode = null, EmbeddedNode = embeddedNode.Node };
@@ -129,7 +129,7 @@ namespace ISAAR.MSolve.FEM.Embedding
             foreach (var node in embeddedElement.Nodes.Except(e.EmbeddedNodes.Select(x => x.Node)))
             {
                 int nodeOrderInEmbeddedElement = embeddedElement.Nodes.IndexOf(node);
-                var currentNodeDOFs = embeddedElement.ElementType.DofEnumerator.GetDOFTypes(embeddedElement)[nodeOrderInEmbeddedElement];
+                var currentNodeDOFs = embeddedElement.ElementType.DofEnumerator.GetDofTypesForMatrixAssembly(embeddedElement)[nodeOrderInEmbeddedElement];
                 for (int j = 0; j < currentNodeDOFs.Count; j++)
                 {
                     var superelement = new SuperElementDof() { DOF = currentNodeDOFs[j], Element = null, HostNode = null, EmbeddedNode = node };
@@ -191,11 +191,11 @@ namespace ISAAR.MSolve.FEM.Embedding
         }
 
 
-        public IList<IList<IDofType>> GetDOFTypes(IElement element)
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetDofTypesForMatrixAssembly(IElement element)
         {
             //return element.ElementType.GetElementDOFTypes(element);
 
-            var dofs = new List<IList<IDofType>>();
+            var dofs = new List<IReadOnlyList<IDofType>>();
             INode currentNode = null;
             List<IDofType> nodeDOFs = null;
 
@@ -218,7 +218,7 @@ namespace ISAAR.MSolve.FEM.Embedding
             return dofs;
         }
 
-        public IList<IList<IDofType>> GetDOFTypesForDOFEnumeration(IElement element)
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetDofTypesForDofEnumeration(IElement element)
         {
             //if (embeddedElement != element) throw new ArgumentException();
 
@@ -230,7 +230,7 @@ namespace ISAAR.MSolve.FEM.Embedding
                 index++;
             }
             
-            var dofs = new List<IList<IDofType>>();
+            var dofs = new List<IReadOnlyList<IDofType>>();
             for (int i = 0; i < element.Nodes.Count; i++)
                 dofs.Add(new List<IDofType>());
 
@@ -259,7 +259,7 @@ namespace ISAAR.MSolve.FEM.Embedding
             return dofs;
         }
 
-        public IList<INode> GetNodesForMatrixAssembly(IElement element)
+        public IReadOnlyList<INode> GetNodesForMatrixAssembly(IElement element)
         {
             var nodes = new List<INode>();
             INode currentNode = null;

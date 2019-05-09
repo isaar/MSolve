@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.Discretization.Integration.Points;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
-using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.Materials;
 
 //TODO: Materials should be passed in the constructor, not each method
@@ -30,9 +27,9 @@ namespace ISAAR.MSolve.FEM.Elements
         private static readonly IReadOnlyDictionary<CellType, IQuadrature2D> integrationsForMass;
         private static readonly IReadOnlyDictionary<CellType, IIsoparametricInterpolation2D> interpolations;
 
-        private ElasticMaterial2D commonMaterial;
-        private DynamicMaterial commonDynamicProperties;
-        private double commonThickness;
+        private readonly ElasticMaterial2D commonMaterial;
+        private readonly DynamicMaterial commonDynamicProperties;
+        private readonly double commonThickness;
 
         static ContinuumElement2DFactory()
         {
@@ -109,6 +106,9 @@ namespace ISAAR.MSolve.FEM.Elements
             IReadOnlyList<ElasticMaterial2D> materialsAtGaussPoints, DynamicMaterial dynamicProperties)
         {
             //TODO: check if nodes - interpolation and Gauss points - materials match
+#if DEBUG
+            interpolations[cellType].CheckElementNodes(nodes);
+#endif
             return new ContinuumElement2D(thickness, nodes, interpolations[cellType],
                 integrationsForStiffness[cellType], integrationsForMass[cellType], extrapolations[cellType],
                 materialsAtGaussPoints, dynamicProperties);

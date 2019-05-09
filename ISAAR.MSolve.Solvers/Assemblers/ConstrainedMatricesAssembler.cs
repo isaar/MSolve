@@ -10,7 +10,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers
 {
     /// <summary>
     /// Creates the subdomain level matrices that correspond to constrained dofs Kcf, Kcc, where f = free dof, c = constrained 
-    /// dof, A * X = B, A = [ Aff Acf^T; Acf Acc ], X = [ Xf; Xc ], B = [ Bf, Bc ] (Matlab notation).
+    /// dof, A * X = B, A = [ Aff Acf^T; Acf Acc ], x: [ Xf; Xc ], B = [ Bf, Bc ] (Matlab notation).
     /// Authors: Serafeim Bakalakos
     /// </summary>
     internal class ConstrainedMatricesAssembler
