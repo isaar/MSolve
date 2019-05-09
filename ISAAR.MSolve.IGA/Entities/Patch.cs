@@ -246,7 +246,12 @@ namespace ISAAR.MSolve.IGA.Entities
 
                         var isBoundary = (i == 0 || i == NumberOfControlPointsKsi - 1 || j == 0 ||
                                           j == NumberOfControlPointsHeta - 1 || k == 0 || k == NumberOfControlPointsZeta-1);
-                        collocationPoints.Add(new CollocationPoint3D(index++, coordinateKsi, coordinateHeta, coordinateZeta, isBoundary));
+                        var collocationPoint = new CollocationPoint3D(index++, coordinateKsi, coordinateHeta,
+                            coordinateZeta, isBoundary);
+                        if (i == 0 || i == NumberOfControlPointsKsi - 1) collocationPoint.Surfaces.Add(Surface.LeftRight);
+                        if (j == 0 || j == NumberOfControlPointsHeta - 1) collocationPoint.Surfaces.Add(Surface.FrontBack);
+                        if (k == 0 || k == NumberOfControlPointsZeta - 1) collocationPoint.Surfaces.Add(Surface.BottomTop);
+                        collocationPoints.Add(collocationPoint);
                     }
                 }
             }

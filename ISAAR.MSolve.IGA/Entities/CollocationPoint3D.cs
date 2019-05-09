@@ -27,6 +27,8 @@ namespace ISAAR.MSolve.IGA.Entities
             set => _isBoundary = value;
         }
 
+        public List<Surface> Surfaces=new List<Surface>();
+
         private int _id;
         private bool _isBoundary;
 
@@ -38,5 +40,12 @@ namespace ISAAR.MSolve.IGA.Entities
         public double Z { get; set; }
         public List<Constraint> Constraints { get; }
         public Dictionary<int, ISubdomain> SubdomainsDictionary { get; }
+    }
+
+    public enum Surface
+    {
+        BottomTop,
+        FrontBack,
+        LeftRight
     }
 }
