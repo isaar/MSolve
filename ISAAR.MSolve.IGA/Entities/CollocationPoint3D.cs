@@ -13,12 +13,14 @@ namespace ISAAR.MSolve.IGA.Entities
         {
             _isBoundary = isBoundary;
             _id = id;
+            Surfaces= new List<Surface>();
         }
 
         public CollocationPoint3D(int id,double[] coordinates, bool isBoundary = false) : base(coordinates)
         {
             _isBoundary = isBoundary;
             _id = id;
+            Surfaces = new List<Surface>();
         }
 
         public bool IsBoundary
@@ -27,7 +29,7 @@ namespace ISAAR.MSolve.IGA.Entities
             set => _isBoundary = value;
         }
 
-        public List<Surface> Surfaces=new List<Surface>();
+        public List<Surface> Surfaces { get; set; }
 
         private int _id;
         private bool _isBoundary;

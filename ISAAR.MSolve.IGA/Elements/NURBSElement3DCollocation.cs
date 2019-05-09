@@ -179,7 +179,7 @@ namespace ISAAR.MSolve.IGA.Elements
             NURBSElement3DCollocation elementCollocation, Matrix3by3 jacobianMatrix)
         {
             List<Vector> normals= new List<Vector>();
-            foreach (var surface in CollocationPoint.Surfaces)
+            foreach (var surface in elementCollocation.CollocationPoint.Surfaces)
             {
                 if (surface == Surface.BottomTop)
                 {
