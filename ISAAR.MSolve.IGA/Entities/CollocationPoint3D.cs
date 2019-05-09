@@ -46,8 +46,7 @@ namespace ISAAR.MSolve.IGA.Entities
 
     public enum Surface
     {
-        BottomTop,
-        FrontBack,
-        LeftRight
+        Front, Back, Top, Bottom,
+        Right, Left
     }
 }

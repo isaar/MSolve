@@ -168,7 +168,7 @@ namespace ISAAR.MSolve.IGA.Elements
 
                 collocationPointStiffness[2, i] = lambda * zGaussPoint * dR[0, index] + m * xGaussPoint * dR[2, index];
                 collocationPointStiffness[2, i + 1] = lambda * zGaussPoint * dR[1, index] + m * yGaussPoint * dR[2, index];
-                collocationPointStiffness[2, i + 2] = (lambda + 2 * m) * zGaussPoint * dR[2, 0] +
+                collocationPointStiffness[2, i + 2] = (lambda + 2 * m) * zGaussPoint * dR[2, index] +
                                                       m * xGaussPoint * dR[0, index] + m * yGaussPoint * dR[1, index];
             }
 
@@ -181,25 +181,38 @@ namespace ISAAR.MSolve.IGA.Elements
             List<Vector> normals= new List<Vector>();
             foreach (var surface in elementCollocation.CollocationPoint.Surfaces)
             {
-                if (surface == Surface.BottomTop)
+                var u = Vector.CreateFromArray(new double[] { jacobianMatrix[0, 0], jacobianMatrix[0, 1], jacobianMatrix[0, 2] });
+                var v = Vector.CreateFromArray(new double[] { jacobianMatrix[1, 0], jacobianMatrix[1, 1], jacobianMatrix[1, 2] });
+                var w = Vector.CreateFromArray(new double[] { jacobianMatrix[2, 0], jacobianMatrix[2, 1], jacobianMatrix[2, 2] });
+
+                if (surface == Surface.Bottom)
                 {
-                    var v1 = Vector.CreateFromArray(new double[] {jacobianMatrix[0, 0], jacobianMatrix[0, 1], jacobianMatrix[0, 2]});
-                    var v2 = Vector.CreateFromArray(new double[] { jacobianMatrix[1, 0], jacobianMatrix[1, 1], jacobianMatrix[1, 2] });
-                    var normal = v1.CrossProduct(v2);
+                    var normal = v.CrossProduct(u);
                     normals.Add(normal.Scale(1/normal.Norm2()));
                 }
-                else if (surface == Surface.FrontBack)
+                else if (surface == Surface.Top)
                 {
-                    var v1 = Vector.CreateFromArray(new double[] { jacobianMatrix[0, 0], jacobianMatrix[0, 1], jacobianMatrix[0, 2] });
-                    var v2 = Vector.CreateFromArray(new double[] { jacobianMatrix[2, 0], jacobianMatrix[2, 1], jacobianMatrix[2, 2] });
-                    var normal = v1.CrossProduct(v2);
+                    var normal = u.CrossProduct(v);
                     normals.Add(normal.Scale(1 / normal.Norm2()));
                 }
-                else if (surface==Surface.LeftRight)
+                else if (surface == Surface.Front)
                 {
-                    var v1 = Vector.CreateFromArray(new double[] { jacobianMatrix[1, 0], jacobianMatrix[1, 1], jacobianMatrix[1, 2] });
-                    var v2 = Vector.CreateFromArray(new double[] { jacobianMatrix[2, 0], jacobianMatrix[2, 1], jacobianMatrix[2, 2] });
-                    var normal = v1.CrossProduct(v2);
+                    var normal = u.CrossProduct(w);
+                    normals.Add(normal.Scale(1 / normal.Norm2()));
+                }
+                else if (surface == Surface.Back)
+                {
+                    var normal = w.CrossProduct(u);
+                    normals.Add(normal.Scale(1 / normal.Norm2()));
+                }
+                else if (surface==Surface.Left)
+                {
+                    var normal = w.CrossProduct(v);
+                    normals.Add(normal.Scale(1 / normal.Norm2()));
+                }
+                else if (surface == Surface.Right)
+                {
+                    var normal = w.CrossProduct(v);
                     normals.Add(normal.Scale(1 / normal.Norm2()));
                 }
             }
@@ -208,9 +221,6 @@ namespace ISAAR.MSolve.IGA.Elements
             normalVector[0] = normals.Sum(n => n[0]);
             normalVector[1] = normals.Sum(n => n[1]);
             normalVector[2] = normals.Sum(n => n[2]);
-            normalVector.Scale(1 / normalVector.Norm2());
-
-
             return (normalVector[0], normalVector[1], normalVector[2]);
         }
 
