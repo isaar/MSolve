@@ -43,17 +43,19 @@ namespace ISAAR.MSolve.IGA.Tests
             parentAnalyzer.BuildMatrices();
 
             var k = solver.LinearSystems[0].Matrix;
-            Matrix<double> kmatlab = MathNet.Numerics.LinearAlgebra.CreateMatrix.Sparse<double>(k.NumRows, k.NumColumns);
+            Matrix<double> stiffnessMatrixExpected =
+                MatlabReader.Read<double>("..\\..\\..\\InputFiles\\Kcol3D.mat", "Ktotal");
+
+
+
             for (int i = 0; i < k.NumRows; i++)
             {
                 for (int j = 0; j < k.NumColumns; j++)
                 {
-                     if (Math.Abs(k[i,j]) < 10e-12) continue;
-                    kmatlab[i, j] = k[i, j];
+                    Utilities.AreValuesEqual(stiffnessMatrixExpected[i, j], k[i, j], 10e-9);
                 }
             }
 
-            MatlabWriter.Write("..\\..\\..\\InputFiles\\Kcol3D.mat", kmatlab, "Ktotal");
         }
     }
 }
