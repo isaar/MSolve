@@ -176,26 +176,45 @@ namespace ISAAR.MSolve.IGA.Elements
         }
 
         private (double xGaussPoint, double yGaussPoint, double zGaussPoint) CalculateNormalVectors(
-            NURBSElement3DCollocation elementCollocation, NURBS3D nurbs)
+            NURBSElement3DCollocation elementCollocation, Matrix3by3 jacobianMatrix)
         {
-            double xGaussPoint = 0;
-            double yGaussPoint = 0;
-            double zGaussPoint = 0;
-            for (int k = 0; k < elementCollocation.ControlPoints.Count; k++)
+            List<Vector> normals= new List<Vector>();
+            foreach (var surface in CollocationPoint.Surfaces)
             {
-                xGaussPoint += nurbs.NurbsValues[k, 0] * elementCollocation.ControlPoints[k].X;
-                yGaussPoint += nurbs.NurbsValues[k, 0] * elementCollocation.ControlPoints[k].Y;
-                yGaussPoint += nurbs.NurbsValues[k, 0] * elementCollocation.ControlPoints[k].Z;
+                if (surface == Surface.BottomTop)
+                {
+                    var v1 = Vector.CreateFromArray(new double[] {jacobianMatrix[0, 0], jacobianMatrix[0, 1], jacobianMatrix[0, 2]});
+                    var v2 = Vector.CreateFromArray(new double[] { jacobianMatrix[1, 0], jacobianMatrix[1, 1], jacobianMatrix[1, 2] });
+                    var normal = v1.CrossProduct(v2);
+                    normals.Add(normal.Scale(1/normal.Norm2()));
+                }
+                else if (surface == Surface.FrontBack)
+                {
+                    var v1 = Vector.CreateFromArray(new double[] { jacobianMatrix[0, 0], jacobianMatrix[0, 1], jacobianMatrix[0, 2] });
+                    var v2 = Vector.CreateFromArray(new double[] { jacobianMatrix[2, 0], jacobianMatrix[2, 1], jacobianMatrix[2, 2] });
+                    var normal = v1.CrossProduct(v2);
+                    normals.Add(normal.Scale(1 / normal.Norm2()));
+                }
+                else if (surface==Surface.LeftRight)
+                {
+                    var v1 = Vector.CreateFromArray(new double[] { jacobianMatrix[1, 0], jacobianMatrix[1, 1], jacobianMatrix[1, 2] });
+                    var v2 = Vector.CreateFromArray(new double[] { jacobianMatrix[2, 0], jacobianMatrix[2, 1], jacobianMatrix[2, 2] });
+                    var normal = v1.CrossProduct(v2);
+                    normals.Add(normal.Scale(1 / normal.Norm2()));
+                }
             }
 
-            double norm = Math.Sqrt(Math.Pow(xGaussPoint, 2) + Math.Pow(yGaussPoint, 2)+ Math.Pow(zGaussPoint, 2));
-            xGaussPoint /= norm;
-            yGaussPoint /= norm;
-            zGaussPoint /= norm;
-            return (xGaussPoint, yGaussPoint,zGaussPoint);
+            var normalVector = Vector3.CreateZero();
+            normalVector[0] = normals.Sum(n => n[0]);
+            normalVector[1] = normals.Sum(n => n[1]);
+            normalVector[2] = normals.Sum(n => n[2]);
+            normalVector.Scale(1 / normalVector.Norm2());
+
+
+            return (normalVector[0], normalVector[1], normalVector[2]);
         }
 
-        private static Matrix CollocationPointStiffness(NURBSElement3DCollocation elementCollocation, double[,] ddR)
+        private static Matrix CollocationPointStiffness(NURBSElement3DCollocation elementCollocation, Matrix ddR)
 		{
 			var collocationPointStiffness = Matrix.CreateZero(3, elementCollocation.ControlPoints.Count * 3);
 
@@ -218,18 +237,18 @@ namespace ISAAR.MSolve.IGA.Elements
 
 				collocationPointStiffness[0, i + 2] = (lambda + m) * ddR[4, index];
 				collocationPointStiffness[1, i + 2] = (lambda + m) * ddR[5, index];
-				collocationPointStiffness[2, i + 2] = (lambda + 2 * m) * ddR[2, 0] + m * ddR[0, index] + m * ddR[1, index];
+				collocationPointStiffness[2, i + 2] = (lambda + 2 * m) * ddR[2, index] + m * ddR[0, index] + m * ddR[1, index];
 			}
 
 			return collocationPointStiffness;
 		}
 
-		private double[,] CalculateNaturalSecondDerivatives(NURBS3D nurbs, Matrix hessianMatrix, Matrix dR, Matrix squareDerivatives)
+		private Matrix CalculateNaturalSecondDerivatives(NURBS3D nurbs, Matrix hessianMatrix, Matrix dR, Matrix squareDerivatives)
 		{
 			var ddR2 = hessianMatrix * dR;
 
-			var ddR3 = new double[6, nurbs.NurbsSecondDerivativeValueKsi.NumRows];
-			for (int i = 0; i < ddR3.GetLength(1); i++)
+            var ddR3 = Matrix.CreateZero(6, nurbs.NurbsSecondDerivativeValueKsi.NumRows);
+			for (int i = 0; i < ddR3.NumColumns; i++)
 			{
 				ddR3[0, i] = nurbs.NurbsSecondDerivativeValueKsi[i, 0] - ddR2[0, i];
 				ddR3[1, i] = nurbs.NurbsSecondDerivativeValueHeta[i, 0] - ddR2[1, i];
@@ -239,22 +258,24 @@ namespace ISAAR.MSolve.IGA.Elements
 				ddR3[4, i] = nurbs.NurbsSecondDerivativeValueKsiZeta[i, 0] - ddR2[4, i];
 				ddR3[5, i] = nurbs.NurbsSecondDerivativeValueHetaZeta[i, 0] - ddR2[5, i];
 			}
-
-			var ddR = new double[6, nurbs.NurbsSecondDerivativeValueKsi.NumRows];
+            
             var squareInvert = squareDerivatives.Invert();
 
-			for (int i = 0; i < ddR.GetLength(1); i++)
-			{
-				var rhs = Vector.CreateFromArray(new[]
-					{ddR3[0, i], ddR3[1, i], ddR3[2, i], ddR3[3, i], ddR3[4, i], ddR3[5, i]});
-                var solution = squareInvert * rhs;
-				ddR[0, i] = solution[0];
-				ddR[1, i] = solution[1];
-				ddR[2, i] = solution[2];
-				ddR[3, i] = solution[3];
-				ddR[4, i] = solution[4];
-				ddR[5, i] = solution[5];
-			}
+            var ddR = squareInvert * ddR3;
+
+
+   //         for (int i = 0; i < ddR.GetLength(1); i++)
+			//{
+			//	var rhs = Vector.CreateFromArray(new[]
+			//		{ddR3[0, i], ddR3[1, i], ddR3[2, i], ddR3[3, i], ddR3[4, i], ddR3[5, i]});
+   //             var solution = squareInvert * rhs;
+			//	ddR[0, i] = solution[0];
+			//	ddR[1, i] = solution[1];
+			//	ddR[2, i] = solution[2];
+			//	ddR[3, i] = solution[3];
+			//	ddR[4, i] = solution[4];
+			//	ddR[5, i] = solution[5];
+			//}
 
 			return ddR;
 		}
