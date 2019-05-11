@@ -69,10 +69,10 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             // Check
             for (int s = 0; s < 4; ++s)
             {
-                Utilities.CheckEqual(cornerDofsExpected[s], dofSeparator.CornerIntoFreeDofIndices[s]);
-                Utilities.CheckEqual(remainderDofsExpected[s], dofSeparator.RemainderIntoFreeDofIndices[s]);
-                Utilities.CheckEqual(boundaryRemainderDofsExpected[s], dofSeparator.BoundaryIntoRemainderDofIndices[s]);
-                Utilities.CheckEqual(internalRemainderDofsExpected[s], dofSeparator.InternalIntoRemainderDofIndices[s]);
+                Utilities.CheckEqual(cornerDofsExpected[s], dofSeparator.CornerDofIndices[s]);
+                Utilities.CheckEqual(remainderDofsExpected[s], dofSeparator.RemainderDofIndices[s]);
+                Utilities.CheckEqual(boundaryRemainderDofsExpected[s], dofSeparator.BoundaryDofIndices[s]);
+                Utilities.CheckEqual(internalRemainderDofsExpected[s], dofSeparator.InternalDofIndices[s]);
             }
         }
 

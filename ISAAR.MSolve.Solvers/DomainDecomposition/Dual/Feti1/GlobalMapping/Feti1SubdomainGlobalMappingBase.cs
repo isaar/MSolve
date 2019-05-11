@@ -9,14 +9,14 @@ using ISAAR.MSolve.Solvers.LinearSystems;
 //TODO: Also abstract DistributeNodalLoads as much as possible. Resuing the LumpedBoundaryStiffnesses of heterogeneous 
 //      distribution might help. Ideally this class would not be abstract. Instead it should be injected with the relative 
 //      stiffness / multiplicity for each dof from the IStiffnessDistribution and just use that.
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribution
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.GlobalMapping
 {
-    internal abstract class Feti1SubdomainGlobalConversionBase : ISubdomainGlobalConversion
+    public abstract class Feti1SubdomainGlobalMappingBase : ISubdomainGlobalMapping
     {
         protected readonly IStructuralModel model;
         protected readonly Feti1DofSeparator dofSeparator;
 
-        protected Feti1SubdomainGlobalConversionBase(IStructuralModel model, Feti1DofSeparator dofSeparator)
+        protected Feti1SubdomainGlobalMappingBase(IStructuralModel model, Feti1DofSeparator dofSeparator)
         {
             this.model = model;
             this.dofSeparator = dofSeparator;
@@ -53,7 +53,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
                 double[] boundaryDofCoeffs = CalcBoundaryDofMultipliers(subdomain);
                 for (int i = 0; i < dofSeparator.BoundaryDofIndices[id].Length; ++i)
                 {
-                    int multiplicity = dofSeparator.BoundaryDofMultiplicities[id][i];
                     int subdomainDofIdx = dofSeparator.BoundaryDofIndices[id][i];
                     int globalDofIdx = subdomainToGlobalDofs[subdomainDofIdx];
                     globalDisplacements[globalDofIdx] += displacements[subdomainDofIdx] * boundaryDofCoeffs[i];
@@ -118,30 +117,30 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
         // resulting from loads applied to elements (e.g. Dirichlet, Neumann), because they need to be summed without any 
         // averaging.
         //TODO: Could this logic be used as an optimization for the case it is correct?
-        private double CalculateGlobalForcesNorm_INCORRECT(Dictionary<int, IVectorView> subdomainForces)
-        {
-            //TODO: this should be used for non linear analyzers as well (instead of building the global RHS)
-            //TODO: Is this correct? For the residual, it would be wrong to find f-K*u for each subdomain and then call this.
+        //private double CalculateGlobalForcesNorm_INCORRECT(Dictionary<int, IVectorView> subdomainForces)
+        //{
+        //    //TODO: this should be used for non linear analyzers as well (instead of building the global RHS)
+        //    //TODO: Is this correct? For the residual, it would be wrong to find f-K*u for each subdomain and then call this.
 
-            double globalSum = 0.0;
-            foreach (ISubdomain subdomain in model.Subdomains)
-            {
-                int id = subdomain.ID;
-                double subdomainSum = 0.0;
-                IVectorView forces = subdomainForces[id];
-                foreach (int internalDof in dofSeparator.InternalDofIndices[id]) subdomainSum += forces[internalDof];
-                for (int i = 0; i < dofSeparator.BoundaryDofIndices[id].Length; ++i)
-                {
-                    // E.g. 2 subdomains. Originally: sum += f * f. Now: sum += (2*f/2)(2*f/2)/2 + (2*f/2)(2*f/2)/2
-                    // WARNING: This works only if nodal loads are distributed evenly among subdomains.
-                    int multiplicity = dofSeparator.BoundaryDofMultiplicities[id][i];
-                    double totalForce = forces[dofSeparator.BoundaryDofIndices[id][i]] * multiplicity;
-                    subdomainSum += (totalForce * totalForce) / multiplicity;
-                }
-                globalSum += subdomainSum;
-            }
-            return Math.Sqrt(globalSum);
-        }
+        //    double globalSum = 0.0;
+        //    foreach (ISubdomain subdomain in model.Subdomains)
+        //    {
+        //        int id = subdomain.ID;
+        //        double subdomainSum = 0.0;
+        //        IVectorView forces = subdomainForces[id];
+        //        foreach (int internalDof in dofSeparator.InternalDofIndices[id]) subdomainSum += forces[internalDof];
+        //        for (int i = 0; i < dofSeparator.BoundaryDofIndices[id].Length; ++i)
+        //        {
+        //            // E.g. 2 subdomains. Originally: sum += f * f. Now: sum += (2*f/2)(2*f/2)/2 + (2*f/2)(2*f/2)/2
+        //            // WARNING: This works only if nodal loads are distributed evenly among subdomains.
+        //            int multiplicity = dofSeparator.BoundaryDofMultiplicities[id][i];
+        //            double totalForce = forces[dofSeparator.BoundaryDofIndices[id][i]] * multiplicity;
+        //            subdomainSum += (totalForce * totalForce) / multiplicity;
+        //        }
+        //        globalSum += subdomainSum;
+        //    }
+        //    return Math.Sqrt(globalSum);
+        //}
         #endregion
     }
 }

@@ -13,7 +13,7 @@ using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using Xunit;
 
-namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual
+namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
 {
     public static class FullyRedundantLagrangeMultipliersTests
     {

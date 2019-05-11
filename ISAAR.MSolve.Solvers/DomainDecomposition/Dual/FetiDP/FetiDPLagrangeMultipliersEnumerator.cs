@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             var remainderDofOrderings = new Dictionary<int, DofTable>();
             foreach (ISubdomain subdomain in model.Subdomains)
             {
-                numRemainderDofs[subdomain.ID] = dofSeparator.RemainderIntoFreeDofIndices[subdomain.ID].Length;
+                numRemainderDofs[subdomain.ID] = dofSeparator.RemainderDofIndices[subdomain.ID].Length;
                 remainderDofOrderings[subdomain.ID] = dofSeparator.RemainderDofOrderings[subdomain.ID];
             }
             base.DefineBooleanMatrices(model, numRemainderDofs, remainderDofOrderings);
@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             var remainderDofOrderings = new Dictionary<int, DofTable>();
             foreach (ISubdomain subdomain in model.Subdomains)
             {
-                numRemainderDofs[subdomain.ID] = dofSeparator.RemainderIntoFreeDofIndices[subdomain.ID].Length;
+                numRemainderDofs[subdomain.ID] = dofSeparator.RemainderDofIndices[subdomain.ID].Length;
                 remainderDofOrderings[subdomain.ID] = dofSeparator.RemainderDofOrderings[subdomain.ID];
             }
             base.DefineLagrangesAndBooleanMatrices(model, numRemainderDofs, remainderDofOrderings);

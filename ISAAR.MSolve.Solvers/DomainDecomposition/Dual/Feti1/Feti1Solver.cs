@@ -9,12 +9,13 @@ using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.GlobalMapping;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Projection;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribution;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution;
 using ISAAR.MSolve.Solvers.LinearSystems;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
@@ -51,7 +52,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         private Dictionary<int, List<Vector>> rigidBodyModes;
         private IFetiPreconditioner preconditioner;
         private Feti1Projection projection;
-        private IFeti1StiffnessDistribution stiffnessDistribution;
+        private IStiffnessDistribution stiffnessDistribution;
+        private ISubdomainGlobalMapping subdomainGlobalMapping;
 
         private Feti1Solver(IStructuralModel model, IDofOrderer dofOrderer, double factorizationPivotTolerance,
             IFetiPreconditionerFactory preconditionerFactory, IFeti1InterfaceProblemSolver interfaceProblemSolver,
@@ -85,9 +87,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             this.factorizationPivotTolerance = factorizationPivotTolerance;
             this.preconditionerFactory = preconditionerFactory;
 
-            // PCPG
+            // Interface problem
             this.interfaceProblemSolver = interfaceProblemSolver;
-
 
             // Homogeneous/heterogeneous problems
             this.problemIsHomogeneous = problemIsHomogeneous;
@@ -144,11 +145,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 
         //TODO: this and the fields should be handled by a class that handles dof mappings.
         public Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, IDofType, double> globalNodalLoads)
-            => stiffnessDistribution.SubdomainGlobalConversion.DistributeNodalLoads(LinearSystems, globalNodalLoads);
+            => subdomainGlobalMapping.DistributeNodalLoads(LinearSystems, globalNodalLoads);
 
         //TODO: this and the fields should be handled by a class that handles dof mappings.
         public Vector GatherGlobalDisplacements(Dictionary<int, IVectorView> subdomainDisplacements)
-            => stiffnessDistribution.SubdomainGlobalConversion.GatherGlobalDisplacements(subdomainDisplacements);
+            => subdomainGlobalMapping.GatherGlobalDisplacements(subdomainDisplacements);
 
         public void HandleMatrixWillBeSet()
         {
@@ -363,15 +364,25 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             {
                 subdomainForces[linearSystem.Subdomain.ID] = linearSystem.RhsVector;
             }
-            return stiffnessDistribution.SubdomainGlobalConversion.CalculateGlobalForcesNorm(subdomainForces);
+            return subdomainGlobalMapping.CalculateGlobalForcesNorm(subdomainForces);
         }
 
         private void DetermineStiffnessDistribution(Dictionary<int, IMatrixView> stiffnessMatrices)
         {
             // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
             //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
-            if (problemIsHomogeneous) stiffnessDistribution = new HomogeneousStiffnessDistribution(model, dofSeparator);
-            else stiffnessDistribution = new HeterogeneousStiffnessDistribution(model, dofSeparator, stiffnessMatrices);
+            if (problemIsHomogeneous)
+            {
+                var distribution = new HomogeneousStiffnessDistribution(model, dofSeparator);
+                this.stiffnessDistribution = distribution;
+                subdomainGlobalMapping = new Feti1HomogeneousSubdomainGlobalMapping(model, dofSeparator, distribution);
+            }
+            else
+            {
+                var distribution = new HeterogeneousStiffnessDistribution(model, dofSeparator, stiffnessMatrices);
+                this.stiffnessDistribution = distribution;
+                subdomainGlobalMapping = new Feti1HeterogeneousSubdomainGlobalMapping(model, dofSeparator, distribution);
+            }
         }
 
         private void FactorizeMatrices()

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribution;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg;
 
@@ -11,11 +11,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
 {
     public abstract class Feti1PreconditionerFactoryBase : IFetiPreconditionerFactory
     {
-        public abstract IFetiPreconditioner CreatePreconditioner(IFeti1StiffnessDistribution stiffnessDistribution,
+        public abstract IFetiPreconditioner CreatePreconditioner(IStiffnessDistribution stiffnessDistribution,
             Feti1DofSeparator dofSeparator, ILagrangeMultipliersEnumerator lagrangeEnumerator,
             Dictionary<int, IMatrixView> stiffnessMatrices);
 
-        protected Dictionary<int, Matrix> CalcBoundaryPreconditioningBooleanMatrices(IFeti1StiffnessDistribution stiffnessDistribution, 
+        protected Dictionary<int, Matrix> CalcBoundaryPreconditioningBooleanMatrices(IStiffnessDistribution stiffnessDistribution, 
             Feti1DofSeparator dofSeparator, ILagrangeMultipliersEnumerator lagrangeEnumerator)
         {
             int numContinuityEquations = lagrangeEnumerator.NumLagrangeMultipliers;

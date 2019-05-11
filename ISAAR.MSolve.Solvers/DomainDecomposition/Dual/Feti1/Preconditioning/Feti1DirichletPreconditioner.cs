@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribution;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
 {
@@ -68,7 +67,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
 
         public class Factory : Feti1PreconditionerFactoryBase
         {
-            public override IFetiPreconditioner CreatePreconditioner(IFeti1StiffnessDistribution stiffnessDistribution,
+            public override IFetiPreconditioner CreatePreconditioner(IStiffnessDistribution stiffnessDistribution,
                 Feti1DofSeparator dofSeparator, ILagrangeMultipliersEnumerator lagrangeEnumerator,
                 Dictionary<int, IMatrixView> stiffnessMatrices)
             {

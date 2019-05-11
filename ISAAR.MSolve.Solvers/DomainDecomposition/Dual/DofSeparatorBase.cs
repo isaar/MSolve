@@ -5,16 +5,20 @@ using System.Text;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 
+//TODO: This should be a static class that will be called by the DofSeparator of each FETI method to create the common data structures.
 //TODO: Should this be abstract or not suffixed with "Base".
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual
 {
-    public class DofSeparatorBase : IDofSeparator
+    public abstract class DofSeparatorBase : IDofSeparator
     {
-        public Dictionary<INode, IDofType[]> DualDofs { get; private set; }
+        public abstract Dictionary<int, int[]> BoundaryDofIndices { get; protected set; }
+        public abstract Dictionary<int, (INode node, IDofType dofType)[]> BoundaryDofs { get; protected set; }
+        public Dictionary<INode, IDofType[]> GlobalBoundaryDofs { get; private set; }
+        public abstract Dictionary<int, int[]> InternalDofIndices { get; protected set; }
 
-        protected void GatherDualDofs(IEnumerable<INode> allNodes, IGlobalFreeDofOrdering globalDofOrdering)
+        protected void GatherGlobalBoundaryDofs(IEnumerable<INode> allNodes, IGlobalFreeDofOrdering globalDofOrdering)
         {
-            DualDofs = new Dictionary<INode, IDofType[]>();
+            GlobalBoundaryDofs = new Dictionary<INode, IDofType[]>();
 
             //TODO: model.Nodes probably doesn't work if there are embedded nodes. It is time to isolate the embedded nodes. Or I could use the GlobalDofOrdering.
             foreach (INode node in allNodes)
@@ -27,17 +31,15 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual
 
                     // If all dofs of this node are constrained, then it is not considered boundary.
                     if (dofsOfNode.Length == 0) continue;
-                    else DualDofs[node] = dofsOfNode;
+                    else GlobalBoundaryDofs[node] = dofsOfNode;
                 }
             }
         }
 
-        protected (int[] internalDofIndices, int[] boundaryDofIndices, int[] boundaryDofMultiplicities, 
-            (INode node, IDofType dofType)[] boundaryDofConnectivities) 
+        protected (int[] internalDofIndices, int[] boundaryDofIndices, (INode node, IDofType dofType)[] boundaryDofs) 
             SeparateBoundaryInternalDofs(IEnumerable<INode> nodes, DofTable freeDofs)
         {
-            var boundaryMultiplicities = new SortedDictionary<int, int>(); // key = dofIdx, value = multiplicity
-            var boundaryConnectivities = new SortedDictionary<int, (INode node, IDofType dofType)>();
+            var boundaryDofs = new SortedDictionary<int, (INode node, IDofType dofType)>(); // key = dofIdx, value = (node, dofType)
             var internalDofs = new SortedSet<int>(); //TODO: Why set instead of List?
             foreach (INode node in nodes)
             {
@@ -50,8 +52,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual
                     {
                         foreach (var dofTypeIdxPair in dofTypesIndices)
                         {
-                            boundaryMultiplicities.Add(dofTypeIdxPair.Value, nodeMultiplicity);
-                            boundaryConnectivities.Add(dofTypeIdxPair.Value, (node, dofTypeIdxPair.Key));
+                            boundaryDofs.Add(dofTypeIdxPair.Value, (node, dofTypeIdxPair.Key));
                         }
                     }
                 }
@@ -62,8 +63,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual
             }
 
             // The following are sorted in increasing order of boundary dof indices
-            return (internalDofs.ToArray(), boundaryMultiplicities.Keys.ToArray(), boundaryMultiplicities.Values.ToArray(),
-                boundaryConnectivities.Values.ToArray());
+            return (internalDofs.ToArray(), boundaryDofs.Keys.ToArray(), boundaryDofs.Values.ToArray());
         }
     }
 }

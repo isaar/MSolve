@@ -22,10 +22,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual
 
         //TODO: Is it more efficient to use (INode node, DOFType[] dofTypes)[]? It would reduce the cost of accessing node data?
         public static Table<INode, IDofType, BoundaryDofLumpedStiffness> ExtractBoundaryDofLumpedStiffnesses(
-            IDofSeparator dofSeparator, Dictionary<int, IMatrixView> stiffnesses)
+            Dictionary<INode, IDofType[]> dualDofs, Dictionary<int, IMatrixView> stiffnesses)
         {
             var result = new Table<INode, IDofType, BoundaryDofLumpedStiffness>();
-            foreach (var nodeDofsPair in dofSeparator.DualDofs)
+            foreach (var nodeDofsPair in dualDofs)
             {
                 INode node = nodeDofsPair.Key;
                 foreach (IDofType dofType in nodeDofsPair.Value)

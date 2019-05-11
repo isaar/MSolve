@@ -11,16 +11,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 {
     public class Feti1DofSeparator : DofSeparatorBase
     {
-        //TODO: BoundaryDofConnectivities is useful only for heterogeneous problems and its creation might be costly.
-        //      Needs benchmarking and possibly a way to avoid it in homogeneous problems
-        internal Dictionary<int, (INode node, IDofType dofType)[]> BoundaryDofConnectivities { get; private set; }
-        internal Dictionary<int, int[]> BoundaryDofIndices { get; private set; }
-        internal Dictionary<int, int[]> BoundaryDofMultiplicities { get; private set; }
-        internal Dictionary<int, int[]> InternalDofIndices { get; private set; }
+        public override Dictionary<int, int[]> BoundaryDofIndices { get; protected set; }
+        public override Dictionary<int, (INode node, IDofType dofType)[]> BoundaryDofs { get; protected set; }
+        public override Dictionary<int, int[]> InternalDofIndices { get; protected set; }
 
         internal void SeparateDofs(IStructuralModel model)
         {
-            base.GatherDualDofs(model.Nodes, model.GlobalDofOrdering);
+            GatherGlobalBoundaryDofs(model.Nodes, model.GlobalDofOrdering);
             SeparateBoundaryInternalDofs(model);
         }
 
@@ -28,18 +25,15 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         {
             InternalDofIndices = new Dictionary<int, int[]>();
             BoundaryDofIndices = new Dictionary<int, int[]>();
-            BoundaryDofMultiplicities = new Dictionary<int, int[]>();
-            BoundaryDofConnectivities = new Dictionary<int, (INode node, IDofType dofType)[]>();
+            BoundaryDofs = new Dictionary<int, (INode node, IDofType dofType)[]>();
             foreach (ISubdomain subdomain in model.Subdomains)
             {
-                (int[] internalDofIndices, int[] boundaryDofIndices, int[] boundaryDofMultiplicities, 
-                    (INode node, IDofType dofType)[] boundaryDofConnectivities) = 
-                    base.SeparateBoundaryInternalDofs(subdomain.Nodes, subdomain.FreeDofOrdering.FreeDofs);
+                (int[] internalDofIndices, int[] boundaryDofIndices, (INode node, IDofType dofType)[] boundaryDofConnectivities)
+                    = base.SeparateBoundaryInternalDofs(subdomain.Nodes, subdomain.FreeDofOrdering.FreeDofs);
 
                 InternalDofIndices.Add(subdomain.ID, internalDofIndices);
                 BoundaryDofIndices.Add(subdomain.ID, boundaryDofIndices);
-                BoundaryDofMultiplicities.Add(subdomain.ID, boundaryDofMultiplicities);
-                BoundaryDofConnectivities.Add(subdomain.ID, boundaryDofConnectivities);
+                BoundaryDofs.Add(subdomain.ID, boundaryDofConnectivities);
             }
         }
     }

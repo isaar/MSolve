@@ -12,9 +12,9 @@ using ISAAR.MSolve.Solvers.LinearSystems;
 //TODO: These methods overlap with IGlobalDofOrdering. Perhaps they should be moved there, while the implementing classes remain 
 //      here as strategies.
 //TODO: Should the vectors be Vector instead of IVectorView?
-namespace ISAAR.MSolve.Solvers.DomainDecomposition
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual
 {
-    public interface ISubdomainGlobalConversion
+    public interface ISubdomainGlobalMapping
     {
         double CalculateGlobalForcesNorm(Dictionary<int, IVectorView> subdomainForces);
 

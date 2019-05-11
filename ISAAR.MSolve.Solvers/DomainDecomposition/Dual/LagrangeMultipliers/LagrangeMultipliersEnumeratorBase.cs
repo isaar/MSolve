@@ -131,11 +131,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
         {
             // Find boundary dual nodes and dofs
             var boundaryNodeData = new List<(INode node, IDofType[] dofs, ISubdomain[] subdomainsPlus, 
-                ISubdomain[] subdomainsMinus)>(dofSeparator.DualDofs.Count);
+                ISubdomain[] subdomainsMinus)>(dofSeparator.GlobalBoundaryDofs.Count);
 
             // Find continuity equations.
             NumLagrangeMultipliers = 0;
-            foreach (var nodeDofsPair in dofSeparator.DualDofs)
+            foreach (var nodeDofsPair in dofSeparator.GlobalBoundaryDofs)
             {
                 INode node = nodeDofsPair.Key;
                 IDofType[] dofsOfNode = nodeDofsPair.Value;
