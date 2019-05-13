@@ -15,6 +15,7 @@
     <ProjectReference Include="..\ISAAR.MSolve.Problems\ISAAR.MSolve.Problems.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Tests\ISAAR.MSolve.Tests.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.XFEM\ISAAR.MSolve.XFEM.csproj" />
     <ProjectReference Include="..\MGroup.Stochastic.Structural.Example\MGroup.Stochastic.Structural.Example.csproj" />
     <ProjectReference Include="..\MGroup.Stochastic.Structural\MGroup.Stochastic.Structural.csproj" />
     <ProjectReference Include="..\MGroup.Stochastic\MGroup.Stochastic.csproj" />

@@ -25,8 +25,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.MeshPartitioning
         /// <param name="minY"></param>
         /// <param name="maxY"></param>
         /// <param name="tolerance">How close to the boundary a node must be to consider it as a boundary node. If you set it to 
-        ///     0.0, it will check whether the corrdinates are exactly the same.</param>
-        public RectangularRegion2D(double minX, double maxX, double minY, double maxY, double tolerance)
+        ///     0.0, it will check whether the coordinates are exactly the same.</param>
+        public RectangularRegion2D(double minX, double minY, double maxX, double maxY, double tolerance)
         {
             this.minX = minX;
             this.extendedMinX = minX - tolerance;

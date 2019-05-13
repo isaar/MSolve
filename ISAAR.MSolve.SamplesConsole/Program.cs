@@ -5,6 +5,7 @@ using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.SamplesConsole.Solvers;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
 using MGroup.Stochastic;
@@ -45,7 +46,9 @@ namespace ISAAR.MSolve.SamplesConsole
             //BondSlipTest.CheckStressStrainBonSlipMaterial();
             //OneRveExample.Check_Graphene_rve_parallel();
             //LinearRves.CheckShellScaleTransitionsAndMicrostructure();
-            SolveCantileverWithStochasticMaterial();
+            //SolveCantileverWithStochasticMaterial();
+
+            MeshPartitioningExamples.PartitionMeshes();
         }
 
         private static void SolveBuildingInNoSoilSmall()

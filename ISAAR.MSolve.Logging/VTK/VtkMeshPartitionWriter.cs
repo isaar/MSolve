@@ -11,7 +11,7 @@ using ISAAR.MSolve.Solvers.DomainDecomposition.MeshPartitioning;
 //TODO: This should probably follow the design of other writer classes.
 namespace ISAAR.MSolve.Logging.VTK
 {
-    public class VtkMeshPartitioningWriter
+    public class VtkMeshPartitionWriter
     {
         public const string vtkReaderVersion = "4.1";
 
@@ -68,9 +68,10 @@ namespace ISAAR.MSolve.Logging.VTK
             }
         }
 
-        public void WriteSubdomainElements<TElement>(string path, Dictionary<int, IReadOnlyList<INode>> nodesPerSubdomain,
-            Dictionary<int, List<TElement>> elementsPerSubdomain)
-            where TElement : ICell<INode>
+        public void WriteSubdomainElements<TNode, TElement>(string path, Dictionary<int, IReadOnlyList<TNode>> nodesPerSubdomain,
+            Dictionary<int, IReadOnlyList<TElement>> elementsPerSubdomain)
+            where TNode: INode
+            where TElement : ICell<TNode>
         {
             using (var writer = new StreamWriter(path))
             {
