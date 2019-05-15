@@ -143,6 +143,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
                 leadingDimB);
         }
 
+        public Matrix SolveLinearSystems(Matrix rhs)
+        {
+            CheckOverwritten();
+            Preconditions.CheckSystemSolutionDimensions(Order, rhs.NumRows);
+            //Preconditions.CheckMultiplicationDimensions(Order, solution.NumColumns);
+
+            // Back & forward substitution using LAPACK
+            Matrix solution = rhs.Copy();
+            int numRhs = rhs.NumColumns; // rhs is a n x nRhs matrix, stored in b
+            int leadingDimB = Order; // column major ordering: leading dimension of b is n 
+            LapackLinearEquations.Dpotrs(StoredTriangle.Upper, Order, numRhs, data, 0, Order, solution.RawData, 0,
+                leadingDimB);
+            return solution;
+        }
+
         private void CheckOverwritten()
         {
             if (IsOverwritten) throw new InvalidOperationException(

@@ -44,6 +44,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
         private Dictionary<int, CholeskyFull> factorizedKrr; //TODO: CholeskySkyline or CholeskySuiteSparse
         private bool factorizeInPlace = true;
         private FetiDPFlexibilityMatrix flexibility;
+        private Vector globalFcStar;
+        private Matrix globalKccStar;
         private bool isStiffnessModified = true;
         private FetiDPLagrangeMultipliersEnumerator lagrangeEnumerator;
         private IFetiPreconditioner preconditioner;
@@ -212,21 +214,21 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             // Separate the force vector
             var fr = new Dictionary<int, Vector>();
             var fbc = new Dictionary<int, Vector>();
-            foreach (int id in subdomains.Keys)
+            foreach (int s in subdomains.Keys)
             {
-                int[] remainderDofs = dofSeparator.RemainderDofIndices[id];
-                int[] cornerDofs = dofSeparator.CornerDofIndices[id];
-                Vector f = linearSystems[id].RhsVector;
-                fr[id] = f.GetSubvector(remainderDofs);
-                fbc[id] = f.GetSubvector(cornerDofs);
+                int[] remainderDofs = dofSeparator.RemainderDofIndices[s];
+                int[] cornerDofs = dofSeparator.CornerDofIndices[s];
+                Vector f = linearSystems[s].RhsVector;
+                fr[s] = f.GetSubvector(remainderDofs);
+                fbc[s] = f.GetSubvector(cornerDofs);
             }
 
             // Separate the stiffness matrix
-            Dictionary<int, Matrix> Krr; //TODO: perhaps SkylineMatrix or SymmetricCSC 
-            Dictionary<int, Matrix> Krc; //TODO: perhaps CSR or CSC
-            Dictionary<int, Matrix> Kcc; //TODO: perhaps SymmetricMatrix
+            Dictionary<int, Matrix> Krr = null; //TODO: perhaps SkylineMatrix or SymmetricCSC 
+            Dictionary<int, Matrix> Krc = null; //TODO: perhaps CSR or CSC
+            Dictionary<int, Matrix> Kcc = null; //TODO: perhaps SymmetricMatrix
 
-            // Calculate generalized inverses and rigid body modes of subdomains to assemble the interface flexibility matrix. 
+            //  
             if (isStiffnessModified)
             {
                 Krr = new Dictionary<int, Matrix>();  
@@ -235,14 +237,14 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                 factorizedKrr = new Dictionary<int, CholeskyFull>();
 
                 // Separate the stiffness matrix
-                foreach (int id in subdomains.Keys)
+                foreach (int s in subdomains.Keys)
                 {
-                    int[] remainderDofs = dofSeparator.RemainderDofIndices[id];
-                    int[] cornerDofs = dofSeparator.CornerDofIndices[id];
-                    IMatrix Kff = linearSystems[id].Matrix;
-                    Krr[id] = Kff.GetSubmatrix(remainderDofs, remainderDofs);
-                    Krc[id] = Kff.GetSubmatrix(remainderDofs, cornerDofs);
-                    Kcc[id] = Kff.GetSubmatrix(cornerDofs, cornerDofs);
+                    int[] remainderDofs = dofSeparator.RemainderDofIndices[s];
+                    int[] cornerDofs = dofSeparator.CornerDofIndices[s];
+                    IMatrix Kff = linearSystems[s].Matrix;
+                    Krr[s] = Kff.GetSubmatrix(remainderDofs, remainderDofs);
+                    Krc[s] = Kff.GetSubmatrix(remainderDofs, cornerDofs);
+                    Kcc[s] = Kff.GetSubmatrix(cornerDofs, cornerDofs);
                 }
 
                 // Create the preconditioner before overwriting Krr with its factorization.
@@ -256,6 +258,26 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 
                 // Define FETI-DP flexibility matrices
                 flexibility = new FetiDPFlexibilityMatrix(factorizedKrr, Krc, lagrangeEnumerator, dofSeparator);
+
+                // Static condensation of remainder dofs (Schur complement).
+                globalKccStar = Matrix.CreateZero(dofSeparator.NumGlobalCornerDofs, dofSeparator.NumGlobalCornerDofs);
+                globalFcStar = Vector.CreateZero(dofSeparator.NumGlobalCornerDofs);
+                foreach (int s in subdomains.Keys)
+                {
+                    // KccStar[s] = Kcc[s] - Krc[s]^T * inv(Krr[s]) * Krc[s]
+                    // globalKccStar = sum_over_s(Lc[s]^T * KccStar[s] * Lc[s])
+                    Matrix Lc = dofSeparator.CornerBooleanMatrices[s];
+                    Matrix KccStar = Kcc[s] - Krc[s].MultiplyRight(factorizedKrr[s].SolveLinearSystems(Krc[s]), true);
+                    globalKccStar.AddIntoThis(Lc.ThisTransposeTimesOtherTimesThis(KccStar));
+
+                    // fcStar[s] = fbc[s] - Krc[s]^T * inv(Krr[s]) * fr[s]
+                    // globalFcStar = sum_over_s(Lc[s]^T * fcStar[s])
+                    Vector fcStar = fbc[s] - Krc[s].Multiply(factorizedKrr[s].SolveLinearSystem(fr[s]), true);
+                    globalFcStar.AddIntoThis(Lc.Multiply(fcStar, true));
+                }
+
+                // For debugging
+                //double detKccStar = globalKccStar.CalcDeterminant();
 
                 isStiffnessModified = false;
             }
