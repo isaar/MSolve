@@ -51,7 +51,7 @@
 //        private IFetiPreconditioner preconditioner;
 //        private IFeti1StiffnessDistribution stiffnessDistribution;
 
-//        private FetiDPSolver(IStructuralModel model, Dictionary<int, INode[]> cornerNodesOfSubdomains, 
+//        private FetiDPSolver(IStructuralModel model, Dictionary<int, INode[]> cornerNodesOfSubdomains,
 //            IDofOrderer dofOrderer, IFetiPreconditionerFactory preconditionerFactory,
 //            IFetiDPInterfaceProblemSolver interfaceProblemSolver, bool problemIsHomogeneous)
 //        {
@@ -291,7 +291,7 @@
 //            throw new NotImplementedException();
 //        }
 
-        
+
 
 //        private void BuildPreconditioner()
 //        {
@@ -359,10 +359,10 @@
 //                this.factorizationPivotTolerance = factorizationPivotTolerance;
 //            }
 
-//            public IDofOrderer DofOrderer { get; set; } = 
+//            public IDofOrderer DofOrderer { get; set; } =
 //                new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
 
-//            public IFeti1InterfaceProblemSolver InterfaceProblemSolver { get; set; } = 
+//            public IFeti1InterfaceProblemSolver InterfaceProblemSolver { get; set; } =
 //                (new Feti1ProjectedInterfaceProblemSolver.Builder()).Build();
 
 //            public IFetiPreconditionerFactory PreconditionerFactory { get; set; } = new Feti1LumpedPreconditioner.Factory();

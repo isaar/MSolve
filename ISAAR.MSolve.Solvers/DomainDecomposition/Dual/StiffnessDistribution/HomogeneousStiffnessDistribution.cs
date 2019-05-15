@@ -19,8 +19,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
 
         internal Dictionary<int, int[]> BoundaryDofMultiplicities { get; }
 
-        public ISubdomainGlobalMapping SubdomainGlobalConversion { get; }
-
         public double[] CalcBoundaryDofCoefficients(ISubdomain subdomain)
         {
             int[] multiplicites = BoundaryDofMultiplicities[subdomain.ID];

@@ -6,11 +6,17 @@ using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution;
-using ISAAR.MSolve.Solvers.LinearSystems;
 
+//TODO: the operations described here are expressed as matrix-vector multiplications with the projection & scaling matrices 
+//      called Lpb in FETI bibliography. Should I also express them similarly? In that case dedicated classes are needed for 
+//      the Lpb matrices, but the code for the conversions is the same for homogeneous/heterogeneous. Only the creation of the
+//      Lpb matrices depends on the stiffness distribution, which is expected and needed elsewhere too.
+//TODO: These methods overlap with IGlobalDofOrdering. Perhaps they should be moved there, while the implementing classes remain 
+//      here as strategies.
+//TODO: Should the vectors be Vector instead of IVectorView?
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 {
-    public class Feti1SubdomainGlobalMapping : ISubdomainGlobalMapping
+    public class Feti1SubdomainGlobalMapping
     {
         private readonly IStiffnessDistribution distribution;
         private readonly Feti1DofSeparator dofSeparator;
@@ -35,16 +41,14 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             return GatherGlobalForces(subdomainForces).Norm2();
         }
 
-        public Dictionary<int, SparseVector> DistributeNodalLoads(
-            IReadOnlyDictionary<int, ILinearSystem> linearSystems, Table<INode, IDofType, double> globalNodalLoads)
+        public Dictionary<int, SparseVector> DistributeNodalLoads(Dictionary<int, ISubdomain> subdomains, 
+            Table<INode, IDofType, double> globalNodalLoads)
         {
             //TODO: Should I implement this as fb(s) = Lpb(s) * fb, with a) Lpb(s) = Lb(s) * inv(Mb) for homogeneous and 
             //      b) Lpb(s) = Db(s)*Lb(s) * inv(Lb^T*Db*Lb) for heterogeneous?
-            //TODO: For the heterogeneous case this should be done using Dictionary<int, double[]> relativeBoundaryStiffnesses, 
-            //      instead of recreating that data.
 
             var subdomainLoads = new Dictionary<int, SortedDictionary<int, double>>();
-            foreach (var subdomainID in linearSystems.Keys) subdomainLoads[subdomainID] = new SortedDictionary<int, double>();
+            foreach (var subdomainID in subdomains.Keys) subdomainLoads[subdomainID] = new SortedDictionary<int, double>();
 
             foreach ((INode node, IDofType dofType, double loadAmount) in globalNodalLoads)
             {
@@ -68,10 +72,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             }
 
             var vectors = new Dictionary<int, SparseVector>();
-            foreach (var idLoads in subdomainLoads)
+            foreach (var idSubdomains in subdomains)
             {
-                int numSubdomainDofs = linearSystems[idLoads.Key].Subdomain.FreeDofOrdering.NumFreeDofs;
-                vectors[idLoads.Key] = SparseVector.CreateFromDictionary(numSubdomainDofs, idLoads.Value);
+                int id = idSubdomains.Key;
+                int numSubdomainDofs = idSubdomains.Value.FreeDofOrdering.NumFreeDofs;
+                vectors[id] = SparseVector.CreateFromDictionary(numSubdomainDofs, subdomainLoads[id]);
             }
             return vectors;
         }
@@ -85,7 +90,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 int[] subdomainToGlobalDofs = model.GlobalDofOrdering.MapFreeDofsSubdomainToGlobal(subdomain);
                 IVectorView displacements = subdomainDisplacements[id]; //TODO: benchmark the performance if this was concrete Vector
 
-                // Internal dofs are copied as is.
+                // Internal dofs are copied without averaging..
                 foreach (int internalDof in dofSeparator.InternalDofIndices[id])
                 {
                     int globalDofIdx = subdomainToGlobalDofs[internalDof];
@@ -106,6 +111,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 
         public Vector GatherGlobalForces(Dictionary<int, IVectorView> subdomainForces)
         {
+            // For boundary dofs we sum the contributions from each subdomain. There is no averaging here, unlike the
+            // conversion of nodal loads from global to subdomain dofs. That averaging only holds for nodal loads, while
+            // loads calculated from elements (e.g. Dirichlet, Neumann) are applied directly to the subdomain to which the 
+            // element belongs. To find the global forces, we just need to sum the contributions from each subdomain. This
+            // is also correct for the conversion of nodal loads from subdomain to global dofs, since they have been already
+            // distributed to each subdomain, according to the multiplicity or relative stiffness of the corresponding dof.
+
             var globalForces = Vector.CreateZero(model.GlobalDofOrdering.NumGlobalFreeDofs);
             foreach (var subdomain in model.Subdomains)
             {
@@ -113,24 +125,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 int[] subdomainToGlobalDofs = model.GlobalDofOrdering.MapFreeDofsSubdomainToGlobal(subdomain);
                 IVectorView forces = subdomainForces[id]; //TODO: benchmark the performance if this was concrete Vector
 
-                // Internal dofs are copied as is.
-                foreach (int internalDof in dofSeparator.InternalDofIndices[id])
+                for (int i = 0; i < forces.Length; ++i)
                 {
-                    int globalDofIdx = subdomainToGlobalDofs[internalDof];
-                    globalForces[globalDofIdx] = forces[internalDof];
-                }
-
-                // For boundary dofs we sum the contributions from each subdomain. There is no averaging here, unlike the
-                // conversion of nodal loads from global to subdomain dofs. That averaging only holds for nodal loads, while
-                // loads calculated from elements (e.g. Dirichlet, Neumann) are applied directly to the subdomain to which the 
-                // element belongs. To find the global forces, we just need to sum the contributions from each subdomain. This
-                // is also correct for the conversion of nodal loads from subdomain to global dofs, since they have been already
-                // distributed to each subdomain, according to the multiplicity or relative stiffness of the corresponding dof.
-                for (int i = 0; i < dofSeparator.BoundaryDofIndices[id].Length; ++i)
-                {
-                    int subdomainDofIdx = dofSeparator.BoundaryDofIndices[id][i];
-                    int globalDofIdx = subdomainToGlobalDofs[subdomainDofIdx];
-                    globalForces[globalDofIdx] += forces[subdomainDofIdx];
+                    // Boundary forces will be summed. 
+                    // Internal forces will be copied (which is identical to adding 0 + single value).
+                    globalForces[subdomainToGlobalDofs[i]] += forces[i];
                 }
             }
             return globalForces;

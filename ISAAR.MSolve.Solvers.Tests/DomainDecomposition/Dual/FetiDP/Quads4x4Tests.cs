@@ -198,7 +198,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             Assert.Equal(expectedNumCornerDofs, dofSeparator.NumGlobalCornerDofs);
             for (int id = 0; id < 4; ++id)
             {
-                Matrix Lc = dofSeparator.BooleanCornerMatrices[id];
+                Matrix Lc = dofSeparator.CornerBooleanMatrices[id];
                 Assert.True(expectedLc[id].Equals(Lc, tolerance));
             }
         }

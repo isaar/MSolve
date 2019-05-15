@@ -11,6 +11,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 //TODO: Perhaps I should also find and expose the indices of boundary remainder and internal remainder dofs into the sequence 
 //      of all free dofs of each subdomain
 //TODO: Decide which of these data structures will be cached and which will be used once to create all required mapping matrices.
+//TODO: Perhaps the corner dof logic should be moved to another class.
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 {
     public class FetiDPDofSeparator : DofSeparatorBase
@@ -27,29 +28,40 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
         public override Dictionary<int, (INode node, IDofType dofType)[]> BoundaryDofs { get; protected set; }
 
         /// <summary>
+        /// Also called Bc in papers by Farhat. 
+        /// </summary>
+        public Dictionary<int, Matrix> CornerBooleanMatrices { get; private set; } //TODO: This should be sparse
+
+        /// <summary>
         /// Indices of (boundary) corner dofs into the sequence of all free dofs of each subdomain.
         /// </summary>
         public Dictionary<int, int[]> CornerDofIndices { get; private set; }
 
         /// <summary>
-        /// Dof ordering for corner dofs of each subdomain.
+        /// Dof ordering for corner dofs of the model: Each (INode, IDofType) pair is associated with the index of that dof into 
+        /// a vector corresponding to all corner dofs of the model.
         /// </summary>
-        public Dictionary<int, DofTable> SubdomainCornerDofOrderings { get; private set; }
+        public DofTable GlobalCornerDofOrdering { get; private set; }
 
         /// <summary>
-        /// Also called Bc in papers by Farhat. 
+        /// If Xf is a vector with all free dofs of the model and Xc is a vector with all corner dofs of the model, then
+        /// Xf[GlobalCornerToFreeDofMap[i]] = Xc[i].
         /// </summary>
-        public Dictionary<int, Matrix> BooleanCornerMatrices { get; private set; } //TODO: This should be sparse
+        public int[] GlobalCornerToFreeDofMap { get; private set; }
 
         /// <summary>
         /// Indices of internal remainder dofs into the sequence of all remainder dofs of each subdomain.
         /// </summary>
         public override Dictionary<int, int[]> InternalDofIndices { get; protected set; }
 
+        /// <summary>
+        /// The number of corner dofs of the model.
+        /// </summary>
         public int NumGlobalCornerDofs { get; private set; }
 
         /// <summary>
-        /// Dof ordering for remainder (boundary and internal) dofs of each subdomain.
+        /// Dof ordering for remainder (boundary and internal) dofs of each subdomain: Each (INode, IDofType) pair of a 
+        /// subdomain is associated with the index of that dof into a vector corresponding to remainder dofs of that subdomain.
         /// </summary>
         public Dictionary<int, DofTable> RemainderDofOrderings { get; private set; }
 
@@ -57,6 +69,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
         /// Indices of remainder (boundary and internal) dofs into the sequence of all free dofs of each subdomain.
         /// </summary>
         public Dictionary<int, int[]> RemainderDofIndices { get; private set; }
+
+        /// <summary>
+        /// Dof ordering for corner dofs of each subdomain: Each (INode, IDofType) pair of a subdomain is associated with the   
+        /// index of that dof into a vector corresponding to corner dofs of that subdomain.
+        /// </summary>
+        public Dictionary<int, DofTable> SubdomainCornerDofOrderings { get; private set; }
 
         public void DefineCornerMappingMatrices(IStructuralModel model, Dictionary<int, INode[]> subdomainCornerNodes)
         {
@@ -68,19 +86,25 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                 foreach (INode node in subdomainNodes) globalCornerNodes.Add(node);
             }
 
-            // Order global corner dofs
+            // Order global corner dofs and create the global corner to global free map.
+            var cornerToGlobalDofs = new List<int>(globalCornerNodes.Count * 3);
             var globalCornerDofOrdering = new DofTable(); //TODO: Should this be cached?
             int cornerDofCounter = 0;
             foreach (INode cornerNode in globalCornerNodes)
             {
-                IEnumerable<IDofType> dofsOfNode = model.GlobalDofOrdering.GlobalFreeDofs.GetColumnsOfRow(cornerNode);
-                Debug.Assert(dofsOfNode.Count() >= 1);
-                foreach (IDofType dofType in dofsOfNode)
+                bool hasFreeDofs = model.GlobalDofOrdering.GlobalFreeDofs.TryGetDataOfRow(cornerNode, 
+                    out IReadOnlyDictionary<IDofType, int> dofsOfNode);
+                if (!hasFreeDofs) throw new Exception($"Corner node {cornerNode.ID} has only constrained or embedded dofs.");
+                foreach (var dofTypeIdxPair in dofsOfNode)
                 {
+                    IDofType dofType = dofTypeIdxPair.Key;
+                    int globalDofIdx = dofTypeIdxPair.Value;
                     globalCornerDofOrdering[cornerNode, dofType] = cornerDofCounter++;
+                    cornerToGlobalDofs.Add(globalDofIdx);
                 }
             }
             NumGlobalCornerDofs = cornerDofCounter;
+            GlobalCornerToFreeDofMap = cornerToGlobalDofs.ToArray();
 
             // Order local corner dofs
             SubdomainCornerDofOrderings = new Dictionary<int, DofTable>();
@@ -92,7 +116,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             }
 
             // Fill Bc matrix of each subdomain 
-            BooleanCornerMatrices = new Dictionary<int, Matrix>();
+            CornerBooleanMatrices = new Dictionary<int, Matrix>();
             foreach (ISubdomain subdomain in model.Subdomains)
             {
                 DofTable localCornerDofOrdering = SubdomainCornerDofOrderings[subdomain.ID];
@@ -103,7 +127,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                     int globalIdx = globalCornerDofOrdering[node, dofType];
                     Bc[localIdx, globalIdx] = 1;
                 }
-                BooleanCornerMatrices[subdomain.ID] = Bc;
+                CornerBooleanMatrices[subdomain.ID] = Bc;
             }
         }
 

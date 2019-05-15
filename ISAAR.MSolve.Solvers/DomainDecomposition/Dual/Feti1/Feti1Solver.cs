@@ -52,7 +52,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         private IFetiPreconditioner preconditioner;
         private Feti1Projection projection;
         private IStiffnessDistribution stiffnessDistribution;
-        private ISubdomainGlobalMapping subdomainGlobalMapping;
+        private Feti1SubdomainGlobalMapping subdomainGlobalMapping;
 
         private Feti1Solver(IStructuralModel model, IDofOrderer dofOrderer, double factorizationPivotTolerance,
             IFetiPreconditionerFactory preconditionerFactory, IFeti1InterfaceProblemSolver interfaceProblemSolver,
@@ -144,7 +144,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 
         //TODO: this and the fields should be handled by a class that handles dof mappings.
         public Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, IDofType, double> globalNodalLoads)
-            => subdomainGlobalMapping.DistributeNodalLoads(LinearSystems, globalNodalLoads);
+            => subdomainGlobalMapping.DistributeNodalLoads(subdomains, globalNodalLoads);
 
         //TODO: this and the fields should be handled by a class that handles dof mappings.
         public Vector GatherGlobalDisplacements(Dictionary<int, IVectorView> subdomainDisplacements)
