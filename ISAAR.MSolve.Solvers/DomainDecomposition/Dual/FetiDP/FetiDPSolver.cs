@@ -1,378 +1,398 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using ISAAR.MSolve.Discretization.Commons;
-//using ISAAR.MSolve.Discretization.FreedomDegrees;
-//using ISAAR.MSolve.Discretization.Interfaces;
-//using ISAAR.MSolve.FEM.Entities;
-//using ISAAR.MSolve.LinearAlgebra.Matrices;
-//using ISAAR.MSolve.LinearAlgebra.Triangulation;
-//using ISAAR.MSolve.LinearAlgebra.Vectors;
-//using ISAAR.MSolve.Solvers.Assemblers;
-//using ISAAR.MSolve.Solvers.Commons;
-//using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem;
-//using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning;
-//using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Projection;
-//using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribution;
-//using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem;
-//using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
-//using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg;
-//using ISAAR.MSolve.Solvers.LinearSystems;
-//using ISAAR.MSolve.Solvers.Ordering;
-//using ISAAR.MSolve.Solvers.Ordering.Reordering;
+﻿using System;
+using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Commons;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Triangulation;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Solvers.Assemblers;
+using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution;
+using ISAAR.MSolve.Solvers.LinearSystems;
+using ISAAR.MSolve.Solvers.Ordering;
+using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
-////TODO: Rigid body modes do not have to be computed each time the stiffness matrix changes. 
-//namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
-//{
-//    public class FetiDPSolver : ISolver
-//    {
-//        internal const string name = "FETI-DP Solver"; // for error messages
-//        private readonly Dictionary<int, SkylineAssembler> assemblers;
-//        private readonly Dictionary<int, INode[]> cornerNodesOfSubdomains;
-//        private readonly ICrosspointStrategy crosspointStrategy = new FullyRedundantConstraints();
-//        private readonly IDofOrderer dofOrderer;
-//        private readonly IFetiDPInterfaceProblemSolver interfaceProblemSolver;
-//        private readonly bool problemIsHomogeneous;
-//        private readonly Dictionary<int, SingleSubdomainSystem<SkylineMatrix>> linearSystems;
-//        private readonly IStructuralModel model;
-//        //private readonly PdeOrder pde; // Instead the user explicitly sets Q.
-//        private readonly IFetiPreconditionerFactory preconditionerFactory;
+//TODO: Rigid body modes do not have to be computed each time the stiffness matrix changes. 
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
+{
+    public class FetiDPSolver : ISolver
+    {
+        internal const string name = "FETI-DP Solver"; // for error messages
+        private readonly Dictionary<int, SkylineAssembler> assemblers;
+        private readonly Dictionary<int, INode[]> cornerNodesOfSubdomains;
+        private readonly ICrosspointStrategy crosspointStrategy = new FullyRedundantConstraints();
+        private readonly IDofOrderer dofOrderer;
+        private readonly IFetiDPInterfaceProblemSolver interfaceProblemSolver;
+        private readonly bool problemIsHomogeneous;
+        private readonly Dictionary<int, SingleSubdomainSystem<SkylineMatrix>> linearSystems;
+        private readonly IStructuralModel model;
+        private readonly IFetiPreconditionerFactory preconditionerFactory;
 
-//        //TODO: fix the mess of Dictionary<int, ISubdomain>, List<ISubdomain>, Dictionary<int, Subdomain>, List<Subdomain>
-//        //      The concrete are useful for the preprocessor mostly, while analyzers, solvers need the interface versions.
-//        //      Lists are better in analyzers and solvers. Dictionaries may be better in the preprocessors.
-//        private readonly Dictionary<int, ISubdomain> subdomains;
+        //TODO: fix the mess of Dictionary<int, ISubdomain>, List<ISubdomain>, Dictionary<int, Subdomain>, List<Subdomain>
+        //      The concrete are useful for the preprocessor mostly, while analyzers, solvers need the interface versions.
+        //      Lists are better in analyzers and solvers. Dictionaries may be better in the preprocessors.
+        private readonly Dictionary<int, ISubdomain> subdomains;
 
-//        private FetiDPDofSeparator dofSeparator;
-//        private bool factorizeInPlace = true;
-//        private Dictionary<int, SemidefiniteCholeskySkyline> factorizations;
-//        private FetiDPFlexibilityMatrix flexibility;
-//        private bool isStiffnessModified = true;
-//        private FetiDPLagrangeMultipliersEnumerator lagrangeEnumerator;
-//        private IFetiPreconditioner preconditioner;
-//        private IFeti1StiffnessDistribution stiffnessDistribution;
+        private FetiDPDofSeparator dofSeparator;
+        private Dictionary<int, CholeskyFull> factorizedKrr; //TODO: CholeskySkyline or CholeskySuiteSparse
+        private bool factorizeInPlace = true;
+        private FetiDPFlexibilityMatrix flexibility;
+        private bool isStiffnessModified = true;
+        private FetiDPLagrangeMultipliersEnumerator lagrangeEnumerator;
+        private IFetiPreconditioner preconditioner;
+        private IStiffnessDistribution stiffnessDistribution;
+        private FetiDPSubdomainGlobalMapping subdomainGlobalMapping;
 
-//        private FetiDPSolver(IStructuralModel model, Dictionary<int, INode[]> cornerNodesOfSubdomains,
-//            IDofOrderer dofOrderer, IFetiPreconditionerFactory preconditionerFactory,
-//            IFetiDPInterfaceProblemSolver interfaceProblemSolver, bool problemIsHomogeneous)
-//        {
-//            // Model
-//            if (model.Subdomains.Count == 1) throw new InvalidSolverException(
-//                $"{name} cannot be used if there is only 1 subdomain");
-//            this.model = model;
-//            this.cornerNodesOfSubdomains = cornerNodesOfSubdomains;
+        private FetiDPSolver(IStructuralModel model, Dictionary<int, INode[]> cornerNodesOfSubdomains,
+            IDofOrderer dofOrderer, IFetiPreconditionerFactory preconditionerFactory,
+            IFetiDPInterfaceProblemSolver interfaceProblemSolver, bool problemIsHomogeneous)
+        {
+            // Model
+            if (model.Subdomains.Count == 1) throw new InvalidSolverException(
+                $"{name} cannot be used if there is only 1 subdomain");
+            this.model = model;
+            this.cornerNodesOfSubdomains = cornerNodesOfSubdomains;
 
-//            // Subdomains
-//            subdomains = new Dictionary<int, ISubdomain>();
-//            foreach (Subdomain subdomain in model.Subdomains) subdomains[subdomain.ID] = subdomain;
+            // Subdomains
+            subdomains = new Dictionary<int, ISubdomain>();
+            foreach (Subdomain subdomain in model.Subdomains) subdomains[subdomain.ID] = subdomain;
 
-//            // Linear systems
-//            linearSystems = new Dictionary<int, SingleSubdomainSystem<SkylineMatrix>>();
-//            var tempLinearSystems = new Dictionary<int, ILinearSystem>();
-//            assemblers = new Dictionary<int, SkylineAssembler>();
-//            foreach (Subdomain subdomain in model.Subdomains)
-//            {
-//                int id = subdomain.ID;
-//                var linearSystem = new SingleSubdomainSystem<SkylineMatrix>(subdomain);
-//                linearSystems.Add(id, linearSystem);
-//                tempLinearSystems.Add(id, linearSystem);
-//                linearSystem.MatrixObservers.Add(this);
-//                assemblers.Add(id, new SkylineAssembler());
-//            }
-//            LinearSystems = tempLinearSystems;
+            // Linear systems
+            linearSystems = new Dictionary<int, SingleSubdomainSystem<SkylineMatrix>>();
+            var tempLinearSystems = new Dictionary<int, ILinearSystem>();
+            assemblers = new Dictionary<int, SkylineAssembler>();
+            foreach (Subdomain subdomain in model.Subdomains)
+            {
+                int id = subdomain.ID;
+                var linearSystem = new SingleSubdomainSystem<SkylineMatrix>(subdomain);
+                linearSystems.Add(id, linearSystem);
+                tempLinearSystems.Add(id, linearSystem);
+                linearSystem.MatrixObservers.Add(this);
+                assemblers.Add(id, new SkylineAssembler());
+            }
+            LinearSystems = tempLinearSystems;
 
-//            this.dofOrderer = dofOrderer;
-//            this.preconditionerFactory = preconditionerFactory;
+            this.dofOrderer = dofOrderer;
+            this.preconditionerFactory = preconditionerFactory;
 
-//            // Interface problem
-//            this.interfaceProblemSolver = interfaceProblemSolver;
+            // Interface problem
+            this.interfaceProblemSolver = interfaceProblemSolver;
 
-//            // Homogeneous/heterogeneous problems
-//            this.problemIsHomogeneous = problemIsHomogeneous;
-//        }
+            // Homogeneous/heterogeneous problems
+            this.problemIsHomogeneous = problemIsHomogeneous;
+        }
 
-//        public IReadOnlyDictionary<int, ILinearSystem> LinearSystems { get; }
-//        public DualSolverLogger Logger { get; } = new DualSolverLogger();
+        public IReadOnlyDictionary<int, ILinearSystem> LinearSystems { get; }
+        public DualSolverLogger Logger { get; } = new DualSolverLogger();
 
-//        public Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider elementMatrixProvider)
-//        {
-//            var matricesInternal = new Dictionary<int, IMatrixView>();
-//            var matricesResult = new Dictionary<int, IMatrix>();
-//            foreach (ISubdomain subdomain in model.Subdomains) //TODO: this must be done in parallel
-//            {
-//                SkylineMatrix matrix = assemblers[subdomain.ID].BuildGlobalMatrix(subdomain.FreeDofOrdering,
-//                    subdomain.Elements, elementMatrixProvider);
-//                matricesInternal[subdomain.ID] = matrix;
-//                matricesResult[subdomain.ID] = matrix;
-//            }
+        public Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider elementMatrixProvider)
+        {
+            var matricesInternal = new Dictionary<int, IMatrixView>();
+            var matricesResult = new Dictionary<int, IMatrix>();
+            foreach (ISubdomain subdomain in model.Subdomains) //TODO: this must be done in parallel
+            {
+                SkylineMatrix matrix = assemblers[subdomain.ID].BuildGlobalMatrix(subdomain.FreeDofOrdering,
+                    subdomain.Elements, elementMatrixProvider);
+                matricesInternal[subdomain.ID] = matrix;
+                matricesResult[subdomain.ID] = matrix;
+            }
 
-//            // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
-//            //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
-//            DetermineStiffnessDistribution(matricesInternal);
+            // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
+            //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
+            DetermineStiffnessDistribution(matricesInternal);
 
-//            return matricesResult;
-//        }
+            return matricesResult;
+        }
 
-//        public Dictionary<int, (IMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
-//            IMatrixView matrixConstrConstr)> BuildGlobalSubmatrices(IElementMatrixProvider elementMatrixProvider)
-//        {
-//            var matricesResult = new Dictionary<int, (IMatrix Aff, IMatrixView Afc, IMatrixView Acf, IMatrixView Acc)>();
-//            var matricesInternal = new Dictionary<int, IMatrixView>();
-//            foreach (ISubdomain subdomain in model.Subdomains) //TODO: this must be done in parallel
-//            {
-//                if (subdomain.ConstrainedDofOrdering == null)
-//                {
-//                    throw new InvalidOperationException("In order to build the matrices corresponding to constrained dofs of,"
-//                        + $" subdomain {subdomain.ID}, they must have been ordered first.");
-//                }
-//                (SkylineMatrix Kff, IMatrixView Kfc, IMatrixView Kcf, IMatrixView Kcc) =
-//                    assemblers[subdomain.ID].BuildGlobalSubmatrices(subdomain.FreeDofOrdering,
-//                    subdomain.ConstrainedDofOrdering, subdomain.Elements, elementMatrixProvider);
-//                matricesResult[subdomain.ID] = (Kff, Kfc, Kcf, Kcc);
-//                matricesInternal[subdomain.ID] = Kff;
-//            }
+        public Dictionary<int, (IMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
+            IMatrixView matrixConstrConstr)> BuildGlobalSubmatrices(IElementMatrixProvider elementMatrixProvider)
+        {
+            var matricesResult = new Dictionary<int, (IMatrix Aff, IMatrixView Afc, IMatrixView Acf, IMatrixView Acc)>();
+            var matricesInternal = new Dictionary<int, IMatrixView>();
+            foreach (ISubdomain subdomain in model.Subdomains) //TODO: this must be done in parallel
+            {
+                if (subdomain.ConstrainedDofOrdering == null)
+                {
+                    throw new InvalidOperationException("In order to build the matrices corresponding to constrained dofs of,"
+                        + $" subdomain {subdomain.ID}, they must have been ordered first.");
+                }
+                (SkylineMatrix Kff, IMatrixView Kfc, IMatrixView Kcf, IMatrixView Kcc) =
+                    assemblers[subdomain.ID].BuildGlobalSubmatrices(subdomain.FreeDofOrdering,
+                    subdomain.ConstrainedDofOrdering, subdomain.Elements, elementMatrixProvider);
+                matricesResult[subdomain.ID] = (Kff, Kfc, Kcf, Kcc);
+                matricesInternal[subdomain.ID] = Kff;
+            }
 
-//            // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
-//            //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
-//            DetermineStiffnessDistribution(matricesInternal);
+            // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
+            //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
+            DetermineStiffnessDistribution(matricesInternal);
 
-//            return matricesResult;
-//        }
+            return matricesResult;
+        }
 
-//        //TODO: this and the fields should be handled by a class that handles dof mappings.
-//        public Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, IDofType, double> globalNodalLoads)
-//            => stiffnessDistribution.SubdomainGlobalConversion.DistributeNodalLoads(LinearSystems, globalNodalLoads);
+        //TODO: this and the fields should be handled by a class that handles dof mappings.
+        public Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, IDofType, double> globalNodalLoads)
+            => subdomainGlobalMapping.DistributeNodalLoads(subdomains, globalNodalLoads);
 
-//        //TODO: this and the fields should be handled by a class that handles dof mappings.
-//        public Vector GatherGlobalDisplacements(Dictionary<int, IVectorView> subdomainDisplacements)
-//            => stiffnessDistribution.SubdomainGlobalConversion.GatherGlobalDisplacements(subdomainDisplacements);
+        //TODO: this and the fields should be handled by a class that handles dof mappings.
+        public Vector GatherGlobalDisplacements(Dictionary<int, IVectorView> subdomainDisplacements)
+            => subdomainGlobalMapping.GatherGlobalDisplacements(subdomainDisplacements);
 
-//        public void HandleMatrixWillBeSet()
-//        {
-//            isStiffnessModified = true;
-//            factorizations = null;
-//            flexibility = null;
-//            preconditioner = null;
-//            //stiffnessDistribution = null; //WARNING: do not dispose of this. It is updated when BuildGlobalMatrix() is called.
-//        }
+        public void HandleMatrixWillBeSet()
+        {
+            isStiffnessModified = true;
+            factorizedKrr = null;
+            flexibility = null;
+            preconditioner = null;
+            //stiffnessDistribution = null; //WARNING: do not dispose of this. It is updated when BuildGlobalMatrix() is called.
+        }
 
-//        public void Initialize()
-//        { }
+        public void Initialize()
+        { }
 
-//        public Dictionary<int, Matrix> InverseSystemMatrixTimesOtherMatrix(Dictionary<int, IMatrixView> otherMatrix)
-//        {
-//            throw new NotImplementedException();
-//        }
+        public Dictionary<int, Matrix> InverseSystemMatrixTimesOtherMatrix(Dictionary<int, IMatrixView> otherMatrix)
+        {
+            throw new NotImplementedException();
+        }
 
-//        public void OrderDofs(bool alsoOrderConstrainedDofs)
-//        {
-//            // Order dofs
-//            IGlobalFreeDofOrdering globalOrdering = dofOrderer.OrderFreeDofs(model);
-//            model.GlobalDofOrdering = globalOrdering;
-//            foreach (ISubdomain subdomain in model.Subdomains)
-//            {
-//                assemblers[subdomain.ID].HandleDofOrderingWillBeModified();
-//                subdomain.FreeDofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
-//                if (alsoOrderConstrainedDofs) subdomain.ConstrainedDofOrdering = dofOrderer.OrderConstrainedDofs(subdomain);
+        public void OrderDofs(bool alsoOrderConstrainedDofs)
+        {
+            // Order dofs
+            IGlobalFreeDofOrdering globalOrdering = dofOrderer.OrderFreeDofs(model);
+            model.GlobalDofOrdering = globalOrdering;
+            foreach (ISubdomain subdomain in model.Subdomains)
+            {
+                assemblers[subdomain.ID].HandleDofOrderingWillBeModified();
+                subdomain.FreeDofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
+                if (alsoOrderConstrainedDofs) subdomain.ConstrainedDofOrdering = dofOrderer.OrderConstrainedDofs(subdomain);
 
-//                // The next must done by the analyzer, so that subdomain.Forces is retained when doing back to back analyses.
-//                //subdomain.Forces = linearSystem.CreateZeroVector();
-//            }
+                // The next must done by the analyzer, so that subdomain.Forces is retained when doing back to back analyses.
+                //subdomain.Forces = linearSystem.CreateZeroVector();
+            }
 
-//            // Define boundary / internal dofs
-//            dofSeparator = new FetiDPDofSeparator();
-//            dofSeparator.SeparateDofs(model, cornerNodesOfSubdomains);
+            // Define boundary / internal dofs
+            dofSeparator = new FetiDPDofSeparator();
+            dofSeparator.SeparateDofs(model, cornerNodesOfSubdomains);
 
-//            // Define lagrange multipliers and boolean matrices
-//            this.lagrangeEnumerator = new FetiDPLagrangeMultipliersEnumerator(crosspointStrategy, dofSeparator);
-//            if (problemIsHomogeneous) lagrangeEnumerator.DefineBooleanMatrices(model); // optimization in this case
-//            else lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model);
+            // Define lagrange multipliers and boolean matrices
+            this.lagrangeEnumerator = new FetiDPLagrangeMultipliersEnumerator(crosspointStrategy, dofSeparator);
+            if (problemIsHomogeneous) lagrangeEnumerator.DefineBooleanMatrices(model); // optimization in this case
+            else lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model);
 
-//            // Log dof statistics
-//            if (Logger != null)
-//            {
-//                Logger.NumUniqueGlobalFreeDofs = model.GlobalDofOrdering.NumGlobalFreeDofs;
-//                Logger.NumExpandedDomainFreeDofs = 0;
-//                foreach (var subdomain in model.Subdomains)
-//                {
-//                    Logger.NumExpandedDomainFreeDofs += subdomain.FreeDofOrdering.NumFreeDofs;
-//                }
-//                Logger.NumLagrangeMultipliers = lagrangeEnumerator.NumLagrangeMultipliers;
-//                Logger.NumCornerDofs = dofSeparator.NumGlobalCornerDofs;
-//            }
-//        }
+            // Log dof statistics
+            if (Logger != null)
+            {
+                Logger.NumUniqueGlobalFreeDofs = model.GlobalDofOrdering.NumGlobalFreeDofs;
+                Logger.NumExpandedDomainFreeDofs = 0;
+                foreach (var subdomain in model.Subdomains)
+                {
+                    Logger.NumExpandedDomainFreeDofs += subdomain.FreeDofOrdering.NumFreeDofs;
+                }
+                Logger.NumLagrangeMultipliers = lagrangeEnumerator.NumLagrangeMultipliers;
+                Logger.NumCornerDofs = dofSeparator.NumGlobalCornerDofs;
+            }
+        }
 
-//        public void PreventFromOverwrittingSystemMatrices() => factorizeInPlace = false;
+        public void PreventFromOverwrittingSystemMatrices() => factorizeInPlace = false;
 
-//        public void Solve()
-//        {
-//            foreach (var linearSystem in linearSystems.Values)
-//            {
-//                if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
-//            }
+        public void Solve()
+        {
+            foreach (var linearSystem in linearSystems.Values)
+            {
+                if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
+            }
 
-//            // Calculate generalized inverses and rigid body modes of subdomains to assemble the interface flexibility matrix. 
-//            if (isStiffnessModified)
-//            {
-//                BuildPreconditioner();
-//                FactorizeMatrices();
-//                BuildProjection();
-//                isStiffnessModified = false;
-//                flexibility = new Feti1FlexibilityMatrix(factorizations, lagrangeEnumerator);
-//            }
+            // Separate the force vector
+            var fr = new Dictionary<int, Vector>();
+            var fbc = new Dictionary<int, Vector>();
+            foreach (int id in subdomains.Keys)
+            {
+                int[] remainderDofs = dofSeparator.RemainderDofIndices[id];
+                int[] cornerDofs = dofSeparator.CornerDofIndices[id];
+                Vector f = linearSystems[id].RhsVector;
+                fr[id] = f.GetSubvector(remainderDofs);
+                fbc[id] = f.GetSubvector(cornerDofs);
+            }
 
-//            // Calculate the rhs vectors of the interface system
-//            Vector disconnectedDisplacements = CalcDisconnectedDisplacements();
-//            Vector rbmWork = CalcRigidBodyModesWork();
-//            double globalForcesNorm = CalcGlobalForcesNorm();
+            // Separate the stiffness matrix
+            Dictionary<int, Matrix> Krr; //TODO: perhaps SkylineMatrix or SymmetricCSC 
+            Dictionary<int, Matrix> Krc; //TODO: perhaps CSR or CSC
+            Dictionary<int, Matrix> Kcc; //TODO: perhaps SymmetricMatrix
 
-//            // Solve the interface problem
-//            Vector lagranges = interfaceProblemSolver.CalcLagrangeMultipliers(flexibility, preconditioner, projection,
-//                disconnectedDisplacements, rbmWork, globalForcesNorm, Logger);
+            // Calculate generalized inverses and rigid body modes of subdomains to assemble the interface flexibility matrix. 
+            if (isStiffnessModified)
+            {
+                Krr = new Dictionary<int, Matrix>();  
+                Krc = new Dictionary<int, Matrix>(); 
+                Kcc = new Dictionary<int, Matrix>(); 
+                factorizedKrr = new Dictionary<int, CholeskyFull>();
 
-//            // Calculate the displacements of each subdomain
-//            Vector rbmCoeffs = CalcRigidBodyModesCoefficients(disconnectedDisplacements, lagranges);
-//            Dictionary<int, Vector> actualDisplacements = CalcActualDisplacements(lagranges, rbmCoeffs);
-//            foreach (var idSystem in linearSystems) idSystem.Value.Solution = actualDisplacements[idSystem.Key];
-//        }
+                // Separate the stiffness matrix
+                foreach (int id in subdomains.Keys)
+                {
+                    int[] remainderDofs = dofSeparator.RemainderDofIndices[id];
+                    int[] cornerDofs = dofSeparator.CornerDofIndices[id];
+                    IMatrix Kff = linearSystems[id].Matrix;
+                    Krr[id] = Kff.GetSubmatrix(remainderDofs, remainderDofs);
+                    Krc[id] = Kff.GetSubmatrix(remainderDofs, cornerDofs);
+                    Kcc[id] = Kff.GetSubmatrix(cornerDofs, cornerDofs);
+                }
 
-//        /// <summary>
-//        /// Does not mutate this object.
-//        /// </summary>
-//        internal Dictionary<int, Vector> CalcActualDisplacements(Vector lagranges, Vector cornerDisplacements)
-//        {
-//            // See 5.17 papagiannakis
-//            throw new NotImplementedException();
+                // Create the preconditioner before overwriting Krr with its factorization.
+                BuildPreconditioner(Krr);
 
-//            //var actualdisplacements = new Dictionary<int, Vector>();
-//            //int rbmOffset = 0; //TODO: For this to work in parallel, each subdomain must store its offset.
-//            //foreach (var linearSystem in linearSystems.Values)
-//            //{
-//            //    // u = inv(K) * (f - B^T * λ), for non floating subdomains
-//            //    // u = generalizedInverse(K) * (f - B^T * λ) + R * a, for floating subdomains
-//            //    int id = linearSystem.Subdomain.ID;
-//            //    Vector forces = linearSystem.RhsVector - lagrangeEnumerator.BooleanMatrices[id].Multiply(lagranges, true);
-//            //    Vector displacements = factorizations[id].MultiplyGeneralizedInverseMatrixTimesVector(forces);
+                // Factorize matrices
+                foreach (int id in subdomains.Keys)
+                {
+                    factorizedKrr[id] = Krr[id].FactorCholesky(true);
+                }
 
-//            //    foreach (Vector rbm in rigidBodyModes[id]) displacements.AxpyIntoThis(rbm, rigidBodyModeCoeffs[rbmOffset++]);
+                // Define FETI-DP flexibility matrices
+                flexibility = new FetiDPFlexibilityMatrix(factorizedKrr, Krc, lagrangeEnumerator, dofSeparator);
 
-//            //    actualdisplacements[id] = displacements;
-//            //}
-//            //return actualdisplacements;
-//        }
+                isStiffnessModified = false;
+            }
 
-//        /// <summary>
-//        /// d = sum(Bs * generalInverse(Ks) * fs), where fs are the nodal forces applied to the dofs of subdomain s.
-//        /// Does not mutate this object.
-//        /// </summary>
-//        internal Vector CalcDisconnectedDisplacements()
-//        {
-//            // Find fr and then dr
-//            throw new NotImplementedException();
+            // Calculate the rhs vectors of the interface system
+            Vector disconnectedDisplacements = CalcDisconnectedDisplacements(factorizedKrr, fr);
+            double globalForcesNorm = CalcGlobalForcesNorm();
 
-//            //var displacements = Vector.CreateZero(lagrangeEnumerator.NumLagrangeMultipliers);
-//            //foreach (var linearSystem in linearSystems.Values)
-//            //{
-//            //    int id = linearSystem.Subdomain.ID;
-//            //    Vector f = linearSystem.RhsVector;
-//            //    SignedBooleanMatrix boolean = lagrangeEnumerator.BooleanMatrices[id];
-//            //    Vector Kf = factorizations[id].MultiplyGeneralizedInverseMatrixTimesVector(f);
-//            //    Vector BKf = boolean.Multiply(Kf, false);
-//            //    displacements.AddIntoThis(BKf);
-//            //}
-//            //return displacements;
-//        }
+            // Solve the interface problem
+            (Vector lagranges, Vector uc) = interfaceProblemSolver.Solve(flexibility, preconditioner,
+                disconnectedDisplacements, globalForcesNorm, Logger);
 
-//        /// <summary>
-//        /// Does not mutate this object.
-//        /// </summary>
-//        internal Vector CalcCornerDisplacements(Vector lagrangeMultipliers)
-//        {
-//            // See 5.28 Papagiannakis
-//            throw new NotImplementedException();
-//        }
+            // Calculate the displacements of each subdomain
+            Dictionary<int, Vector> actualDisplacements = CalcActualDisplacements(lagranges, uc);
+            foreach (var idSystem in linearSystems) idSystem.Value.Solution = actualDisplacements[idSystem.Key];
+        }
 
+        /// <summary>
+        /// Does not mutate this object.
+        /// </summary>
+        internal Dictionary<int, Vector> CalcActualDisplacements(Vector lagranges, Vector cornerDisplacements)
+        {
+            // See 5.17 papagiannakis
+            throw new NotImplementedException();
 
+            //var actualdisplacements = new Dictionary<int, Vector>();
+            //int rbmOffset = 0; //TODO: For this to work in parallel, each subdomain must store its offset.
+            //foreach (var linearSystem in linearSystems.Values)
+            //{
+            //    // u = inv(K) * (f - B^T * λ), for non floating subdomains
+            //    // u = generalizedInverse(K) * (f - B^T * λ) + R * a, for floating subdomains
+            //    int id = linearSystem.Subdomain.ID;
+            //    Vector forces = linearSystem.RhsVector - lagrangeEnumerator.BooleanMatrices[id].Multiply(lagranges, true);
+            //    Vector displacements = factorizations[id].MultiplyGeneralizedInverseMatrixTimesVector(forces);
 
-//        private void BuildPreconditioner()
-//        {
-//            // Create the preconditioner. 
-//            //TODO: this should be done simultaneously with the factorizations to avoid duplicate factorizations.
-//            var stiffnessMatrices = new Dictionary<int, IMatrixView>();
-//            foreach (ILinearSystem linearSystem in linearSystems.Values)
-//            {
-//                stiffnessMatrices.Add(linearSystem.Subdomain.ID, linearSystem.Matrix);
-//            }
-//            this.preconditioner = preconditionerFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator,
-//                lagrangeEnumerator, stiffnessMatrices);
-//        }
+            //    foreach (Vector rbm in rigidBodyModes[id]) displacements.AxpyIntoThis(rbm, rigidBodyModeCoeffs[rbmOffset++]);
 
-//        /// <summary>
-//        /// Calculate the norm of the forces vector |f| = |K*u|. It is needed to check the convergence of PCG/PCPG.
-//        /// </summary>
-//        private double CalcGlobalForcesNorm()
-//        {
-//            //TODO: It would be better to do that using the global vector to avoid the homogeneous/heterogeneous averaging
-//            //      That would require the analyzer to build the global vector too though. Caution: we cannot take just 
-//            //      the nodal loads from the model, since the effect of other loads is only taken into account int 
-//            //      linearSystem.Rhs. Even if we could easily create the global forces vector, it might be wrong since 
-//            //      the analyzer may modify some of these loads, depending on time step, loading step, etc.
-//            var subdomainForces = new Dictionary<int, IVectorView>();
-//            foreach (var linearSystem in linearSystems.Values)
-//            {
-//                subdomainForces[linearSystem.Subdomain.ID] = linearSystem.RhsVector;
-//            }
-//            return stiffnessDistribution.SubdomainGlobalConversion.CalculateGlobalForcesNorm(subdomainForces);
-//        }
+            //    actualdisplacements[id] = displacements;
+            //}
+            //return actualdisplacements;
+        }
 
-//        private void DetermineStiffnessDistribution(Dictionary<int, IMatrixView> stiffnessMatrices)
-//        {
-//            // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
-//            //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
-//            if (problemIsHomogeneous) stiffnessDistribution = new HomogeneousStiffnessDistribution(model, dofSeparator);
-//            else stiffnessDistribution = new HeterogeneousStiffnessDistribution(model, dofSeparator, stiffnessMatrices);
-//        }
+        /// <summary>
+        /// d = sum(Bs * generalInverse(Ks) * fs), where fs are the nodal forces applied to the dofs of subdomain s.
+        /// Does not mutate this object.
+        /// </summary>
+        internal Vector CalcDisconnectedDisplacements(Dictionary<int, CholeskyFull> factorizedKrr, 
+            Dictionary<int, Vector> fr)
+        {
+            var dr = Vector.CreateZero(lagrangeEnumerator.NumLagrangeMultipliers);
+            foreach (int id in linearSystems.Keys)
+            {
+                SignedBooleanMatrix Br = lagrangeEnumerator.BooleanMatrices[id];
+                dr.AddIntoThis(Br.Multiply(factorizedKrr[id].SolveLinearSystem(fr[id])));
+            }
+            return dr;
+        }
 
-//        private void FactorizeMatrices()
-//        {
-//            factorizations = new Dictionary<int, SemidefiniteCholeskySkyline>();
-//            rigidBodyModes = new Dictionary<int, List<Vector>>();
-//            foreach (var linearSystem in linearSystems.Values)
-//            {
-//                int id = linearSystem.Subdomain.ID;
-//                factorizations[id] =
-//                    linearSystem.Matrix.FactorSemidefiniteCholesky(factorizeInPlace, factorizationPivotTolerance);
-//                rigidBodyModes[id] = new List<Vector>();
-//                foreach (double[] rbm in factorizations[id].NullSpaceBasis)
-//                {
-//                    rigidBodyModes[id].Add(Vector.CreateFromArray(rbm, false));
-//                }
-//            }
-//        }
+        /// <summary>
+        /// Does not mutate this object.
+        /// </summary>
+        internal Vector CalcCornerDisplacements(Vector lagrangeMultipliers)
+        {
+            // See 5.28 Papagiannakis
+            throw new NotImplementedException();
+        }
 
-//        public class Builder
-//        {
-//            private readonly double factorizationPivotTolerance;
+        private void BuildPreconditioner(Dictionary<int, Matrix> Krr)
+        {
+            // Create the preconditioner. 
+            //TODO: this should be done simultaneously with the factorizations to avoid duplicate factorizations.
 
-//            public Builder(double factorizationPivotTolerance)
-//            {
-//                //TODO: This is a very volatile parameter and the user should not have to specify it. 
-//                this.factorizationPivotTolerance = factorizationPivotTolerance;
-//            }
+            throw new NotImplementedException();
 
-//            public IDofOrderer DofOrderer { get; set; } =
-//                new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
+            //var stiffnessMatrices = new Dictionary<int, IMatrixView>();
+            //foreach (ILinearSystem linearSystem in linearSystems.Values)
+            //{
+            //    stiffnessMatrices.Add(linearSystem.Subdomain.ID, linearSystem.Matrix);
+            //}
+            //this.preconditioner = preconditionerFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator,
+            //    lagrangeEnumerator, stiffnessMatrices);
+        }
 
-//            public IFeti1InterfaceProblemSolver InterfaceProblemSolver { get; set; } =
-//                (new Feti1ProjectedInterfaceProblemSolver.Builder()).Build();
+        /// <summary>
+        /// Calculate the norm of the forces vector |f| = |K*u|. It is needed to check the convergence of PCG/PCPG.
+        /// </summary>
+        private double CalcGlobalForcesNorm()
+        {
+            //TODO: It would be better to do that using the global vector to avoid the homogeneous/heterogeneous averaging
+            //      That would require the analyzer to build the global vector too though. Caution: we cannot take just 
+            //      the nodal loads from the model, since the effect of other loads is only taken into account int 
+            //      linearSystem.Rhs. Even if we could easily create the global forces vector, it might be wrong since 
+            //      the analyzer may modify some of these loads, depending on time step, loading step, etc.
+            var subdomainForces = new Dictionary<int, IVectorView>();
+            foreach (var linearSystem in linearSystems.Values)
+            {
+                subdomainForces[linearSystem.Subdomain.ID] = linearSystem.RhsVector;
+            }
+            return subdomainGlobalMapping.CalculateGlobalForcesNorm(subdomainForces);
+        }
 
-//            public IFetiPreconditionerFactory PreconditionerFactory { get; set; } = new Feti1LumpedPreconditioner.Factory();
-//            public bool ProblemIsHomogeneous { get; set; } = true;
-//            public bool ProjectionMatrixQIsIdentity { get; set; } = true;
-//            //public PdeOrder PdeOrder { get; set; } = PdeOrder.Second; // Instead the user explicitly sets Q.
+        private void DetermineStiffnessDistribution(Dictionary<int, IMatrixView> stiffnessMatrices)
+        {
+            // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
+            //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
+            if (problemIsHomogeneous)
+            {
+                stiffnessDistribution = new HomogeneousStiffnessDistribution(model, dofSeparator);
+            }
+            else
+            {
+                stiffnessDistribution = new HeterogeneousStiffnessDistribution(model, dofSeparator, stiffnessMatrices);
+            }
+            subdomainGlobalMapping = new FetiDPSubdomainGlobalMapping(model, dofSeparator, stiffnessDistribution);
+        }
 
-//            public FetiDPSolver BuildSolver(Model model)
-//                => new FetiDPSolver(model, DofOrderer, factorizationPivotTolerance, PreconditionerFactory,
-//                     InterfaceProblemSolver, ProblemIsHomogeneous, ProjectionMatrixQIsIdentity);
-//        }
-//    }
-//}
+        public class Builder
+        {
+            private Dictionary<int, INode[]> cornerNodesOfEachSubdomain;
+
+            public Builder(Dictionary<int, INode[]> cornerNodesOfEachSubdomain)
+            {
+                this.cornerNodesOfEachSubdomain = cornerNodesOfEachSubdomain;
+            }
+
+            public IDofOrderer DofOrderer { get; set; } =
+                new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
+
+            public IFetiDPInterfaceProblemSolver InterfaceProblemSolver { get; set; } = null;
+
+            public IFetiPreconditionerFactory PreconditionerFactory { get; set; } = new Feti1LumpedPreconditioner.Factory();
+            public bool ProblemIsHomogeneous { get; set; } = true;
+            //public PdeOrder PdeOrder { get; set; } = PdeOrder.Second; // Instead the user explicitly sets Q.
+
+            public FetiDPSolver BuildSolver(Model model)
+                => new FetiDPSolver(model, cornerNodesOfEachSubdomain, DofOrderer, PreconditionerFactory,
+                     InterfaceProblemSolver, ProblemIsHomogeneous);
+        }
+    }
+}

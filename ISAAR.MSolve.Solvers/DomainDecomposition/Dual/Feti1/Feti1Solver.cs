@@ -225,8 +225,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 BuildPreconditioner();
                 FactorizeMatrices();
                 BuildProjection();
-                isStiffnessModified = false;
                 flexibility = new Feti1FlexibilityMatrix(factorizations, lagrangeEnumerator);
+                isStiffnessModified = false;
             }
 
             // Calculate the rhs vectors of the interface system

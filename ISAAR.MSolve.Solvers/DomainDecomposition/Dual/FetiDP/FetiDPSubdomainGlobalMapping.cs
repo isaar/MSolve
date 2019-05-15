@@ -9,9 +9,6 @@ using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 {
-    /// <summary>
-    /// Important: forces at corner dofs are distributed equally among the subdomains.
-    /// </summary>
     public class FetiDPSubdomainGlobalMapping
     {
         private readonly IStiffnessDistribution distribution;
@@ -135,14 +132,56 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             return globalDisplacements;
         }
 
-        public Vector GatherGlobalForces(Dictionary<int, IVectorView> subdomainFreeForces)
+        public Vector GatherGlobalDisplacements(Dictionary<int, IVectorView> subdomainDisplacements)
+        {
+            var globalDisplacements = Vector.CreateZero(model.GlobalDofOrdering.NumGlobalFreeDofs);
+
+            // Remainder dofs
+            foreach (var subdomain in model.Subdomains)
+            {
+                int id = subdomain.ID;
+                int[] subdomainToGlobalDofs = model.GlobalDofOrdering.MapFreeDofsSubdomainToGlobal(subdomain);
+                int[] remainderToSubdomainDofs = dofSeparator.RemainderDofIndices[id];
+                int[] cornerToSubdomainDofs = dofSeparator.CornerDofIndices[id];
+                IVectorView freeDisplacements = subdomainDisplacements[id]; //TODO: benchmark the performance if this was concrete Vector
+
+                // Internal dofs: We copy them without averaging.
+                foreach (int remainderDofIdx in dofSeparator.InternalDofIndices[id])
+                {
+                    int globalDofIdx = subdomainToGlobalDofs[remainderToSubdomainDofs[remainderDofIdx]];
+                    globalDisplacements[globalDofIdx] = freeDisplacements[remainderDofIdx];
+                }
+
+                // Boundary remainder dofs: We take average across subdomains with respect to multiplicity or stiffness. 
+                double[] boundaryDofCoeffs = distribution.CalcBoundaryDofCoefficients(subdomain);
+                for (int i = 0; i < dofSeparator.BoundaryDofIndices[id].Length; ++i)
+                {
+                    int remainderDofIdx = dofSeparator.BoundaryDofIndices[id][i];
+                    int globalDofIdx = subdomainToGlobalDofs[remainderToSubdomainDofs[remainderDofIdx]];
+                    globalDisplacements[globalDofIdx] += freeDisplacements[remainderDofIdx] * boundaryDofCoeffs[i];
+                }
+
+                // Boundary corner dofs: We copy without averaging.
+                foreach (int freeDofIdx in cornerToSubdomainDofs)
+                {
+                    int globalDofIdx = subdomainToGlobalDofs[freeDofIdx];
+
+                    // This will overwrite the value from a previous subdomain, but these values are the same.
+                    globalDisplacements[globalDofIdx] = freeDisplacements[freeDofIdx]; 
+                }
+            }
+
+            return globalDisplacements;
+        }
+
+        public Vector GatherGlobalForces(Dictionary<int, IVectorView> subdomainForces)
         {
             var globalForces = Vector.CreateZero(model.GlobalDofOrdering.NumGlobalFreeDofs);
             foreach (ISubdomain subdomain in model.Subdomains)
             {
                 int id = subdomain.ID;
                 int[] subdomainFreeToGlobalDofs = model.GlobalDofOrdering.MapFreeDofsSubdomainToGlobal(subdomain);
-                IVectorView forces = subdomainFreeForces[id]; //TODO: benchmark the performance if this was concrete Vector
+                IVectorView forces = subdomainForces[id]; //TODO: benchmark the performance if this was concrete Vector
 
                 for (int i = 0; i < forces.Length; ++i)
                 {
