@@ -9,7 +9,6 @@ using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.GlobalMapping;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Projection;
@@ -373,16 +372,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
             if (problemIsHomogeneous)
             {
-                var distribution = new HomogeneousStiffnessDistribution(model, dofSeparator);
-                this.stiffnessDistribution = distribution;
-                subdomainGlobalMapping = new Feti1HomogeneousSubdomainGlobalMapping(model, dofSeparator, distribution);
+                stiffnessDistribution = new HomogeneousStiffnessDistribution(model, dofSeparator);
             }
             else
             {
-                var distribution = new HeterogeneousStiffnessDistribution(model, dofSeparator, stiffnessMatrices);
-                this.stiffnessDistribution = distribution;
-                subdomainGlobalMapping = new Feti1HeterogeneousSubdomainGlobalMapping(model, dofSeparator, distribution);
+                stiffnessDistribution = new HeterogeneousStiffnessDistribution(model, dofSeparator, stiffnessMatrices);
             }
+            subdomainGlobalMapping = new Feti1SubdomainGlobalMapping(model, dofSeparator, stiffnessDistribution);
         }
 
         private void FactorizeMatrices()

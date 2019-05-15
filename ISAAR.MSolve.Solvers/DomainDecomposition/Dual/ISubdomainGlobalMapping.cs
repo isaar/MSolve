@@ -12,6 +12,7 @@ using ISAAR.MSolve.Solvers.LinearSystems;
 //TODO: These methods overlap with IGlobalDofOrdering. Perhaps they should be moved there, while the implementing classes remain 
 //      here as strategies.
 //TODO: Should the vectors be Vector instead of IVectorView?
+//TODO: Is the interface necessary? Can't I just use the concrete classes in the appropriate solvers?
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual
 {
     public interface ISubdomainGlobalMapping

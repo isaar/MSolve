@@ -31,6 +31,42 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
         //TODO: If a solver operation needs this, it is probably better to delegate that operation to this class.
         public Table<INode, IDofType, BoundaryDofLumpedStiffness> BoundaryDofStiffnesses { get; }
 
+        public double[] CalcBoundaryDofCoefficients(ISubdomain subdomain)
+        {
+            //TODO: Should this be cached? It stores the same info as HeterogeneousStiffnessDistribution.BoundaryDofStiffnesses.
+            //      This format is more compact and has more efficient indexing when dealing with only 1 subdomain at a time, 
+            //      but is difficult to index when accessing global boundary dofs. Is it possible to only use one of the two 
+            //      formats? 
+            //TODO: Could this be handled when extracting the lumped boundary stiffnesses? That way we can avoid searching
+            //      the subdomain in BoundaryDofLumpedStiffness.SubdomainStiffnesses for each dof.
+
+            int[] boundaryDofIndices = dofSeparator.BoundaryDofIndices[subdomain.ID];
+            (INode, IDofType)[] boundaryDofs = dofSeparator.BoundaryDofs[subdomain.ID];
+            int numBoundaryDofs = boundaryDofIndices.Length;
+            var relativeStiffnesses = new double[numBoundaryDofs];
+            for (int i = 0; i < boundaryDofIndices.Length; ++i)
+            {
+                (INode node, IDofType dofType) = boundaryDofs[i];
+                BoundaryDofLumpedStiffness dofStiffness = BoundaryDofStiffnesses[node, dofType];
+                double relativeStiffness = dofStiffness.SubdomainStiffnesses[subdomain] / dofStiffness.TotalStiffness;
+                relativeStiffnesses[i] = relativeStiffness;
+            }
+            return relativeStiffnesses;
+        }
+
+        public Dictionary<int, double> CalcBoundaryDofCoefficients(INode node, IDofType dofType)
+        {
+            var coeffs = new Dictionary<int, double>();
+            BoundaryDofLumpedStiffness dofStiffness = BoundaryDofStiffnesses[node, dofType];
+            foreach (var idSubdomainPair in node.SubdomainsDictionary)
+            {
+                int id = idSubdomainPair.Key;
+                ISubdomain subdomain = idSubdomainPair.Value;
+                coeffs[id] = dofStiffness.SubdomainStiffnesses[subdomain] / dofStiffness.TotalStiffness;
+            }
+            return coeffs;
+        }
+
         public Dictionary<int, Matrix> CalcBoundaryPreconditioningSignedBooleanMatrices(
             ILagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, Matrix> boundarySignedBooleanMatrices)
         {
