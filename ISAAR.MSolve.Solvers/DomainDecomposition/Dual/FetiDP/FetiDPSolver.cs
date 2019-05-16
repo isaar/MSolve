@@ -44,7 +44,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
         private Dictionary<int, CholeskyFull> factorizedKrr; //TODO: CholeskySkyline or CholeskySuiteSparse
         private bool factorizeInPlace = true;
         private FetiDPFlexibilityMatrix flexibility;
-        private Vector globalFcStar;
         private Matrix globalKccStar;
         private bool isStiffnessModified = true;
         private FetiDPLagrangeMultipliersEnumerator lagrangeEnumerator;
@@ -152,6 +151,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             isStiffnessModified = true;
             factorizedKrr = null;
             flexibility = null;
+            globalKccStar = null;
             preconditioner = null;
             //stiffnessDistribution = null; //WARNING: do not dispose of this. It is updated when BuildGlobalMatrix() is called.
         }
@@ -228,7 +228,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             Dictionary<int, Matrix> Krc = null; //TODO: perhaps CSR or CSC
             Dictionary<int, Matrix> Kcc = null; //TODO: perhaps SymmetricMatrix
 
-            //  
             if (isStiffnessModified)
             {
                 Krr = new Dictionary<int, Matrix>();  
@@ -261,7 +260,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 
                 // Static condensation of remainder dofs (Schur complement).
                 globalKccStar = Matrix.CreateZero(dofSeparator.NumGlobalCornerDofs, dofSeparator.NumGlobalCornerDofs);
-                globalFcStar = Vector.CreateZero(dofSeparator.NumGlobalCornerDofs);
                 foreach (int s in subdomains.Keys)
                 {
                     // KccStar[s] = Kcc[s] - Krc[s]^T * inv(Krr[s]) * Krc[s]
@@ -269,17 +267,23 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                     Matrix Lc = dofSeparator.CornerBooleanMatrices[s];
                     Matrix KccStar = Kcc[s] - Krc[s].MultiplyRight(factorizedKrr[s].SolveLinearSystems(Krc[s]), true);
                     globalKccStar.AddIntoThis(Lc.ThisTransposeTimesOtherTimesThis(KccStar));
-
-                    // fcStar[s] = fbc[s] - Krc[s]^T * inv(Krr[s]) * fr[s]
-                    // globalFcStar = sum_over_s(Lc[s]^T * fcStar[s])
-                    Vector fcStar = fbc[s] - Krc[s].Multiply(factorizedKrr[s].SolveLinearSystem(fr[s]), true);
-                    globalFcStar.AddIntoThis(Lc.Multiply(fcStar, true));
                 }
 
                 // For debugging
                 //double detKccStar = globalKccStar.CalcDeterminant();
 
                 isStiffnessModified = false;
+            }
+
+            // Static condensation for the force vectors
+            var globalFcStar = Vector.CreateZero(dofSeparator.NumGlobalCornerDofs);
+            foreach (int s in subdomains.Keys)
+            {
+                // fcStar[s] = fbc[s] - Krc[s]^T * inv(Krr[s]) * fr[s]
+                // globalFcStar = sum_over_s(Lc[s]^T * fcStar[s])
+                Matrix Lc = dofSeparator.CornerBooleanMatrices[s];
+                Vector fcStar = fbc[s] - Krc[s].Multiply(factorizedKrr[s].SolveLinearSystem(fr[s]), true);
+                globalFcStar.AddIntoThis(Lc.Multiply(fcStar, true));
             }
 
             // Calculate the rhs vectors of the interface system
