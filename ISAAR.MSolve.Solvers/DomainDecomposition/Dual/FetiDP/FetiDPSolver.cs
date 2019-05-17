@@ -359,7 +359,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             {
                 stiffnessMatrices.Add(linearSystem.Subdomain.ID, linearSystem.Matrix);
             }
-            this.preconditioner = preconditionerFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator,
+            preconditioner = preconditionerFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator,
                 lagrangeEnumerator, stiffnessMatrices);
         }
 
