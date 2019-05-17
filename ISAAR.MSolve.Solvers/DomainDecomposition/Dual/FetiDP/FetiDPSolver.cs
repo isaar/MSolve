@@ -354,15 +354,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             // Create the preconditioner. 
             //TODO: this should be done simultaneously with the factorizations to avoid duplicate factorizations.
 
-            throw new NotImplementedException();
-
-            //var stiffnessMatrices = new Dictionary<int, IMatrixView>();
-            //foreach (ILinearSystem linearSystem in linearSystems.Values)
-            //{
-            //    stiffnessMatrices.Add(linearSystem.Subdomain.ID, linearSystem.Matrix);
-            //}
-            //this.preconditioner = preconditionerFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator,
-            //    lagrangeEnumerator, stiffnessMatrices);
+            var stiffnessMatrices = new Dictionary<int, IMatrixView>();
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
+            {
+                stiffnessMatrices.Add(linearSystem.Subdomain.ID, linearSystem.Matrix);
+            }
+            this.preconditioner = preconditionerFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator,
+                lagrangeEnumerator, stiffnessMatrices);
         }
 
         /// <summary>
@@ -412,7 +410,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 
             public IFetiDPInterfaceProblemSolver InterfaceProblemSolver { get; set; } = null;
 
-            public IFetiPreconditionerFactory PreconditionerFactory { get; set; } = new Feti1LumpedPreconditioner.Factory();
+            public IFetiPreconditionerFactory PreconditionerFactory { get; set; } = new LumpedPreconditioner.Factory();
             public bool ProblemIsHomogeneous { get; set; } = true;
             //public PdeOrder PdeOrder { get; set; } = PdeOrder.Second; // Instead the user explicitly sets Q.
 

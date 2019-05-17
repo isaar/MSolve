@@ -414,7 +414,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             public IFeti1InterfaceProblemSolver InterfaceProblemSolver { get; set; } = 
                 (new Feti1ProjectedInterfaceProblemSolver.Builder()).Build();
 
-            public IFetiPreconditionerFactory PreconditionerFactory { get; set; } = new Feti1LumpedPreconditioner.Factory();
+            public IFetiPreconditionerFactory PreconditionerFactory { get; set; } = new LumpedPreconditioner.Factory();
             public bool ProblemIsHomogeneous { get; set; } = true;
             public bool ProjectionMatrixQIsIdentity { get; set; } = true;
             //public PdeOrder PdeOrder { get; set; } = PdeOrder.Second; // Instead the user explicitly sets Q.

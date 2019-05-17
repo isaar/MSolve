@@ -9,14 +9,14 @@ using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg;
 //TODO: perhaps these helper methods should be somewhere more centrally, which will also include extracting Kib, Kii
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
 {
-    public abstract class Feti1PreconditionerFactoryBase : IFetiPreconditionerFactory
+    public abstract class FetiPreconditionerFactoryBase : IFetiPreconditionerFactory
     {
         public abstract IFetiPreconditioner CreatePreconditioner(IStiffnessDistribution stiffnessDistribution,
-            Feti1DofSeparator dofSeparator, ILagrangeMultipliersEnumerator lagrangeEnumerator,
+            IDofSeparator dofSeparator, ILagrangeMultipliersEnumerator lagrangeEnumerator,
             Dictionary<int, IMatrixView> stiffnessMatrices);
 
-        protected Dictionary<int, Matrix> CalcBoundaryPreconditioningBooleanMatrices(IStiffnessDistribution stiffnessDistribution, 
-            Feti1DofSeparator dofSeparator, ILagrangeMultipliersEnumerator lagrangeEnumerator)
+        protected Dictionary<int, Matrix> CalcBoundaryPreconditioningBooleanMatrices(IStiffnessDistribution stiffnessDistribution,
+            IDofSeparator dofSeparator, ILagrangeMultipliersEnumerator lagrangeEnumerator)
         {
             int numContinuityEquations = lagrangeEnumerator.NumLagrangeMultipliers;
             int[] rowsToKeep = Enumerable.Range(0, numContinuityEquations).ToArray(); // Same for all subdomains
@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
             return matricesBpb;
         }
 
-        protected Dictionary<int, Matrix> ExtractBoundaryBooleanMatrices(Feti1DofSeparator dofSeparator,
+        protected Dictionary<int, Matrix> ExtractBoundaryBooleanMatrices(IDofSeparator dofSeparator,
             ILagrangeMultipliersEnumerator lagrangeEnumerator)
         {
             int numContinuityEquations = lagrangeEnumerator.NumLagrangeMultipliers;
@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
             return boundaryBooleanMatrices;
         }
 
-        protected Dictionary<int, Matrix> ExtractStiffnessesBoundaryBoundary(Feti1DofSeparator dofSeparator,
+        protected Dictionary<int, Matrix> ExtractStiffnessesBoundaryBoundary(IDofSeparator dofSeparator,
             Dictionary<int, IMatrixView> stiffnessMatrices)
         {
             var stiffnessesBoundaryBoundary = new Dictionary<int, Matrix>();
@@ -61,7 +61,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
             return stiffnessesBoundaryBoundary;
         }
 
-        protected Dictionary<int, Matrix> ExtractStiffnessBoundaryInternal(Feti1DofSeparator dofSeparator, 
+        protected Dictionary<int, Matrix> ExtractStiffnessBoundaryInternal(IDofSeparator dofSeparator, 
             Dictionary<int, IMatrixView> stiffnessMatrices)
         {
             var stiffnessesBoundaryInternal = new Dictionary<int, Matrix>();

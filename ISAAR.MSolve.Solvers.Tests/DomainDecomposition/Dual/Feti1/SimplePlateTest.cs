@@ -81,7 +81,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
 
             // Solver
             var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
-            solverBuilder.PreconditionerFactory = new Feti1LumpedPreconditioner.Factory();
+            solverBuilder.PreconditionerFactory = new LumpedPreconditioner.Factory();
             solverBuilder.ProblemIsHomogeneous = true;
             Feti1Solver fetiSolver = solverBuilder.BuildSolver(multiSubdomainModel);
 

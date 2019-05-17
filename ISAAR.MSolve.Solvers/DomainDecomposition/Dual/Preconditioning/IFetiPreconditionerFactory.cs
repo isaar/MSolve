@@ -9,7 +9,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
 {
     public interface IFetiPreconditionerFactory
     {
-        IFetiPreconditioner CreatePreconditioner(IStiffnessDistribution stiffnessDistribution, Feti1DofSeparator dofSeparator,
+        IFetiPreconditioner CreatePreconditioner(IStiffnessDistribution stiffnessDistribution, IDofSeparator dofSeparator,
             ILagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, IMatrixView> stiffnessMatrices);
     }
 }

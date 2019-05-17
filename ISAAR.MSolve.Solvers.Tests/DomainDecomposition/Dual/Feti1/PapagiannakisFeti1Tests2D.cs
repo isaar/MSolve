@@ -225,12 +225,12 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             else solverBuilder.ProjectionMatrixQIsIdentity = false;
 
             // Preconditioner
-            if (precond == Precond.Lumped) solverBuilder.PreconditionerFactory = new Feti1LumpedPreconditioner.Factory();
+            if (precond == Precond.Lumped) solverBuilder.PreconditionerFactory = new LumpedPreconditioner.Factory();
             else if (precond == Precond.DirichletDiagonal)
             {
-                solverBuilder.PreconditionerFactory = new Feti1DiagonalDirichletPreconditioner.Factory();
+                solverBuilder.PreconditionerFactory = new DiagonalDirichletPreconditioner.Factory();
             }
-            else solverBuilder.PreconditionerFactory = new Feti1DirichletPreconditioner.Factory();
+            else solverBuilder.PreconditionerFactory = new DirichletPreconditioner.Factory();
 
             // PCG may need to use the exact residual for the comparison with the expected values
             bool residualIsExact = residualConvergence == Residual.Exact;

@@ -143,6 +143,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
                 leadingDimB);
         }
 
+        /// <summary>
+        /// Solves a series of linear systems L * L^T * x = b (or L * D * L^T * x = b), where L is the lower triangular factor   
+        /// (and D the diagonal factor) of the Cholesky factorization: A = L * L^T (or A = L * D * L^T).
+        /// </summary>
+        /// <param name="rhsVectors">
+        /// A matrix whose columns are the right hand side vectors b of the linear systems. Constraints:
+        /// <paramref name="rhsVectors"/>.<see cref="IIndexable2D.NumRows"/> == this.<see cref="Order"/>.
+        /// </param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if <paramref name="rhsVectors"/> violates the described constraints.
+        /// </exception>
+        /// <exception cref="AccessViolationException">
+        /// Thrown if the unmanaged memory that holds the factorization data has been released.
+        /// </exception>
+        /// <exception cref="SuiteSparseException">Thrown if the call to SuiteSparse library fails.</exception>
         public Matrix SolveLinearSystems(Matrix rhs)
         {
             CheckOverwritten();
