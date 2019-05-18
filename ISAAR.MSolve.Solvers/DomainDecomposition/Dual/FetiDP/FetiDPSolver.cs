@@ -5,16 +5,16 @@ using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution;
 using ISAAR.MSolve.Solvers.LinearSystems;
 using ISAAR.MSolve.Solvers.Ordering;
@@ -251,19 +251,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                 BuildPreconditioner(Krr);
 
                 // Factorize matrices
-                foreach (int id in subdomains.Keys)
-                {
-                    factorizedKrr[id] = Krr[id].FactorCholesky(true);
-                }
+                foreach (int id in subdomains.Keys) factorizedKrr[id] = Krr[id].FactorCholesky(true);
 
                 // Define FETI-DP flexibility matrices
                 flexibility = new FetiDPFlexibilityMatrix(factorizedKrr, Krc, lagrangeEnumerator, dofSeparator);
 
                 // Static condensation of remainder dofs (Schur complement).
                 interfaceProblemSolver.CreateCoarseProblemMatrix(dofSeparator, factorizedKrr, Krc, Kcc);
-
-                // For debugging
-                //double detKccStar = globalKccStar.CalcDeterminant();
 
                 isStiffnessModified = false;
             }
@@ -387,26 +381,25 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 
         public class Builder
         {
-            private Dictionary<int, INode[]> cornerNodesOfEachSubdomain;
+            private Dictionary<int, INode[]> cornerNodesOfEachSubdomain; //TODO: These should probably be a HashSet instead of array.
 
             public Builder(Dictionary<int, INode[]> cornerNodesOfEachSubdomain)
             {
                 this.cornerNodesOfEachSubdomain = cornerNodesOfEachSubdomain;
             }
 
+            //TODO: We need to specify the ordering for remainder and possibly internal dofs, while IDofOrderer only works for free dofs.
             public IDofOrderer DofOrderer { get; set; } =
                 new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
 
-            public IFetiDPInterfaceProblemSolver InterfaceProblemSolver { get; set; }
-
-            public PcgAlgorithm.Builder PcgBuilder { get; set; }
+            public IFetiDPInterfaceProblemSolver InterfaceProblemSolver { get; set; } =
+                new FetiDPInterfaceProblemSolver.Builder().Build();
 
             public IFetiPreconditionerFactory PreconditionerFactory { get; set; } = new LumpedPreconditioner.Factory();
             public bool ProblemIsHomogeneous { get; set; } = true;
-            //public PdeOrder PdeOrder { get; set; } = PdeOrder.Second; // Instead the user explicitly sets Q.
 
             public FetiDPSolver BuildSolver(Model model)
-                => new FetiDPSolver(model, cornerNodesOfEachSubdomain, DofOrderer, PreconditionerFactory,
+                => new FetiDPSolver(model, cornerNodesOfEachSubdomain, DofOrderer, PreconditionerFactory, 
                      InterfaceProblemSolver, ProblemIsHomogeneous);
         }
     }

@@ -6,7 +6,7 @@ using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution;
 
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning
 {
     public class DiagonalDirichletPreconditioner : IFetiPreconditioner
     {

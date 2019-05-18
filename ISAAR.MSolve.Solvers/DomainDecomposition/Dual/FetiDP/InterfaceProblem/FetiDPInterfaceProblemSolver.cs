@@ -4,6 +4,7 @@ using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Iterative;
 using ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -18,12 +19,17 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
     /// </summary>
     public class FetiDPInterfaceProblemSolver : IFetiDPInterfaceProblemSolver
     {
-        private readonly PcgAlgorithm.Builder pcgBuilder;
+        private readonly IMaxIterationsProvider maxIterationsProvider;
+        private readonly double pcgConvergenceTolerance;
+        private readonly IFetiPcgConvergenceFactory pcgConvergenceStrategyFactory;
         private CholeskyFull factorizedGlobalKccStar;
 
-        public FetiDPInterfaceProblemSolver(PcgAlgorithm.Builder pcgBuilder)
+        public FetiDPInterfaceProblemSolver(IMaxIterationsProvider maxIterationsProvider,
+            double pcgConvergenceTolerance, IFetiPcgConvergenceFactory pcgConvergenceStrategyFactory)
         {
-            this.pcgBuilder = pcgBuilder;
+            this.maxIterationsProvider = maxIterationsProvider;
+            this.pcgConvergenceTolerance = pcgConvergenceTolerance;
+            this.pcgConvergenceStrategyFactory = pcgConvergenceStrategyFactory;
         }
 
         public void ClearCoarseProblemMatrix()
@@ -44,14 +50,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
                 Matrix KccStar = Kcc[s] - Krc[s].MultiplyRight(factorizedKrr[s].SolveLinearSystems(Krc[s]), true);
                 globalKccStar.AddIntoThis(Lc.ThisTransposeTimesOtherTimesThis(KccStar));
             }
+            // For debugging
+            //double detKccStar = globalKccStar.CalcDeterminant();
 
             factorizedGlobalKccStar = globalKccStar.FactorCholesky(true);
         }
 
-        public Vector SolveCoarseProblem(Vector rhs)
-        {
-            return factorizedGlobalKccStar.SolveLinearSystem(rhs);
-        }
+        public Vector SolveCoarseProblem(Vector rhs) => factorizedGlobalKccStar.SolveLinearSystem(rhs);
 
         public (Vector lagrangeMultipliers, Vector cornerDisplacements) SolveInterfaceProblem(FetiDPFlexibilityMatrix flexibility, 
             IFetiPreconditioner preconditioner, Vector globalFcStar, Vector dr, double globalForcesNorm, DualSolverLogger logger)
@@ -68,6 +73,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
             pcgRhs = dr - pcgRhs;
 
             // Solve the interface problem using PCG algorithm
+            var pcgBuilder = new PcgAlgorithm.Builder();
+            pcgBuilder.MaxIterationsProvider = maxIterationsProvider;
+            pcgBuilder.ResidualTolerance = pcgConvergenceTolerance;
+            pcgBuilder.Convergence = pcgConvergenceStrategyFactory.CreateConvergenceStrategy(globalForcesNorm);
             PcgAlgorithm pcg = pcgBuilder.Build(); //TODO: perhaps use the pcg from the previous analysis if it has reorthogonalization.
             var lagranges = Vector.CreateZero(systemOrder);
             IterativeStatistics stats = pcg.Solve(pcgMatrix, pcgPreconditioner, pcgRhs, lagranges, true,
@@ -89,6 +98,17 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
             uc = factorizedGlobalKccStar.SolveLinearSystem(uc);
 
             return (lagranges, uc);
+        }
+
+        public class Builder
+        {
+            public IMaxIterationsProvider MaxIterationsProvider { get; set; } = new PercentageMaxIterationsProvider(1.0);
+            public IFetiPcgConvergenceFactory PcgConvergenceStrategyFactory { get; set; } =
+                new ApproximateResidualConvergence.Factory();
+            public double PcgConvergenceTolerance { get; set; } = 1E-7;
+
+            public FetiDPInterfaceProblemSolver Build() => new FetiDPInterfaceProblemSolver(
+                MaxIterationsProvider, PcgConvergenceTolerance, PcgConvergenceStrategyFactory);
         }
 
         private class InterfaceProblemMatrix : ILinearTransformation

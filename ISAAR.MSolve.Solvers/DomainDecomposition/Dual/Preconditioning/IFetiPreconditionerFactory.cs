@@ -5,7 +5,7 @@ using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg;
 
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning
 {
     public interface IFetiPreconditionerFactory
     {
