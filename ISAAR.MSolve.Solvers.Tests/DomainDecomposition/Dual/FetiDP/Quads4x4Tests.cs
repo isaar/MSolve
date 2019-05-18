@@ -1,269 +1,258 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
-using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
-using ISAAR.MSolve.Solvers.Direct;
+using ISAAR.MSolve.LinearAlgebra.Triangulation;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
-using ISAAR.MSolve.Solvers.Ordering;
-using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using Xunit;
 
 namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 {
     public static class Quads4x4Tests
     {
-        [Fact]
-        public static void TestDofSeparation()
+        private static Dictionary<int, Matrix> MatricesKrr
         {
-            int[][] cornerDofsExpected = new int[4][];
-            int[][] remainderDofsExpected = new int[4][];
-            int[][] boundaryRemainderDofsExpected = new int[4][];
-            int[][] internalRemainderDofsExpected = new int[4][];
-
-            // Subdomain 0
-            cornerDofsExpected[0] = new int[] { 2, 3, 10, 11 };
-            remainderDofsExpected[0] = new int[] { 0, 1, 4, 5, 6, 7, 8, 9 };
-            boundaryRemainderDofsExpected[0] = new int[] { 4, 5, 6, 7 };
-            internalRemainderDofsExpected[0] = new int[] { 0, 1, 2, 3 };
-
-            // Subdomain 1
-            cornerDofsExpected[1] = new int[] { 0, 1, 12, 13, 16, 17 };
-            remainderDofsExpected[1] = new int[] { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 14, 15 };
-            boundaryRemainderDofsExpected[1] = new int[] { 4, 5, 10, 11 };
-            internalRemainderDofsExpected[1] = new int[] { 0, 1, 2, 3, 6, 7, 8, 9 };
-
-            // Subdomain 2
-            cornerDofsExpected[2] = new int[] { 2, 3, 10, 11 };
-            remainderDofsExpected[2] = new int[] { 0, 1, 4, 5, 6, 7, 8, 9 };
-            boundaryRemainderDofsExpected[2] = new int[] { 0, 1, 4, 5 };
-            internalRemainderDofsExpected[2] = new int[] { 2, 3, 6, 7 };
-
-            // Subdomain 3
-            cornerDofsExpected[3] = new int[] { 0, 1, 4, 5, 12, 13 };
-            remainderDofsExpected[3] = new int[] { 2, 3, 6, 7, 8, 9, 10, 11, 14, 15, 16, 17 };
-            boundaryRemainderDofsExpected[3] = new int[] { 0, 1, 2, 3 };
-            internalRemainderDofsExpected[3] = new int[] { 4, 5, 6, 7, 8, 9, 10, 11 };
-
-            // Create model
-            Model model = CreateModel();
-            Dictionary<int, INode[]> cornerNodes = DefineCornerNodes(model);
-            model.ConnectDataStructures();
-
-            // Order free dofs.
-            var dofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
-            IGlobalFreeDofOrdering globalOrdering = dofOrderer.OrderFreeDofs(model);
-            model.GlobalDofOrdering = globalOrdering;
-            foreach (ISubdomain subdomain in model.Subdomains)
+            get
             {
-                subdomain.FreeDofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
+                var Krr = new Dictionary<int, Matrix>();
+                Krr[0] = Matrix.CreateFromArray(new double[,]
+                {
+                { 0.9890109890, 0, 0.10989010990, 0, -0.24725274730, -0.17857142860, 0, 0 },
+                { 0, 0.9890109890,  0, -0.60439560440, -0.17857142860, -0.24725274730, 0, 0 },
+                { 0.10989010990, 0, 1.9780219780,  0, -0.60439560440, 0, 0.10989010990, 0 },
+                { 0, -0.60439560440, 0, 1.9780219780,  0, 0.10989010990, 0, -0.60439560440 },
+                { -0.24725274730,  -0.17857142860, -0.60439560440, 0, 0.9890109890,  0, -0.24725274730, 0.17857142860 },
+                { -0.17857142860,  -0.24725274730, 0, 0.10989010990, 0, 0.9890109890,  0.17857142860, -0.24725274730 },
+                { 0, 0, 0.10989010990, 0, -0.24725274730, 0.17857142860, 0.9890109890,  0 },
+                { 0, 0, 0, -0.60439560440, 0.17857142860, -0.24725274730, 0, 0.9890109890 }
+                });
+
+                Krr[1] = Matrix.CreateFromArray(new double[,]
+                {
+                { 0.9890109890,    0,  -0.3021978022, -0.01373626370,-0.2472527473, 0.1785714286,  0.1098901099,  0,  -0.2472527473, -0.1785714286, 0,  0      },
+                { 0, 0.9890109890,  0.01373626370, 0.05494505490, 0.1785714286,  -0.2472527473, 0,  -0.6043956044, -0.1785714286, -0.2472527473, 0,  0         },
+                { -0.3021978022,   0.01373626370, 0.4945054945,  -0.1785714286, 0,  0,  -0.2472527473, 0.1785714286,  0.05494505490, -0.01373626370,    0,  0  },
+                { -0.01373626370,  0.05494505490, -0.1785714286, 0.4945054945,  0,  0,  0.1785714286,  -0.2472527473, 0.01373626370, -0.3021978022, 0,  0      },
+                { -0.2472527473,   0.1785714286,  0,  0,  0.9890109890,  0,  -0.6043956044, 0,  0,  0,  -0.2472527473, -0.1785714286                           },
+                { 0.1785714286,    -0.2472527473, 0,  0,  0,  0.9890109890,  0,  0.1098901099,  0,  0,  -0.1785714286, -0.2472527473                           },
+                { 0.1098901099,    0,  -0.2472527473, 0.1785714286,  -0.6043956044, 0,  1.978021978,   0,  -0.6043956044, 0,  0.1098901099,  0                 },
+                { 0, -0.6043956044, 0.1785714286,  -0.2472527473, 0,  0.1098901099,  0,  1.978021978,   0,  0.1098901099,  0,  -0.6043956044                   },
+                { -0.2472527473,   -0.1785714286, 0.05494505490, 0.01373626370, 0,  0,  -0.6043956044, 0,  0.9890109890,  0,  -0.2472527473, 0.1785714286      },
+                { -0.1785714286,   -0.2472527473, -0.01373626370,    -0.3021978022, 0,  0,  0,  0.1098901099,  0,  0.9890109890,  0.1785714286,  -0.2472527473 },
+                { 0,    0,  0,  0,  -0.2472527473, -0.1785714286, 0.1098901099,  0,  -0.2472527473, 0.1785714286,  0.9890109890,  0                            },
+                { 0,    0,  0,  0,  -0.1785714286, -0.2472527473, 0,  -0.6043956044, 0.1785714286,  -0.2472527473, 0,  0.9890109890                            }
+                });
+
+                Krr[2] = Matrix.CreateFromArray(new double[,]
+                {
+                { 0.9890109890, 0, 0.10989010990, 0, -0.24725274730, -0.17857142860, 0, 0 },
+                { 0, 0.9890109890, 0, -0.60439560440, -0.17857142860, -0.24725274730, 0, 0 },
+                { 0.10989010990, 0, 1.9780219780, 0, -0.60439560440, 0, 0.10989010990, 0 },
+                { 0, -0.60439560440, 0, 1.9780219780, 0, 0.10989010990, 0, -0.60439560440 },
+                { -0.24725274730, -0.17857142860, -0.60439560440, 0, 0.9890109890, 0, -0.24725274730, 0.17857142860 },
+                { -0.17857142860, -0.24725274730, 0, 0.10989010990, 0, 0.9890109890, 0.17857142860, -0.24725274730 },
+                { 0, 0, 0.10989010990, 0, -0.24725274730, 0.17857142860, 0.9890109890, 0 },
+                { 0, 0, 0, -0.60439560440, 0.17857142860, -0.24725274730, 0, 0.9890109890 }
+                });
+
+                Krr[3] = Matrix.CreateFromArray(new double[,]
+                {
+                { 0.9890109890, 0, -0.24725274730, 0.17857142860, 0.10989010990, 0, -0.24725274730, -0.17857142860, 0, 0, 0, 0                           },
+                { 0, 0.9890109890, 0.17857142860, -0.24725274730, 0, -0.60439560440, -0.17857142860, -0.24725274730, 0, 0, 0, 0                          },
+                { -0.24725274730, 0.17857142860, 0.9890109890, 0, -0.60439560440, 0, 0, 0, -0.24725274730, -0.17857142860, 0, 0                          },
+                { 0.17857142860, -0.24725274730, 0, 0.9890109890, 0, 0.10989010990, 0, 0, -0.17857142860, -0.24725274730, 0, 0                           },
+                { 0.10989010990, 0, -0.60439560440, 0, 1.9780219780, 0, -0.60439560440, 0, 0.10989010990, 0, -0.24725274730, -0.17857142860              },
+                { 0, -0.60439560440, 0, 0.10989010990, 0, 1.9780219780, 0, 0.10989010990, 0, -0.60439560440, -0.17857142860, -0.24725274730              },
+                { -0.24725274730, -0.17857142860, 0, 0, -0.60439560440, 0, 0.9890109890, 0, -0.24725274730, 0.17857142860, 0.05494505490, -0.01373626370 },
+                { -0.17857142860, -0.24725274730, 0, 0, 0, 0.10989010990, 0, 0.9890109890, 0.17857142860, -0.24725274730, 0.01373626370, -0.30219780220  },
+                { 0, 0, -0.24725274730, -0.17857142860, 0.10989010990, 0, -0.24725274730, 0.17857142860, 0.9890109890, 0, -0.30219780220, 0.01373626370  },
+                { 0, 0, -0.17857142860, -0.24725274730, 0, -0.60439560440, 0.17857142860, -0.24725274730, 0, 0.9890109890, -0.01373626370, 0.05494505490 },
+                { 0, 0, 0, 0, -0.24725274730, -0.17857142860, 0.05494505490, 0.01373626370, -0.30219780220, -0.01373626370, 0.49450549450, 0.17857142860 },
+                { 0, 0, 0, 0, -0.17857142860, -0.24725274730, -0.01373626370, -0.30219780220, 0.01373626370, 0.05494505490, 0.17857142860, 0.49450549450 }
+                });
+                return Krr;
             }
+        }
 
-            // Separate dofs
-            var dofSeparator = new FetiDPDofSeparator();
-            dofSeparator.SeparateDofs(model, cornerNodes);
-
-            // Check
-            for (int s = 0; s < 4; ++s)
+        private static Dictionary<int, Matrix> MatricesKrc
+        {
+            get
             {
-                Utilities.CheckEqual(cornerDofsExpected[s], dofSeparator.CornerDofIndices[s]);
-                Utilities.CheckEqual(remainderDofsExpected[s], dofSeparator.RemainderDofIndices[s]);
-                Utilities.CheckEqual(boundaryRemainderDofsExpected[s], dofSeparator.BoundaryDofIndices[s]);
-                Utilities.CheckEqual(internalRemainderDofsExpected[s], dofSeparator.InternalDofIndices[s]);
+                var Krc = new Dictionary<int, Matrix>();
+                Krc[0] = Matrix.CreateFromArray(new double[,]
+                {
+                    {-0.30219780220, -0.01373626370, 0, 0                         },
+                    {0.01373626370, 0.05494505490, 0, 0                           },
+                    {-0.24725274730, 0.17857142860, -0.24725274730, -0.17857142860},
+                    {0.17857142860, -0.24725274730, -0.17857142860, -0.24725274730},
+                    {0.05494505490, 0.01373626370, 0.05494505490, -0.01373626370  },
+                    {-0.01373626370, -0.30219780220, 0.01373626370, -0.30219780220},
+                    {0, 0, -0.30219780220, 0.01373626370                          },
+                    {0, 0, -0.01373626370, 0.05494505490                          }
+                });
+
+                Krc[1] = Matrix.CreateFromArray(new double[,]
+                {
+                    {-0.30219780220, 0.01373626370, 0, 0, 0, 0                                                     },
+                    {-0.01373626370, 0.05494505490, 0, 0, 0, 0                                                     },
+                    {0, 0, 0, 0, 0, 0                                                                              },
+                    {0, 0, 0, 0, 0, 0                                                                              },
+                    {0.05494505490, -0.01373626370, 0.05494505490, 0.01373626370, 0, 0                             },
+                    {0.01373626370, -0.30219780220, -0.01373626370, -0.30219780220, 0, 0                           },
+                    {-0.24725274730, -0.17857142860, -0.24725274730, 0.17857142860, -0.24725274730, -0.17857142860 },
+                    {-0.17857142860, -0.24725274730, 0.17857142860, -0.24725274730, -0.17857142860, -0.24725274730 },
+                    {0, 0, 0, 0, 0.05494505490, -0.01373626370                                                     },
+                    {0, 0, 0, 0, 0.01373626370, -0.30219780220                                                     },
+                    {0, 0, -0.30219780220, -0.01373626370, -0.30219780220, 0.01373626370                           },
+                    {0, 0, 0.01373626370, 0.05494505490, -0.01373626370, 0.05494505490                             }
+                });
+
+                Krc[2] = Matrix.CreateFromArray(new double[,]
+                {
+                    {-0.30219780220, -0.01373626370, 0, 0                          },
+                    {0.01373626370, 0.05494505490, 0, 0                            },
+                    {-0.24725274730, 0.17857142860, -0.24725274730, -0.17857142860 },
+                    {0.17857142860, -0.24725274730, -0.17857142860, -0.24725274730 },
+                    {0.05494505490, 0.01373626370, 0.05494505490, -0.01373626370   },
+                    {-0.01373626370, -0.30219780220, 0.01373626370, -0.30219780220 },
+                    {0, 0, -0.30219780220, 0.01373626370                           },
+                    {0, 0, -0.01373626370, 0.05494505490                           }
+                });
+
+                Krc[3] = Matrix.CreateFromArray(new double[,]
+                {
+                    {-0.30219780220, 0.01373626370, -0.30219780220, -0.01373626370, 0, 0                         },
+                    {-0.01373626370, 0.05494505490, 0.01373626370, 0.05494505490, 0, 0                           },
+                    {0.05494505490, -0.01373626370, 0, 0, 0.05494505490, 0.01373626370                           },
+                    {0.01373626370, -0.30219780220, 0, 0, -0.01373626370, -0.30219780220                         },
+                    {-0.24725274730, -0.17857142860, -0.24725274730, 0.17857142860, -0.24725274730, 0.17857142860},
+                    {-0.17857142860, -0.24725274730, 0.17857142860, -0.24725274730, 0.17857142860, -0.24725274730},
+                    {0, 0, 0.05494505490, 0.01373626370, 0, 0                                                    },
+                    {0, 0, -0.01373626370, -0.30219780220, 0, 0                                                  },
+                    {0, 0, 0, 0, -0.30219780220, -0.01373626370                                                  },
+                    {0, 0, 0, 0, 0.01373626370, 0.05494505490                                                    },
+                    {0, 0, 0, 0, 0, 0                                                                            },
+                    {0, 0, 0, 0, 0, 0                                                                            }
+                });
+                return Krc;
+            }
+        }
+
+        private static Dictionary<int, Vector> VectorsFr
+        {
+            get
+            {
+                var fr = new Dictionary<int, Vector>();
+                fr[0] = Vector.CreateZero(8);
+                fr[1] = Vector.CreateZero(12);
+                fr[2] = Vector.CreateZero(8);
+                fr[3] = Vector.CreateZero(12);
+                fr[3][11] = 10;
+                return fr;
             }
         }
 
         [Fact]
-        public static void TestSignedBooleanMatrices()
+        public static void TestDisconnectedDisplacements()
         {
-            // Expected results
-            int expectedNumLagrangeMultipliers = 8;
-            var expectedBr = new Dictionary<int, Matrix>();
+            //TODO: Perhaps use the Br, Bc from the class that tests them instead of the solver.
 
-            expectedBr[0] = Matrix.CreateZero(8, 8);
-            expectedBr[0][0, 4] = +1;
-            expectedBr[0][1, 5] = +1;
-            expectedBr[0][2, 6] = +1;
-            expectedBr[0][3, 7] = +1;
-
-            expectedBr[1] = Matrix.CreateZero(8, 12);
-            expectedBr[1][0, 4] = -1;
-            expectedBr[1][1, 5] = -1;
-            expectedBr[1][4, 10] = +1;
-            expectedBr[1][5, 11] = +1;
-
-            expectedBr[2] = Matrix.CreateZero(8, 8);
-            expectedBr[2][2, 0] = -1;
-            expectedBr[2][3, 1] = -1;
-            expectedBr[2][6, 4] = +1;
-            expectedBr[2][7, 5] = +1;
-
-            expectedBr[3] = Matrix.CreateZero(8, 12);
-            expectedBr[3][4, 0] = -1;
-            expectedBr[3][5, 1] = -1;
-            expectedBr[3][6, 2] = -1;
-            expectedBr[3][7, 3] = -1;
-
-            // Create model
-            Model model = CreateModel();
-            Dictionary<int, INode[]> cornerNodes = DefineCornerNodes(model);
+            Model model = MappingMatricesTests.CreateModel();
+            Dictionary<int, INode[]> cornerNodes = MappingMatricesTests.DefineCornerNodes(model);
+            var solver = new FetiDPSolver.Builder(cornerNodes).BuildSolver(model);
             model.ConnectDataStructures();
+            solver.OrderDofs(false);
 
-            // Order free dofs.
-            var dofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
-            IGlobalFreeDofOrdering globalOrdering = dofOrderer.OrderFreeDofs(model);
-            model.GlobalDofOrdering = globalOrdering;
-            foreach (ISubdomain subdomain in model.Subdomains)
+            Dictionary<int, Matrix> Krr = MatricesKrr;
+            var factorizedKrr = new Dictionary<int, CholeskyFull>();
+            for (int i = 0; i < 4; ++i) factorizedKrr[i] = Krr[i].FactorCholesky(false);
+            var fr = VectorsFr;
+
+            Vector dr = solver.CalcDisconnectedDisplacements(factorizedKrr, fr);
+            var expectedDr = Vector.CreateFromArray(new double[] 
             {
-                subdomain.FreeDofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
-            }
+                0, 0, 0, 0, -3.375195492420367, -10.215251712309035, 0.418600986802971, -1.151753569240856
+            });
 
-            // Separate dofs
-            var dofSeparator = new FetiDPDofSeparator();
-            dofSeparator.SeparateDofs(model, cornerNodes);
-
-            // Enumerate lagranges
-            var crosspointStrategy = new FullyRedundantConstraints();
-            var lagrangeEnumerator = new FetiDPLagrangeMultipliersEnumerator(crosspointStrategy, dofSeparator);
-            lagrangeEnumerator.DefineBooleanMatrices(model);
-
-            // Check
-            double tolerance = 1E-13;
-            Assert.Equal(expectedNumLagrangeMultipliers, lagrangeEnumerator.NumLagrangeMultipliers);
-            for (int id = 0; id < 4; ++id)
-            {
-                Matrix Br = lagrangeEnumerator.BooleanMatrices[id].CopyToFullMatrix(false);
-                Assert.True(expectedBr[id].Equals(Br, tolerance));
-            }
+            double tol = 1E-13;
+            Assert.True(expectedDr.Equals(dr, tol));
         }
 
         [Fact]
-        public static void TestUnsignedBooleanMatrices()
+        public static void TestFlexibilityMatrices()
         {
-            // Expected results
-            int expectedNumCornerDofs = 8;
-            var expectedLc = new Dictionary<int, Matrix>();
-
-            expectedLc[0] = Matrix.CreateZero(4, 8);
-            expectedLc[0][0, 0] = 1;
-            expectedLc[0][1, 1] = 1;
-            expectedLc[0][2, 2] = 1;
-            expectedLc[0][3, 3] = 1;
-
-            expectedLc[1] = Matrix.CreateZero(6, 8);
-            expectedLc[1][0, 0] = 1;
-            expectedLc[1][1, 1] = 1;
-            expectedLc[1][2, 2] = 1;
-            expectedLc[1][3, 3] = 1;
-            expectedLc[1][4, 4] = 1;
-            expectedLc[1][5, 5] = 1;
-
-            expectedLc[2] = Matrix.CreateZero(4, 8);
-            expectedLc[2][0, 2] = 1;
-            expectedLc[2][1, 3] = 1;
-            expectedLc[2][2, 6] = 1;
-            expectedLc[2][3, 7] = 1;
-
-            expectedLc[3] = Matrix.CreateZero(6, 8);
-            expectedLc[3][0, 2] = 1;
-            expectedLc[3][1, 3] = 1;
-            expectedLc[3][2, 4] = 1;
-            expectedLc[3][3, 5] = 1;
-            expectedLc[3][4, 6] = 1;
-            expectedLc[3][5, 7] = 1;
-
-            // Create model
-            Model model = CreateModel();
-            Dictionary<int, INode[]> cornerNodes = DefineCornerNodes(model);
+            // Setup the model and solver
+            Model model = MappingMatricesTests.CreateModel();
+            Dictionary<int, INode[]> cornerNodes = MappingMatricesTests.DefineCornerNodes(model);
+            var solver = new FetiDPSolver.Builder(cornerNodes).BuildSolver(model);
             model.ConnectDataStructures();
+            solver.OrderDofs(false);
 
-            // Order free dofs.
-            var dofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
-            IGlobalFreeDofOrdering globalOrdering = dofOrderer.OrderFreeDofs(model);
-            model.GlobalDofOrdering = globalOrdering;
-            foreach (ISubdomain subdomain in model.Subdomains)
+            // Use the hardcoded intermediate matrices
+            Dictionary<int, Matrix> Krc = MatricesKrc;
+            Dictionary<int, Matrix> Krr = MatricesKrr;
+            var factorizedKrr = new Dictionary<int, CholeskyFull>();
+            for (int i = 0; i < 4; ++i) factorizedKrr[i] = Krr[i].FactorCholesky(false);
+
+            // Access private fields of FetiDPSolver
+            FieldInfo fi = typeof(FetiDPSolver).GetField("lagrangeEnumerator", BindingFlags.NonPublic | BindingFlags.Instance);
+            var lagrangeEnumerator = (FetiDPLagrangeMultipliersEnumerator)(fi.GetValue(solver));
+            fi = typeof(FetiDPSolver).GetField("dofSeparator", BindingFlags.NonPublic | BindingFlags.Instance);
+            var dofSeparator = (FetiDPDofSeparator)(fi.GetValue(solver));
+
+            // Create the flexibility matrices by multiplying with identity matrices
+            int numLagranges = lagrangeEnumerator.NumLagrangeMultipliers;
+            int numCornerDofs = dofSeparator.NumGlobalCornerDofs;
+            var flexibility = new FetiDPFlexibilityMatrix(factorizedKrr, Krc, lagrangeEnumerator, dofSeparator);
+            Matrix FIrr = MultiplyWithIdentity(numLagranges, numLagranges, flexibility.MultiplyFIrr);
+            Matrix FIrc = MultiplyWithIdentity(numLagranges, numLagranges, (x, y) => y.CopyFrom(flexibility.MultiplyFIrc(x)));
+
+            // Check against expected matrices
+            var expectedFIrr = Matrix.CreateFromArray(new double[,]
             {
-                subdomain.FreeDofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
-            }
+                {3.57057200993606, -0.108283270560292, 0.338429752179871, -0.279338843056072, -0.573961878785917, -0.114111168546807, 0, 0  },
+                {-0.108283270560292, 2.65633088920628, -0.234165486478537, 0.447212600200740, -0.173283461887574, -0.573961878785916, 0, 0  },
+                {0.338429752179871, -0.234165486478537, 2.26748388676785, -2.77555756156289e-17, 0, 0, -0.338429752179871, -0.23416548647853},
+                {-0.279338843056072, 0.447212600200740, -2.77555756156289e-17, 3.03419905760385, 0, 0, -0.279338843056072, -0.44721260020073},
+                {-0.573961878785917, -0.173283461887574, 0, 0, 2.71882869786337, -2.63677968348475e-16, 0.573961878785916, -0.17328346188757},
+                {-0.114111168546807, -0.573961878785916, 0, 0, -2.63677968348475e-16, 4.04692914347278, -0.114111168546807, 0.57396187878591},
+                {0, 0, -0.338429752179871, -0.279338843056072, 0.573961878785916, -0.114111168546807, 3.57057200993606, 0.108283270560292   },
+                {0, 0, -0.234165486478537, -0.447212600200739, -0.173283461887574, 0.573961878785916, 0.108283270560292, 2.65633088920628   }
+            });
 
-            // Separate dofs
-            var dofSeparator = new FetiDPDofSeparator();
-            dofSeparator.DefineCornerMappingMatrices(model, cornerNodes);
-
-            // Check
-            double tolerance = 1E-13;
-            Assert.Equal(expectedNumCornerDofs, dofSeparator.NumGlobalCornerDofs);
-            for (int id = 0; id < 4; ++id)
+            var expectedFIrc = Matrix.CreateFromArray(new double[,]
             {
-                Matrix Lc = dofSeparator.CornerBooleanMatrices[id];
-                Assert.True(expectedLc[id].Equals(Lc, tolerance));
-            }
+                {0.244415273977447, 0.232902352320994, 0.188150279438879, -0.367471730456911, 0.325403750731022, 0.134569378056537, 0, 0                                           },
+                {-0.127173102613820, 0.0205141879116909, 0.0345524284084688, 0.0581554138518863, 0.0926206740937292, 0.0806737768451912, 0, 0                                      },
+                {-0.00592361806200106, 0.0896358681318229, -5.55111512312578e-17, 0.152076488272397, 0, 0, 0.00592361806200106, 0.0896358681318228                                 },
+                {0.0980092297384746, -0.270103007383575, -0.136396263304725, 0, 0, 0, 0.0980092297384746, 0.270103007383575                                                        },
+                {-0.0806737768451914, -0.0926206740937293, -2.22044604925031e-16, 0.0238937950679602, -1.66533453693773e-16, 0.161347553342741, 0.0806737768451914, -0.092620674093},
+                {-0.134569378056537, -0.325403750731022, 0.515640037124902, 5.55111512312578e-17, -0.246501280853069, -2.22044604925031e-16, -0.134569378056537, 0.325403750731022 },
+                {0, 0, 0.188150279438879, 0.367471730456911, 0.325403750731022, -0.134569378056537, 0.244415273977447, -0.232902352320994                                          },
+                {0, 0, -0.0345524284084688, 0.0581554138518863, -0.0926206740937292, 0.0806737768451912, 0.127173102613820, 0.0205141879116910                                     }
+            });
+
+            double tol = 1E-11;
+            Assert.True(expectedFIrr.Equals(FIrr, tol));
+            Assert.True(expectedFIrc.Equals(FIrc, tol));
         }
 
-        private static Model CreateModel()
+        private static Matrix MultiplyWithIdentity(int numRows, int numCols, Action<Vector, Vector> matrixVectorMultiplication)
         {
-            //                                    Λ P
-            //                                    | 
-            //                                     
-            // |> 20 ---- 21 ---- 22 ---- 23 ---- 24
-            //    |  (12) |  (13) |  (14) |  (15) |
-            //    |       |       |       |       |
-            // |> 15 ---- 16 ---- 17 ---- 18 ---- 19
-            //    |  (8)  |  (9)  |  (10) |  (11) |
-            //    |       |       |       |       |
-            // |> 10 ---- 11 ---- 12 ---- 13 ---- 14
-            //    |  (4)  |  (5)  |  (6)  |  (7)  |
-            //    |       |       |       |       |
-            // |> 5 ----- 6 ----- 7 ----- 8 ----- 9
-            //    |  (0)  |  (1)  |  (2)  |  (3)  |
-            //    |       |       |       |       |
-            // |> 0 ----- 1 ----- 2 ----- 3 ----- 4
-
-
-            var builder = new Uniform2DModelBuilder();
-            builder.DomainLengthX = 4.0;
-            builder.DomainLengthY = 4.0;
-            builder.NumSubdomainsX = 2;
-            builder.NumSubdomainsY = 2;
-            builder.NumTotalElementsX = 4;
-            builder.NumTotalElementsY = 4;
-            builder.YoungModulus = 1.0;
-            builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LeftSide, StructuralDof.TranslationX, 0.0);
-            builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LeftSide, StructuralDof.TranslationY, 0.0);
-            builder.DistributeLoadAtNodes(Uniform2DModelBuilder.BoundaryRegion.UpperRightCorner, StructuralDof.TranslationY, 10.0);
-
-            return builder.BuildModel();
-        }
-
-        private static Dictionary<int, INode[]> DefineCornerNodes(Model model)
-        {
-            // subdomain 2         subdomain 3                      
-            // 20 ---- 21 ---- 22  22---- 23 ---- 24
-            // |  (12) |  (13) |   | (14) |  (15) |
-            // |       |       |   |      |       |
-            // 15 ---- 16 ---- 17  17---- 18 ---- 19
-            // |  (8)  |  (9)  |   | (10) |  (11) |
-            // |       |       |   |      |       |
-            // 10 ---- 11 ---- 12  12---- 13 ---- 14
-
-            // subdomain 0         subdomain 1
-            // 10 ---- 11 ---- 12  12---- 13 ---- 14
-            // |  (4)  |  (5)  |   | (6)  |  (7)  |
-            // |       |       |   |      |       |
-            // 5 ----- 6 ----- 7   7 ---- 8 ----- 9
-            // |  (0)  |  (1)  |   | (2)  |  (3)  |
-            // |       |       |   |      |       |
-            // 0 ----- 1 ----- 2   2 ---- 3 ----- 4
-
-            var cornerNodes = new Dictionary<int, INode[]>();
-            cornerNodes[0] = new INode[] { model.Nodes[2], model.Nodes[12] };
-            cornerNodes[1] = new INode[] { model.Nodes[2], model.Nodes[12], model.Nodes[14] };
-            cornerNodes[2] = new INode[] { model.Nodes[12], model.Nodes[22] };
-            cornerNodes[3] = new INode[] { model.Nodes[12], model.Nodes[14], model.Nodes[22] };
-            return cornerNodes;
+            var result = Matrix.CreateZero(numRows, numCols);
+            for (int j = 0; j < numCols; ++j)
+            {
+                var lhs = Vector.CreateZero(numCols);
+                lhs[j] = 1.0;
+                var rhs = Vector.CreateZero(numRows);
+                matrixVectorMultiplication(lhs, rhs);
+                result.SetSubcolumn(j, rhs);
+            }
+            return result;
         }
     }
 }

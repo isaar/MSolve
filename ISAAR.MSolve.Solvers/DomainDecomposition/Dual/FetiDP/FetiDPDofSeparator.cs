@@ -105,6 +105,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             }
             NumGlobalCornerDofs = cornerDofCounter;
             GlobalCornerToFreeDofMap = cornerToGlobalDofs.ToArray();
+            GlobalCornerDofOrdering = globalCornerDofOrdering;
 
             // Order local corner dofs
             SubdomainCornerDofOrderings = new Dictionary<int, DofTable>();

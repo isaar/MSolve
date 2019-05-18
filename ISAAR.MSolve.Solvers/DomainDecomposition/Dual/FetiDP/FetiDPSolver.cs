@@ -183,6 +183,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             // Define boundary / internal dofs
             dofSeparator = new FetiDPDofSeparator();
             dofSeparator.SeparateDofs(model, cornerNodesOfSubdomains);
+            dofSeparator.DefineCornerMappingMatrices(model, cornerNodesOfSubdomains);
 
             // Define lagrange multipliers and boolean matrices
             this.lagrangeEnumerator = new FetiDPLagrangeMultipliersEnumerator(crosspointStrategy, dofSeparator);
@@ -327,11 +328,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
         internal Vector CalcDisconnectedDisplacements(Dictionary<int, CholeskyFull> factorizedKrr, 
             Dictionary<int, Vector> fr)
         {
+            // dr = sum_over_s( Br[s] * inv(Krr[s]) * fr[s])
             var dr = Vector.CreateZero(lagrangeEnumerator.NumLagrangeMultipliers);
-            foreach (int id in linearSystems.Keys)
+            foreach (int s in linearSystems.Keys)
             {
-                SignedBooleanMatrix Br = lagrangeEnumerator.BooleanMatrices[id];
-                dr.AddIntoThis(Br.Multiply(factorizedKrr[id].SolveLinearSystem(fr[id])));
+                SignedBooleanMatrix Br = lagrangeEnumerator.BooleanMatrices[s];
+                dr.AddIntoThis(Br.Multiply(factorizedKrr[s].SolveLinearSystem(fr[s])));
             }
             return dr;
         }

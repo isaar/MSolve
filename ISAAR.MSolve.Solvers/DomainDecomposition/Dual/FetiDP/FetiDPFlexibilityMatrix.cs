@@ -27,6 +27,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             this.Order = lagrangeEnumerator.NumLagrangeMultipliers;
         }
 
+        //TODO: This only matches FIrr, FIrc has a different dimension. Remove this property.
         public int Order { get; }
 
         public void MultiplyFIrr(Vector lhs, Vector rhs)
