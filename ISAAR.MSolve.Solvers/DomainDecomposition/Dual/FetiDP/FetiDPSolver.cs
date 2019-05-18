@@ -4,6 +4,7 @@ using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -44,7 +45,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
         private Dictionary<int, CholeskyFull> factorizedKrr; //TODO: CholeskySkyline or CholeskySuiteSparse
         private bool factorizeInPlace = true;
         private FetiDPFlexibilityMatrix flexibility;
-        private Matrix globalKccStar;
         private bool isStiffnessModified = true;
         private FetiDPLagrangeMultipliersEnumerator lagrangeEnumerator;
         private IFetiPreconditioner preconditioner;
@@ -151,8 +151,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             isStiffnessModified = true;
             factorizedKrr = null;
             flexibility = null;
-            globalKccStar = null;
             preconditioner = null;
+            interfaceProblemSolver.ClearCoarseProblemMatrix();
+
             //stiffnessDistribution = null; //WARNING: do not dispose of this. It is updated when BuildGlobalMatrix() is called.
         }
 
@@ -259,15 +260,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                 flexibility = new FetiDPFlexibilityMatrix(factorizedKrr, Krc, lagrangeEnumerator, dofSeparator);
 
                 // Static condensation of remainder dofs (Schur complement).
-                globalKccStar = Matrix.CreateZero(dofSeparator.NumGlobalCornerDofs, dofSeparator.NumGlobalCornerDofs);
-                foreach (int s in subdomains.Keys)
-                {
-                    // KccStar[s] = Kcc[s] - Krc[s]^T * inv(Krr[s]) * Krc[s]
-                    // globalKccStar = sum_over_s(Lc[s]^T * KccStar[s] * Lc[s])
-                    Matrix Lc = dofSeparator.CornerBooleanMatrices[s];
-                    Matrix KccStar = Kcc[s] - Krc[s].MultiplyRight(factorizedKrr[s].SolveLinearSystems(Krc[s]), true);
-                    globalKccStar.AddIntoThis(Lc.ThisTransposeTimesOtherTimesThis(KccStar));
-                }
+                interfaceProblemSolver.CreateCoarseProblemMatrix(dofSeparator, factorizedKrr, Krc, Kcc);
 
                 // For debugging
                 //double detKccStar = globalKccStar.CalcDeterminant();
@@ -287,41 +280,50 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             }
 
             // Calculate the rhs vectors of the interface system
-            Vector disconnectedDisplacements = CalcDisconnectedDisplacements(factorizedKrr, fr);
+            Vector dr = CalcDisconnectedDisplacements(factorizedKrr, fr);
             double globalForcesNorm = CalcGlobalForcesNorm();
 
             // Solve the interface problem
-            (Vector lagranges, Vector uc) = interfaceProblemSolver.Solve(flexibility, preconditioner,
-                disconnectedDisplacements, globalForcesNorm, Logger);
+            (Vector lagranges, Vector uc) = interfaceProblemSolver.SolveInterfaceProblem(flexibility, preconditioner, 
+                globalFcStar, dr, globalForcesNorm, Logger);
 
             // Calculate the displacements of each subdomain
-            Dictionary<int, Vector> actualDisplacements = CalcActualDisplacements(lagranges, uc);
+            Dictionary<int, Vector> actualDisplacements = CalcActualDisplacements(lagranges, uc, Krc, fr);
             foreach (var idSystem in linearSystems) idSystem.Value.Solution = actualDisplacements[idSystem.Key];
         }
 
         /// <summary>
         /// Does not mutate this object.
         /// </summary>
-        internal Dictionary<int, Vector> CalcActualDisplacements(Vector lagranges, Vector cornerDisplacements)
+        internal Dictionary<int, Vector> CalcActualDisplacements(Vector lagranges, Vector cornerDisplacements,
+            Dictionary<int, Matrix> Krc, Dictionary<int, Vector> fr)
         {
-            // See 5.17 papagiannakis
-            throw new NotImplementedException();
+            var freeDisplacements = new Dictionary<int, Vector>();
+            foreach (int s in subdomains.Keys)
+            {
+                // ur[s] = inv(Krr[s]) * (fr[s] - Br[s]^T * lagranges - Krc[s] * Lc[s] * uc)
+                Vector BrLambda = lagrangeEnumerator.BooleanMatrices[s].Multiply(lagranges);
+                Vector KrcLcUc = dofSeparator.CornerBooleanMatrices[s].Multiply(cornerDisplacements);
+                KrcLcUc = Krc[s].Multiply(KrcLcUc);
+                Vector temp = fr[s].Copy();
+                temp.SubtractIntoThis(BrLambda);
+                temp.SubtractIntoThis(KrcLcUc);
+                Vector ur = factorizedKrr[s].SolveLinearSystem(temp);
 
-            //var actualdisplacements = new Dictionary<int, Vector>();
-            //int rbmOffset = 0; //TODO: For this to work in parallel, each subdomain must store its offset.
-            //foreach (var linearSystem in linearSystems.Values)
-            //{
-            //    // u = inv(K) * (f - B^T * λ), for non floating subdomains
-            //    // u = generalizedInverse(K) * (f - B^T * λ) + R * a, for floating subdomains
-            //    int id = linearSystem.Subdomain.ID;
-            //    Vector forces = linearSystem.RhsVector - lagrangeEnumerator.BooleanMatrices[id].Multiply(lagranges, true);
-            //    Vector displacements = factorizations[id].MultiplyGeneralizedInverseMatrixTimesVector(forces);
+                // uf[s] = union(ur[s], ubc[s])
+                // Remainder dofs
+                var uf = Vector.CreateZero(subdomains[s].FreeDofOrdering.NumFreeDofs);
+                int[] remainderDofs = dofSeparator.RemainderDofIndices[s];
+                uf.CopyNonContiguouslyFrom(remainderDofs, ur);
 
-            //    foreach (Vector rbm in rigidBodyModes[id]) displacements.AxpyIntoThis(rbm, rigidBodyModeCoeffs[rbmOffset++]);
+                // Corner dofs: ubc[s] = Bc[s] * uc
+                Vector ubc = dofSeparator.CornerBooleanMatrices[s].Multiply(cornerDisplacements);
+                int[] cornerDofs = dofSeparator.CornerDofIndices[s];
+                uf.CopyNonContiguouslyFrom(cornerDofs, ubc);
 
-            //    actualdisplacements[id] = displacements;
-            //}
-            //return actualdisplacements;
+                freeDisplacements[s] = uf;
+            }
+            return freeDisplacements;
         }
 
         /// <summary>
@@ -340,25 +342,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             return dr;
         }
 
-        /// <summary>
-        /// Does not mutate this object.
-        /// </summary>
-        internal Vector CalcCornerDisplacements(Vector lagrangeMultipliers)
-        {
-            // See 5.28 Papagiannakis
-            throw new NotImplementedException();
-        }
-
-        private void BuildPreconditioner(Dictionary<int, Matrix> Krr)
+        private void BuildPreconditioner(Dictionary<int, Matrix> matricesKrr)
         {
             // Create the preconditioner. 
             //TODO: this should be done simultaneously with the factorizations to avoid duplicate factorizations.
-
             var stiffnessMatrices = new Dictionary<int, IMatrixView>();
-            foreach (ILinearSystem linearSystem in linearSystems.Values)
-            {
-                stiffnessMatrices.Add(linearSystem.Subdomain.ID, linearSystem.Matrix);
-            }
+            foreach (var idKrr in matricesKrr) stiffnessMatrices.Add(idKrr.Key, idKrr.Value);
             preconditioner = preconditionerFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator,
                 lagrangeEnumerator, stiffnessMatrices);
         }
@@ -408,7 +397,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             public IDofOrderer DofOrderer { get; set; } =
                 new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
 
-            public IFetiDPInterfaceProblemSolver InterfaceProblemSolver { get; set; } = null;
+            public IFetiDPInterfaceProblemSolver InterfaceProblemSolver { get; set; }
+
+            public PcgAlgorithm.Builder PcgBuilder { get; set; }
 
             public IFetiPreconditionerFactory PreconditionerFactory { get; set; } = new LumpedPreconditioner.Factory();
             public bool ProblemIsHomogeneous { get; set; } = true;

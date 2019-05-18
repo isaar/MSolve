@@ -28,7 +28,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
         public override Dictionary<int, (INode node, IDofType dofType)[]> BoundaryDofs { get; protected set; }
 
         /// <summary>
-        /// Also called Bc in papers by Farhat. 
+        /// Also called Bc in papers by Farhat or Lc in NTUA theses. 
         /// </summary>
         public Dictionary<int, Matrix> CornerBooleanMatrices { get; private set; } //TODO: This should be sparse
 

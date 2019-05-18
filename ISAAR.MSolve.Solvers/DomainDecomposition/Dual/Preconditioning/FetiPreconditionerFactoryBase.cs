@@ -33,6 +33,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
             return matricesBpb;
         }
 
+        //TODO: This is not used anywhere
         protected Dictionary<int, Matrix> ExtractBoundaryBooleanMatrices(IDofSeparator dofSeparator,
             ILagrangeMultipliersEnumerator lagrangeEnumerator)
         {

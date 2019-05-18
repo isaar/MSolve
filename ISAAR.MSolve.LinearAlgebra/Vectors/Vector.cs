@@ -417,6 +417,24 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
         }
 
         /// <summary>
+        /// Copies selected entries from <paramref name="otherVector"/> to this vector:
+        /// this[<paramref name="thisIndices"/>[i]] = <paramref name="otherVector"/>[i],
+        /// for 0 &lt;= i &lt; this.<see cref="IIndexable1D.Length"/>.
+        /// </summary>
+        /// <param name="thisIndices">
+        /// The indices of this vector, where entries will be copied to. Constraints: 
+        /// 2) 0 &lt;= <paramref name="thisIndices"/>[i] &lt; this.<see cref="IIndexable1D.Length"/>, for all valid i
+        /// </param>
+        /// <param name="otherVector">The vector from which entries will be copied.</param>
+        /// /// <exception cref="IndexOutOfRangeException">
+        /// Thrown if <paramref name="thisIndices"/> violates the described constraints.
+        /// </exception>
+        public void CopyNonContiguouslyFrom(int[] thisIndices, Vector otherVector)
+        {
+            for (int i = 0; i < thisIndices.Length; ++i) this.data[thisIndices[i]] = otherVector.data[i];
+        }
+
+        /// <summary>
         /// See <see cref="IVector.CopyNonContiguouslyFrom(IVectorView, int[])"/>
         /// </summary>
         public void CopyNonContiguouslyFrom(IVectorView otherVector, int[] otherIndices)
