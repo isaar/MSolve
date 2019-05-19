@@ -264,15 +264,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             }
 
             // Static condensation for the force vectors
-            var globalFcStar = Vector.CreateZero(dofSeparator.NumGlobalCornerDofs);
-            foreach (int s in subdomains.Keys)
-            {
-                // fcStar[s] = fbc[s] - Krc[s]^T * inv(Krr[s]) * fr[s]
-                // globalFcStar = sum_over_s(Lc[s]^T * fcStar[s])
-                Matrix Lc = dofSeparator.CornerBooleanMatrices[s];
-                Vector fcStar = fbc[s] - Krc[s].Multiply(factorizedKrr[s].SolveLinearSystem(fr[s]), true);
-                globalFcStar.AddIntoThis(Lc.Multiply(fcStar, true));
-            }
+            Vector globalFcStar = interfaceProblemSolver.CreateCoarseProblemRhs(dofSeparator, factorizedKrr, Krc, fr, fbc);
 
             // Calculate the rhs vectors of the interface system
             Vector dr = CalcDisconnectedDisplacements(factorizedKrr, fr);

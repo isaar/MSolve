@@ -234,10 +234,10 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
 
             // PCG may need to use the exact residual for the comparison with the expected values
             bool residualIsExact = residualConvergence == Residual.Exact;
-            ExactPcpgConvergence.Factory exactResidualConvergence = null;
+            ExactFeti1PcgConvergence.Factory exactResidualConvergence = null;
             if (residualIsExact)
             {
-                exactResidualConvergence = new ExactPcpgConvergence.Factory(
+                exactResidualConvergence = new ExactFeti1PcgConvergence.Factory(
                     CreateSingleSubdomainModel(stiffnessRatio), solverBuilder.DofOrderer,
                         (model, solver) => new ProblemStructural(model, solver));
             }

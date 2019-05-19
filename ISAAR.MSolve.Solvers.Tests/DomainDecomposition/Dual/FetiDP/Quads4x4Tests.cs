@@ -8,6 +8,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem;
 using Xunit;
 
 namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
@@ -142,6 +143,50 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             }
         }
 
+        private static Dictionary<int, Matrix> MatricesKcc
+        {
+            get
+            {
+                var Kcc = new Dictionary<int, Matrix>();
+                Kcc[0] = Matrix.CreateFromArray(new double[,]
+                {
+                    {0.494505494500000, -0.178571428600000, 0, 0},
+                    {-0.178571428600000, 0.494505494500000, 0, 0},
+                    {0, 0, 0.494505494500000, 0.178571428600000},
+                    {0, 0, 0.178571428600000, 0.494505494500000}
+                });
+
+                Kcc[1] = Matrix.CreateFromArray(new double[,]
+                {
+                    {0.494505494500000, 0.178571428600000, 0, 0, 0, 0},
+                    {0.178571428600000, 0.494505494500000, 0, 0, 0, 0},
+                    {0, 0, 0.494505494500000, -0.178571428600000, 0, 0},
+                    {0, 0, -0.178571428600000, 0.494505494500000, 0, 0},
+                    {0, 0, 0, 0, 0.494505494500000, 0.178571428600000},
+                    {0, 0, 0, 0, 0.178571428600000, 0.494505494500000}
+                });
+
+                Kcc[2] = Matrix.CreateFromArray(new double[,]
+                {
+                    {0.494505494500000, -0.178571428600000, 0, 0},
+                    {-0.178571428600000, 0.494505494500000, 0, 0},
+                    {0, 0, 0.494505494500000, 0.178571428600000 },
+                    {0, 0, 0.178571428600000, 0.494505494500000 }
+                });
+
+                Kcc[3] = Matrix.CreateFromArray(new double[,]
+                {
+                    {0.494505494500000, 0.178571428600000, 0, 0, 0, 0  },
+                    {0.178571428600000, 0.494505494500000, 0, 0, 0, 0  },
+                    {0, 0, 0.494505494500000, -0.178571428600000, 0, 0 },
+                    {0, 0, -0.178571428600000, 0.494505494500000, 0, 0 },
+                    {0, 0, 0, 0, 0.494505494500000, -0.178571428600000 },
+                    {0, 0, 0, 0, -0.178571428600000, 0.494505494500000 }
+                });
+                return Kcc;
+            }
+        }
+
         private static Dictionary<int, Vector> VectorsFr
         {
             get
@@ -153,6 +198,19 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
                 fr[3] = Vector.CreateZero(12);
                 fr[3][11] = 10;
                 return fr;
+            }
+        }
+
+        private static Dictionary<int, Vector> VectorsFbc
+        {
+            get
+            {
+                var fbc = new Dictionary<int, Vector>();
+                fbc[0] = Vector.CreateZero(4);
+                fbc[1] = Vector.CreateZero(6);
+                fbc[2] = Vector.CreateZero(4);
+                fbc[3] = Vector.CreateZero(6);
+                return fbc;
             }
         }
 
@@ -200,9 +258,9 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 
             // Access private fields of FetiDPSolver
             FieldInfo fi = typeof(FetiDPSolver).GetField("lagrangeEnumerator", BindingFlags.NonPublic | BindingFlags.Instance);
-            var lagrangeEnumerator = (FetiDPLagrangeMultipliersEnumerator)(fi.GetValue(solver));
+            var lagrangeEnumerator = (FetiDPLagrangeMultipliersEnumerator)fi.GetValue(solver);
             fi = typeof(FetiDPSolver).GetField("dofSeparator", BindingFlags.NonPublic | BindingFlags.Instance);
-            var dofSeparator = (FetiDPDofSeparator)(fi.GetValue(solver));
+            var dofSeparator = (FetiDPDofSeparator)fi.GetValue(solver);
 
             // Create the flexibility matrices by multiplying with identity matrices
             int numLagranges = lagrangeEnumerator.NumLagrangeMultipliers;
@@ -239,6 +297,59 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             double tol = 1E-11;
             Assert.True(expectedFIrr.Equals(FIrr, tol));
             Assert.True(expectedFIrc.Equals(FIrc, tol));
+        }
+
+        [Fact]
+        public static void TestCoarseProblem()
+        {
+            // Setup the model and solver
+            Model model = MappingMatricesTests.CreateModel();
+            Dictionary<int, INode[]> cornerNodes = MappingMatricesTests.DefineCornerNodes(model);
+            var solver = new FetiDPSolver.Builder(cornerNodes).BuildSolver(model);
+            model.ConnectDataStructures();
+            solver.OrderDofs(false);
+
+            // Use the hardcoded intermediate matrices & vectors
+            Dictionary<int, Vector> fbc = VectorsFbc;
+            Dictionary<int, Vector> fr = VectorsFr;
+            Dictionary<int, Matrix> Kcc = MatricesKcc;
+            Dictionary<int, Matrix> Krc = MatricesKrc;
+            Dictionary<int, Matrix> Krr = MatricesKrr;
+            var factorizedKrr = new Dictionary<int, CholeskyFull>();
+            for (int i = 0; i < 4; ++i) factorizedKrr[i] = Krr[i].FactorCholesky(false);
+
+            // Access private fields of FetiDPSolver
+            FieldInfo fi = typeof(FetiDPSolver).GetField("dofSeparator", BindingFlags.NonPublic | BindingFlags.Instance);
+            var dofSeparator = (FetiDPDofSeparator)fi.GetValue(solver);
+
+            // Calculate the coarse problem matrix and rhs
+            FetiDPInterfaceProblemSolver interfaceSolver = new FetiDPInterfaceProblemSolver.Builder().Build();
+            Vector globalFcStar = interfaceSolver.CreateCoarseProblemRhs(dofSeparator, factorizedKrr, Krc, fr, fbc);
+            MethodInfo method = interfaceSolver.GetType().GetMethod("CreateGlobalKccStar",
+                BindingFlags.NonPublic | BindingFlags.Instance); // reflection for the private method
+            Matrix globalKccStar = (Matrix)method.Invoke(interfaceSolver, new object[] { dofSeparator, factorizedKrr, Krc, Kcc });
+
+            // Check against expected matrices
+            var expectedKccStar = Matrix.CreateFromArray(new double[,]
+            {
+                {0.519272429341174, -0.0224949475741955, -0.0673726448231679, 0.0532992286325700, -0.115596477967984, -0.180005752865632, 0, 0                                   },
+                {-0.0224949475741955, 0.571373230561769, 0.00636415859565785, -0.310650945646995, -0.110850590090827, -0.115596477967984, 0, 0                                   },
+                {-0.0673726448231679, 0.00636415859565783, 1.13126609833817, 0, -0.323914195445245, 2.77555756156289e-17, -0.0673726448231678, -0.00636415859565788              },
+                {0.0532992286325700, -0.310650945646995, 0, 1.04037205521382, 4.16333634234434e-17, -0.128818550126366, -0.0532992286325699, -0.310650945646995                  },
+                {-0.115596477967984, -0.110850590090827, -0.323914195445245, 5.72458747072346e-17, 0.555107150696809, 1.38777878078145e-17, -0.115596477967984, 0.110850590090827},
+                {-0.180005752865631, -0.115596477967984, 2.77555756156289e-17, -0.128818550126366, 1.38777878078145e-17, 0.360011505131263, 0.180005752865631, -0.115596477967984},
+                {0, 0, -0.0673726448231679, -0.0532992286325699, -0.115596477967984, 0.180005752865631, 0.519272429341174, 0.0224949475741954                                    },
+                {0, 0, -0.00636415859565789, -0.310650945646995, 0.110850590090827, -0.115596477967984, 0.0224949475741954, 0.571373230561769                                    }
+            });
+
+            var expectedFcStar = Vector.CreateFromArray(new double[]
+            {
+                0, 0, 3.19374601989718, 2.11725876973317, 0.254044579955345, 6.55220940504195, -3.44779060118368, 1.33053183634499
+            });
+
+            double tol = 1E-13;
+            Assert.True(expectedKccStar.Equals(globalKccStar, tol));
+            Assert.True(expectedFcStar.Equals(globalFcStar, tol));
         }
 
         private static Matrix MultiplyWithIdentity(int numRows, int numCols, Action<Vector, Vector> matrixVectorMultiplication)

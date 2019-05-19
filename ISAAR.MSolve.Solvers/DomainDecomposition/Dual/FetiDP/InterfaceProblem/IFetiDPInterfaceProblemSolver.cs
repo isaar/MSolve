@@ -16,6 +16,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
         void CreateCoarseProblemMatrix(FetiDPDofSeparator dofSeparator, Dictionary<int, CholeskyFull> factorizedKrr,
             Dictionary<int, Matrix> Krc, Dictionary<int, Matrix> Kcc);
 
+        Vector CreateCoarseProblemRhs(FetiDPDofSeparator dofSeparator, Dictionary<int, CholeskyFull> factorizedKrr,
+            Dictionary<int, Matrix> Krc, Dictionary<int, Vector> fr, Dictionary<int, Vector> fbc);
+
         Vector SolveCoarseProblem(Vector rhs);
 
         (Vector lagrangeMultipliers, Vector cornerDisplacements) SolveInterfaceProblem(FetiDPFlexibilityMatrix flexibility, 
