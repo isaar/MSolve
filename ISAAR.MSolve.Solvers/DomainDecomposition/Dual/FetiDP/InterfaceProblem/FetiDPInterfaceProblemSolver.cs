@@ -68,14 +68,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
         {
             int systemOrder = flexibility.Order;
 
-            // Matrix and preconditioner
+            // Matrix, preconditioner & rhs
             var pcgMatrix = new InterfaceProblemMatrix(flexibility, factorizedGlobalKccStar);
             var pcgPreconditioner = new InterfaceProblemPreconditioner(preconditioner);
-
-            // rhs = dr - FIrc * inv(KccStar) * fcStar
-            Vector pcgRhs = factorizedGlobalKccStar.SolveLinearSystem(globalFcStar);
-            pcgRhs = flexibility.MultiplyFIrc(pcgRhs);
-            pcgRhs = dr - pcgRhs;
+            Vector pcgRhs = CreateInterfaceProblemRhs(flexibility, globalFcStar, dr);
 
             // Solve the interface problem using PCG algorithm
             var pcgBuilder = new PcgAlgorithm.Builder();
@@ -121,6 +117,15 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
             return globalKccStar;
         }
 
+        private Vector CreateInterfaceProblemRhs(FetiDPFlexibilityMatrix flexibility, Vector globalFcStar, Vector dr)
+        {
+            // rhs = dr - FIrc * inv(KccStar) * fcStar
+            Vector rhs = factorizedGlobalKccStar.SolveLinearSystem(globalFcStar);
+            rhs = flexibility.MultiplyFIrc(rhs);
+            rhs = dr - rhs;
+            return rhs;
+        }
+
         public class Builder
         {
             public IMaxIterationsProvider MaxIterationsProvider { get; set; } = new PercentageMaxIterationsProvider(1.0);
@@ -132,7 +137,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
                 MaxIterationsProvider, PcgConvergenceTolerance, PcgConvergenceStrategyFactory);
         }
 
-        private class InterfaceProblemMatrix : ILinearTransformation
+        internal class InterfaceProblemMatrix : ILinearTransformation
         {
             private readonly FetiDPFlexibilityMatrix flexibility;
             private readonly CholeskyFull factorizedGlobalKccStar;
@@ -164,7 +169,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
             }
         }
 
-        private class InterfaceProblemPreconditioner : IPreconditioner
+        internal class InterfaceProblemPreconditioner : IPreconditioner
         {
             private readonly IFetiPreconditioner fetiPreconditioner;
 

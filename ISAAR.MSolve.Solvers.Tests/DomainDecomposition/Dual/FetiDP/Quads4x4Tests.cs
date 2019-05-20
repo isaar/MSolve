@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -7,10 +8,18 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution;
 using Xunit;
 
+//TODO: Also test stiffness distribution and preconditioners in other classes.
+//TODO: Create the dofSeparator and lagrangeEnumerator manually, without using FetiDPSolver.
+//TODO: TestInterfaceProblemSolution should mock matrices and vectors from TestInterfaceProblemCreation.
+//TODO: There is a lot of code duplication between the methods.
 namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 {
     public static class Quads4x4Tests
@@ -22,58 +31,58 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
                 var Krr = new Dictionary<int, Matrix>();
                 Krr[0] = Matrix.CreateFromArray(new double[,]
                 {
-                { 0.9890109890, 0, 0.10989010990, 0, -0.24725274730, -0.17857142860, 0, 0 },
-                { 0, 0.9890109890,  0, -0.60439560440, -0.17857142860, -0.24725274730, 0, 0 },
-                { 0.10989010990, 0, 1.9780219780,  0, -0.60439560440, 0, 0.10989010990, 0 },
-                { 0, -0.60439560440, 0, 1.9780219780,  0, 0.10989010990, 0, -0.60439560440 },
-                { -0.24725274730,  -0.17857142860, -0.60439560440, 0, 0.9890109890,  0, -0.24725274730, 0.17857142860 },
-                { -0.17857142860,  -0.24725274730, 0, 0.10989010990, 0, 0.9890109890,  0.17857142860, -0.24725274730 },
-                { 0, 0, 0.10989010990, 0, -0.24725274730, 0.17857142860, 0.9890109890,  0 },
-                { 0, 0, 0, -0.60439560440, 0.17857142860, -0.24725274730, 0, 0.9890109890 }
+                    { 0.9890109890, 0, 0.10989010990, 0, -0.24725274730, -0.17857142860, 0, 0 },
+                    { 0, 0.9890109890,  0, -0.60439560440, -0.17857142860, -0.24725274730, 0, 0 },
+                    { 0.10989010990, 0, 1.9780219780,  0, -0.60439560440, 0, 0.10989010990, 0 },
+                    { 0, -0.60439560440, 0, 1.9780219780,  0, 0.10989010990, 0, -0.60439560440 },
+                    { -0.24725274730,  -0.17857142860, -0.60439560440, 0, 0.9890109890,  0, -0.24725274730, 0.17857142860 },
+                    { -0.17857142860,  -0.24725274730, 0, 0.10989010990, 0, 0.9890109890,  0.17857142860, -0.24725274730 },
+                    { 0, 0, 0.10989010990, 0, -0.24725274730, 0.17857142860, 0.9890109890,  0 },
+                    { 0, 0, 0, -0.60439560440, 0.17857142860, -0.24725274730, 0, 0.9890109890 }
                 });
 
                 Krr[1] = Matrix.CreateFromArray(new double[,]
                 {
-                { 0.9890109890,    0,  -0.3021978022, -0.01373626370,-0.2472527473, 0.1785714286,  0.1098901099,  0,  -0.2472527473, -0.1785714286, 0,  0      },
-                { 0, 0.9890109890,  0.01373626370, 0.05494505490, 0.1785714286,  -0.2472527473, 0,  -0.6043956044, -0.1785714286, -0.2472527473, 0,  0         },
-                { -0.3021978022,   0.01373626370, 0.4945054945,  -0.1785714286, 0,  0,  -0.2472527473, 0.1785714286,  0.05494505490, -0.01373626370,    0,  0  },
-                { -0.01373626370,  0.05494505490, -0.1785714286, 0.4945054945,  0,  0,  0.1785714286,  -0.2472527473, 0.01373626370, -0.3021978022, 0,  0      },
-                { -0.2472527473,   0.1785714286,  0,  0,  0.9890109890,  0,  -0.6043956044, 0,  0,  0,  -0.2472527473, -0.1785714286                           },
-                { 0.1785714286,    -0.2472527473, 0,  0,  0,  0.9890109890,  0,  0.1098901099,  0,  0,  -0.1785714286, -0.2472527473                           },
-                { 0.1098901099,    0,  -0.2472527473, 0.1785714286,  -0.6043956044, 0,  1.978021978,   0,  -0.6043956044, 0,  0.1098901099,  0                 },
-                { 0, -0.6043956044, 0.1785714286,  -0.2472527473, 0,  0.1098901099,  0,  1.978021978,   0,  0.1098901099,  0,  -0.6043956044                   },
-                { -0.2472527473,   -0.1785714286, 0.05494505490, 0.01373626370, 0,  0,  -0.6043956044, 0,  0.9890109890,  0,  -0.2472527473, 0.1785714286      },
-                { -0.1785714286,   -0.2472527473, -0.01373626370,    -0.3021978022, 0,  0,  0,  0.1098901099,  0,  0.9890109890,  0.1785714286,  -0.2472527473 },
-                { 0,    0,  0,  0,  -0.2472527473, -0.1785714286, 0.1098901099,  0,  -0.2472527473, 0.1785714286,  0.9890109890,  0                            },
-                { 0,    0,  0,  0,  -0.1785714286, -0.2472527473, 0,  -0.6043956044, 0.1785714286,  -0.2472527473, 0,  0.9890109890                            }
+                    { 0.9890109890,    0,  -0.3021978022, -0.01373626370,-0.2472527473, 0.1785714286,  0.1098901099,  0,  -0.2472527473, -0.1785714286, 0,  0      },
+                    { 0, 0.9890109890,  0.01373626370, 0.05494505490, 0.1785714286,  -0.2472527473, 0,  -0.6043956044, -0.1785714286, -0.2472527473, 0,  0         },
+                    { -0.3021978022,   0.01373626370, 0.4945054945,  -0.1785714286, 0,  0,  -0.2472527473, 0.1785714286,  0.05494505490, -0.01373626370,    0,  0  },
+                    { -0.01373626370,  0.05494505490, -0.1785714286, 0.4945054945,  0,  0,  0.1785714286,  -0.2472527473, 0.01373626370, -0.3021978022, 0,  0      },
+                    { -0.2472527473,   0.1785714286,  0,  0,  0.9890109890,  0,  -0.6043956044, 0,  0,  0,  -0.2472527473, -0.1785714286                           },
+                    { 0.1785714286,    -0.2472527473, 0,  0,  0,  0.9890109890,  0,  0.1098901099,  0,  0,  -0.1785714286, -0.2472527473                           },
+                    { 0.1098901099,    0,  -0.2472527473, 0.1785714286,  -0.6043956044, 0,  1.978021978,   0,  -0.6043956044, 0,  0.1098901099,  0                 },
+                    { 0, -0.6043956044, 0.1785714286,  -0.2472527473, 0,  0.1098901099,  0,  1.978021978,   0,  0.1098901099,  0,  -0.6043956044                   },
+                    { -0.2472527473,   -0.1785714286, 0.05494505490, 0.01373626370, 0,  0,  -0.6043956044, 0,  0.9890109890,  0,  -0.2472527473, 0.1785714286      },
+                    { -0.1785714286,   -0.2472527473, -0.01373626370,    -0.3021978022, 0,  0,  0,  0.1098901099,  0,  0.9890109890,  0.1785714286,  -0.2472527473 },
+                    { 0,    0,  0,  0,  -0.2472527473, -0.1785714286, 0.1098901099,  0,  -0.2472527473, 0.1785714286,  0.9890109890,  0                            },
+                    { 0,    0,  0,  0,  -0.1785714286, -0.2472527473, 0,  -0.6043956044, 0.1785714286,  -0.2472527473, 0,  0.9890109890                            }
                 });
 
                 Krr[2] = Matrix.CreateFromArray(new double[,]
                 {
-                { 0.9890109890, 0, 0.10989010990, 0, -0.24725274730, -0.17857142860, 0, 0 },
-                { 0, 0.9890109890, 0, -0.60439560440, -0.17857142860, -0.24725274730, 0, 0 },
-                { 0.10989010990, 0, 1.9780219780, 0, -0.60439560440, 0, 0.10989010990, 0 },
-                { 0, -0.60439560440, 0, 1.9780219780, 0, 0.10989010990, 0, -0.60439560440 },
-                { -0.24725274730, -0.17857142860, -0.60439560440, 0, 0.9890109890, 0, -0.24725274730, 0.17857142860 },
-                { -0.17857142860, -0.24725274730, 0, 0.10989010990, 0, 0.9890109890, 0.17857142860, -0.24725274730 },
-                { 0, 0, 0.10989010990, 0, -0.24725274730, 0.17857142860, 0.9890109890, 0 },
-                { 0, 0, 0, -0.60439560440, 0.17857142860, -0.24725274730, 0, 0.9890109890 }
+                    { 0.9890109890, 0, 0.10989010990, 0, -0.24725274730, -0.17857142860, 0, 0 },
+                    { 0, 0.9890109890, 0, -0.60439560440, -0.17857142860, -0.24725274730, 0, 0 },
+                    { 0.10989010990, 0, 1.9780219780, 0, -0.60439560440, 0, 0.10989010990, 0 },
+                    { 0, -0.60439560440, 0, 1.9780219780, 0, 0.10989010990, 0, -0.60439560440 },
+                    { -0.24725274730, -0.17857142860, -0.60439560440, 0, 0.9890109890, 0, -0.24725274730, 0.17857142860 },
+                    { -0.17857142860, -0.24725274730, 0, 0.10989010990, 0, 0.9890109890, 0.17857142860, -0.24725274730 },
+                    { 0, 0, 0.10989010990, 0, -0.24725274730, 0.17857142860, 0.9890109890, 0 },
+                    { 0, 0, 0, -0.60439560440, 0.17857142860, -0.24725274730, 0, 0.9890109890 }
                 });
 
                 Krr[3] = Matrix.CreateFromArray(new double[,]
                 {
-                { 0.9890109890, 0, -0.24725274730, 0.17857142860, 0.10989010990, 0, -0.24725274730, -0.17857142860, 0, 0, 0, 0                           },
-                { 0, 0.9890109890, 0.17857142860, -0.24725274730, 0, -0.60439560440, -0.17857142860, -0.24725274730, 0, 0, 0, 0                          },
-                { -0.24725274730, 0.17857142860, 0.9890109890, 0, -0.60439560440, 0, 0, 0, -0.24725274730, -0.17857142860, 0, 0                          },
-                { 0.17857142860, -0.24725274730, 0, 0.9890109890, 0, 0.10989010990, 0, 0, -0.17857142860, -0.24725274730, 0, 0                           },
-                { 0.10989010990, 0, -0.60439560440, 0, 1.9780219780, 0, -0.60439560440, 0, 0.10989010990, 0, -0.24725274730, -0.17857142860              },
-                { 0, -0.60439560440, 0, 0.10989010990, 0, 1.9780219780, 0, 0.10989010990, 0, -0.60439560440, -0.17857142860, -0.24725274730              },
-                { -0.24725274730, -0.17857142860, 0, 0, -0.60439560440, 0, 0.9890109890, 0, -0.24725274730, 0.17857142860, 0.05494505490, -0.01373626370 },
-                { -0.17857142860, -0.24725274730, 0, 0, 0, 0.10989010990, 0, 0.9890109890, 0.17857142860, -0.24725274730, 0.01373626370, -0.30219780220  },
-                { 0, 0, -0.24725274730, -0.17857142860, 0.10989010990, 0, -0.24725274730, 0.17857142860, 0.9890109890, 0, -0.30219780220, 0.01373626370  },
-                { 0, 0, -0.17857142860, -0.24725274730, 0, -0.60439560440, 0.17857142860, -0.24725274730, 0, 0.9890109890, -0.01373626370, 0.05494505490 },
-                { 0, 0, 0, 0, -0.24725274730, -0.17857142860, 0.05494505490, 0.01373626370, -0.30219780220, -0.01373626370, 0.49450549450, 0.17857142860 },
-                { 0, 0, 0, 0, -0.17857142860, -0.24725274730, -0.01373626370, -0.30219780220, 0.01373626370, 0.05494505490, 0.17857142860, 0.49450549450 }
+                    { 0.9890109890, 0, -0.24725274730, 0.17857142860, 0.10989010990, 0, -0.24725274730, -0.17857142860, 0, 0, 0, 0                           },
+                    { 0, 0.9890109890, 0.17857142860, -0.24725274730, 0, -0.60439560440, -0.17857142860, -0.24725274730, 0, 0, 0, 0                          },
+                    { -0.24725274730, 0.17857142860, 0.9890109890, 0, -0.60439560440, 0, 0, 0, -0.24725274730, -0.17857142860, 0, 0                          },
+                    { 0.17857142860, -0.24725274730, 0, 0.9890109890, 0, 0.10989010990, 0, 0, -0.17857142860, -0.24725274730, 0, 0                           },
+                    { 0.10989010990, 0, -0.60439560440, 0, 1.9780219780, 0, -0.60439560440, 0, 0.10989010990, 0, -0.24725274730, -0.17857142860              },
+                    { 0, -0.60439560440, 0, 0.10989010990, 0, 1.9780219780, 0, 0.10989010990, 0, -0.60439560440, -0.17857142860, -0.24725274730              },
+                    { -0.24725274730, -0.17857142860, 0, 0, -0.60439560440, 0, 0.9890109890, 0, -0.24725274730, 0.17857142860, 0.05494505490, -0.01373626370 },
+                    { -0.17857142860, -0.24725274730, 0, 0, 0, 0.10989010990, 0, 0.9890109890, 0.17857142860, -0.24725274730, 0.01373626370, -0.30219780220  },
+                    { 0, 0, -0.24725274730, -0.17857142860, 0.10989010990, 0, -0.24725274730, 0.17857142860, 0.9890109890, 0, -0.30219780220, 0.01373626370  },
+                    { 0, 0, -0.17857142860, -0.24725274730, 0, -0.60439560440, 0.17857142860, -0.24725274730, 0, 0.9890109890, -0.01373626370, 0.05494505490 },
+                    { 0, 0, 0, 0, -0.24725274730, -0.17857142860, 0.05494505490, 0.01373626370, -0.30219780220, -0.01373626370, 0.49450549450, 0.17857142860 },
+                    { 0, 0, 0, 0, -0.17857142860, -0.24725274730, -0.01373626370, -0.30219780220, 0.01373626370, 0.05494505490, 0.17857142860, 0.49450549450 }
                 });
                 return Krr;
             }
@@ -187,6 +196,28 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             }
         }
 
+        private static Matrix MatrixKccStar => Matrix.CreateFromArray(new double[,]
+        {
+            {0.519272429341174, -0.0224949475741955, -0.0673726448231679, 0.0532992286325700, -0.115596477967984, -0.180005752865632, 0, 0                                   },
+            {-0.0224949475741955, 0.571373230561769, 0.00636415859565785, -0.310650945646995, -0.110850590090827, -0.115596477967984, 0, 0                                   },
+            {-0.0673726448231679, 0.00636415859565783, 1.13126609833817, 0, -0.323914195445245, 2.77555756156289e-17, -0.0673726448231678, -0.00636415859565788              },
+            {0.0532992286325700, -0.310650945646995, 0, 1.04037205521382, 4.16333634234434e-17, -0.128818550126366, -0.0532992286325699, -0.310650945646995                  },
+            {-0.115596477967984, -0.110850590090827, -0.323914195445245, 5.72458747072346e-17, 0.555107150696809, 1.38777878078145e-17, -0.115596477967984, 0.110850590090827},
+            {-0.180005752865631, -0.115596477967984, 2.77555756156289e-17, -0.128818550126366, 1.38777878078145e-17, 0.360011505131263, 0.180005752865631, -0.115596477967984},
+            {0, 0, -0.0673726448231679, -0.0532992286325699, -0.115596477967984, 0.180005752865631, 0.519272429341174, 0.0224949475741954                                    },
+            {0, 0, -0.00636415859565789, -0.310650945646995, 0.110850590090827, -0.115596477967984, 0.0224949475741954, 0.571373230561769                                    }
+        });
+
+        private static Vector VectorDr => Vector.CreateFromArray(new double[]
+        {
+            0, 0, 0, 0, -3.375195492420367, -10.215251712309035, 0.418600986802971, -1.151753569240856
+        });
+
+        private static Vector VectorFcStar => Vector.CreateFromArray(new double[]
+        {
+            0, 0, 3.19374601989718, 2.11725876973317, 0.254044579955345, 6.55220940504195, -3.44779060118368, 1.33053183634499
+        });
+
         private static Dictionary<int, Vector> VectorsFr
         {
             get
@@ -215,6 +246,44 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
         }
 
         [Fact]
+        public static void TestCoarseProblem()
+        {
+            // Setup the model and solver
+            Model model = MappingMatricesTests.CreateModel();
+            Dictionary<int, INode[]> cornerNodes = MappingMatricesTests.DefineCornerNodes(model);
+            var solver = new FetiDPSolver.Builder(cornerNodes).BuildSolver(model);
+            model.ConnectDataStructures();
+            solver.OrderDofs(false);
+
+            // Use the hardcoded intermediate matrices & vectors
+            Dictionary<int, Vector> fbc = VectorsFbc;
+            Dictionary<int, Vector> fr = VectorsFr;
+            Dictionary<int, Matrix> Kcc = MatricesKcc;
+            Dictionary<int, Matrix> Krc = MatricesKrc;
+            Dictionary<int, Matrix> Krr = MatricesKrr;
+            var factorizedKrr = new Dictionary<int, CholeskyFull>();
+            for (int i = 0; i < 4; ++i) factorizedKrr[i] = Krr[i].FactorCholesky(false);
+
+            // Access private fields of FetiDPSolver
+            FieldInfo fi = typeof(FetiDPSolver).GetField("dofSeparator", BindingFlags.NonPublic | BindingFlags.Instance);
+            var dofSeparator = (FetiDPDofSeparator)fi.GetValue(solver);
+
+            // Calculate the coarse problem matrix and rhs
+            FetiDPInterfaceProblemSolver interfaceSolver = new FetiDPInterfaceProblemSolver.Builder().Build();
+            Vector globalFcStar = interfaceSolver.CreateCoarseProblemRhs(dofSeparator, factorizedKrr, Krc, fr, fbc);
+            MethodInfo method = interfaceSolver.GetType().GetMethod("CreateGlobalKccStar",
+                BindingFlags.NonPublic | BindingFlags.Instance); // reflection for the private method
+            Matrix globalKccStar = (Matrix)method.Invoke(interfaceSolver, new object[] { dofSeparator, factorizedKrr, Krc, Kcc });
+
+            // Check against expected matrices
+            var expectedKccStar = MatrixKccStar;
+            var expectedFcStar = VectorFcStar;
+            double tol = 1E-13;
+            Assert.True(expectedKccStar.Equals(globalKccStar, tol));
+            Assert.True(expectedFcStar.Equals(globalFcStar, tol));
+        }
+
+        [Fact]
         public static void TestDisconnectedDisplacements()
         {
             //TODO: Perhaps use the Br, Bc from the class that tests them instead of the solver.
@@ -231,10 +300,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             var fr = VectorsFr;
 
             Vector dr = solver.CalcDisconnectedDisplacements(factorizedKrr, fr);
-            var expectedDr = Vector.CreateFromArray(new double[] 
-            {
-                0, 0, 0, 0, -3.375195492420367, -10.215251712309035, 0.418600986802971, -1.151753569240856
-            });
+            var expectedDr = VectorDr;
 
             double tol = 1E-13;
             Assert.True(expectedDr.Equals(dr, tol));
@@ -300,7 +366,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
         }
 
         [Fact]
-        public static void TestCoarseProblem()
+        public static void TestInterfaceProblemCreation()
         {
             // Setup the model and solver
             Model model = MappingMatricesTests.CreateModel();
@@ -310,46 +376,117 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             solver.OrderDofs(false);
 
             // Use the hardcoded intermediate matrices & vectors
-            Dictionary<int, Vector> fbc = VectorsFbc;
-            Dictionary<int, Vector> fr = VectorsFr;
-            Dictionary<int, Matrix> Kcc = MatricesKcc;
             Dictionary<int, Matrix> Krc = MatricesKrc;
             Dictionary<int, Matrix> Krr = MatricesKrr;
             var factorizedKrr = new Dictionary<int, CholeskyFull>();
             for (int i = 0; i < 4; ++i) factorizedKrr[i] = Krr[i].FactorCholesky(false);
+            Vector dr = VectorDr;
 
             // Access private fields of FetiDPSolver
-            FieldInfo fi = typeof(FetiDPSolver).GetField("dofSeparator", BindingFlags.NonPublic | BindingFlags.Instance);
+            FieldInfo fi = typeof(FetiDPSolver).GetField("lagrangeEnumerator", BindingFlags.NonPublic | BindingFlags.Instance);
+            var lagrangeEnumerator = (FetiDPLagrangeMultipliersEnumerator)fi.GetValue(solver);
+            fi = typeof(FetiDPSolver).GetField("dofSeparator", BindingFlags.NonPublic | BindingFlags.Instance);
             var dofSeparator = (FetiDPDofSeparator)fi.GetValue(solver);
 
-            // Calculate the coarse problem matrix and rhs
+            // Hardcoded coarse problem matrix and rhs
             FetiDPInterfaceProblemSolver interfaceSolver = new FetiDPInterfaceProblemSolver.Builder().Build();
-            Vector globalFcStar = interfaceSolver.CreateCoarseProblemRhs(dofSeparator, factorizedKrr, Krc, fr, fbc);
-            MethodInfo method = interfaceSolver.GetType().GetMethod("CreateGlobalKccStar",
+            Vector globalFcStar = VectorFcStar;
+            CholeskyFull factorKccStar = MatrixKccStar.FactorCholesky(false); // It must be set as a private field using reflection.
+            fi = typeof(FetiDPInterfaceProblemSolver).GetField("factorizedGlobalKccStar",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            fi.SetValue(interfaceSolver, factorKccStar);
+
+            // Create the rhs vector of the interface problem 
+            var flexibility = new FetiDPFlexibilityMatrix(factorizedKrr, Krc, lagrangeEnumerator, dofSeparator);
+            Vector fcStar = VectorFcStar;
+            MethodInfo method = interfaceSolver.GetType().GetMethod("CreateInterfaceProblemRhs",
                 BindingFlags.NonPublic | BindingFlags.Instance); // reflection for the private method
-            Matrix globalKccStar = (Matrix)method.Invoke(interfaceSolver, new object[] { dofSeparator, factorizedKrr, Krc, Kcc });
+            Vector interfaceRhs = (Vector)method.Invoke(interfaceSolver, new object[] { flexibility, fcStar, dr });
 
-            // Check against expected matrices
-            var expectedKccStar = Matrix.CreateFromArray(new double[,]
-            {
-                {0.519272429341174, -0.0224949475741955, -0.0673726448231679, 0.0532992286325700, -0.115596477967984, -0.180005752865632, 0, 0                                   },
-                {-0.0224949475741955, 0.571373230561769, 0.00636415859565785, -0.310650945646995, -0.110850590090827, -0.115596477967984, 0, 0                                   },
-                {-0.0673726448231679, 0.00636415859565783, 1.13126609833817, 0, -0.323914195445245, 2.77555756156289e-17, -0.0673726448231678, -0.00636415859565788              },
-                {0.0532992286325700, -0.310650945646995, 0, 1.04037205521382, 4.16333634234434e-17, -0.128818550126366, -0.0532992286325699, -0.310650945646995                  },
-                {-0.115596477967984, -0.110850590090827, -0.323914195445245, 5.72458747072346e-17, 0.555107150696809, 1.38777878078145e-17, -0.115596477967984, 0.110850590090827},
-                {-0.180005752865631, -0.115596477967984, 2.77555756156289e-17, -0.128818550126366, 1.38777878078145e-17, 0.360011505131263, 0.180005752865631, -0.115596477967984},
-                {0, 0, -0.0673726448231679, -0.0532992286325699, -0.115596477967984, 0.180005752865631, 0.519272429341174, 0.0224949475741954                                    },
-                {0, 0, -0.00636415859565789, -0.310650945646995, 0.110850590090827, -0.115596477967984, 0.0224949475741954, 0.571373230561769                                    }
-            });
+            // Create the matrix of the interface problem by multiplying with identity matrix
+            int numLagranges = lagrangeEnumerator.NumLagrangeMultipliers;
+            var interfaceMatrixImplicit = new FetiDPInterfaceProblemSolver.InterfaceProblemMatrix(flexibility, factorKccStar);
+            Matrix interfaceMatrix = MultiplyWithIdentity(numLagranges, numLagranges, interfaceMatrixImplicit.Multiply); // Action<T> is contravariant!!!
 
-            var expectedFcStar = Vector.CreateFromArray(new double[]
-            {
-                0, 0, 3.19374601989718, 2.11725876973317, 0.254044579955345, 6.55220940504195, -3.44779060118368, 1.33053183634499
-            });
-
+            // Check against expected linear system
             double tol = 1E-13;
-            Assert.True(expectedKccStar.Equals(globalKccStar, tol));
-            Assert.True(expectedFcStar.Equals(globalFcStar, tol));
+            var expectedInterfaceRhs = Vector.CreateFromArray(new double[]
+            {
+                -14.9810838729735, -5.69975426333296, -10.5434726428584, 0.244121938779135, -5.89291361392317, -13.1189445403298, 16.4060122931895, -5.93260749341458
+            });
+            var expectedInterfaceMatrix = Matrix.CreateFromArray(new double[,]
+            {
+                {4.97303228211014, 0.0303495596681853, 0.478870888249040, -0.510074267142073, -0.554638064586832, -0.639203724429228, 0.342142442028879, -0.0259960944946401        },
+                {0.0303495596681853, 2.75206109564910, -0.132450092323064, 0.393630305623386, -0.137248503790822, -0.602781684493727, 0.0259960944946400, 0.0326814286491487        },
+                {0.478870888249040, -0.132450092323064, 2.50773589560585, -6.12608644034637e-17, -0.00517803522230879, -1.40567757982761e-16, -0.478870888249040, -0.132450092323064},
+                {-0.510074267142073, 0.393630305623386, -1.10893466892511e-16, 3.35755264805804, 1.18406464657668e-16, 0.293147921294313, -0.510074267142073, -0.393630305623386    },
+                {-0.554638064586832, -0.137248503790822, -0.00517803522230876, 1.39289728666574e-16, 2.79928131129566, -1.91565648067391e-16, 0.554638064586830, -0.137248503790822 },
+                {-0.639203724429228, -0.602781684493727, -2.44519425851536e-16, 0.293147921294313, -2.04349167449641e-16, 4.95200731231851, -0.639203724429227, 0.602781684493727   },
+                {0.342142442028879, 0.0259960944946401, -0.478870888249040, -0.510074267142073, 0.554638064586830, -0.639203724429227, 4.97303228211014, -0.0303495596681853        },
+                {-0.0259960944946401, 0.0326814286491487, -0.132450092323064, -0.393630305623386, -0.137248503790822, 0.602781684493727, -0.0303495596681853, 2.75206109564910      }
+            });
+            Assert.True(expectedInterfaceRhs.Equals(interfaceRhs, tol));
+            Assert.True(expectedInterfaceMatrix.Equals(interfaceMatrix, tol));
+        }
+
+        [Fact]
+        public static void TestInterfaceProblemSolution()
+        {
+            // Setup the model and solver
+            Model model = MappingMatricesTests.CreateModel();
+            Dictionary<int, INode[]> cornerNodes = MappingMatricesTests.DefineCornerNodes(model);
+            var solver = new FetiDPSolver.Builder(cornerNodes).BuildSolver(model);
+            model.ConnectDataStructures();
+            solver.OrderDofs(false);
+
+            // Use the hardcoded intermediate matrices & vectors
+            Dictionary<int, Matrix> Krc = MatricesKrc;
+            Dictionary<int, Matrix> Krr = MatricesKrr;
+            var factorizedKrr = new Dictionary<int, CholeskyFull>();
+            for (int i = 0; i < 4; ++i) factorizedKrr[i] = Krr[i].FactorCholesky(false);
+            Vector dr = VectorDr;
+
+            // Access private fields of FetiDPSolver
+            FieldInfo fi = typeof(FetiDPSolver).GetField("lagrangeEnumerator", BindingFlags.NonPublic | BindingFlags.Instance);
+            var lagrangeEnumerator = (FetiDPLagrangeMultipliersEnumerator)fi.GetValue(solver);
+            fi = typeof(FetiDPSolver).GetField("dofSeparator", BindingFlags.NonPublic | BindingFlags.Instance);
+            var dofSeparator = (FetiDPDofSeparator)fi.GetValue(solver);
+
+            // Hardcoded coarse problem matrix and rhs
+            FetiDPInterfaceProblemSolver interfaceSolver = new FetiDPInterfaceProblemSolver.Builder().Build();
+            Vector globalFcStar = VectorFcStar;
+            CholeskyFull factorKccStar = MatrixKccStar.FactorCholesky(false); // It must be set as a private field using reflection.
+            fi = typeof(FetiDPInterfaceProblemSolver).GetField("factorizedGlobalKccStar", 
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            fi.SetValue(interfaceSolver, factorKccStar);
+
+            // Dirichlet preconditioner
+            var precondFactory = new DirichletPreconditioner.Factory();
+            var repackagedKrr = new Dictionary<int, IMatrixView>();
+            foreach (var idMatrixPair in Krr) repackagedKrr[idMatrixPair.Key] = idMatrixPair.Value;
+            var stiffnessDistribution = new HomogeneousStiffnessDistribution(model, dofSeparator);
+            IFetiPreconditioner preconditioner = 
+                precondFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator, lagrangeEnumerator, repackagedKrr);
+
+            // Solve the interface problem
+            var flexibility = new FetiDPFlexibilityMatrix(factorizedKrr, Krc, lagrangeEnumerator, dofSeparator);
+            double globalForcesNorm = 10.0; // sqrt(0^2 + 0^2 + ... + 0^2 + 10^2)
+            var logger = new DualSolverLogger();
+            (Vector lagranges, Vector uc) = 
+                interfaceSolver.SolveInterfaceProblem(flexibility, preconditioner, globalFcStar, dr, globalForcesNorm, logger);
+
+            // Check against expected solution
+            double tol = 1E-7;
+            Vector expectedLagranges = Vector.CreateFromArray(new double[]
+            {
+                -3.67505611805653, -3.06916047739931, -3.12635180105707, 0.427127980701075, -3.73923329344533, -2.87580179407164, 3.34727977833535, -1.76301688321532
+            });
+            Vector expectedUc = Vector.CreateFromArray(new double[]
+            {
+                21.1181096194325, 27.2052778266603, 1.63160365361360, 25.0125476374046, 1.69318450304898, 61.8894615542161, -24.7267309921556, 26.3640977652349
+            });
+            Assert.True(expectedLagranges.Equals(lagranges, tol));
+            Assert.True(expectedUc.Equals(uc, tol));
         }
 
         private static Matrix MultiplyWithIdentity(int numRows, int numCols, Action<Vector, Vector> matrixVectorMultiplication)
