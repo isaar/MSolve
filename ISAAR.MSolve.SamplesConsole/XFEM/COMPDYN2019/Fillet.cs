@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
@@ -22,16 +23,20 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
 
         public static void Run()
         {
-            FilletBenchmark benchmarkSub1 = CreateSingleSubdomainBenchmark();
+            string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Fillet\Mesh\fillet.msh";
+            string subdomainPlotPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Fillet\Plots\subdomains.vtk";
+
+            FilletBenchmark benchmarkSub1 = CreateSingleSubdomainBenchmark(meshPath);
             ISolver skylineSolver = DefineSolver(benchmarkSub1, SolverType.Skyline);
             double uNormSkyline = RunUncrackedAnalysis(benchmarkSub1, skylineSolver);
 
-            FilletBenchmark benchmarkSub5 = CreateMultiSubdomainBenchmark(5);
+            FilletBenchmark benchmarkSub5 = CreateMultiSubdomainBenchmark(5, meshPath);
+            PlotSubdomains(subdomainPlotPath, benchmarkSub5.Model);
             ISolver solverFeti = DefineSolver(benchmarkSub5, SolverType.Feti1);
             double uNormFeti = RunUncrackedAnalysis(benchmarkSub5, solverFeti);
         }
 
-        private static FilletBenchmark CreateMultiSubdomainBenchmark(int numSubdomains)
+        private static FilletBenchmark CreateMultiSubdomainBenchmark(int numSubdomains, string meshPath)
         {
             // Define subdomain boundaries
             double tol = 1E-13;
@@ -90,7 +95,7 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             }
 
             // Create the model, crack & mesh with only 1 subdomain
-            FilletBenchmark benchmark = CreateSingleSubdomainBenchmark();
+            FilletBenchmark benchmark = CreateSingleSubdomainBenchmark(meshPath);
 
             // Partition mesh into subdomains
             var regionsGeneral = new Dictionary<int, IRegion2D>();
@@ -109,9 +114,8 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             return benchmark;
         }
 
-        private static FilletBenchmark CreateSingleSubdomainBenchmark()
+        private static FilletBenchmark CreateSingleSubdomainBenchmark(string meshPath)
         {
-            string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Fillet\fillet.msh";
             double growthLength = 5; // mm. Must be sufficiently larger than the element size.
 
             var builder = new FilletBenchmark.Builder(meshPath, growthLength);
@@ -179,6 +183,20 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                 return fetiSolver.GatherGlobalDisplacements(sudomainDisplacements).Norm2();
             }
             else throw new NotImplementedException("Invalid solver");
+        }
+
+        private static void PlotSubdomains(string plotPath, XModel model)
+        {
+            model.ConnectDataStructures();
+            var writer = new VtkMeshPartitionWriter();
+            var nodesPerSubdomain = new Dictionary<int, IReadOnlyList<XNode>>();
+            var elementsPerSubdomain = new Dictionary<int, IReadOnlyList<IXFiniteElement>>();
+            foreach (int subdomainID in model.Subdomains.Keys)
+            {
+                nodesPerSubdomain[subdomainID] = model.Subdomains[subdomainID].Nodes;
+                elementsPerSubdomain[subdomainID] = model.Subdomains[subdomainID].Elements;
+            }
+            writer.WriteSubdomainElements(plotPath, nodesPerSubdomain, elementsPerSubdomain);
         }
     }
 }
