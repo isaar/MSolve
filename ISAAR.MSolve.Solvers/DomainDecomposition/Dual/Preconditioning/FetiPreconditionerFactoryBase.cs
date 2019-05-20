@@ -4,7 +4,7 @@ using System.Linq;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
 
 //TODO: perhaps these helper methods should be somewhere more centrally, which will also include extracting Kib, Kii
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning

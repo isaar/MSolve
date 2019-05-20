@@ -5,7 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: Not sure if there needs to be an interface. In FETI-1 there is only one flexibility matrix. However in FETI-DP there is
 //      FIrr and FIrc.
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg
 {
     internal interface IInterfaceFlexibilityMatrix 
     {

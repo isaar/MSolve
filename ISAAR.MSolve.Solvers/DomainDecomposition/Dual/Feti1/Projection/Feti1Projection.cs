@@ -4,7 +4,7 @@ using System.Linq;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
 
 //TODO: If Q is identity, optimizations will be possible: E.g. multiplications with Q do not have to copy the vector/matrix
 //      (for lagranges they do), G^T*G might be optimizable, etc. Should there be a dedicated class for such cases.

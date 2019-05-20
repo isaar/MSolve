@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Projection
 {
