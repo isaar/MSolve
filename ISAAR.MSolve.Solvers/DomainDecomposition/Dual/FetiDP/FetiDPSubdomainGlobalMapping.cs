@@ -148,26 +148,27 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                 // Internal dofs: We copy them without averaging.
                 foreach (int remainderDofIdx in dofSeparator.InternalDofIndices[id])
                 {
-                    int globalDofIdx = subdomainToGlobalDofs[remainderToSubdomainDofs[remainderDofIdx]];
-                    globalDisplacements[globalDofIdx] = freeDisplacements[remainderDofIdx];
+                    int subdomainDofIdx = remainderToSubdomainDofs[remainderDofIdx];
+                    int globalDofIdx = subdomainToGlobalDofs[subdomainDofIdx];
+                    globalDisplacements[globalDofIdx] = freeDisplacements[subdomainDofIdx];
                 }
 
                 // Boundary remainder dofs: We take average across subdomains with respect to multiplicity or stiffness. 
                 double[] boundaryDofCoeffs = distribution.CalcBoundaryDofCoefficients(subdomain);
                 for (int i = 0; i < dofSeparator.BoundaryDofIndices[id].Length; ++i)
                 {
-                    int remainderDofIdx = dofSeparator.BoundaryDofIndices[id][i];
-                    int globalDofIdx = subdomainToGlobalDofs[remainderToSubdomainDofs[remainderDofIdx]];
-                    globalDisplacements[globalDofIdx] += freeDisplacements[remainderDofIdx] * boundaryDofCoeffs[i];
+                    int subdomainDofIdx = remainderToSubdomainDofs[dofSeparator.BoundaryDofIndices[id][i]];
+                    int globalDofIdx = subdomainToGlobalDofs[subdomainDofIdx];
+                    globalDisplacements[globalDofIdx] += freeDisplacements[subdomainDofIdx] * boundaryDofCoeffs[i];
                 }
 
                 // Boundary corner dofs: We copy without averaging.
-                foreach (int freeDofIdx in cornerToSubdomainDofs)
+                foreach (int subdomainDofIdx in cornerToSubdomainDofs)
                 {
-                    int globalDofIdx = subdomainToGlobalDofs[freeDofIdx];
+                    int globalDofIdx = subdomainToGlobalDofs[subdomainDofIdx];
 
                     // This will overwrite the value from a previous subdomain, but these values are the same.
-                    globalDisplacements[globalDofIdx] = freeDisplacements[freeDofIdx]; 
+                    globalDisplacements[globalDofIdx] = freeDisplacements[subdomainDofIdx]; 
                 }
             }
 

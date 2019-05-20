@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem;
@@ -487,6 +489,42 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             });
             Assert.True(expectedLagranges.Equals(lagranges, tol));
             Assert.True(expectedUc.Equals(uc, tol));
+        }
+
+        [Fact]
+        public static void TestSolver()
+        {
+            // Setup the model and solver
+            Model model = MappingMatricesTests.CreateModel();
+            Dictionary<int, INode[]> cornerNodes = MappingMatricesTests.DefineCornerNodes(model);
+            var solver = new FetiDPSolver.Builder(cornerNodes).BuildSolver(model);
+            var problem = new ProblemStructural(model, solver);
+            var linearAnalyzer = new LinearAnalyzer(model, solver, problem);
+            var staticAnalyzer = new StaticAnalyzer(model, solver, problem, linearAnalyzer);
+
+            // Run the analysis
+            staticAnalyzer.Initialize();
+            staticAnalyzer.Solve();
+
+            // Gather the global displacements
+            var sudomainDisplacements = new Dictionary<int, IVectorView>();
+            foreach (var ls in solver.LinearSystems) sudomainDisplacements[ls.Key] = ls.Value.Solution;
+            Vector globalU = solver.GatherGlobalDisplacements(sudomainDisplacements);
+
+            // Check against expected solution
+            double tol = 1E-7;
+            var globalUExpected = Vector.CreateFromArray(new double[]
+            {
+                13.3258563908201, 12.3999624809163, 21.1181095863809, 27.2052777811441, 24.3525812415758,
+                43.2777053704649, 24.8992347210378, 57.3521080292628, 4.74521148903743, 9.87352108397423,
+                9.37569840211612, 25.9120840082139, 11.8910608093164, 43.4314599456699, 12.2652060584230,
+                57.9466725072280, 0.450346260334126, 9.02020634682474, 1.63160365355026, 25.0125475922504,
+                2.58948267402381, 45.0651412625480, 1.69318450300533, 61.8894614604312, -4.68849826343688,
+                8.90417219731433, -8.76400355420594, 24.5661224138922, -9.40948533633272, 47.1084814579881,
+                -11.2141368968962, 73.2559168929990, -14.0271645568764, 11.3572597884005, -24.7267309592324,
+                26.3640977197317, -34.3702668180117, 46.6307017985724, -42.8927307907656, 96.0971764416081
+            });
+            Assert.True(globalUExpected.Equals(globalU, tol));
         }
 
         private static Matrix MultiplyWithIdentity(int numRows, int numCols, Action<Vector, Vector> matrixVectorMultiplication)

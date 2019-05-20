@@ -289,7 +289,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             foreach (int s in subdomains.Keys)
             {
                 // ur[s] = inv(Krr[s]) * (fr[s] - Br[s]^T * lagranges - Krc[s] * Lc[s] * uc)
-                Vector BrLambda = lagrangeEnumerator.BooleanMatrices[s].Multiply(lagranges);
+                Vector BrLambda = lagrangeEnumerator.BooleanMatrices[s].Multiply(lagranges, true);
                 Vector KrcLcUc = dofSeparator.CornerBooleanMatrices[s].Multiply(cornerDisplacements);
                 KrcLcUc = Krc[s].Multiply(KrcLcUc);
                 Vector temp = fr[s].Copy();
