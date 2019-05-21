@@ -9,6 +9,7 @@ using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.IGA.Readers;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
@@ -840,10 +841,10 @@ namespace ISAAR.MSolve.IGA.Tests
             //var solverBuilder = new SuiteSparseSolver.Builder();
             //solverBuilder.DofOrderer = new DofOrderer(
             //    new NodeMajorDofOrderingStrategy(), new NullReordering());
+            var solverBuilder= new GmresSolver.Builder();
             ISolver solver = new GmresSolver(model,
                 new AsymmetricDofOrderer(new RowDofOrderingStrategy()), 
-                new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering()),
-                new CsrRectangularAssembler(), "CsrRectangularAssembler");
+                new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering()));
 
             // Structural problem provider
             var provider = new ProblemStructural(model, solver);
