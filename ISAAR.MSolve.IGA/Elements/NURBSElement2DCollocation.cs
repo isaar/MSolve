@@ -12,6 +12,7 @@ using ISAAR.MSolve.IGA.Interfaces;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Materials;
 
 namespace ISAAR.MSolve.IGA.Elements
 {
@@ -19,15 +20,28 @@ namespace ISAAR.MSolve.IGA.Elements
     {
         protected readonly static IDofType[] controlPointDOFTypes = new StructuralDof[] { StructuralDof.TranslationX, StructuralDof.TranslationY };
         protected IDofType[][] dofTypes;
-        private CollocationPoint _collocationPoint;
+        private CollocationPoint2D _collocationPoint;
 
-        public CollocationPoint CollocationPoint
+        public CollocationPoint2D CollocationPoint
         {
             get => _collocationPoint;
             set => _collocationPoint = value;
         }
-        
-		public ElementDimensions ElementDimensions => ElementDimensions.TwoD;
+        public CollocationPatch Patch { get; set; }
+        public IStructuralAsymmetricModel Model { get; set; }
+
+        public IList<IDofType> GetDOFTypesForDOFEnumeration(IElement element)
+        {
+            return new StructuralDof[] { StructuralDof.TranslationX, StructuralDof.TranslationY };
+        }
+
+        IAsymmetricSubdomain ICollocationElement.Patch
+        {
+            get => Patch;
+            set => Patch = (CollocationPatch)value;
+        }
+
+        public ElementDimensions ElementDimensions => ElementDimensions.TwoD;
         public IElementDofEnumerator DofEnumerator
         {
             get { return dofEnumerator; }
@@ -35,7 +49,7 @@ namespace ISAAR.MSolve.IGA.Elements
             set { this.dofEnumerator = value; }
         }
         public bool MaterialModified { get; }
-        INode ICollocationElement.CollocationPoint { get => _collocationPoint; set => _collocationPoint=(CollocationPoint)value; }
+        INode ICollocationElement.CollocationPoint { get => _collocationPoint; set => _collocationPoint=(CollocationPoint2D)value; }
 
         protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
 
@@ -96,26 +110,79 @@ namespace ISAAR.MSolve.IGA.Elements
 
 		public IMatrix StiffnessMatrix(IElement element)
 		{
+
 			var elementCollocation = (NURBSElement2DCollocation) element;
 
-			var nurbs = new NURBS2D(elementCollocation.Patch.DegreeKsi, elementCollocation.Patch.DegreeHeta,
-				elementCollocation.Patch.KnotValueVectorKsi, elementCollocation.Patch.KnotValueVectorHeta,
-				elementCollocation.CollocationPoint, elementCollocation.ControlPoints);
+            var nurbs = new NURBS2D(elementCollocation.Patch.DegreeKsi, elementCollocation.Patch.DegreeHeta,
+                elementCollocation.Patch.KnotValueVectorKsi, elementCollocation.Patch.KnotValueVectorHeta,
+                elementCollocation.CollocationPoint, elementCollocation.ControlPoints);
+
+            var jacobianMatrix = CalculateJacobianMatrix(elementCollocation, nurbs);
+
+            var inverseJacobian = jacobianMatrix.Invert();
+            var dR = CalculateNaturalDerivatives(nurbs, inverseJacobian);
+            //if (elementCollocation.Patch.Material is ElasticMaterial2D elasticMaterial2D&& elasticMaterial2D.StressState!=StressState2D.PlaneStress)
+            //    throw  new NotSupportedException("Cannot use Plane stress with collocation for the time being");
+
+            if (elementCollocation.CollocationPoint.IsBoundary)
+            {
+                var (xGaussPoint, yGaussPoint) = CalculateNormalVectors(elementCollocation, nurbs);
+
+                return CalculateCollocationPointStiffnessBoundary(elementCollocation, xGaussPoint, dR, yGaussPoint);
+            }
+            else
+            {
+                var hessianMatrix = CalculateHessian(elementCollocation, nurbs, 0);
+                var squareDerivatives = CalculateSquareDerivatives(jacobianMatrix);
+                var ddR = CalculateNaturalSecondDerivatives(nurbs, hessianMatrix, dR, squareDerivatives);
+
+                return CalculateCollocationPointStiffness(elementCollocation, ddR);
+            }
 			
-			var jacobianMatrix = CalculateJacobianMatrix(elementCollocation, nurbs);
-
-			var hessianMatrix = CalculateHessian(elementCollocation, nurbs, 0);
-			var squareDerivatives = CalculateSquareDerivatives(jacobianMatrix);
-
-			var inverseJacobian = jacobianMatrix.Invert();
-			var dR = CalculateNaturalDerivatives(nurbs, inverseJacobian);
-
-			var ddR = CalculateNaturalSecondDerivatives(nurbs, hessianMatrix, dR, squareDerivatives);
-			
-			return CalculateCollocationPointStiffness(elementCollocation, ddR);
 		}
 
-		public Matrix3by3 CalculateSquareDerivatives(Matrix2by2 jacobianMatrix)
+        private Matrix CalculateCollocationPointStiffnessBoundary(NURBSElement2DCollocation elementCollocation,
+            double xGaussPoint, double[,] dR, double yGaussPoint)
+        {
+            var collocationPointStiffness = Matrix.CreateZero(2, elementCollocation.ControlPoints.Count * 2);
+            var E = elementCollocation.Patch.Material.YoungModulus;
+            var nu = elementCollocation.Patch.Material.PoissonRatio;
+            //var lambda = E * nu / (1 + nu) / (1 - 2 * nu);
+            //var m = E / (2 * (1 + nu));
+            var aux = E / (1 - nu * nu);
+
+            for (int i = 0; i < elementCollocation.ControlPoints.Count * 2; i += 2)
+            {
+                var index = i / 2;
+                collocationPointStiffness[0, i] = aux * (xGaussPoint * dR[0, index] + yGaussPoint * (1 - nu) / 2 * dR[1, index]);
+                collocationPointStiffness[0, i + 1] = aux*(xGaussPoint*nu*dR[1,index]+yGaussPoint*(1-nu)/2*dR[0,index]);
+
+                collocationPointStiffness[1, i] = aux * (yGaussPoint * nu * dR[0, index] + xGaussPoint * (1 - nu) / 2 * dR[1, index]);
+                collocationPointStiffness[1, i + 1] = aux * (yGaussPoint * dR[1, index] + xGaussPoint * (1 - nu) / 2 * dR[0, index]);
+            }
+
+            return collocationPointStiffness;
+        }
+
+        private (double xGaussPoint, double yGaussPoint) CalculateNormalVectors(
+            NURBSElement2DCollocation elementCollocation, NURBS2D nurbs)
+        {
+            double xGaussPoint = 0;
+            double yGaussPoint = 0;
+            for (int k = 0; k < elementCollocation.ControlPoints.Count; k++)
+            {
+                xGaussPoint += nurbs.NurbsValues[k, 0] * elementCollocation.ControlPoints[k].X;
+                yGaussPoint += nurbs.NurbsValues[k, 0] * elementCollocation.ControlPoints[k].Y;
+            }
+
+            double norm = Math.Sqrt(Math.Pow(xGaussPoint, 2) + Math.Pow(yGaussPoint, 2));
+            xGaussPoint /= norm;
+            yGaussPoint /= norm;
+            return (xGaussPoint, yGaussPoint);
+        }
+
+
+        public Matrix3by3 CalculateSquareDerivatives(Matrix2by2 jacobianMatrix)
 		{
 			var squareDerivatives = Matrix3by3.CreateFromArray(new double[3, 3]
 			{

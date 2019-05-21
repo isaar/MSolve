@@ -228,10 +228,10 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             (IVectorView globalU, IMatrixView globalK) = dcb.SolveModel();
 
             // Print matrix
-            var writer = new FullMatrixWriter();
+//            var writer = new FullMatrixWriter();
             //writer.NumericFormat = new FixedPointFormat() { NumDecimalDigits = 2 };
-            writer.ArrayFormat = new Array2DFormat("", "", "", "\n", ",");
-            writer.WriteToFile(globalK/*.DoToAllEntries(x => Math.Round(x * 1E-6, 3))*/, @"C:\Users\Serafeim\Desktop\xfem.txt");
+//            writer.ArrayFormat = new Array2DFormat("", "", "", "\n", ",");
+//            writer.WriteToFile(globalK/*.DoToAllEntries(x => Math.Round(x * 1E-6, 3))*/, @"C:\Users\Serafeim\Desktop\xfem.txt");
 
             // Calculate relevant stiffness submatrix global
             XNode node7 = model.Nodes[7];

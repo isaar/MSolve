@@ -42,9 +42,21 @@ namespace ISAAR.MSolve.IGA.Entities
 
         public void BuildPatchesDictionary()
         {
-            foreach (Element element in elementsDictionary.Values)
-                if (!patchesDictionary.ContainsKey(element.Patch.ID))
-                    patchesDictionary.Add(element.Patch.ID, element.Patch);
+            foreach (var element in elementsDictionary.Values)
+            {
+                if (element is ICollocationElement collocationElement)
+                {
+                    //if (!patchesDictionary.ContainsKey(collocationElement.Patch.ID))
+                    //    patchesDictionary.Add(collocationElement.Patch.ID, collocationElement.Patch);
+                }
+                else
+                {
+                    if (!patchesDictionary.ContainsKey(element.Patch.ID))
+                        patchesDictionary.Add(element.Patch.ID, element.Patch);
+                }
+                
+            }
+                
         }
 
         public int CompareTo(INode other) => this.ID - other.ID;

@@ -10,6 +10,8 @@ using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
+using MathNet.Numerics.Data.Matlab;
+using MathNet.Numerics.LinearAlgebra;
 using Xunit;
 
 namespace ISAAR.MSolve.Tests
@@ -467,5 +469,8 @@ namespace ISAAR.MSolve.Tests
             Assert.Equal(0.00053333333333333336, solver.LinearSystems[0].Solution[0], 10);
             Assert.Equal(0.0017294083664636196, solver.LinearSystems[0].Solution[1], 10);
         }
+
+
+
     }
 }

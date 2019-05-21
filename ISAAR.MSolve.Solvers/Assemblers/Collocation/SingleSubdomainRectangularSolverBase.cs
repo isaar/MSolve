@@ -79,7 +79,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
 
         public Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, IDofType, double> globalNodalLoads)
         {
-            throw new NotImplementedException();
+            return new Dictionary<int, SparseVector>();
         }
 
         public Dictionary<int, Matrix> InverseSystemMatrixTimesOtherMatrix(Dictionary<int, IMatrixView> otherMatrix)
