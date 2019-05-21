@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -65,13 +64,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 
             // Subdomains
             subdomains = new Dictionary<int, ISubdomain>();
-            foreach (Subdomain subdomain in model.Subdomains) subdomains[subdomain.ID] = subdomain;
+            foreach (ISubdomain subdomain in model.Subdomains) subdomains[subdomain.ID] = subdomain;
 
             // Linear systems
             linearSystems = new Dictionary<int, SingleSubdomainSystem<SkylineMatrix>>();
             var tempLinearSystems = new Dictionary<int, ILinearSystem>();
             assemblers = new Dictionary<int, SkylineAssembler>();
-            foreach (Subdomain subdomain in model.Subdomains)
+            foreach (ISubdomain subdomain in model.Subdomains)
             {
                 int id = subdomain.ID;
                 var linearSystem = new SingleSubdomainSystem<SkylineMatrix>(subdomain);
@@ -419,7 +418,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             public bool ProjectionMatrixQIsIdentity { get; set; } = true;
             //public PdeOrder PdeOrder { get; set; } = PdeOrder.Second; // Instead the user explicitly sets Q.
 
-            public Feti1Solver BuildSolver(Model model)
+            public Feti1Solver BuildSolver(IStructuralModel model)
                 => new Feti1Solver(model, DofOrderer, factorizationPivotTolerance, PreconditionerFactory,
                      InterfaceProblemSolver, ProblemIsHomogeneous, ProjectionMatrixQIsIdentity);
         }

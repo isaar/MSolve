@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -12,7 +12,7 @@ using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
 using Xunit;
 
-namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
+namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 {
     /// <summary>
     /// Tests from Papagiannakis bachelor thesis (NTUA 2011), p. 134 - 147
@@ -23,59 +23,61 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
         public enum Precond { Dirichlet, DirichletDiagonal, Lumped }
         public enum Residual { Approximate, Exact }
 
+        private const double domainLengthX = 3.0, domainLengthY = 1.5;
         private const int singleSubdomainID = 0;
         private const int maxIterations = 1000;
 
-        //TODO: Exact residual calculation is not implemented yet.
+        //TODO: Exact residual calculation is not implemented yet. Therefore the expected iterations cannot be tested 
+        //      accurately using the approximate residual yet.
         [Theory]
         // Homogeneous problem
-        [InlineData(1.0, Precond.Dirichlet, Residual.Exact, 11)]
-        [InlineData(1.0, Precond.DirichletDiagonal, Residual.Exact, 14)]
-        [InlineData(1.0, Precond.Lumped, Residual.Exact, 18)]
+        [InlineData(1.0, Precond.Dirichlet, Residual.Approximate, 11)]
+        [InlineData(1.0, Precond.DirichletDiagonal, Residual.Approximate, 14)]
+        [InlineData(1.0, Precond.Lumped, Residual.Approximate, 18)]
 
         // Stiffness ratio = 1E-2
-        [InlineData(1E-2, Precond.Dirichlet, Residual.Exact, 12)]
-        [InlineData(1E-2, Precond.DirichletDiagonal, Residual.Exact, 16)]
-        [InlineData(1E-2, Precond.Lumped, Residual.Exact, 21)]
+        [InlineData(1E-2, Precond.Dirichlet, Residual.Approximate, 12)]
+        [InlineData(1E-2, Precond.DirichletDiagonal, Residual.Approximate, 16)]
+        [InlineData(1E-2, Precond.Lumped, Residual.Approximate, 21)]
 
 
         // Stiffness ratio = 1E-3
-        [InlineData(1E-3, Precond.Dirichlet, Residual.Exact, 13)]
-        [InlineData(1E-3, Precond.DirichletDiagonal, Residual.Exact, 20)]
-        [InlineData(1E-3, Precond.Lumped, Residual.Exact, 22)]
+        [InlineData(1E-3, Precond.Dirichlet, Residual.Approximate, 13)]
+        [InlineData(1E-3, Precond.DirichletDiagonal, Residual.Approximate, 20)]
+        [InlineData(1E-3, Precond.Lumped, Residual.Approximate, 22)]
 
         // Stiffness ratio = 1E-4
-        [InlineData(1E-4, Precond.Dirichlet, Residual.Exact, 14)]
-        [InlineData(1E-4, Precond.DirichletDiagonal, Residual.Exact, 22)]
-        [InlineData(1E-4, Precond.Lumped, Residual.Exact, 26)]
+        [InlineData(1E-4, Precond.Dirichlet, Residual.Approximate, 14)]
+        [InlineData(1E-4, Precond.DirichletDiagonal, Residual.Approximate, 22)]
+        [InlineData(1E-4, Precond.Lumped, Residual.Approximate, 26)]
 
         // Stiffness ratio = 1E-5
-        [InlineData(1E-5, Precond.Dirichlet, Residual.Exact, 14)]
-        [InlineData(1E-5, Precond.DirichletDiagonal, Residual.Exact, 23)]
-        [InlineData(1E-5, Precond.Lumped, Residual.Exact, 30)]
+        [InlineData(1E-5, Precond.Dirichlet, Residual.Approximate, 14)]
+        [InlineData(1E-5, Precond.DirichletDiagonal, Residual.Approximate, 23)]
+        [InlineData(1E-5, Precond.Lumped, Residual.Approximate, 30)]
 
         // Stiffness ratio = 1E-6
-        [InlineData(1E-6, Precond.Dirichlet, Residual.Exact, 15)]
-        [InlineData(1E-6, Precond.DirichletDiagonal, Residual.Exact, 27)]
-        [InlineData(1E-6, Precond.Lumped, Residual.Exact, 33)]
+        [InlineData(1E-6, Precond.Dirichlet, Residual.Approximate, 15)]
+        [InlineData(1E-6, Precond.DirichletDiagonal, Residual.Approximate, 27)]
+        [InlineData(1E-6, Precond.Lumped, Residual.Approximate, 33)]
         public static void Run(double stiffnessRatio, Precond precond, Residual convergence, int iterExpected)
         {
-            double pcpgConvergenceTol = 1E-5;
+            double pcgConvergenceTol = 1E-5;
             IVectorView directDisplacements = SolveModelWithoutSubdomains(stiffnessRatio);
-            (IVectorView ddDisplacements, DualSolverLogger logger, int numUniqueGlobalDofs, int numExtenedDomainDofs) =
-                SolveModelWithSubdomains(stiffnessRatio, precond, convergence, pcpgConvergenceTol);
+            (IVectorView ddDisplacements, DualSolverLogger logger) =
+                SolveModelWithSubdomains(stiffnessRatio, precond, convergence, pcgConvergenceTol);
             double normalizedError = directDisplacements.Subtract(ddDisplacements).Norm2() / directDisplacements.Norm2();
 
-            Assert.Equal(882, numUniqueGlobalDofs);    // 882 includes constrained and free dofs
-            Assert.Equal(1056, numExtenedDomainDofs); // 1056 includes constrained and free dofs
-            Assert.Equal(190, logger.NumLagrangeMultipliers);
+            Assert.Equal(140, logger.NumLagrangeMultipliers);
+            Assert.Equal(20, logger.NumCornerDofs);
 
             // The error is provided in the reference solution the, but it is almost impossible for two different codes run on 
             // different machines to achieve the exact same accuracy.
-            Assert.Equal(0.0, normalizedError, 5);
+            Assert.Equal(0.0, normalizedError, 6);
 
             // Allow a tolerance: It is ok if my solver is better or off by 1 iteration 
-            Assert.InRange(logger.PcgIterations, 1, iterExpected + 1); // the upper bound is inclusive!
+            int maxIterationsForApproximateResidual = (int)Math.Ceiling(1.5 * iterExpected);
+            Assert.InRange(logger.PcgIterations, 1, maxIterationsForApproximateResidual); // the upper bound is inclusive!
         }
 
         private static Model CreateModel(double stiffnessRatio)
@@ -95,8 +97,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             double E1 = stiffnessRatio * E0;
 
             var builder = new Uniform2DModelBuilder();
-            builder.DomainLengthX = 3.0;
-            builder.DomainLengthY = 1.5;
+            builder.DomainLengthX = domainLengthX;
+            builder.DomainLengthY = domainLengthY;
             builder.NumSubdomainsX = 4;
             builder.NumSubdomainsY = 2;
             builder.NumTotalElementsX = 20;
@@ -120,14 +122,14 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             return model;
         }
 
-        private static (IVectorView globalDisplacements, DualSolverLogger logger, int numUniqueGlobalDofs, int numExtenedDomainDofs)
-            SolveModelWithSubdomains(double stiffnessRatio, Precond precond, Residual residualConvergence, 
-                double pcgConvergenceTolerance)
+        private static (IVectorView globalDisplacements, DualSolverLogger logger) SolveModelWithSubdomains(double stiffnessRatio,
+            Precond precond, Residual residualConvergence, double pcgConvergenceTolerance)
         {
             // Model
             Model multiSubdomainModel = CreateModel(stiffnessRatio);
 
             // Corner nodes
+            double meshTol = 1E-6; ;
             var cornerNodesOfEachSubdomain = new Dictionary<int, INode[]>();
             foreach (Subdomain subdomain in multiSubdomainModel.Subdomains)
             {
@@ -137,7 +139,10 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
                 foreach (int id in cornerNodeIDs)
                 {
                     Node node = multiSubdomainModel.NodesDictionary[id];
-                    if (node.Constraints.Count == 0) cornerNodes.Add(node);
+                    if (node.Constraints.Count > 0) continue;
+                    if ((Math.Abs(node.X - domainLengthX) <= meshTol) && (Math.Abs(node.Y) <= meshTol)) continue;
+                    if ((Math.Abs(node.X - domainLengthX) <= meshTol) && (Math.Abs(node.Y - domainLengthY) <= meshTol)) continue;
+                    cornerNodes.Add(node);
                 }
                 cornerNodesOfEachSubdomain[subdomain.ID] = cornerNodes.ToArray();
             }
@@ -187,12 +192,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             foreach (var ls in fetiSolver.LinearSystems) sudomainDisplacements[ls.Key] = ls.Value.Solution;
             Vector globalDisplacements = fetiSolver.GatherGlobalDisplacements(sudomainDisplacements);
 
-            // Other stats
-            int numUniqueGlobalDofs = multiSubdomainModel.Nodes.Count * 2;
-            int numExtenedDomainDofs = 0;
-            foreach (var subdomain in multiSubdomainModel.Subdomains) numExtenedDomainDofs += subdomain.Nodes.Count * 2;
-
-            return (globalDisplacements, fetiSolver.Logger, numUniqueGlobalDofs, numExtenedDomainDofs);
+            return (globalDisplacements, fetiSolver.Logger);
         }
 
         private static IVectorView SolveModelWithoutSubdomains(double stiffnessRatio)
