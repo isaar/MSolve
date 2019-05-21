@@ -4,6 +4,10 @@ using System.Text;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Readers;
+using ISAAR.MSolve.LinearAlgebra.Iterative;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Assemblers.Collocation;
@@ -26,10 +30,8 @@ namespace ISAAR.MSolve.IGA.Tests
             IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filename);
             modelReader.CreateCollocationModelFromFile();
 
-            ISolver solver = new GmresSolver(model,
-                new AsymmetricDofOrderer(new RowDofOrderingStrategy()),
-                new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering()),
-                new CsrRectangularAssembler(), "CsrRectangularAssembler");
+            var gmresBuilder =new GmresSolver.Builder();
+            ISolver solver = gmresBuilder.BuildSolver(model);
 
             // Structural problem provider
             var provider = new ProblemStructural(model, solver);
@@ -53,6 +55,43 @@ namespace ISAAR.MSolve.IGA.Tests
                 {
                     Utilities.AreValuesEqual(stiffnessMatrixExpected[i, j], k[i, j], 10e-9);
                 }
+            }
+
+        }
+
+
+        [Fact]
+        public void GmresTest()
+        {
+            IMatrixView matrix = Matrix.CreateFromArray(new double[9,9]
+            {
+                { 2,  0,  0, -1,  0,  0,  0,  0,  0},
+                { 0,  2, -1,  0,  0,  0,  0,  0,  0},
+                { 0, -1,  2,  0,  0,  0,  0,  0,  0},
+                { -1,  0,  0,  2, -1,  0,  0,  0,  0},
+                { 0,  0,  0, -1,  2, -1,  0,  0,  0},
+                { 0,  0,  0,  0, -1,  2, -1,  0,  0},
+                { 0,  0,  0,  0,  0, -1,  2, -1,  0},
+                { 0,  0,  0,  0,  0,  0, -1,  2, -1},
+                { 0,  0,  0,  0,  0,  0,  0, -1,  2}
+            });
+            IVectorView rhs = Vector.CreateWithValue(9, 1.0);
+            var solution = Vector.CreateZero(9);
+            var gmresAlgorithmBuilder= new GmresAlgorithm.Builder()
+            {
+                MaximumIterations = 20,
+                InnerIterationsProvider = new FixedMaxIterationsProvider(8),
+                AbsoluteTolerance = 1e-8,
+                RelativeTolerance = 1e-8
+            };
+            var gmres = gmresAlgorithmBuilder.Build();
+            gmres.Solve(matrix, rhs, solution,true, () => Vector.CreateZero(9));
+
+            var expectedSolution = Vector.CreateFromArray(new double[] {3.5, 1.0, 1.0, 6.0, 7.5, 8.0, 7.5, 6.0, 3.5});
+
+            for (int i = 0; i < expectedSolution.Length; i++)
+            {
+                Utilities.AreValuesEqual(expectedSolution[i], solution[i], 10e-9);
             }
 
         }

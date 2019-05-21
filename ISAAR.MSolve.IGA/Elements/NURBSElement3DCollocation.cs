@@ -434,10 +434,10 @@ namespace ISAAR.MSolve.IGA.Elements
 		}
 
 		public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element)
-		{
-            var nurbsElement = (NURBSElement3DCollocation)element;
-            dofTypes = new IDofType[nurbsElement.ControlPoints.Count][];
-            for (int i = 0; i < nurbsElement.ControlPoints.Count; i++)
+        {
+            var numberOfCP= ((NURBSElement3DCollocation)element).ControlPointsDictionary.Count;
+            dofTypes = new IDofType[numberOfCP][];
+            for (int i = 0; i < numberOfCP; i++)
             {
                 dofTypes[i] = controlPointDOFTypes;
             }
