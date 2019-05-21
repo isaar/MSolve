@@ -14,7 +14,7 @@ using Xunit;
 
 namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 {
-    public static class MappingMatricesTests
+    public static class Quads4x4MappingMatricesTests
     {
         [Fact]
         public static void TestDofSeparation()

@@ -9,19 +9,18 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
 {
     public class HomogeneousStiffnessDistribution : IStiffnessDistribution
     {
+        private readonly Dictionary<int, int[]> boundaryDofMultiplicities;
         private readonly IDofSeparator dofSeparator;
 
         public HomogeneousStiffnessDistribution(IStructuralModel model, IDofSeparator dofSeparator)
         {
             this.dofSeparator = dofSeparator;
-            this.BoundaryDofMultiplicities = FindBoundaryDofMultiplicities(dofSeparator);
+            this.boundaryDofMultiplicities = FindBoundaryDofMultiplicities(dofSeparator);
         }
-
-        internal Dictionary<int, int[]> BoundaryDofMultiplicities { get; }
 
         public double[] CalcBoundaryDofCoefficients(ISubdomain subdomain)
         {
-            int[] multiplicites = BoundaryDofMultiplicities[subdomain.ID];
+            int[] multiplicites = boundaryDofMultiplicities[subdomain.ID];
             var inverseMultiplicites = new double[multiplicites.Length];
             for (int i = 0; i < multiplicites.Length; ++i) inverseMultiplicites[i] = 1.0 / multiplicites[i];
             return inverseMultiplicites;
@@ -41,7 +40,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
             var matricesBpb = new Dictionary<int, Matrix>();
             foreach (int id in boundarySignedBooleanMatrices.Keys)
             {
-                Matrix inverseMultiplicities = InvertDofMultiplicities(BoundaryDofMultiplicities[id]);
+                Matrix inverseMultiplicities = InvertDofMultiplicities(boundaryDofMultiplicities[id]);
                 matricesBpb[id] = boundarySignedBooleanMatrices[id].MultiplyRight(inverseMultiplicities);
             }
             return matricesBpb;

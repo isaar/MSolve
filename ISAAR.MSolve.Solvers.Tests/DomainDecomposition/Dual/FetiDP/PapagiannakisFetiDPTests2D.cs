@@ -9,6 +9,8 @@ using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
 using Xunit;
 
@@ -39,7 +41,6 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
         [InlineData(1E-2, Precond.Dirichlet, Residual.Approximate, 12)]
         [InlineData(1E-2, Precond.DirichletDiagonal, Residual.Approximate, 16)]
         [InlineData(1E-2, Precond.Lumped, Residual.Approximate, 21)]
-
 
         // Stiffness ratio = 1E-3
         [InlineData(1E-3, Precond.Dirichlet, Residual.Approximate, 13)]
@@ -75,8 +76,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             // different machines to achieve the exact same accuracy.
             Assert.Equal(0.0, normalizedError, 6);
 
-            // Allow a tolerance: It is ok if my solver is better or off by 1 iteration 
-            int maxIterationsForApproximateResidual = (int)Math.Ceiling(1.5 * iterExpected);
+            // Allow some tolerance for the iterations:
+            int maxIterationsForApproximateResidual = (int)Math.Ceiling(1.0 * iterExpected);
             Assert.InRange(logger.PcgIterations, 1, maxIterationsForApproximateResidual); // the upper bound is inclusive!
         }
 
@@ -129,7 +130,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             Model multiSubdomainModel = CreateModel(stiffnessRatio);
 
             // Corner nodes
-            double meshTol = 1E-6; ;
+            double meshTol = 1E-6;
             var cornerNodesOfEachSubdomain = new Dictionary<int, INode[]>();
             foreach (Subdomain subdomain in multiSubdomainModel.Subdomains)
             {
@@ -149,9 +150,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 
             // Solver
             var solverBuilder = new FetiDPSolver.Builder(cornerNodesOfEachSubdomain);
-
-            // Homogeneous/heterogeneous problem
             solverBuilder.ProblemIsHomogeneous = stiffnessRatio == 1.0;
+            //solverBuilder.ProblemIsHomogeneous = false;
 
             // Preconditioner
             if (precond == Precond.Lumped) solverBuilder.PreconditionerFactory = new LumpedPreconditioner.Factory();
@@ -172,6 +172,12 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             //            (model, solver) => new ProblemStructural(model, solver));
             //}
             //if (residualIsExact) exactResidualConvergence.InterfaceProblemSolver = interfaceProblemSolver;
+
+            // Specify solver for the interface problem
+            var interfaceSolverBuilder = new FetiDPInterfaceProblemSolver.Builder();
+            interfaceSolverBuilder.PcgConvergenceStrategyFactory = new ApproximateResidualConvergence.Factory();
+            interfaceSolverBuilder.PcgConvergenceTolerance = pcgConvergenceTolerance;
+            solverBuilder.InterfaceProblemSolver = interfaceSolverBuilder.Build();
 
             FetiDPSolver fetiSolver = solverBuilder.BuildSolver(multiSubdomainModel);
             //if (residualIsExact) exactResidualConvergence.FetiSolver = fetiSolver;

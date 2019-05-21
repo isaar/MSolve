@@ -375,7 +375,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             }
             else
             {
-                stiffnessDistribution = new HeterogeneousStiffnessDistribution(model, dofSeparator, stiffnessMatrices);
+                Table<INode, IDofType, BoundaryDofLumpedStiffness> boundaryDofStiffnesses =
+                    BoundaryDofLumpedStiffness.ExtractBoundaryDofLumpedStiffnesses(
+                        dofSeparator.GlobalBoundaryDofs, stiffnessMatrices);
+                stiffnessDistribution = new HeterogeneousStiffnessDistribution(model, dofSeparator, boundaryDofStiffnesses);
             }
             subdomainGlobalMapping = new Feti1SubdomainGlobalMapping(model, dofSeparator, stiffnessDistribution);
         }

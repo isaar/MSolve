@@ -24,7 +24,7 @@ using Xunit;
 //TODO: There is a lot of code duplication between the methods.
 namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 {
-    public static class Quads4x4Tests
+    public static class Quads4x4HomogeneousTests
     {
         private static Dictionary<int, Matrix> MatricesKrr
         {
@@ -251,8 +251,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
         public static void TestCoarseProblem()
         {
             // Setup the model and solver
-            Model model = MappingMatricesTests.CreateModel();
-            Dictionary<int, INode[]> cornerNodes = MappingMatricesTests.DefineCornerNodes(model);
+            Model model = Quads4x4MappingMatricesTests.CreateModel();
+            Dictionary<int, INode[]> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
             var solver = new FetiDPSolver.Builder(cornerNodes).BuildSolver(model);
             model.ConnectDataStructures();
             solver.OrderDofs(false);
@@ -290,8 +290,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
         {
             //TODO: Perhaps use the Br, Bc from the class that tests them instead of the solver.
 
-            Model model = MappingMatricesTests.CreateModel();
-            Dictionary<int, INode[]> cornerNodes = MappingMatricesTests.DefineCornerNodes(model);
+            Model model = Quads4x4MappingMatricesTests.CreateModel();
+            Dictionary<int, INode[]> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
             var solver = new FetiDPSolver.Builder(cornerNodes).BuildSolver(model);
             model.ConnectDataStructures();
             solver.OrderDofs(false);
@@ -312,8 +312,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
         public static void TestFlexibilityMatrices()
         {
             // Setup the model and solver
-            Model model = MappingMatricesTests.CreateModel();
-            Dictionary<int, INode[]> cornerNodes = MappingMatricesTests.DefineCornerNodes(model);
+            Model model = Quads4x4MappingMatricesTests.CreateModel();
+            Dictionary<int, INode[]> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
             var solver = new FetiDPSolver.Builder(cornerNodes).BuildSolver(model);
             model.ConnectDataStructures();
             solver.OrderDofs(false);
@@ -371,8 +371,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
         public static void TestInterfaceProblemCreation()
         {
             // Setup the model and solver
-            Model model = MappingMatricesTests.CreateModel();
-            Dictionary<int, INode[]> cornerNodes = MappingMatricesTests.DefineCornerNodes(model);
+            Model model = Quads4x4MappingMatricesTests.CreateModel();
+            Dictionary<int, INode[]> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
             var solver = new FetiDPSolver.Builder(cornerNodes).BuildSolver(model);
             model.ConnectDataStructures();
             solver.OrderDofs(false);
@@ -435,8 +435,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
         public static void TestInterfaceProblemSolution()
         {
             // Setup the model and solver
-            Model model = MappingMatricesTests.CreateModel();
-            Dictionary<int, INode[]> cornerNodes = MappingMatricesTests.DefineCornerNodes(model);
+            Model model = Quads4x4MappingMatricesTests.CreateModel();
+            Dictionary<int, INode[]> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
             var solver = new FetiDPSolver.Builder(cornerNodes).BuildSolver(model);
             model.ConnectDataStructures();
             solver.OrderDofs(false);
@@ -495,8 +495,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
         public static void TestSolver()
         {
             // Setup the model and solver
-            Model model = MappingMatricesTests.CreateModel();
-            Dictionary<int, INode[]> cornerNodes = MappingMatricesTests.DefineCornerNodes(model);
+            Model model = Quads4x4MappingMatricesTests.CreateModel();
+            Dictionary<int, INode[]> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
             var solver = new FetiDPSolver.Builder(cornerNodes).BuildSolver(model);
             var problem = new ProblemStructural(model, solver);
             var linearAnalyzer = new LinearAnalyzer(model, solver, problem);
