@@ -13,7 +13,7 @@ using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using Xunit;
 
-namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual
+namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
 {
     public static class FullyRedundantLagrangeMultipliersTests
     {
@@ -221,7 +221,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual
             });
 
             Model model = CreateModel();
-            LagrangeMultipliersEnumerator lagrangeMultipliers = CreateBooleanMultipliers(model, false);
+            Feti1LagrangeMultipliersEnumerator lagrangeMultipliers = CreateBooleanMultipliers(model, false);
             foreach (var id in lagrangeMultipliers.BooleanMatrices.Keys)
             {
                 Matrix booleanComputed = lagrangeMultipliers.BooleanMatrices[id].CopyToFullMatrix(false);
@@ -229,7 +229,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual
             }
         }
 
-        private static LagrangeMultipliersEnumerator CreateBooleanMultipliers(Model model, bool createLagranges)
+        private static Feti1LagrangeMultipliersEnumerator CreateBooleanMultipliers(Model model, bool createLagranges)
         {
             // Initialize model
             model.ConnectDataStructures();
@@ -245,10 +245,10 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual
 
             // Create boolean matrices
             var dofSeparator = new Feti1DofSeparator();
-            dofSeparator.SeparateBoundaryInternalDofs(model);
-            var lagrangeEnumerator = new LagrangeMultipliersEnumerator(new FullyRedundantConstraints());
-            if (createLagranges) lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model, dofSeparator);
-            else lagrangeEnumerator.DefineBooleanMatrices(model, dofSeparator);
+            dofSeparator.SeparateDofs(model);
+            var lagrangeEnumerator = new Feti1LagrangeMultipliersEnumerator(new FullyRedundantConstraints(), dofSeparator);
+            if (createLagranges) lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model);
+            else lagrangeEnumerator.DefineBooleanMatrices(model);
             return lagrangeEnumerator;
         }
 

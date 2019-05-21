@@ -13,7 +13,7 @@ using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Projection;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
 using ISAAR.MSolve.Solvers.Iterative;
 using ISAAR.MSolve.Solvers.LinearSystems;
 using ISAAR.MSolve.Solvers.Ordering;
@@ -21,7 +21,7 @@ using ISAAR.MSolve.Solvers.Ordering;
 //TODO: Ensure that the global dof ordering is the same as the one FETI uses
 namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual
 {
-    public class ExactPcpgConvergence : IFetiPcgConvergence
+    public class ExactFeti1PcgConvergence : IFetiPcgConvergence
     {
         private readonly Feti1Solver fetiSolver;
         private readonly IMatrixView globalStiffness;
@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual
         private readonly Feti1Projection projection; // only needed when separating the lagranges during PCG
         private readonly Vector lagrangesParticular; // only needed when separating the lagranges during PCG
 
-        public ExactPcpgConvergence(IMatrixView globalStiffness, IVectorView globalForces, double globalForcesNorm, 
+        public ExactFeti1PcgConvergence(IMatrixView globalStiffness, IVectorView globalForces, double globalForcesNorm, 
             Feti1Solver fetiSolver, Feti1ProjectedInterfaceProblemSolver interfaceProblemSolver,
             Feti1Projection projection, Vector lagrangesParticular)
         {
@@ -85,7 +85,6 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual
         public class Factory : IFetiPcgConvergenceFactory
         {
             private readonly Func<Model, ISolver, IStaticProvider> createProblemProvider;
-            private readonly double globalForcesNorm;
             private readonly IDofOrderer originalDofOrderer;
             private readonly Model singleSubdomainModel;
             private readonly Subdomain singleSubdomain;
@@ -120,7 +119,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual
                 // λ0 = Q * G * inv(G^T * Q * G) * e
                 Vector lagrangesParticular = projection.CalcParticularLagrangeMultipliers(FetiSolver.CalcRigidBodyModesWork());
 
-                return new ExactPcpgConvergence(globalStiffness, globalForces, globalForcesNorm, 
+                return new ExactFeti1PcgConvergence(globalStiffness, globalForces, globalForcesNorm, 
                     FetiSolver, InterfaceProblemSolver, projection, lagrangesParticular);
             }
 

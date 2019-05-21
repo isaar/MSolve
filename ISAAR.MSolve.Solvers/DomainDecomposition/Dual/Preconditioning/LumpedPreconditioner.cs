@@ -1,21 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribution;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution;
 
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning
 {
-    public class Feti1LumpedPreconditioner : IFetiPreconditioner
+    public class LumpedPreconditioner : IFetiPreconditioner
     {
         private readonly Dictionary<int, Matrix> preconditioningBoundarySignedBooleanMatrices;
         private readonly Dictionary<int, Matrix> stiffnessesBoundaryBoundary;
         private readonly int[] subdomainIDs;
 
-        private Feti1LumpedPreconditioner(int[] subdomainIDs, Dictionary<int, Matrix> stiffnessesBoundaryBoundary,
+        private LumpedPreconditioner(int[] subdomainIDs, Dictionary<int, Matrix> stiffnessesBoundaryBoundary,
             Dictionary<int, Matrix> preconditioningBoundarySignedBooleanMatrices)
         {
             this.subdomainIDs = subdomainIDs;
@@ -51,10 +50,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
             }
         }
 
-        public class Factory : Feti1PreconditionerFactoryBase
+        public class Factory : FetiPreconditionerFactoryBase
         {
-            public override IFetiPreconditioner CreatePreconditioner(IFeti1StiffnessDistribution stiffnessDistribution,
-                Feti1DofSeparator dofSeparator, LagrangeMultipliersEnumerator lagrangeEnumerator,
+            public override IFetiPreconditioner CreatePreconditioner(IStiffnessDistribution stiffnessDistribution,
+                IDofSeparator dofSeparator, ILagrangeMultipliersEnumerator lagrangeEnumerator,
                 Dictionary<int, IMatrixView> stiffnessMatrices)
             {
                 int[] subdomainIDs = dofSeparator.BoundaryDofIndices.Keys.ToArray();
@@ -62,7 +61,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning
                     dofSeparator, lagrangeEnumerator);
                 Dictionary<int, Matrix> stiffnessesBoundaryBoundary = 
                     ExtractStiffnessesBoundaryBoundary(dofSeparator, stiffnessMatrices);
-                return new Feti1LumpedPreconditioner(subdomainIDs, stiffnessesBoundaryBoundary, boundaryBooleans);
+                return new LumpedPreconditioner(subdomainIDs, stiffnessesBoundaryBoundary, boundaryBooleans);
             }
         }
     }

@@ -8,7 +8,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: rearrange the PCPCG algorithm such that unnecessary operations are avoided.
 //TODO: rearrange the PCPCG algorithm, rename variables and use CG utility classes such that PCPCG is consistent with the CG and PCG algorithms.
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg
 {
     /// <summary>
     /// Implementation of the Preconditioned Conjugate Projected Gradient Method used in the FETI method.

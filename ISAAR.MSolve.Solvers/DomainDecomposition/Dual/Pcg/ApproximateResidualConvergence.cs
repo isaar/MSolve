@@ -6,7 +6,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: According to Fragakis PhD this is valid only for Lumped preconditioner. For other preconditioners we need to isolate
 //      sum(Bpb * Kbb * Bpb^T) * residual
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg
 {
     public class ApproximateResidualConvergence : IFetiPcgConvergence
     {

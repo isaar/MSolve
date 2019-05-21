@@ -4,7 +4,7 @@ using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg
 {
     public interface IFetiPcgConvergence : IPcgResidualConvergence //TODO: Not sure about this inheritance
     {

@@ -147,14 +147,14 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
             return model;
         }
 
-        public void PrescribeDisplacement(BoundaryRegion region, IDofType dof, double displacement)
-            => prescribedDisplacements.Add((region, dof, displacement));
-
         /// <summary>
         /// </summary>
         /// <param name="load">Will be distributed evenly.</param>
-        public void PrescribeDistributedLoad(BoundaryRegion region, IDofType dof, double load) 
+        public void DistributeLoadAtNodes(BoundaryRegion region, IDofType dof, double load)
             => prescribedLoads.Add((region, dof, load));
+
+        public void PrescribeDisplacement(BoundaryRegion region, IDofType dof, double displacement)
+            => prescribedDisplacements.Add((region, dof, displacement));
 
         private Node[] FindBoundaryNodes(BoundaryRegion region, Model model, double tol)
         {

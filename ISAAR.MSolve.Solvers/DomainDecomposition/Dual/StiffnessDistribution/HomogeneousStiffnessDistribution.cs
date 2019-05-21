@@ -1,39 +1,71 @@
 ﻿using System;
 using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
 
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribution
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
 {
-    public class HomogeneousStiffnessDistribution : IFeti1StiffnessDistribution
+    public class HomogeneousStiffnessDistribution : IStiffnessDistribution
     {
-        //TODO: perhaps the should be removed from the interface methods
-        private readonly Feti1DofSeparator dofSeparator;
+        private readonly Dictionary<int, int[]> boundaryDofMultiplicities;
+        private readonly IDofSeparator dofSeparator;
 
-        public HomogeneousStiffnessDistribution(IStructuralModel model, Feti1DofSeparator dofSeparator)
+        public HomogeneousStiffnessDistribution(IStructuralModel model, IDofSeparator dofSeparator)
         {
             this.dofSeparator = dofSeparator;
-            this.SubdomainGlobalConversion = new HomogeneousSubdomainGlobalConversion(model, dofSeparator);
+            this.boundaryDofMultiplicities = FindBoundaryDofMultiplicities(dofSeparator);
         }
 
-        public ISubdomainGlobalConversion SubdomainGlobalConversion { get; }
+        public double[] CalcBoundaryDofCoefficients(ISubdomain subdomain)
+        {
+            int[] multiplicites = boundaryDofMultiplicities[subdomain.ID];
+            var inverseMultiplicites = new double[multiplicites.Length];
+            for (int i = 0; i < multiplicites.Length; ++i) inverseMultiplicites[i] = 1.0 / multiplicites[i];
+            return inverseMultiplicites;
+        }
+
+        public Dictionary<int, double> CalcBoundaryDofCoefficients(INode node, IDofType dofType)
+        {
+            var coeffs = new Dictionary<int, double>();
+            double inverseMultiplicity = 1.0 / node.SubdomainsDictionary.Count;
+            foreach (int subdomainID in node.SubdomainsDictionary.Keys) coeffs[subdomainID] = inverseMultiplicity;
+            return coeffs;
+        }
 
         public Dictionary<int, Matrix> CalcBoundaryPreconditioningSignedBooleanMatrices(
-            LagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, Matrix> boundarySignedBooleanMatrices)
+            ILagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, Matrix> boundarySignedBooleanMatrices)
         {
             var matricesBpb = new Dictionary<int, Matrix>();
             foreach (int id in boundarySignedBooleanMatrices.Keys)
             {
-                Matrix inverseMultiplicities = InvertDofMultiplicities(dofSeparator.BoundaryDofMultiplicities[id]);
+                Matrix inverseMultiplicities = InvertDofMultiplicities(boundaryDofMultiplicities[id]);
                 matricesBpb[id] = boundarySignedBooleanMatrices[id].MultiplyRight(inverseMultiplicities);
             }
             return matricesBpb;
         }
 
+        private static Dictionary<int, int[]> FindBoundaryDofMultiplicities(IDofSeparator dofSeparator)
+        {
+            var allMultiplicities = new Dictionary<int, int[]>();
+            foreach (var idBoundaryDofs in dofSeparator.BoundaryDofs)
+            {
+                int subdomainID = idBoundaryDofs.Key;
+                (INode node, IDofType dofType)[] boundaryDofs = idBoundaryDofs.Value;
+                var multiplicities = new int[boundaryDofs.Length];
+                for (int i = 0; i < boundaryDofs.Length; ++i)
+                {
+                    multiplicities[i] = boundaryDofs[i].node.SubdomainsDictionary.Count;
+                }
+                allMultiplicities[subdomainID] = multiplicities;
+            }
+            return allMultiplicities;
+        }
+
         //TODO: Perhaps I could use int[] -> double[] -> DiagonalMatrix -> .Invert()
         //TODO: This can be parallelized OpenMP style.
-        private Matrix InvertDofMultiplicities(int[] multiplicities)
+        private static Matrix InvertDofMultiplicities(int[] multiplicities)
         {
             var inverse = Matrix.CreateZero(multiplicities.Length, multiplicities.Length);
             for (int i = 0; i < multiplicities.Length; ++i) inverse[i, i] = 1.0 / multiplicities[i];
@@ -42,7 +74,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribut
 
         //TODO: Add this to linear algebra: ScaleRow, ScaleRows, ScaleColumn, ScaleColumns, plus ~IntoThis versions.
         //      Alternatively only add left and right multiplication with diagonal matrices.
-        private Matrix ScaleMatrixColumnsIntoThis(Matrix matrix, double[] scalars)
+        private static Matrix ScaleMatrixColumnsIntoThis(Matrix matrix, double[] scalars)
         {
             var result = Matrix.CreateZero(matrix.NumRows, matrix.NumColumns);
             for (int j = 0; j < matrix.NumColumns; ++j)

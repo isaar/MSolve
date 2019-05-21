@@ -7,7 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Projection;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
 
 //TODO: probably needs a builder
 //TODO: all those enums are not objected oriented. Create strategies.

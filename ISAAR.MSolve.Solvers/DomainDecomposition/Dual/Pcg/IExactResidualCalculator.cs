@@ -5,7 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Ordering;
 
 //TODO: There are various convergence criteria. See Fragakis PhD, section 4.3.1 page 93/299. 
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg
 {
     /// <summary>
     /// Called by PCPG.

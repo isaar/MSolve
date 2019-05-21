@@ -5,7 +5,7 @@ using ISAAR.MSolve.Discretization.Interfaces;
 //      decoupled from the lagrange enumeration.
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
 {
-    internal class LagrangeMultiplier
+    public class LagrangeMultiplier
     {
         internal LagrangeMultiplier(INode node, IDofType dof, ISubdomain subdomainPlus, ISubdomain subdomainMinus)
         {

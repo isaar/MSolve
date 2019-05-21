@@ -8,7 +8,7 @@ using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
 using Xunit;
 
 namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerLeftCorner, StructuralDof.TranslationX, 0.0);
             builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerLeftCorner, StructuralDof.TranslationY, 0.0);
             builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LowerRightCorner, StructuralDof.TranslationY, 0.0);
-            builder.PrescribeDistributedLoad(Uniform2DModelBuilder.BoundaryRegion.RightSide, StructuralDof.TranslationX, 100.0);
+            builder.DistributeLoadAtNodes(Uniform2DModelBuilder.BoundaryRegion.RightSide, StructuralDof.TranslationX, 100.0);
 
             return builder.BuildModel();
         }
@@ -81,7 +81,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
 
             // Solver
             var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
-            solverBuilder.PreconditionerFactory = new Feti1LumpedPreconditioner.Factory();
+            solverBuilder.PreconditionerFactory = new LumpedPreconditioner.Factory();
             solverBuilder.ProblemIsHomogeneous = true;
             Feti1Solver fetiSolver = solverBuilder.BuildSolver(multiSubdomainModel);
 

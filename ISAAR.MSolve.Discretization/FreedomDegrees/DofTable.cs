@@ -32,6 +32,31 @@ namespace ISAAR.MSolve.Discretization.FreedomDegrees
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="nodes">If one of these is not contained in the original table, it will be ignored.</param>
+        public DofTable GetSubtableForNodes(IEnumerable<INode> nodes)
+        {
+            //TODO: I will probably need to control the new ordering, instead of being in the order I meet the dofs
+            int dofCounter = 0;
+            var subtable = new Dictionary<INode, Dictionary<IDofType, int>>();
+            foreach (INode node in nodes)
+            {
+                var newNodeData = new Dictionary<IDofType, int>();
+                bool hasFreeDofs = this.data.TryGetValue(node, out Dictionary<IDofType, int> oldNodeData);
+                if (hasFreeDofs)
+                {
+                    foreach (IDofType dofType in oldNodeData.Keys)
+                    {
+                        newNodeData[dofType] = dofCounter++;
+                    }
+                    subtable[node] = newNodeData;
+                }
+            }
+            return new DofTable(subtable);
+        }
+
+        /// <summary>
         /// Renumbers the dof indices according to the given permutation vector and direction. 
         /// If (<paramref name="oldToNew"/> == true), then newIndex[dof] = <paramref name="permutation"/>[oldIndex[dof]].
         /// Else oldIndex[dof] = <paramref name="permutation"/>[nwIndex[dof]]

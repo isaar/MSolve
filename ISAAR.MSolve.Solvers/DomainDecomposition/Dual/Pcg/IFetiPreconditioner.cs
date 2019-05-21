@@ -5,7 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: During preconditioning (including operation with the Q matrix), each subdomain performs multiplications with 
 //      Bpb^T*Sbb*Bpb * x. This matrix could be explicitly formed and cached
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg
 {
     public interface IFetiPreconditioner
     {
