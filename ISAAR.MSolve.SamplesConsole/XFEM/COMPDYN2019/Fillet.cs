@@ -28,17 +28,31 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
 
             FilletBenchmark benchmarkSub1 = CreateSingleSubdomainBenchmark(meshPath);
             ISolver skylineSolver = DefineSolver(benchmarkSub1, SolverType.Skyline);
-            //double uNormUncrackedSkyline = RunUncrackedAnalysis(benchmarkSub1, skylineSolver);
-            //double uNormCrackedSkyline = RunSingleCrackedStep(benchmarkSub1, skylineSolver);
+            //Console.WriteLine("Uncracked analysis, 1 subdomain : norm2(globalU) = " +
+            //    RunUncrackedAnalysis(benchmarkSub1, skylineSolver));
+            //Console.WriteLine("Cracked analysis only 1 step, 1 subdomain,  Skyline : norm2(globalU) = " +
+            //    RunSingleCrackedStep(benchmarkSub1, skylineSolver));
             RunCrackPropagationAnalysis(benchmarkSub1, skylineSolver);
 
-            FilletBenchmark benchmarkSub5 = CreateMultiSubdomainBenchmark(5, meshPath);
-            PlotSubdomains(subdomainPlotPath, benchmarkSub5.Model);
-            ISolver solverFeti1 = DefineSolver(benchmarkSub5, SolverType.Feti1);
-            //double uNormUncrackedFeti1 = RunUncrackedAnalysis(benchmarkSub5, solverFeti1);
-            //double uNormCrackedFeti1 = RunSingleCrackedStep(benchmarkSub5, solverFeti1);
-            RunCrackPropagationAnalysis(benchmarkSub5, solverFeti1);
+            //FilletBenchmark benchmarkSub5 = CreateMultiSubdomainBenchmark(5, meshPath);
+            //PlotSubdomains(subdomainPlotPath, benchmarkSub5.Model);
+            //ISolver solverFeti1 = DefineSolver(benchmarkSub5, SolverType.Feti1);
+            //Console.WriteLine("Uncracked analysis, 5 subdomains, FETI-1  : norm2(globalU) = " +
+            //    RunUncrackedAnalysis(benchmarkSub5, solverFeti1));
+            //Console.WriteLine("Cracked analysis only 1 step, 5 subdomains, FETI-1  : norm2(globalU) = " +
+            //    RunSingleCrackedStep(benchmarkSub5, solverFeti1));
+            //RunCrackPropagationAnalysis(benchmarkSub5, solverFeti1);
 
+            FilletBenchmark benchmarkSub7 = CreateMultiSubdomainBenchmark(7, meshPath);
+            PlotSubdomains(subdomainPlotPath, benchmarkSub7.Model);
+            ISolver solverFeti1 = DefineSolver(benchmarkSub7, SolverType.Feti1);
+            //Console.WriteLine("Uncracked analysis, 7 subdomains, FETI-1  : norm2(globalU) = " +
+            //    RunUncrackedAnalysis(benchmarkSub7, solverFeti1));
+            //Console.WriteLine("Cracked analysis only 1 step, 5 subdomains, FETI-1  : norm2(globalU) = " +
+            //    RunSingleCrackedStep(benchmarkSub7, solverFeti1));
+            RunCrackPropagationAnalysis(benchmarkSub7, solverFeti1);
+
+            Console.Write("\nEnd");
         }
 
         private static FilletBenchmark CreateMultiSubdomainBenchmark(int numSubdomains, string meshPath)
@@ -160,7 +174,13 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                 }
                 else if (benchmark.Model.Subdomains.Count == 7)
                 {
-
+                    factorizationTolerances[0] = 1E-2;
+                    factorizationTolerances[1] = 1E-2;
+                    factorizationTolerances[2] = 1E-2;
+                    factorizationTolerances[3] = 1E-2;
+                    factorizationTolerances[4] = 1E1;
+                    factorizationTolerances[5] = 1E1;
+                    factorizationTolerances[6] = 1E1;
                 }
                 else
                 {
