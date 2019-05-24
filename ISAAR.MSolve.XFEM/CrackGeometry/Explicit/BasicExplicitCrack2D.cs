@@ -553,7 +553,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             Console.WriteLine("------ /DEBUG: TRIANGULATION ------");
         }
 
-        public void Propagate(Vector totalFreeDisplacements)
+        public void Propagate(Dictionary<int, Vector> totalFreeDisplacements)
         {
             throw new NotImplementedException();
         }

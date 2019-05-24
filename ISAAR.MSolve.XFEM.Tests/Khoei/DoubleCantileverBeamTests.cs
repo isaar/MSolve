@@ -155,7 +155,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             XModel model = dcb.Model;
             TrackingExteriorCrackLSM crack = dcb.Crack;
             (IVectorView globalU, IMatrixView globalK) = dcb.SolveModel();
-            (double jIntegral, double sifMode1) = dcb.Propagate((Vector)globalU);
+            var freeDisplacementsPerSubdomain = new Dictionary<int, Vector>();
+            freeDisplacementsPerSubdomain[model.Subdomains.First().Key] = (Vector)globalU;
+            (double jIntegral, double sifMode1) = dcb.Propagate(freeDisplacementsPerSubdomain);
 
             // Check the results. For now, they are allowed to be more accurate.
             double tolerance = 1E-6;

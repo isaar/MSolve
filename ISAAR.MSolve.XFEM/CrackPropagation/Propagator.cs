@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
             this.Logger = new PropagationLogger();
         }
 
-        public (double growthAngle, double growthLength) Propagate(Vector totalFreeDisplacements, 
+        public (double growthAngle, double growthLength) Propagate(Dictionary<int, Vector> totalFreeDisplacements, 
             CartesianPoint crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
         {
             // TODO: Also check if the sifs do not violate the material toughness
@@ -68,8 +68,8 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
 
         }
 
-        private (double sifMode1, double sifMode2) ComputeSIFS(Vector totalFreeDisplacements, CartesianPoint crackTip, 
-            TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
+        private (double sifMode1, double sifMode2) ComputeSIFS(Dictionary<int, Vector> totalFreeDisplacements, 
+            CartesianPoint crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
         {
             double interactionIntegralMode1 = 0.0, interactionIntegralMode2 = 0.0;
             IReadOnlyDictionary<XContinuumElement2D, double[]> elementWeights = 
@@ -80,7 +80,9 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
                 double[] nodalWeights = pair.Value;
 
                 //TODO: This needs refactoring ASAP.
-                double[] elementDisplacements = element.Subdomain.CalculateElementDisplacements(element, totalFreeDisplacements);
+                XSubdomain subdomain = element.Subdomain;
+                double[] elementDisplacements = 
+                    subdomain.CalculateElementDisplacements(element, totalFreeDisplacements[subdomain.ID]);
                 (double[] standardElementDisplacements, double[] enrichedElementDisplacements) = 
                     element.SeparateStdEnrVector(elementDisplacements);
 

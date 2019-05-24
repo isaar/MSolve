@@ -68,7 +68,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         IReadOnlyList<ISingleCrack> SingleCracks { get; } //Not sure about this one
         
-        void Propagate(Vector totalFreeDisplacements);
+        void Propagate(Dictionary<int, Vector> totalFreeDisplacements);
         void UpdateEnrichments();
     }
 }

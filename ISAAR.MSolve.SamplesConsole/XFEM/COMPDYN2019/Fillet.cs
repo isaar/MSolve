@@ -28,12 +28,17 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
 
             FilletBenchmark benchmarkSub1 = CreateSingleSubdomainBenchmark(meshPath);
             ISolver skylineSolver = DefineSolver(benchmarkSub1, SolverType.Skyline);
-            double uNormSkyline = RunUncrackedAnalysis(benchmarkSub1, skylineSolver);
+            //double uNormUncrackedSkyline = RunUncrackedAnalysis(benchmarkSub1, skylineSolver);
+            //double uNormCrackedSkyline = RunSingleCrackedStep(benchmarkSub1, skylineSolver);
+            RunCrackPropagationAnalysis(benchmarkSub1, skylineSolver);
 
             FilletBenchmark benchmarkSub5 = CreateMultiSubdomainBenchmark(5, meshPath);
             PlotSubdomains(subdomainPlotPath, benchmarkSub5.Model);
-            ISolver solverFeti = DefineSolver(benchmarkSub5, SolverType.Feti1);
-            double uNormFeti = RunUncrackedAnalysis(benchmarkSub5, solverFeti);
+            ISolver solverFeti1 = DefineSolver(benchmarkSub5, SolverType.Feti1);
+            //double uNormUncrackedFeti1 = RunUncrackedAnalysis(benchmarkSub5, solverFeti1);
+            //double uNormCrackedFeti1 = RunSingleCrackedStep(benchmarkSub5, solverFeti1);
+            RunCrackPropagationAnalysis(benchmarkSub5, solverFeti1);
+
         }
 
         private static FilletBenchmark CreateMultiSubdomainBenchmark(int numSubdomains, string meshPath)
@@ -176,6 +181,41 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
 
         private static void RunCrackPropagationAnalysis(FilletBenchmark benchmark, ISolver solver)
         {
+            benchmark.Analyze(solver);
+
+            // Write crack path
+            Console.WriteLine("Crack path:");
+            foreach (var point in benchmark.Crack.CrackPath)
+            {
+                Console.WriteLine($"{point.X} {point.Y}");
+            }
+            Console.WriteLine();
+        }
+
+        private static double RunSingleCrackedStep(FilletBenchmark benchmark, ISolver solver)
+        {
+            // Enrich nodes to take the crack into account
+            benchmark.Crack.UpdateEnrichments();
+
+            var problem = new ProblemStructural(benchmark.Model, solver);
+            var linearAnalyzer = new LinearAnalyzer(benchmark.Model, solver, problem);
+            var staticAnalyzer = new StaticAnalyzer(benchmark.Model, solver, problem, linearAnalyzer);
+
+            staticAnalyzer.Initialize();
+            staticAnalyzer.Solve();
+
+            // Return norm2(displacements)
+            if (benchmark.Model.Subdomains.Count == 1)
+            {
+                return solver.LinearSystems.First().Value.Solution.Norm2();
+            }
+            else if (solver is Feti1Solver fetiSolver)
+            {
+                var sudomainDisplacements = new Dictionary<int, IVectorView>();
+                foreach (var ls in fetiSolver.LinearSystems) sudomainDisplacements[ls.Key] = ls.Value.Solution;
+                return fetiSolver.GatherGlobalDisplacements(sudomainDisplacements).Norm2();
+            }
+            else throw new NotImplementedException("Invalid solver");
         }
 
         private static double RunUncrackedAnalysis(FilletBenchmark benchmark, ISolver solver)

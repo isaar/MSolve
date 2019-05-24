@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.XFEM.Analyzers
     /// Implements crack propagation under static loading with linear material behavior. Based on Linear Elastic Fracture 
     /// Mechanics. Appropriate for brittle materials or fatigue crack propagation analysis. For now, it only works with XFEM.
     /// </summary>
-    public class QuasiStaticCrackPropagationAnalyzer : IAnalyzer
+    public class QuasiStaticCrackPropagationAnalyzer //: IAnalyzer
     {
         private readonly ICrackDescription crack;
         private readonly double fractureToughness;
@@ -41,14 +41,6 @@ namespace ISAAR.MSolve.XFEM.Analyzers
         public Dictionary<int, IAnalyzerLog[]> Logs => throw new NotImplementedException();
 
         public CrackPropagationTermination Termination { get; private set;}
-
-        public void BuildMatrices()
-        {
-            foreach (ILinearSystem linearSystem in linearSystems.Values)
-            {
-                linearSystem.Matrix = problem.CalculateMatrix(linearSystem.Subdomain);
-            }
-        }
 
         public void Initialize(bool isFirstAnalysis = true)
         {
@@ -92,7 +84,8 @@ namespace ISAAR.MSolve.XFEM.Analyzers
                 // Solve the linear system
                 solver.Solve();
                 //Vector constrainedDisplacements = model.CalculateConstrainedDisplacements(solver.DofOrderer);
-                Vector freeDisplacements = (Vector)(linearSystems[0].Solution); //TODO: avoid this.
+                var freeDisplacements = new Dictionary<int, Vector>();
+                foreach (int s in linearSystems.Keys) freeDisplacements[s] = (Vector)(linearSystems[s].Solution); //TODO: avoid this cast.
 
                 //// Output field data
                 //if (fieldOutput != null)
@@ -125,31 +118,18 @@ namespace ISAAR.MSolve.XFEM.Analyzers
             Termination = CrackPropagationTermination.RequiredIterationsWereCompleted;
         }
 
+        private void BuildMatrices()
+        {
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
+            {
+                linearSystem.Matrix = problem.CalculateMatrix(linearSystem.Subdomain);
+            }
+        }
+
         // TODO: Abstract this and add Tanaka_1974 approach
         private double CalculateEquivalentSIF(double sifMode1, double sifMode2)
         {
             return Math.Sqrt(sifMode1 * sifMode1 + sifMode2 * sifMode2);
-        }
-
-        public void Solve()
-        {
-            // TODO: This is necessary for XFEM, but other approaches may not need to reorder dofs at each iteration.
-            solver.OrderDofs(false);
-            foreach (ILinearSystem linearSystem in linearSystems.Values)
-            {
-                linearSystem.Reset(); // Necessary to define the linear system's size 
-                linearSystem.Subdomain.Forces = Vector.CreateZero(linearSystem.Size);
-            }
-
-            BuildMatrices();
-
-            // Loads must be created after building the matrices.
-            //TODO: Some loads may not have to be recalculated each time the stiffness changes.
-            model.AssignLoads(solver.DistributeNodalLoads);
-            foreach (ILinearSystem linearSystem in linearSystems.Values)
-            {
-                linearSystem.RhsVector = linearSystem.Subdomain.Forces;
-            }
         }
     }
 }

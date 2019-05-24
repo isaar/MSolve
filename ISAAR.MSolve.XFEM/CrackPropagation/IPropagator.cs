@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
     {
         PropagationLogger Logger { get; }
 
-        (double growthAngle, double growthLength) Propagate(Vector totalFreeDisplacements, CartesianPoint crackTip, 
+        (double growthAngle, double growthLength) Propagate(Dictionary<int, Vector> totalFreeDisplacements, CartesianPoint crackTip, 
             TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements);
     }
 }
