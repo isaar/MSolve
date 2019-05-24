@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.FEM.Entities
         }
 
         public List<Constraint> Constraints => constraints;
-        public Dictionary<int, Element> ElementsDictionary => elementsDictionary;
+        public Dictionary<int, Element> ElementsDictionary => elementsDictionary; //TODO: This should be IElement
         public Dictionary<int, Subdomain> NonMatchingSubdomainsDictionary => nonMatchingSubdomainsDictionary;
         public Dictionary<int, ISubdomain> SubdomainsDictionary => subdomainsDictionary;
 

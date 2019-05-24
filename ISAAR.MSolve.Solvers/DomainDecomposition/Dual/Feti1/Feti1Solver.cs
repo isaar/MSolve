@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         private readonly Dictionary<int, SkylineAssembler> assemblers;
         private readonly ICrosspointStrategy crosspointStrategy = new FullyRedundantConstraints();
         private readonly IDofOrderer dofOrderer;
-        private readonly double factorizationPivotTolerance;
+        private readonly Dictionary<int, double> factorizationPivotTolerances;
         private readonly IFeti1InterfaceProblemSolver interfaceProblemSolver;
         private readonly bool problemIsHomogeneous;
         private readonly bool projectionMatrixQIsIdentity;
@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         private IStiffnessDistribution stiffnessDistribution;
         private Feti1SubdomainGlobalMapping subdomainGlobalMapping;
 
-        private Feti1Solver(IStructuralModel model, IDofOrderer dofOrderer, double factorizationPivotTolerance,
+        private Feti1Solver(IStructuralModel model, IDofOrderer dofOrderer, Dictionary<int, double> factorizationPivotTolerances,
             IFetiPreconditionerFactory preconditionerFactory, IFeti1InterfaceProblemSolver interfaceProblemSolver,
             bool problemIsHomogeneous, bool projectionMatrixQIsIdentity)
         {
@@ -82,7 +82,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             LinearSystems = tempLinearSystems;
 
             this.dofOrderer = dofOrderer;
-            this.factorizationPivotTolerance = factorizationPivotTolerance;
+            this.factorizationPivotTolerances = factorizationPivotTolerances;
             this.preconditionerFactory = preconditionerFactory;
 
             // Interface problem
@@ -391,7 +391,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             {
                 int id = linearSystem.Subdomain.ID;
                 factorizations[id] =
-                    linearSystem.Matrix.FactorSemidefiniteCholesky(factorizeInPlace, factorizationPivotTolerance);
+                    linearSystem.Matrix.FactorSemidefiniteCholesky(factorizeInPlace, factorizationPivotTolerances[id]);
                 rigidBodyModes[id] = new List<Vector>();
                 foreach (double[] rbm in factorizations[id].NullSpaceBasis)
                 {
@@ -402,12 +402,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 
         public class Builder
         {
-            private readonly double factorizationPivotTolerance;
+            private readonly Dictionary<int, double> factorizationPivotTolerances;
 
-            public Builder(double factorizationPivotTolerance)
+            public Builder(Dictionary<int, double> factorizationPivotTolerances)
             {
                 //TODO: This is a very volatile parameter and the user should not have to specify it. 
-                this.factorizationPivotTolerance = factorizationPivotTolerance;
+                this.factorizationPivotTolerances = factorizationPivotTolerances;
             }
 
             public IDofOrderer DofOrderer { get; set; } = 
@@ -422,7 +422,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             //public PdeOrder PdeOrder { get; set; } = PdeOrder.Second; // Instead the user explicitly sets Q.
 
             public Feti1Solver BuildSolver(IStructuralModel model)
-                => new Feti1Solver(model, DofOrderer, factorizationPivotTolerance, PreconditionerFactory,
+                => new Feti1Solver(model, DofOrderer, factorizationPivotTolerances, PreconditionerFactory,
                      InterfaceProblemSolver, ProblemIsHomogeneous, ProjectionMatrixQIsIdentity);
         }
     }

@@ -80,7 +80,9 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             Model multiSubdomainModel = CreateModel(numElementsX, numElementsY);
 
             // Solver
-            var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
+            var factorizationTolerances = new Dictionary<int, double>();
+            foreach (Subdomain s in multiSubdomainModel.Subdomains) factorizationTolerances[s.ID] = factorizationTolerance;
+            var solverBuilder = new Feti1Solver.Builder(factorizationTolerances);
             solverBuilder.PreconditionerFactory = new LumpedPreconditioner.Factory();
             solverBuilder.ProblemIsHomogeneous = true;
             Feti1Solver fetiSolver = solverBuilder.BuildSolver(multiSubdomainModel);

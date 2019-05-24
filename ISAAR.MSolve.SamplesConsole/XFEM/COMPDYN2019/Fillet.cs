@@ -144,8 +144,24 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             }
             else if (solverType == SolverType.Feti1)
             {
-                double fatorizationTol = 1E-2;
-                var builder = new Feti1Solver.Builder(fatorizationTol);
+                var factorizationTolerances = new Dictionary<int, double>();
+                if (benchmark.Model.Subdomains.Count == 5)
+                {
+                    factorizationTolerances[0] = 1E-2;
+                    factorizationTolerances[1] = 1E-2;
+                    factorizationTolerances[2] = 1E-2;
+                    factorizationTolerances[3] = 1E-2;
+                    factorizationTolerances[4] = 1E1;
+                }
+                else if (benchmark.Model.Subdomains.Count == 7)
+                {
+
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+                var builder = new Feti1Solver.Builder(factorizationTolerances);
                 builder.PreconditionerFactory = new LumpedPreconditioner.Factory();
                 builder.ProblemIsHomogeneous = true;
                 return builder.BuildSolver(benchmark.Model);
