@@ -17,12 +17,12 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
 	public abstract class SingleSubdomainRectangularSolverBase<TMatrix>:ISolver
 	where TMatrix: class,IMatrix
 	{
-		private IGlobalMatrixRectangularAssembler<TMatrix> assembler;
-		private IStructuralAsymmetricModel model;
-		private IAsymmetricSubdomain subdomain;
-		private SingleSubdomainSystem<TMatrix> linearSystem;
-		private IAsymmetricDofOrderer dofRowOrderer;
-		private IDofOrderer dofColOrderer;
+        protected readonly IGlobalMatrixRectangularAssembler<TMatrix> assembler;
+        protected readonly IStructuralAsymmetricModel model;
+        protected readonly IAsymmetricSubdomain subdomain;
+        protected readonly SingleSubdomainSystem<TMatrix> linearSystem;
+        protected readonly IAsymmetricDofOrderer dofRowOrderer;
+        protected readonly IDofOrderer dofColOrderer;
 
 		protected SingleSubdomainRectangularSolverBase(IStructuralAsymmetricModel model, IAsymmetricDofOrderer dofRowOrderer,
 			IDofOrderer dofColOrderer, IGlobalMatrixRectangularAssembler<TMatrix> assembler, string name)
@@ -79,7 +79,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
 
         public Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, IDofType, double> globalNodalLoads)
         {
-            throw new NotImplementedException();
+            return new Dictionary<int, SparseVector>();
         }
 
         public Dictionary<int, Matrix> InverseSystemMatrixTimesOtherMatrix(Dictionary<int, IMatrixView> otherMatrix)

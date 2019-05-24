@@ -157,7 +157,10 @@ namespace ISAAR.MSolve.FEM.Entities
                 if (x2 == kv.X && y2 == kv.Y && z2 == kv.Z) nodex2y2z2 = kv.ID;
             }
 
-            return new[] { nodex1y1z1, nodex2y1z1, nodex1y2z1, nodex2y2z1, nodex1y1z2, nodex2y1z2, nodex1y2z2, nodex2y2z2 };
+            // If the problem is 2D, duplicate nodes are returned which causes subsequent problems. Thus they are filtered here.
+            // TODO: Avoid this.
+            return (new[] { nodex1y1z1, nodex2y1z1, nodex1y2z1, nodex2y2z1, nodex1y1z2, nodex2y1z2, nodex1y2z2, nodex2y2z2 }).
+                Distinct().ToArray();
         }
 
         public IVector GetRhsFromSolution(IVectorView solution, IVectorView dSolution)

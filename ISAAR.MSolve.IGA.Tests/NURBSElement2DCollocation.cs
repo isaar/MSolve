@@ -9,6 +9,7 @@ using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Problems.SupportiveClasses;
 using ISAAR.MSolve.IGA.Readers;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
@@ -115,7 +116,7 @@ namespace ISAAR.MSolve.IGA.Tests
 			{
 				//var element = new NURBSElement2D();
 				NURBSElement2DCollocation element = new NURBSElement2DCollocation();
-				var patch = new Patch();
+				var patch = new CollocationPatch();
 				patch.Material = new ElasticMaterial2D(StressState2D.PlaneStrain)
 				{
 					YoungModulus = 100000,
@@ -134,12 +135,42 @@ namespace ISAAR.MSolve.IGA.Tests
 				patch.KnotValueVectorKsi = KnotValueVectorKsi();
 				patch.KnotValueVectorHeta = KnotValueVectorHeta();
 				element.Patch = patch;
-				element.CollocationPoint=new CollocationPoint(0,0.00625000000000000, 0.0125000000000000);
+				element.CollocationPoint=new CollocationPoint2D(0,0.00625000000000000, 0.0125000000000000);
 				return element;
 			}
 		}
 
-		[Fact]
+        private NURBSElement2DCollocation BoundaryElement
+        {
+            get
+            {
+                //var element = new NURBSElement2D();
+                NURBSElement2DCollocation element = new NURBSElement2DCollocation();
+                var patch = new CollocationPatch();
+                patch.Material = new ElasticMaterial2D(StressState2D.PlaneStrain)
+                {
+                    YoungModulus = 100000,
+                    PoissonRatio = 0.3
+                };
+
+
+                foreach (var controlPoint in ElementControlPoints())
+                    element.ControlPointsDictionary.Add(controlPoint.ID, controlPoint);
+                foreach (var knot in ElementKnot())
+                    element.KnotsDictionary.Add(knot.ID, knot);
+                patch.Thickness = 1;
+                patch.DegreeKsi = 5;
+                patch.DegreeHeta = 5;
+                patch.NumberOfControlPointsHeta = 21;
+                patch.KnotValueVectorKsi = KnotValueVectorKsi();
+                patch.KnotValueVectorHeta = KnotValueVectorHeta();
+                element.Patch = patch;
+                element.CollocationPoint = new CollocationPoint2D(22, 0.00625000000000000, 0,true);
+                return element;
+            }
+        }
+
+        [Fact]
 		private void TestCollocationNurbsValues()
 		{
 			var nurbs = new NURBS2D(Element.Patch.DegreeKsi, Element.Patch.DegreeHeta,
@@ -793,15 +824,15 @@ namespace ISAAR.MSolve.IGA.Tests
 			{
 				for (int j = 0; j < 72; j++)
 				{
-					Assert.True(Utilities.AreValuesEqual(expectedStiffnessMatrix[i, j], stiffnessMatrix[i, j], 1e-1));
+					Assert.True(Utilities.AreValuesEqual(expectedStiffnessMatrix[i, j], stiffnessMatrix[i, j], 1e-9));
 				}
 			}
 		}
 
-		//[Fact]
+		[Fact]
 		private void TestCollocationPointCreation()
 		{
-			Model model = new Model();
+			var model = new CollocationModel();
 			ModelCreator modelCreator = new ModelCreator(model);
 			string filename = "..\\..\\..\\InputFiles\\PlateWithHole.txt";
 			IsogeometricReader modelReader = new IsogeometricReader(modelCreator, filename);
@@ -810,10 +841,10 @@ namespace ISAAR.MSolve.IGA.Tests
             //var solverBuilder = new SuiteSparseSolver.Builder();
             //solverBuilder.DofOrderer = new DofOrderer(
             //    new NodeMajorDofOrderingStrategy(), new NullReordering());
+            var solverBuilder= new GmresSolver.Builder();
             ISolver solver = new GmresSolver(model,
                 new AsymmetricDofOrderer(new RowDofOrderingStrategy()), 
-                new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering()),
-                new CsrRectangularAssembler(), "CsrRectangularAssembler");
+                new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering()));
 
             // Structural problem provider
             var provider = new ProblemStructural(model, solver);
@@ -827,6 +858,7 @@ namespace ISAAR.MSolve.IGA.Tests
             parentAnalyzer.BuildMatrices();
 
             var k = solver.LinearSystems[0].Matrix;
+            
             Matrix<double> kmatlab=MathNet.Numerics.LinearAlgebra.CreateMatrix.Dense<double>(k.NumRows,k.NumColumns);
             for (int i = 0; i < k.NumRows; i++)
             {
@@ -838,5 +870,40 @@ namespace ISAAR.MSolve.IGA.Tests
             MatlabWriter.Write("..\\..\\..\\InputFiles\\KcolMsolve.mat", kmatlab,"Ktotal");
             
         }
-	}
+
+        [Fact]
+        private void TestCollocationPoint2DBoundaryStiffness()
+        {
+            var stiffnessMatrix = BoundaryElement.StiffnessMatrix(BoundaryElement);
+
+
+            var expectedStiffnessMatrix = new double[2, 72]
+            {
+                {
+                    942491.130114883, - 1528622.97410973, - 960229.359363204, 5526.82466713629, 0, 0, 0, 0, 0, 0, 0, 0,
+                    1541946.85604645, 604278.375904314, -1534772.04676494, 8833.73948502993, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0,
+                    402655.741148221, 795032.315762745, -393396.546787819, 2264.28583707860, 0 ,0, 0, 0, 0, 0, 0, 0,
+                    31983.9502496700, 108207.034955708, -30729.3930359958, 176.870208957262, 0 ,0, 0, 0, 0, 0, 0, 0,
+                    906.755309707459, 4251.32132908476, -857.631046319342, 4.93629607955652, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0,
+                    7.97712650859460, 47.2268812420649, -7.43299716737894, 0.0427823537104383, 0, 0, 0, 0, 0, 0, 0, 0,
+                },
+                {
+                    -1782504.44499018 ,369391.148725693, 5526.82466713629, -336146.346449264, 0, 0, 0, 0, 0, 0, 0, 0,
+                    706476.688202230, 523905.386804851, 8833.73948502993, -537275.819700648, 0, 0, 0, 0, 0, 0, 0, 0,
+                    927931.867544305, 120303.984740049, 2264.28583707860, -137715.859881830, 0, 0, 0, 0, 0, 0, 0, 0,
+                    126273.296906741, 8388.99921530011, 176.870208957262 ,-10757.4019654052, 0, 0, 0, 0, 0, 0, 0, 0,
+                    4960.78691125707, 207.172382078212, 4.93629607955652, -300.229877383557, 0, 0, 0, 0, 0, 0, 0, 0,
+                    55.1061490101538 ,1.56806701121465, 0.0427823537104383, -2.60206045213942, 0, 0, 0, 0, 0, 0, 0, 0,
+                },
+            };
+
+            for (int i = 0; i < 2; i++)
+            {
+                for (int j = 0; j < 72; j++)
+                {
+                    Assert.True(Utilities.AreValuesEqual(-expectedStiffnessMatrix[i, j], stiffnessMatrix[i, j], 1e-9));
+                }
+            }
+        }
+    }
 }

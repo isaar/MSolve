@@ -9,85 +9,31 @@ using ISAAR.MSolve.Discretization.Interfaces;
 //TODO: Not sure about having the indexing data of all subdomains in the same class.
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 {
-    public class Feti1DofSeparator : IDofSeparator
+    public class Feti1DofSeparator : DofSeparatorBase
     {
-        //TODO: BoundaryDofConnectivities is useful only for heterogeneous problems and its creation might be costly.
-        //      Needs benchmarking and possibly a way to avoid it in homogeneous problems
-        public Dictionary<INode, IDofType[]> GlobalBoundaryDofs { get; private set; }
-        internal Dictionary<int, (INode node, IDofType dofType)[]> BoundaryDofConnectivities { get; private set; }
-        internal Dictionary<int, int[]> BoundaryDofIndices { get; private set; }
-        internal Dictionary<int, int[]> BoundaryDofMultiplicities { get; private set; }
-        internal Dictionary<int, int[]> InternalDofIndices { get; private set; }
+        public override Dictionary<int, int[]> BoundaryDofIndices { get; protected set; }
+        public override Dictionary<int, (INode node, IDofType dofType)[]> BoundaryDofs { get; protected set; }
+        public override Dictionary<int, int[]> InternalDofIndices { get; protected set; }
 
-        internal void SeparateBoundaryInternalDofs(IStructuralModel model)
+        internal void SeparateDofs(IStructuralModel model)
         {
-            GatherGlobalBoundaryDofs(model);
-            SeparateBoundaryInternalDofsOfSubdomains(model);
+            GatherGlobalBoundaryDofs(model.Nodes, model.GlobalDofOrdering);
+            SeparateBoundaryInternalDofs(model);
         }
 
-        private void SeparateBoundaryInternalDofsOfSubdomains(IStructuralModel model)
+        private void SeparateBoundaryInternalDofs(IStructuralModel model)
         {
-            BoundaryDofIndices = new Dictionary<int, int[]>();
-            BoundaryDofMultiplicities = new Dictionary<int, int[]>();
-            BoundaryDofConnectivities = new Dictionary<int, (INode node, IDofType dofType)[]>();
             InternalDofIndices = new Dictionary<int, int[]>();
+            BoundaryDofIndices = new Dictionary<int, int[]>();
+            BoundaryDofs = new Dictionary<int, (INode node, IDofType dofType)[]>();
             foreach (ISubdomain subdomain in model.Subdomains)
             {
-                var boundaryMultiplicitiesOfSubdomain = new SortedDictionary<int, int>(); // key = dofIdx, value = multiplicity
-                var boundaryConnectivitiesOfSubdomain = new SortedDictionary<int, (INode node, IDofType dofType)>(); 
-                var internalDofsOfSubdomain = new SortedSet<int>();
-                foreach (INode node in subdomain.Nodes)
-                {
-                    IEnumerable<int> nodalDofs = subdomain.FreeDofOrdering.FreeDofs.GetValuesOfRow(node);
-                    int nodeMultiplicity = node.SubdomainsDictionary.Count;
-                    if (nodeMultiplicity > 1) // boundary node
-                    {
-                        bool isNodeFree = subdomain.FreeDofOrdering.FreeDofs.TryGetDataOfRow(node, 
-                            out IReadOnlyDictionary<IDofType, int> dofTypesIndices); // This avoids embedded and constrained dofs
-                        if (isNodeFree)
-                        {
-                            foreach (var dofTypeIdxPair in dofTypesIndices)
-                            {
-                                boundaryMultiplicitiesOfSubdomain.Add(dofTypeIdxPair.Value, nodeMultiplicity);
-                                boundaryConnectivitiesOfSubdomain.Add(dofTypeIdxPair.Value, (node, dofTypeIdxPair.Key));
-                            }
-                        }
-                    }
-                    else // internal nodes
-                    {
-                        foreach (int dof in subdomain.FreeDofOrdering.FreeDofs.GetValuesOfRow(node))
-                        {
-                            internalDofsOfSubdomain.Add(dof);
-                        }
-                    }
-                }
+                (int[] internalDofIndices, int[] boundaryDofIndices, (INode node, IDofType dofType)[] boundaryDofConnectivities)
+                    = base.SeparateBoundaryInternalDofs(subdomain.Nodes, subdomain.FreeDofOrdering.FreeDofs);
 
-                // The following are sorted in increasing order of boundary dof indices
-                BoundaryDofIndices.Add(subdomain.ID, boundaryMultiplicitiesOfSubdomain.Keys.ToArray());
-                BoundaryDofMultiplicities.Add(subdomain.ID, boundaryMultiplicitiesOfSubdomain.Values.ToArray());
-                BoundaryDofConnectivities.Add(subdomain.ID, boundaryConnectivitiesOfSubdomain.Values.ToArray());
-
-                InternalDofIndices.Add(subdomain.ID, internalDofsOfSubdomain.ToArray());
-            }
-        }
-
-        private void GatherGlobalBoundaryDofs(IStructuralModel model)
-        {
-            GlobalBoundaryDofs = new Dictionary<INode, IDofType[]>();
-
-            //TODO: model.Nodes probably doesn't work if there are embedded nodes. It is time to isolate the embedded nodes. Or I could use the GlobalDofOrdering.
-            foreach (INode node in model.Nodes) 
-            {
-                int nodeMultiplicity = node.SubdomainsDictionary.Count;
-                if (nodeMultiplicity > 1)
-                {
-                    // Access the free dofs only. Does this also filter out embedded dofs?
-                    IDofType[] dofsOfNode = model.GlobalDofOrdering.GlobalFreeDofs.GetColumnsOfRow(node).ToArray(); //TODO: interacting with the table can be optimized.
-
-                    // If all dofs of this node are constrained, then it is not considered boundary.
-                    if (dofsOfNode.Length == 0) continue;
-                    else GlobalBoundaryDofs[node] = dofsOfNode;
-                }
+                InternalDofIndices.Add(subdomain.ID, internalDofIndices);
+                BoundaryDofIndices.Add(subdomain.ID, boundaryDofIndices);
+                BoundaryDofs.Add(subdomain.ID, boundaryDofConnectivities);
             }
         }
     }

@@ -9,7 +9,7 @@ using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
 using Xunit;
 using static ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem.Feti1ProjectedInterfaceProblemSolver;
 
@@ -193,7 +193,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             builder.YoungModuliOfSubdomains = new double[,] { { E1, E0, E0, E0 }, { E1, E0, E0, E0 } };
             builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LeftSide, StructuralDof.TranslationX, 0.0);
             builder.PrescribeDisplacement(Uniform2DModelBuilder.BoundaryRegion.LeftSide, StructuralDof.TranslationY, 0.0);
-            builder.PrescribeDistributedLoad(Uniform2DModelBuilder.BoundaryRegion.RightSide, StructuralDof.TranslationY, 100.0);
+            builder.DistributeLoadAtNodes(Uniform2DModelBuilder.BoundaryRegion.RightSide, StructuralDof.TranslationY, 100.0);
 
             return builder.BuildModel();
         }
@@ -225,19 +225,19 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             else solverBuilder.ProjectionMatrixQIsIdentity = false;
 
             // Preconditioner
-            if (precond == Precond.Lumped) solverBuilder.PreconditionerFactory = new Feti1LumpedPreconditioner.Factory();
+            if (precond == Precond.Lumped) solverBuilder.PreconditionerFactory = new LumpedPreconditioner.Factory();
             else if (precond == Precond.DirichletDiagonal)
             {
-                solverBuilder.PreconditionerFactory = new Feti1DiagonalDirichletPreconditioner.Factory();
+                solverBuilder.PreconditionerFactory = new DiagonalDirichletPreconditioner.Factory();
             }
-            else solverBuilder.PreconditionerFactory = new Feti1DirichletPreconditioner.Factory();
+            else solverBuilder.PreconditionerFactory = new DirichletPreconditioner.Factory();
 
             // PCG may need to use the exact residual for the comparison with the expected values
             bool residualIsExact = residualConvergence == Residual.Exact;
-            ExactPcpgConvergence.Factory exactResidualConvergence = null;
+            ExactFeti1PcgConvergence.Factory exactResidualConvergence = null;
             if (residualIsExact)
             {
-                exactResidualConvergence = new ExactPcpgConvergence.Factory(
+                exactResidualConvergence = new ExactFeti1PcgConvergence.Factory(
                     CreateSingleSubdomainModel(stiffnessRatio), solverBuilder.DofOrderer,
                         (model, solver) => new ProblemStructural(model, solver));
             }

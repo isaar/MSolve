@@ -9,7 +9,7 @@ using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
 using ISAAR.MSolve.Solvers.DomainDecomposition.MeshPartitioning;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
@@ -146,7 +146,7 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             {
                 double fatorizationTol = 1E-2;
                 var builder = new Feti1Solver.Builder(fatorizationTol);
-                builder.PreconditionerFactory = new Feti1LumpedPreconditioner.Factory();
+                builder.PreconditionerFactory = new LumpedPreconditioner.Factory();
                 builder.ProblemIsHomogeneous = true;
                 return builder.BuildSolver(benchmark.Model);
             }

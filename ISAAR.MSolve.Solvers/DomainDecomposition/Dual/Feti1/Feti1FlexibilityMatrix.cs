@@ -5,17 +5,17 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 {
     public class Feti1FlexibilityMatrix : IInterfaceFlexibilityMatrix
     {
-        private readonly LagrangeMultipliersEnumerator lagrangeEnumerator;
+        private readonly Feti1LagrangeMultipliersEnumerator lagrangeEnumerator;
         private readonly Dictionary<int, SemidefiniteCholeskySkyline> factorizations;
 
         internal Feti1FlexibilityMatrix(Dictionary<int, SemidefiniteCholeskySkyline> factorizations,
-            LagrangeMultipliersEnumerator lagrangeEnumerator)
+            Feti1LagrangeMultipliersEnumerator lagrangeEnumerator)
         {
             this.lagrangeEnumerator = lagrangeEnumerator;
             this.factorizations = factorizations;

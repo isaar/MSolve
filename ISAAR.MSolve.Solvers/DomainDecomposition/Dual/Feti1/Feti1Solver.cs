@@ -9,11 +9,11 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Preconditioning;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Projection;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.StiffnessDistribution;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
-using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcpg;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution;
 using ISAAR.MSolve.Solvers.LinearSystems;
 using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
@@ -25,7 +25,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
     {
         internal const string name = "FETI Level-1 Solver"; // for error messages
         private readonly Dictionary<int, SkylineAssembler> assemblers;
-        private readonly LagrangeMultipliersEnumerator lagrangeEnumerator;
         private readonly ICrosspointStrategy crosspointStrategy = new FullyRedundantConstraints();
         private readonly IDofOrderer dofOrderer;
         private readonly double factorizationPivotTolerance;
@@ -47,10 +46,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         private Dictionary<int, SemidefiniteCholeskySkyline> factorizations;
         private Feti1FlexibilityMatrix flexibility;
         private bool isStiffnessModified = true;
+        private Feti1LagrangeMultipliersEnumerator lagrangeEnumerator;
         private Dictionary<int, List<Vector>> rigidBodyModes;
         private IFetiPreconditioner preconditioner;
         private Feti1Projection projection;
-        private IFeti1StiffnessDistribution stiffnessDistribution;
+        private IStiffnessDistribution stiffnessDistribution;
+        private Feti1SubdomainGlobalMapping subdomainGlobalMapping;
 
         private Feti1Solver(IStructuralModel model, IDofOrderer dofOrderer, double factorizationPivotTolerance,
             IFetiPreconditionerFactory preconditionerFactory, IFeti1InterfaceProblemSolver interfaceProblemSolver,
@@ -84,10 +85,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             this.factorizationPivotTolerance = factorizationPivotTolerance;
             this.preconditionerFactory = preconditionerFactory;
 
-            // PCPG
+            // Interface problem
             this.interfaceProblemSolver = interfaceProblemSolver;
-
-            this.lagrangeEnumerator = new LagrangeMultipliersEnumerator(crosspointStrategy);
 
             // Homogeneous/heterogeneous problems
             this.problemIsHomogeneous = problemIsHomogeneous;
@@ -144,11 +143,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 
         //TODO: this and the fields should be handled by a class that handles dof mappings.
         public Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, IDofType, double> globalNodalLoads)
-            => stiffnessDistribution.SubdomainGlobalConversion.DistributeNodalLoads(LinearSystems, globalNodalLoads);
+            => subdomainGlobalMapping.DistributeNodalLoads(subdomains, globalNodalLoads);
 
         //TODO: this and the fields should be handled by a class that handles dof mappings.
         public Vector GatherGlobalDisplacements(Dictionary<int, IVectorView> subdomainDisplacements)
-            => stiffnessDistribution.SubdomainGlobalConversion.GatherGlobalDisplacements(subdomainDisplacements);
+            => subdomainGlobalMapping.GatherGlobalDisplacements(subdomainDisplacements);
 
         public void HandleMatrixWillBeSet()
         {
@@ -186,11 +185,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 
             // Define boundary / internal dofs
             dofSeparator = new Feti1DofSeparator();
-            dofSeparator.SeparateBoundaryInternalDofs(model);
+            dofSeparator.SeparateDofs(model);
 
             // Define lagrange multipliers and boolean matrices
-            if (problemIsHomogeneous) lagrangeEnumerator.DefineBooleanMatrices(model, dofSeparator); // optimization in this case
-            else lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model, dofSeparator);
+            this.lagrangeEnumerator = new Feti1LagrangeMultipliersEnumerator(crosspointStrategy, dofSeparator);
+            if (problemIsHomogeneous) lagrangeEnumerator.DefineBooleanMatrices(model); // optimization in this case
+            else lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model);
 
             // Log dof statistics
             if (Logger != null)
@@ -224,8 +224,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 BuildPreconditioner();
                 FactorizeMatrices();
                 BuildProjection();
-                isStiffnessModified = false;
                 flexibility = new Feti1FlexibilityMatrix(factorizations, lagrangeEnumerator);
+                isStiffnessModified = false;
             }
 
             // Calculate the rhs vectors of the interface system
@@ -362,15 +362,25 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             {
                 subdomainForces[linearSystem.Subdomain.ID] = linearSystem.RhsVector;
             }
-            return stiffnessDistribution.SubdomainGlobalConversion.CalculateGlobalForcesNorm(subdomainForces);
+            return subdomainGlobalMapping.CalculateGlobalForcesNorm(subdomainForces);
         }
 
         private void DetermineStiffnessDistribution(Dictionary<int, IMatrixView> stiffnessMatrices)
         {
             // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
             //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
-            if (problemIsHomogeneous) stiffnessDistribution = new HomogeneousStiffnessDistribution(model, dofSeparator);
-            else stiffnessDistribution = new HeterogeneousStiffnessDistribution(model, dofSeparator, stiffnessMatrices);
+            if (problemIsHomogeneous)
+            {
+                stiffnessDistribution = new HomogeneousStiffnessDistribution(model, dofSeparator);
+            }
+            else
+            {
+                Table<INode, IDofType, BoundaryDofLumpedStiffness> boundaryDofStiffnesses =
+                    BoundaryDofLumpedStiffness.ExtractBoundaryDofLumpedStiffnesses(
+                        dofSeparator.GlobalBoundaryDofs, stiffnessMatrices);
+                stiffnessDistribution = new HeterogeneousStiffnessDistribution(model, dofSeparator, boundaryDofStiffnesses);
+            }
+            subdomainGlobalMapping = new Feti1SubdomainGlobalMapping(model, dofSeparator, stiffnessDistribution);
         }
 
         private void FactorizeMatrices()
@@ -406,7 +416,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             public IFeti1InterfaceProblemSolver InterfaceProblemSolver { get; set; } = 
                 (new Feti1ProjectedInterfaceProblemSolver.Builder()).Build();
 
-            public IFetiPreconditionerFactory PreconditionerFactory { get; set; } = new Feti1LumpedPreconditioner.Factory();
+            public IFetiPreconditionerFactory PreconditionerFactory { get; set; } = new LumpedPreconditioner.Factory();
             public bool ProblemIsHomogeneous { get; set; } = true;
             public bool ProjectionMatrixQIsIdentity { get; set; } = true;
             //public PdeOrder PdeOrder { get; set; } = PdeOrder.Second; // Instead the user explicitly sets Q.
