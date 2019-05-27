@@ -63,22 +63,36 @@ namespace ISAAR.MSolve.XFEM.Elements
 
         public IElementType ElementType => this;
 
-        // TODO: Perhaps elements should not be enriched explicitly. 
-        // Instead the enrichment items should store which elements they interact with. 
-        // If the element needs to access the enrichment items it should do so through its nodes.
-        // Ok, but how would the integration strategy access the enrichment item?
-        public HashSet<IEnrichmentItem2D> EnrichmentItems
+        //TODO: This must be refactored together with EnrichmentItems properties
+        private bool IsStandardElement
         {
             get
             {
-                var allEnrichments = new HashSet<IEnrichmentItem2D>();
                 foreach (XNode node in Nodes)
                 {
-                    foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys) allEnrichments.Add(enrichment);
+                    if (node.EnrichmentItems.Count != 0) return false;
                 }
-                return allEnrichments;
+                return true;
             }
         }
+
+        // ERROR: elements should not be enriched explicitly. 
+        // Instead the enrichment items should store which elements they interact with. 
+        // If the element needs to access the enrichment items it should do so through its nodes.
+        // Ok, but how would the integration strategy access the enrichment item?
+        public List<IEnrichmentItem2D> EnrichmentItems { get; } = new List<IEnrichmentItem2D>();
+        //public HashSet<IEnrichmentItem2D> EnrichmentItems 
+        //{
+        //    get
+        //    {
+        //        var allEnrichments = new HashSet<IEnrichmentItem2D>();
+        //        foreach (XNode node in Nodes)
+        //        {
+        //            foreach (IEnrichmentItem2D enrichment in node.EnrichmentItems.Keys) allEnrichments.Add(enrichment);
+        //        }
+        //        return allEnrichments;
+        //    }
+        //}
 
         public IGaussPointExtrapolation2D GaussPointExtrapolation { get; }
 
@@ -113,6 +127,7 @@ namespace ISAAR.MSolve.XFEM.Elements
             IReadOnlyList<EvalInterpolation2D> evaluatedInterpolations = 
                 Interpolation.EvaluateAllAtGaussPoints(Nodes, StandardQuadrature);
 
+            //TODO: Use the standard quadrature for Kss.
             foreach (GaussPoint gaussPoint in IntegrationStrategy.GenerateIntegrationPoints(this))
             {
                 EvalInterpolation2D evaluatedInterpolation = Interpolation.EvaluateAllAt(Nodes, gaussPoint);
@@ -499,7 +514,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         internal IMatrix JoinStiffnessesNodeMajor()
         {
             //TODO: Perhaps it is more efficient to do this by just appending Kse and Kee to Kss.
-            if (EnrichmentItems.Count == 0) return BuildStandardStiffnessMatrix();
+            if (IsStandardElement) return BuildStandardStiffnessMatrix();
             else
             {
                 // The dof order in increasing frequency of change is: node, enrichment item, enrichment function, axis.
@@ -574,7 +589,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         internal IReadOnlyList<IReadOnlyList<IDofType>> OrderDofsNodeMajor()
         {
             //TODO: should they enriched dofs also be cached per element?
-            if (EnrichmentItems.Count == 0) return standardDofTypes;
+            if (IsStandardElement) return standardDofTypes;
             else
             {
                 // The dof order in increasing frequency of change is: node, enrichment item, enrichment function, axis.
@@ -600,7 +615,7 @@ namespace ISAAR.MSolve.XFEM.Elements
         internal IReadOnlyList<IReadOnlyList<IDofType>> OrderDofsStandardFirst()
         {
             //TODO: should they enriched dofs also be cached per element?
-            if (EnrichmentItems.Count == 0) return standardDofTypes;
+            if (IsStandardElement) return standardDofTypes;
             else
             {
                 // The dof order in increasing frequency of change is: node, enrichment item, enrichment function, axis.

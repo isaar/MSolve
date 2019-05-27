@@ -97,7 +97,7 @@ namespace ISAAR.MSolve.XFEM.Tests
         /// boundary or if the fracture toughness is exceeded.
         /// </summary>
         private readonly int maxIterations;
-        private readonly int numSubdomains;
+        //private readonly int numSubdomains;
 
         private TrackingExteriorCrackLSM crack;
         private BidirectionalMesh2D<XNode, XContinuumElement2D> mesh;
@@ -108,7 +108,7 @@ namespace ISAAR.MSolve.XFEM.Tests
         /// <param name="growthLength">The length by which the crack grows in each iteration.</param>
         public FilletBenchmark(double growthLength, double jIntegralRadiusOverElementSize, string meshPath,
              string lsmOutputDirectory, string propagationPath, bool writePropagation, int maxIterations,
-              bool rigidBCs, double heavisideTol, int numSubdomains)
+              bool rigidBCs, double heavisideTol/*, int numSubdomains*/)
         {
             this.growthLength = growthLength;
             this.jIntegralRadiusOverElementSize = jIntegralRadiusOverElementSize;
@@ -119,7 +119,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             this.maxIterations = maxIterations;
             this.rigidBCs = rigidBCs;
             this.heavisideTol = heavisideTol;
-            this.numSubdomains = numSubdomains;
+            //this.numSubdomains = numSubdomains;
         }
 
         /// <summary>
@@ -136,7 +136,7 @@ namespace ISAAR.MSolve.XFEM.Tests
         /// </summary>
         public XModel Model { get; private set; }
 
-        public string Name { get { return "Fillet"; } }
+        public string Name { get { return "Fillet benchmark"; } }
 
         //public string PlotDirectory { get { return lsmPlotDirectory; } }
 
@@ -149,7 +149,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             analyzer.Initialize();
             analyzer.Analyze();
 
-            #region crack path writing
+            #region crack propagation output
             // Write crack path
             //Console.WriteLine("Crack path:");
             //foreach (var point in crack.CrackPath)
@@ -341,22 +341,21 @@ namespace ISAAR.MSolve.XFEM.Tests
             /// </summary>
             public int MaxIterations { get; set; } = int.MaxValue;
 
-            public int NumSubdomains { get; set; } = 1;
+            //public int NumSubdomains { get; set; } = 1;
 
             public string PropagationPath { get; set; }
 
             /// <summary>
             /// The absolute path of the file where slover timing will be written.
             /// </summary>
-            public string TimingOutputDirectory { get; }
+            //public string TimingOutputDirectory { get; }
 
             public bool WritePropagation { get; set; } = true;
 
             public FilletBenchmark BuildBenchmark()
             {
-                return new FilletBenchmark(growthLength, JintegralRadiusOverElementSize, meshPath, LsmPlotDirectory, 
-                    PropagationPath, WritePropagation, MaxIterations, RigidBCs, HeavisideEnrichmentTolerance, 
-                    NumSubdomains);
+                return new FilletBenchmark(growthLength, JintegralRadiusOverElementSize, meshPath, LsmPlotDirectory,
+                    PropagationPath, WritePropagation, MaxIterations, RigidBCs, HeavisideEnrichmentTolerance);
             }
         }
 

@@ -26,15 +26,18 @@ namespace ISAAR.MSolve.XFEM.Enrichments.Items
             node.EnrichmentItems.Add(this, enrichmentValues);
         }
 
-        //OBSOLETE: Elements access their enrichments from nodes now.
-        //public void EnrichElement(XContinuumElement2D element)
-        //{
-        //    if (!affectedElements.Contains(element))
-        //    {
-        //        affectedElements.Add(element);
-        //        element.EnrichmentItems.Add(this);
-        //    }
-        //}
+        //TODO: I tried an alternative approach, ie elements access their enrichments from their nodes. 
+        //      My original thought that this approach (storing enrichments in elements, unless they are standard /
+        //      blending) wouldn't work for blending elements, was incorrect, as elements with 0 enrichments
+        //      were then examined and separated into standard / blending.
+        public void EnrichElement(XContinuumElement2D element)
+        {
+            if (!affectedElements.Contains(element))
+            {
+                affectedElements.Add(element);
+                element.EnrichmentItems.Add(this);
+            }
+        }
 
         public abstract double[] EvaluateFunctionsAt(XNode node);
         public abstract EvaluatedFunction2D[] EvaluateAllAt(NaturalPoint point, XContinuumElement2D element,

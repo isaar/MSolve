@@ -165,7 +165,6 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             var builder = new FilletBenchmark.Builder(meshPath, growthLength);
             builder.HeavisideEnrichmentTolerance = 0.01;
             builder.RigidBCs = true;
-            builder.NumSubdomains = 5;
             builder.MaxIterations = 13;
 
             // Usually should be in [1.5, 2.5). The J-integral radius must be large enough to at least include elements around

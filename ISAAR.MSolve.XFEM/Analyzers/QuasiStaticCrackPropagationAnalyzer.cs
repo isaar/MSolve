@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using ISAAR.MSolve.Analyzers.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Logging.Interfaces;
 using ISAAR.MSolve.Solvers;
@@ -80,6 +82,7 @@ namespace ISAAR.MSolve.XFEM.Analyzers
                 {
                     linearSystem.RhsVector = linearSystem.Subdomain.Forces;
                 }
+                AddEquivalentNodalLoadsToRhs();
 
                 // Solve the linear system
                 solver.Solve();
@@ -116,6 +119,31 @@ namespace ISAAR.MSolve.XFEM.Analyzers
                 }
             }
             Termination = CrackPropagationTermination.RequiredIterationsWereCompleted;
+        }
+
+        private void AddEquivalentNodalLoadsToRhs()
+        {
+            foreach (ILinearSystem linearSystem in linearSystems.Values)
+            {
+                try
+                {
+                    // Make sure there is at least one non zero prescribed displacement.
+                    (INode node, IDofType dof, double displacement) = linearSystem.Subdomain.Constraints.Find(du => du != 0.0);
+
+                    //TODO: the following 2 lines are meaningless outside diplacement control (and even then, they are not so clear).
+                    double scalingFactor = 1;
+                    IVector initialFreeSolution = linearSystem.CreateZeroVector();
+
+                    IVector equivalentNodalLoads = problem.DirichletLoadsAssembler.GetEquivalentNodalLoads(
+                        linearSystem.Subdomain, initialFreeSolution, scalingFactor);
+                    linearSystem.RhsVector.SubtractIntoThis(equivalentNodalLoads);
+                }
+                catch (KeyNotFoundException)
+                {
+                    // There aren't any non zero prescribed displacements, therefore we do not have to calculate the equivalent 
+                    // nodal loads, which is an expensive operation (all elements are accessed, their stiffness is built, etc..)
+                }
+            }
         }
 
         private void BuildMatrices()
