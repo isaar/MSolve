@@ -50,7 +50,10 @@ namespace ISAAR.MSolve.SamplesConsole
             //SolveCantileverWithStochasticMaterial();
 
             //MeshPartitioningExamples.PartitionMeshes();
-            Fillet.Run();
+
+            // COMPDYN benchmarks
+            //Fillet.Run();
+            Holes.Run();
         }
 
         private static void SolveBuildingInNoSoilSmall()

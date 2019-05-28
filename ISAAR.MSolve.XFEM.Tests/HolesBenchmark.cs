@@ -114,7 +114,6 @@ namespace ISAAR.MSolve.XFEM.Tests
         private readonly int maxIterations;
         //private readonly int numSubdomains;
         private readonly double tipEnrichmentRadius;
-        private BidirectionalMesh2D<XNode, XContinuumElement2D> mesh;
 
         /// <summary>
         /// 
@@ -144,6 +143,8 @@ namespace ISAAR.MSolve.XFEM.Tests
         /// The crack geometry description
         /// </summary>
         public ICrackDescription Crack { get; private set; }
+
+        public BidirectionalMesh2D<XNode, XContinuumElement2D> Mesh { get; set; }
 
         /// <summary>
         /// Before accessing it, make sure <see cref="InitializeModel"/> has been called.
@@ -335,7 +336,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             // Mesh usable for crack-mesh interaction
             var boundary = new HolesBoundary();
             Model.Boundary = boundary;
-            mesh = new BidirectionalMesh2D<XNode, XContinuumElement2D>(Model.Nodes, cells, boundary);
+            Mesh = new BidirectionalMesh2D<XNode, XContinuumElement2D>(Model.Nodes, cells, boundary);
         }
 
         private void InitializeCrack()
@@ -346,7 +347,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             if (!writePropagation) leftPropagator = new FixedPropagator(leftPropagationPath, null);
             else
             {
-                leftPropagator = new Propagator(mesh, jIntegralRadiusOverElementSize,
+                leftPropagator = new Propagator(Mesh, jIntegralRadiusOverElementSize,
                 new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
@@ -355,7 +356,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             var initialLeftCrack = new PolyLine2D(new CartesianPoint(leftCrackMouthX, leftCrackMouthY),
                 new CartesianPoint(leftCrackTipX, leftCrackTipY));
             LeftCrack = new TrackingExteriorCrackLSM(leftPropagator, tipEnrichmentRadius, new RelativeAreaResolver(heavisideTol));
-            LeftCrack.Mesh = mesh;
+            LeftCrack.Mesh = Mesh;
 
             // Create enrichments          
             LeftCrack.CrackBodyEnrichment = new CrackBodyEnrichment2D(LeftCrack);
@@ -376,7 +377,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             if (!writePropagation) rightPropagator = new FixedPropagator(rightPropagationPath, null);
             else
             {
-                rightPropagator = new Propagator(mesh, jIntegralRadiusOverElementSize,
+                rightPropagator = new Propagator(Mesh, jIntegralRadiusOverElementSize,
                 new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
                 new MaximumCircumferentialTensileStressCriterion(), new ConstantIncrement2D(growthLength));
@@ -385,7 +386,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             var initialRightCrack = new PolyLine2D(new CartesianPoint(rightCrackMouthX, rightCrackMouthY),
                 new CartesianPoint(rightCrackTipX, rightCrackTipY));
             RightCrack = new TrackingExteriorCrackLSM(rightPropagator, tipEnrichmentRadius, new RelativeAreaResolver(heavisideTol));
-            RightCrack.Mesh = mesh;
+            RightCrack.Mesh = Mesh;
 
             // Create enrichments          
             RightCrack.CrackBodyEnrichment = new CrackBodyEnrichment2D(RightCrack);
