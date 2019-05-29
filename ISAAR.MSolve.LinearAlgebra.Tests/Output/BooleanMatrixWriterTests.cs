@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 using ISAAR.MSolve.LinearAlgebra.Output;
 using ISAAR.MSolve.LinearAlgebra.Tests.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;

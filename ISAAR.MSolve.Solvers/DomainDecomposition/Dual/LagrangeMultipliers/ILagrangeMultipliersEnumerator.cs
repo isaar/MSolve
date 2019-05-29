@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
 {

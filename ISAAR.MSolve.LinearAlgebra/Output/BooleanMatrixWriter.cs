@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 
 namespace ISAAR.MSolve.LinearAlgebra.Output
 {

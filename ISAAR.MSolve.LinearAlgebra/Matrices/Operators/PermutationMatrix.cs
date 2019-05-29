@@ -1,7 +1,7 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.LinearAlgebra.Matrices
+namespace ISAAR.MSolve.LinearAlgebra.Matrices.Operators
 {
     /// <summary>
     /// Efficient implementation for permutation matrices, namely matrices that change the order of vector entries, matrix rows

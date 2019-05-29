@@ -5,7 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.LinearAlgebra.Matrices
+namespace ISAAR.MSolve.LinearAlgebra.Matrices.Operators
 {
     /// <summary>
     /// Sparse matrix with the non-zero entries being 1 or -1. Its main use is in domain decomposition solvers. In this context, 
@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// empty. The internal data structures that store the non-zero entries are row major.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class SignedBooleanMatrix: IIndexable2D, ISparseMatrix
+    public class SignedBooleanMatrix: IMappingMatrix, ISparseMatrix
     {
         /// <summary>
         /// (row, (column, sign))
@@ -60,8 +60,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="rowIdx">The row index: 0 &lt;= <paramref name="rowIdx"/> &lt; <see cref="NumRows"/>.</param>
         /// <param name="colIdx">The column index: 0 &lt;= <paramref name="colIdx"/> &lt; <see cref="NumColumns"/>.</param>
-        /// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="rowIdx"/> or <paramref name="colIdx"/> violate 
-        ///     the described constraints.</exception>
+        /// <exception cref="IndexOutOfRangeException">
+        /// Thrown if <paramref name="rowIdx"/> or <paramref name="colIdx"/> violate the described constraints.
+        /// </exception>
         public int this[int rowIdx, int colIdx]
         {
             get
@@ -77,12 +78,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// Sets the entry with indices (<paramref name="rowIdx"/>, <paramref name="colIdx"/>) to +1 or -1.
         /// </summary>
-        /// <param name="rowIdx">The row index of the entry to set. Constraints: 
-        ///     0 &lt;= <paramref name="rowIdx"/> &lt; <see cref="NumRows"/>.</param>
-        /// <param name="colIdx">The column index of the entry to set. Constraints: 
-        ///     0 &lt;= <paramref name="colIdx"/> &lt; <see cref="NumColumns"/>.</param>
-        /// <param name="sign">If true, the entry (<paramref name="rowIdx"/>, <paramref name="colIdx"/>)  will be set to +1. If 
-        ///     false, it will be set to -1.</param>
+        /// <param name="rowIdx">
+        /// The row index of the entry to set. Constraints: 
+        /// 0 &lt;= <paramref name="rowIdx"/> &lt; <see cref="NumRows"/>.
+        /// </param>
+        /// <param name="colIdx">
+        /// The column index of the entry to set. Constraints: 
+        /// 0 &lt;= <paramref name="colIdx"/> &lt; <see cref="NumColumns"/>.
+        /// </param>
+        /// <param name="sign">
+        /// If true, the entry (<paramref name="rowIdx"/>, <paramref name="colIdx"/>)  will be set to +1. 
+        /// If false, it will be set to -1.
+        /// </param>
         public void AddEntry(int rowIdx, int colIdx, bool sign)
         {
             if (data.TryGetValue(rowIdx, out Dictionary<int, int> colSigns))
@@ -106,8 +113,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// Initializes a new <see cref="Matrix"/> instance by copying the entries of this <see cref="SignedBooleanMatrix"/>.
         /// </summary>
-        /// <param name="transpose">If true, the new matrix will be transpose to this <see cref="SignedBooleanMatrix"/>. If 
-        ///     false, thay will represent the exact same matrix (in different formats).</param>
+        /// <param name="transpose">
+        /// If true, the new matrix will be transpose to this <see cref="SignedBooleanMatrix"/>. If false, they will 
+        /// represent the exact same matrix (in different formats).
+        /// </param>
         public Matrix CopyToFullMatrix(bool transpose)
         {
             // TODO: perhaps I should work with th col major arrays.
@@ -202,10 +211,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// Returns a vector with the entries of the original matrix's row at index = <paramref name="rowIdx"/>.
         /// </summary>
-        /// <param name="rowIdx">The index of the row to return. Constraints: 
-        ///     0 &lt;= <paramref name="rowIdx"/> &lt; <see cref="IIndexable2D.NumRows"/>.</param>
-        /// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="rowIdx"/> violates the described 
-        ///     constraints.</exception>
+        /// <param name="rowIdx">
+        /// The index of the row to return. Constraints: 
+        /// 0 &lt;= <paramref name="rowIdx"/> &lt; <see cref="IIndexable2D.NumRows"/>.
+        /// </param>
+        /// <exception cref="IndexOutOfRangeException">
+        /// Thrown if <paramref name="rowIdx"/> violates the described constraints.
+        /// </exception>
         public Vector GetRow(int rowIdx)
         {
             var rowVector = new double[NumColumns];
@@ -249,11 +261,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// To multiply this * columnVector, set <paramref name="transposeThis"/> to false.
         /// To multiply rowVector * this, set <paramref name="transposeThis"/> to true.
         /// </summary>
-        /// <param name="vector">A vector with <see cref="IIndexable1D.Length"/> being equal to the 
-        ///     <see cref="IIndexable2D.NumColumns"/> of oper(this).</param>
+        /// <param name="vector">
+        /// A vector with <see cref="IIndexable1D.Length"/> being equal to the <see cref="IIndexable2D.NumColumns"/> 
+        /// of oper(this).
+        /// </param>
         /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
-        /// <exception cref="NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
-        ///     <paramref name="vector"/> is different than the <see cref="NumColumns"/> of oper(this).</exception>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if the <see cref="IIndexable1D.Length"/> of <paramref name="vector"/> is different 
+        /// than the <see cref="NumColumns"/> of oper(this).
+        /// </exception>
         public Vector Multiply(Vector vector, bool transposeThis = false)
         {
             //TODO: I think that dealing with arrays will be faster than iterating the dictionaries. Another reason to separate 
@@ -310,22 +326,5 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
             return Vector.CreateFromArray(result, false);
         }
-
-        //TODO: delete this. There is now a dedicated Writer class
-        //private void WriteToConsole()
-        //{
-        //    for (int i = 0; i < NumRows; ++i)
-        //    {
-        //        bool rowExists = data.TryGetValue(i, out Dictionary<int, int> colSigns);
-        //        for (int j = 0; j < NumColumns; ++j)
-        //        {
-        //            int val = 0;
-        //            if (rowExists) colSigns.TryGetValue(j, out val);
-        //            Console.Write($"{val,3}");
-        //        }
-        //        Console.WriteLine();
-        //    }
-        //    Console.WriteLine();
-        //}
     }
 }
