@@ -17,6 +17,7 @@ using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 using ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving;
 using ISAAR.MSolve.XFEM.CrackGeometry.Implicit;
+using ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging;
 using ISAAR.MSolve.XFEM.CrackPropagation;
 using ISAAR.MSolve.XFEM.CrackPropagation.Direction;
 using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
@@ -361,12 +362,12 @@ namespace ISAAR.MSolve.XFEM.Tests
             // Create enrichments          
             LeftCrack.CrackBodyEnrichment = new CrackBodyEnrichment2D(LeftCrack);
             LeftCrack.CrackTipEnrichments = new CrackTipEnrichments2D(LeftCrack, CrackTipPosition.Single);
-            //if (leftLsmPlotDirectory != null)
-            //{
-            //    leftCrack.EnrichmentLogger = new EnrichmentLogger(Model, leftCrack, leftLsmPlotDirectory);
-            //    leftCrack.LevelSetLogger = new LevelSetLogger(Model, leftCrack, leftLsmPlotDirectory);
-            //    leftCrack.LevelSetComparer = new PreviousLevelSetComparer(leftCrack, leftLsmPlotDirectory);
-            //}
+            if (leftLsmPlotDirectory != null)
+            {
+                LeftCrack.EnrichmentLogger = new EnrichmentLogger(Model, LeftCrack, leftLsmPlotDirectory);
+                LeftCrack.LevelSetLogger = new LevelSetLogger(Model, LeftCrack, leftLsmPlotDirectory);
+                LeftCrack.LevelSetComparer = new PreviousLevelSetComparer(LeftCrack, leftLsmPlotDirectory);
+            }
 
             // Mesh geometry interaction
             LeftCrack.InitializeGeometry(initialLeftCrack);
@@ -391,12 +392,12 @@ namespace ISAAR.MSolve.XFEM.Tests
             // Create enrichments          
             RightCrack.CrackBodyEnrichment = new CrackBodyEnrichment2D(RightCrack);
             RightCrack.CrackTipEnrichments = new CrackTipEnrichments2D(RightCrack, CrackTipPosition.Single);
-            //if (rightLsmPlotDirectory != null)
-            //{
-            //    rightCrack.EnrichmentLogger = new EnrichmentLogger(Model, rightCrack, rightLsmPlotDirectory);
-            //    rightCrack.LevelSetLogger = new LevelSetLogger(Model, rightCrack, rightLsmPlotDirectory);
-            //    rightCrack.LevelSetComparer = new PreviousLevelSetComparer(rightCrack, rightLsmPlotDirectory);
-            //}
+            if (rightLsmPlotDirectory != null)
+            {
+                RightCrack.EnrichmentLogger = new EnrichmentLogger(Model, RightCrack, rightLsmPlotDirectory);
+                RightCrack.LevelSetLogger = new LevelSetLogger(Model, RightCrack, rightLsmPlotDirectory);
+                RightCrack.LevelSetComparer = new PreviousLevelSetComparer(RightCrack, rightLsmPlotDirectory);
+            }
 
             // Mesh geometry interaction
             RightCrack.InitializeGeometry(initialRightCrack);

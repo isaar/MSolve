@@ -16,6 +16,7 @@ using ISAAR.MSolve.XFEM.Analyzers;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 using ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving;
 using ISAAR.MSolve.XFEM.CrackGeometry.Implicit;
+using ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging;
 using ISAAR.MSolve.XFEM.CrackPropagation;
 using ISAAR.MSolve.XFEM.CrackPropagation.Direction;
 using ISAAR.MSolve.XFEM.CrackPropagation.Jintegral;
@@ -107,13 +108,13 @@ namespace ISAAR.MSolve.XFEM.Tests
         /// </summary>
         /// <param name="growthLength">The length by which the crack grows in each iteration.</param>
         public FilletBenchmark(double growthLength, double jIntegralRadiusOverElementSize, string meshPath,
-             string lsmOutputDirectory, string propagationPath, bool writePropagation, int maxIterations,
+             string lsmPlotDirectory, string propagationPath, bool writePropagation, int maxIterations,
               bool rigidBCs, double heavisideTol/*, int numSubdomains*/)
         {
             this.growthLength = growthLength;
             this.jIntegralRadiusOverElementSize = jIntegralRadiusOverElementSize;
             this.meshPath = meshPath;
-            this.lsmPlotDirectory = lsmOutputDirectory;
+            this.lsmPlotDirectory = lsmPlotDirectory;
             this.propagationPath = propagationPath;
             this.writePropagation = writePropagation;
             this.maxIterations = maxIterations;
@@ -277,12 +278,12 @@ namespace ISAAR.MSolve.XFEM.Tests
             // Create enrichments          
             lsmCrack.CrackBodyEnrichment = new CrackBodyEnrichment2D(lsmCrack);
             lsmCrack.CrackTipEnrichments = new CrackTipEnrichments2D(lsmCrack, CrackTipPosition.Single);
-            //if (lsmPlotDirectory != null)
-            //{
-            //    lsmCrack.EnrichmentLogger = new EnrichmentLogger(Model, lsmCrack, lsmPlotDirectory);
-            //    lsmCrack.LevelSetLogger = new LevelSetLogger(Model, lsmCrack, lsmPlotDirectory);
-            //    lsmCrack.LevelSetComparer = new PreviousLevelSetComparer(lsmCrack, lsmPlotDirectory);
-            //}
+            if (lsmPlotDirectory != null)
+            {
+                lsmCrack.EnrichmentLogger = new EnrichmentLogger(Model, lsmCrack, lsmPlotDirectory);
+                lsmCrack.LevelSetLogger = new LevelSetLogger(Model, lsmCrack, lsmPlotDirectory);
+                lsmCrack.LevelSetComparer = new PreviousLevelSetComparer(lsmCrack, lsmPlotDirectory);
+            }
 
             // Mesh geometry interaction
             lsmCrack.InitializeGeometry(initialCrack);
@@ -346,9 +347,9 @@ namespace ISAAR.MSolve.XFEM.Tests
             public string PropagationPath { get; set; }
 
             /// <summary>
-            /// The absolute path of the file where slover timing will be written.
+            /// The absolute path of the file where solver timing will be written.
             /// </summary>
-            //public string TimingOutputDirectory { get; }
+            public string TimingOutputDirectory { get; }
 
             public bool WritePropagation { get; set; } = true;
 

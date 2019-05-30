@@ -24,11 +24,10 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
     {
         public static void Run()
         {
-            string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes.msh";
             string subdomainPlotPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Plots\subdomains.vtk";
 
             // Skyline
-            HolesBenchmark benchmarkSub1 = CreateSingleSubdomainBenchmark(meshPath);
+            HolesBenchmark benchmarkSub1 = CreateSingleSubdomainBenchmark();
             ISolver skylineSolver = DefineSolver(benchmarkSub1, SolverType.Skyline);
             //Console.WriteLine("Uncracked analysis, 1 subdomain, Skyline   : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub1.Model, skylineSolver));
@@ -39,31 +38,31 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
 
             // FETI-1 10 subdomains
             HolesBenchmark benchmarkSub10;
-            benchmarkSub10 = CreateMultiSubdomainBenchmark(10, meshPath);
-            PlotSubdomains(subdomainPlotPath, benchmarkSub10.Model);
-            ISolver solverFeti1 = DefineSolver(benchmarkSub10, SolverType.Feti1);
+            //benchmarkSub10 = CreateMultiSubdomainBenchmark(10);
+            //PlotSubdomains(subdomainPlotPath, benchmarkSub10.Model);
+            //ISolver solverFeti1 = DefineSolver(benchmarkSub10, SolverType.Feti1);
             //Console.WriteLine("Uncracked analysis, 10 subdomains, FETI-1  : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub10.Model, solverFeti1));
             //Console.WriteLine("Cracked analysis only 1 step, 10 subdomains, FETI-1  : norm2(globalU) = " +
             //    RunSingleCrackedStep(benchmarkSub10.Model, benchmarkSub10.Crack, solverFeti1));
-            Console.WriteLine("FETI-1, 10 subdomains: ");
-            RunCrackPropagationAnalysis(benchmarkSub10, solverFeti1);
+            //Console.WriteLine("FETI-1, 10 subdomains: ");
+            //RunCrackPropagationAnalysis(benchmarkSub10, solverFeti1);
 
             // FETI-DP 10 subdomains
-            benchmarkSub10 = CreateMultiSubdomainBenchmark(10, meshPath);
+            //benchmarkSub10 = CreateMultiSubdomainBenchmark(10);
             //PlotSubdomains(subdomainPlotPath, benchmarkSub10.Model);
-            ISolver solverFetiDP = DefineSolver(benchmarkSub10, SolverType.FetiDP);
+            //ISolver solverFetiDP = DefineSolver(benchmarkSub10, SolverType.FetiDP);
             //Console.WriteLine("Uncracked analysis, 10 subdomains, FETI-DP : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub10.Model, solverFetiDP));
             //Console.WriteLine("Cracked analysis only 1 step, 10 subdomains, FETI-DP : norm2(globalU) = " +
             //    RunSingleCrackedStep(benchmarkSub10.Model, benchmarkSub10.Crack, solverFetiDP));
-            Console.WriteLine("FETI-DP, 10 subdomains: ");
-            RunCrackPropagationAnalysis(benchmarkSub10, solverFetiDP);
+            //Console.WriteLine("FETI-DP, 10 subdomains: ");
+            //RunCrackPropagationAnalysis(benchmarkSub10, solverFetiDP);
 
             Console.Write("\nEnd");
         }
 
-        private static HolesBenchmark CreateMultiSubdomainBenchmark(int numSubdomains, string meshPath)
+        private static HolesBenchmark CreateMultiSubdomainBenchmark(int numSubdomains)
         {
             // Define subdomain boundaries
             double tol = 1E-13;
@@ -129,7 +128,7 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             }
 
             // Create the model, crack & mesh with only 1 subdomain
-            HolesBenchmark benchmark = CreateSingleSubdomainBenchmark(meshPath);
+            HolesBenchmark benchmark = CreateSingleSubdomainBenchmark();
 
             // Partition mesh into subdomains
             var regionsGeneral = new Dictionary<int, IRegion2D>();
@@ -148,11 +147,17 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             return benchmark;
         }
 
-        private static HolesBenchmark CreateSingleSubdomainBenchmark(string meshPath)
+        private static HolesBenchmark CreateSingleSubdomainBenchmark()
         {
+            string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes.msh";
+            string leftCrackPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Plots\Left";
+            string rightCrackPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Plots\Right";
+
             double growthLength = 1.0; // mm. Must be sufficiently larger than the element size.
 
             var builder = new HolesBenchmark.Builder(meshPath, growthLength);
+            builder.LeftLsmPlotDirectory = leftCrackPlotDirectory;
+            builder.RightLsmPlotDirectory = rightCrackPlotDirectory;
 
             builder.HeavisideEnrichmentTolerance = 0.12;
 

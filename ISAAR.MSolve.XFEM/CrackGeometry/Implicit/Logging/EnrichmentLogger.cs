@@ -12,11 +12,11 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
     public class EnrichmentLogger
     {
         private readonly TrackingExteriorCrackLSM lsm;
-        private readonly Model2D_old model;
+        private readonly XModel model;
         private readonly string outputDirectory;
         private int iteration;
 
-        public EnrichmentLogger(Model2D_old model, TrackingExteriorCrackLSM lsm, string outputDirectory)
+        public EnrichmentLogger(XModel model, TrackingExteriorCrackLSM lsm, string outputDirectory)
         {
             this.model = model;
             this.lsm = lsm;
@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
         public void Log()
         {
             // Log the new tip enriched nodes and the signs of their crack body level sets.
-            using (var writer = new VtkPointWriter($"{outputDirectory}\\tip_nodes_new_{iteration}"))
+            using (var writer = new VtkPointWriter($"{outputDirectory}\\tip_nodes_new_{iteration}.vtk"))
             {
                 var tipNodesNew = new Dictionary<CartesianPoint, double>();
                 foreach (var node in lsm.CrackTipNodesNew[lsm.CrackTipEnrichments])
@@ -39,7 +39,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
             }
 
             // Log the old tip enriched nodes and the signs of their crack body level sets.
-            using (var writer = new VtkPointWriter($"{outputDirectory}\\tip_nodes_old_{iteration}"))
+            using (var writer = new VtkPointWriter($"{outputDirectory}\\tip_nodes_old_{iteration}.vtk"))
             {
                 var tipNodesOld = new Dictionary<CartesianPoint, double>();
                 if (iteration > 0)
@@ -58,7 +58,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
             }
 
             // Log all Heaviside enriched nodes and the signs of their crack body level sets.
-            using (var writer = new VtkPointWriter($"{outputDirectory}\\heaviside_nodes_all_{iteration}"))
+            using (var writer = new VtkPointWriter($"{outputDirectory}\\heaviside_nodes_all_{iteration}.vtk"))
             {
                 var heavisideNodesAll = new Dictionary<CartesianPoint, double>();
                 foreach (var node in lsm.CrackBodyNodesAll[lsm.CrackBodyEnrichment])
@@ -70,7 +70,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
             }
 
             // Log only the new Heaviside enriched nodes and the signs of their crack body level sets.
-            using (var writer = new VtkPointWriter($"{outputDirectory}\\heaviside_nodes_new_{iteration}"))
+            using (var writer = new VtkPointWriter($"{outputDirectory}\\heaviside_nodes_new_{iteration}.vtk"))
             {
                 var heavisideNodesNew = new Dictionary<CartesianPoint, double>();
                 foreach (var node in lsm.CrackBodyNodesNew[lsm.CrackBodyEnrichment])
@@ -82,7 +82,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
             }
 
             // Log the nodes that belong to elements intersected by the crack, but are not enriched with Heaviside 
-            using (var writer = new VtkPointWriter($"{outputDirectory}\\heaviside_rejected_nodes_{iteration}"))
+            using (var writer = new VtkPointWriter($"{outputDirectory}\\heaviside_rejected_nodes_{iteration}.vtk"))
             {
                 var rejectedNodes = new Dictionary<CartesianPoint, double>();
                 foreach (var node in lsm.CrackBodyNodesRejected[lsm.CrackBodyEnrichment])
@@ -99,7 +99,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
                 
 
             // Log unmodified Heaviside nodes of elements with at least one modified node
-            using (var writer = new VtkPointWriter($"{outputDirectory}\\near_modified_heaviside_nodes_{iteration}"))
+            using (var writer = new VtkPointWriter($"{outputDirectory}\\near_modified_heaviside_nodes_{iteration}.vtk"))
             {
                 var nearModifiedHeavisideNodes = new Dictionary<CartesianPoint, double>();
                 foreach (var node in lsm.CrackBodyNodesNearModified[lsm.CrackBodyEnrichment])
