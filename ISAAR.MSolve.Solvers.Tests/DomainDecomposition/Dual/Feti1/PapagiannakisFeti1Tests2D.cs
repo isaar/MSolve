@@ -150,21 +150,23 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             //InterfaceSolver interfaceSolver = 0;
             double factorizationTol = 1E-3, pcpgConvergenceTol = 1E-5;
             IVectorView directDisplacements = SolveModelWithoutSubdomains(stiffnessRatio);
-            (IVectorView ddDisplacements, DualSolverLogger logger, int numUniqueGlobalDofs, int numExtenedDomainDofs) =
+            (IVectorView ddDisplacements, SolverLogger logger, int numUniqueGlobalDofs, int numExtenedDomainDofs) =
                 SolveModelWithSubdomains(stiffnessRatio, interfaceSolver, precond, q, convergence, 
                     factorizationTol, pcpgConvergenceTol);
             double normalizedError = directDisplacements.Subtract(ddDisplacements).Norm2() / directDisplacements.Norm2();
 
+            int analysisStep = 0;
             Assert.Equal(882, numUniqueGlobalDofs);    // 882 includes constrained and free dofs
             Assert.Equal(1056, numExtenedDomainDofs); // 1056 includes constrained and free dofs
-            Assert.Equal(190, logger.NumLagrangeMultipliers);
+            Assert.Equal(190, logger.GetNumDofs(analysisStep, "Lagrange multipliers"));
 
             // The error is provided in the reference solution the, but it is almost impossible for two different codes run on 
             // different machines to achieve the exact same accuracy.
             Assert.Equal(0.0, normalizedError, 5);
 
             // Allow a tolerance: It is ok if my solver is better or off by 1 iteration 
-            Assert.InRange(logger.PcgIterations, 1, iterExpected + 1); // the upper bound is inclusive!
+            int pcgIterations = logger.GetNumIterationsOfIterativeAlgorithm(analysisStep);
+            Assert.InRange(pcgIterations, 1, iterExpected + 1); // the upper bound is inclusive!
         }
 
         private static Model CreateModel(double stiffnessRatio)
@@ -209,7 +211,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             return model;
         }
 
-        private static (IVectorView globalDisplacements, DualSolverLogger logger, int numUniqueGlobalDofs, int numExtenedDomainDofs)
+        private static (IVectorView globalDisplacements, SolverLogger logger, int numUniqueGlobalDofs, int numExtenedDomainDofs)
             SolveModelWithSubdomains(double stiffnessRatio, InterfaceSolver interfaceSolver, Precond precond, MatrixQ q,
                 Residual residualConvergence, double factorizationTolerance, double pcgConvergenceTolerance)
         {

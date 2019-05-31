@@ -124,7 +124,7 @@ namespace ISAAR.MSolve.Solvers.Direct
             inverse.MultiplyIntoResult(linearSystem.RhsVector, linearSystem.Solution);
             watch.Stop();
             Logger.LogTaskDuration("Back/forward substitutions", watch.ElapsedMilliseconds);
-            Logger.IncrementIteration();
+            Logger.IncrementAnalysisStep();
         }
 
         protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)
@@ -144,7 +144,7 @@ namespace ISAAR.MSolve.Solvers.Direct
             Matrix result = inverse.MultiplyRight(otherMatrix);
             watch.Stop();
             Logger.LogTaskDuration("Back/forward substitutions", watch.ElapsedMilliseconds);
-            Logger.IncrementIteration();
+            Logger.IncrementAnalysisStep();
             return result;
         }
 

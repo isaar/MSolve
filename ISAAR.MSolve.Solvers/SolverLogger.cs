@@ -14,32 +14,46 @@ namespace ISAAR.MSolve.Solvers
         private readonly List<(int iterations, double residualNormRatio)> iterativeAlgorithmData = new List<(int, double)>();
         private readonly List<SortedDictionary<string, long>> taskDurations = new List<SortedDictionary<string, long>>();
         private readonly List<SortedDictionary<string, int>> numDofsPerCategory = new List<SortedDictionary<string, int>>();
-        private int currentIteration;
+        private int currentStep;
 
         public SolverLogger(string solverName)
         {
             this.solverName = solverName;
-            currentIteration = 0;
+            currentStep = 0;
             taskDurations.Add(new SortedDictionary<string, long>());
             numDofsPerCategory.Add(new SortedDictionary<string, int>());
         }
 
+        public int GetNumDofs(int analysisStep, string category) => numDofsPerCategory[analysisStep][category];
+
+        public int GetNumIterationsOfIterativeAlgorithm(int analysisStep) => iterativeAlgorithmData[analysisStep].iterations;
+        public double GetResidualNormRatioOfIterativeAlgorithm(int analysisStep) 
+            => iterativeAlgorithmData[analysisStep].residualNormRatio;
+
+        /// <summary>
+        /// Adds the duration of the selected task to the duration of the same task during the current analysis step.
+        /// </summary>
+        /// <param name="task"></param>
+        /// <param name="duration"></param>
         public void LogTaskDuration(string task, long duration)
-            => taskDurations[currentIteration][task] = duration;
+        {
+            bool exists = taskDurations[currentStep].TryGetValue(task, out long durationSofar);
+            taskDurations[currentStep][task] = durationSofar + duration;
+        }
 
         public void LogNumDofs(string category, int numDofs)
-            => numDofsPerCategory[currentIteration][category] = numDofs;
+            => numDofsPerCategory[currentStep][category] = numDofs;
 
         public void LogIterativeAlgorithm(int iterations, double residualNormRatio)
-            => iterativeAlgorithmData[currentIteration] = (iterations, residualNormRatio);
+            => iterativeAlgorithmData.Add((iterations, residualNormRatio));
 
         /// <summary>
         /// Each iteration is defined by the solution phase of ISolver. Dof ordering and matrix assembly may also be included, 
         /// but they are not necessarily repeated in all analyses. Thus call it at the end of the Solve() method.
         /// </summary>
-        public void IncrementIteration() //TODO: Forgetting to call this is easy. A better design is needed. 
+        public void IncrementAnalysisStep() //TODO: Forgetting to call this is easy. A better design is needed. 
         {
-            ++currentIteration;
+            ++currentStep;
             taskDurations.Add(new SortedDictionary<string, long>());
             numDofsPerCategory.Add(new SortedDictionary<string, int>());
         }
@@ -52,7 +66,7 @@ namespace ISAAR.MSolve.Solvers
                 WriteHeader(writer, title);
 
                 // Dofs
-                for (int i = 0; i <= currentIteration; ++i)
+                for (int i = 0; i <= currentStep; ++i)
                 {
                     foreach (var categoryDofs in numDofsPerCategory[i])
                     {
@@ -62,7 +76,7 @@ namespace ISAAR.MSolve.Solvers
                 }
 
                 // Durations
-                for (int i = 0; i <= currentIteration; ++i)
+                for (int i = 0; i <= currentStep; ++i)
                 {
                     foreach (var taskDuration in taskDurations[i])
                     {
@@ -72,7 +86,7 @@ namespace ISAAR.MSolve.Solvers
                 }
 
                 // Iterative algorithm data
-                for (int i = 0; i <= currentIteration; ++i)
+                for (int i = 0; i <= currentStep; ++i)
                 {
                     (int iter, double res) = iterativeAlgorithmData[i];
                     writer.Write($"Analysis iteration {i}: ");
@@ -93,7 +107,7 @@ namespace ISAAR.MSolve.Solvers
 
                 // Dofs
                 var numDofsRange = new SortedDictionary<string, (int min, int max)>();
-                for (int i = 0; i <= currentIteration; ++i)
+                for (int i = 0; i <= currentStep; ++i)
                 {
                     foreach (var categoryDofs in numDofsPerCategory[i])
                     {
@@ -123,7 +137,7 @@ namespace ISAAR.MSolve.Solvers
                 // Durations
                 long totalDuration = 0;
                 var taskTotalDurations = new SortedDictionary<string, long>();
-                for (int i = 0; i <= currentIteration; ++i)
+                for (int i = 0; i <= currentStep; ++i)
                 {
                     foreach (var taskDuration in taskDurations[i])
                     {
@@ -143,7 +157,7 @@ namespace ISAAR.MSolve.Solvers
                 // Iterative algorithm data
                 int minIterations = int.MaxValue, maxIterations = int.MinValue;
                 double minResNorm = double.MaxValue, maxResNorm = double.MinValue;
-                for (int i = 0; i <= currentIteration; ++i)
+                for (int i = 0; i <= currentStep; ++i)
                 {
                     (int iter, double res) = iterativeAlgorithmData[i];
                     minIterations = (iter < minIterations) ? iter : minIterations;

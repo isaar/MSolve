@@ -473,7 +473,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             // Solve the interface problem
             var flexibility = new FetiDPFlexibilityMatrix(factorizedKrr, Krc, lagrangeEnumerator, dofSeparator);
             double globalForcesNorm = 10.0; // sqrt(0^2 + 0^2 + ... + 0^2 + 10^2)
-            var logger = new DualSolverLogger();
+            var logger = new SolverLogger("mock FETI-DP");
             (Vector lagranges, Vector uc) = 
                 interfaceSolver.SolveInterfaceProblem(flexibility, preconditioner, globalFcStar, dr, globalForcesNorm, logger);
 

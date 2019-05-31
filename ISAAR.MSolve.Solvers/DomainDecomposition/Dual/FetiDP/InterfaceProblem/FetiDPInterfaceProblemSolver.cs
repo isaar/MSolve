@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
         public Vector SolveCoarseProblem(Vector rhs) => factorizedGlobalKccStar.SolveLinearSystem(rhs);
 
         public (Vector lagrangeMultipliers, Vector cornerDisplacements) SolveInterfaceProblem(FetiDPFlexibilityMatrix flexibility, 
-            IFetiPreconditioner preconditioner, Vector globalFcStar, Vector dr, double globalForcesNorm, DualSolverLogger logger)
+            IFetiPreconditioner preconditioner, Vector globalFcStar, Vector dr, double globalForcesNorm, SolverLogger logger)
         {
             int systemOrder = flexibility.Order;
 
@@ -90,8 +90,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
                     + $" algorithm run for {stats.NumIterationsRequired} iterations and the residual norm ratio was"
                     + $" {stats.ResidualNormRatioEstimation}");
             }
-            logger.PcgIterations = stats.NumIterationsRequired;
-            logger.PcgResidualNormRatio = stats.ResidualNormRatioEstimation;
+            logger.LogIterativeAlgorithm(stats.NumIterationsRequired, stats.ResidualNormRatioEstimation);
 
             // Calculate corner displacements: uc = inv(KccStar) * (fcStar + FIrc^T * lagranges)
             Vector uc = flexibility.MultiplyTransposedFIrc(lagranges);

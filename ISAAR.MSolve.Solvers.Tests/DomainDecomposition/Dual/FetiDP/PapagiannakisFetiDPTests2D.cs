@@ -65,12 +65,13 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
         {
             double pcgConvergenceTol = 1E-5;
             IVectorView directDisplacements = SolveModelWithoutSubdomains(stiffnessRatio);
-            (IVectorView ddDisplacements, DualSolverLogger logger) =
+            (IVectorView ddDisplacements, SolverLogger logger) =
                 SolveModelWithSubdomains(stiffnessRatio, precond, convergence, pcgConvergenceTol);
             double normalizedError = directDisplacements.Subtract(ddDisplacements).Norm2() / directDisplacements.Norm2();
 
-            Assert.Equal(140, logger.NumLagrangeMultipliers);
-            Assert.Equal(20, logger.NumCornerDofs);
+            int analysisStep = 0;
+            Assert.Equal(140, logger.GetNumDofs(analysisStep, "Lagrange multipliers"));
+            Assert.Equal(20, logger.GetNumDofs(analysisStep, "Corner dofs"));
 
             // The error is provided in the reference solution the, but it is almost impossible for two different codes run on 
             // different machines to achieve the exact same accuracy.
@@ -78,7 +79,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 
             // Allow some tolerance for the iterations:
             int maxIterationsForApproximateResidual = (int)Math.Ceiling(1.0 * iterExpected);
-            Assert.InRange(logger.PcgIterations, 1, maxIterationsForApproximateResidual); // the upper bound is inclusive!
+            int pcgIterations = logger.GetNumIterationsOfIterativeAlgorithm(analysisStep);
+            Assert.InRange(pcgIterations, 1, maxIterationsForApproximateResidual); // the upper bound is inclusive!
         }
 
         private static Model CreateModel(double stiffnessRatio)
@@ -123,7 +125,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             return model;
         }
 
-        private static (IVectorView globalDisplacements, DualSolverLogger logger) SolveModelWithSubdomains(double stiffnessRatio,
+        private static (IVectorView globalDisplacements, SolverLogger logger) SolveModelWithSubdomains(double stiffnessRatio,
             Precond precond, Residual residualConvergence, double pcgConvergenceTolerance)
         {
             // Model

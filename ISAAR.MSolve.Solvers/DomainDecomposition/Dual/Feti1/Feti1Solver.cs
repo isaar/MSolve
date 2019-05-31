@@ -99,6 +99,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 
         public Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider elementMatrixProvider)
         {
+            var watch = new Stopwatch();
+            watch.Start();
             var matricesInternal = new Dictionary<int, IMatrixView>();
             var matricesResult = new Dictionary<int, IMatrix>();
             foreach (ISubdomain subdomain in model.Subdomains) //TODO: this must be done in parallel
@@ -108,9 +110,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 matricesInternal[subdomain.ID] = matrix;
                 matricesResult[subdomain.ID] = matrix;
             }
+            watch.Stop();
+            Logger.LogTaskDuration("Matrix assembly", watch.ElapsedMilliseconds);
 
             // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
             //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
+            //TODO: This should probably be timed as well.
             DetermineStiffnessDistribution(matricesInternal);
 
             return matricesResult;
@@ -119,6 +124,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         public Dictionary<int, (IMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
             IMatrixView matrixConstrConstr)> BuildGlobalSubmatrices(IElementMatrixProvider elementMatrixProvider)
         {
+            var watch = new Stopwatch();
+            watch.Start();
             var matricesResult = new Dictionary<int, (IMatrix Aff, IMatrixView Afc, IMatrixView Acf, IMatrixView Acc)>();
             var matricesInternal = new Dictionary<int, IMatrixView>();
             foreach (ISubdomain subdomain in model.Subdomains) //TODO: this must be done in parallel
@@ -134,9 +141,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 matricesResult[subdomain.ID] = (Kff, Kfc, Kcf, Kcc);
                 matricesInternal[subdomain.ID] = Kff;
             }
+            watch.Stop();
+            Logger.LogTaskDuration("Matrix assembly", watch.ElapsedMilliseconds);
 
             // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
             //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
+            //TODO: This should probably be timed as well.
             DetermineStiffnessDistribution(matricesInternal);
 
             return matricesResult;
@@ -217,6 +227,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 
         public void Solve()
         {
+            var watch = new Stopwatch();
             foreach (var linearSystem in linearSystems.Values)
             {
                 if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
@@ -225,26 +236,50 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             // Calculate generalized inverses and rigid body modes of subdomains to assemble the interface flexibility matrix. 
             if (isStiffnessModified)
             {
+                watch.Start();
                 BuildPreconditioner();
+                watch.Stop();
+                Logger.LogTaskDuration("Calculating preconditioner", watch.ElapsedMilliseconds);
+
+                watch.Restart();
                 FactorizeMatrices();
+                watch.Stop();
+                Logger.LogTaskDuration("Matrix factorization", watch.ElapsedMilliseconds);
+
+                watch.Restart();
                 BuildProjection();
                 flexibility = new Feti1FlexibilityMatrix(factorizations, lagrangeEnumerator);
+                watch.Stop();
+                Logger.LogTaskDuration("Setting up interface problem", watch.ElapsedMilliseconds);
+                watch.Reset();
+
                 isStiffnessModified = false;
             }
 
             // Calculate the rhs vectors of the interface system
+            watch.Start();
             Vector disconnectedDisplacements = CalcDisconnectedDisplacements();
             Vector rbmWork = CalcRigidBodyModesWork();
             double globalForcesNorm = CalcGlobalForcesNorm();
+            watch.Stop();
+            Logger.LogTaskDuration("Setting up interface problem", watch.ElapsedMilliseconds);
 
             // Solve the interface problem
+            watch.Restart();
             Vector lagranges = interfaceProblemSolver.CalcLagrangeMultipliers(flexibility, preconditioner, projection,
                 disconnectedDisplacements, rbmWork, globalForcesNorm, Logger);
+            watch.Stop();
+            Logger.LogTaskDuration("Solving interface problem", watch.ElapsedMilliseconds);
 
             // Calculate the displacements of each subdomain
+            watch.Restart();
             Vector rbmCoeffs = CalcRigidBodyModesCoefficients(disconnectedDisplacements, lagranges);
             Dictionary<int, Vector> actualDisplacements = CalcActualDisplacements(lagranges, rbmCoeffs);
             foreach (var idSystem in linearSystems) idSystem.Value.Solution = actualDisplacements[idSystem.Key];
+            watch.Stop();
+            Logger.LogTaskDuration("Calculate displacements from lagrange multipliers", watch.ElapsedMilliseconds);
+
+            Logger.IncrementAnalysisStep();
         }
 
         /// <summary>

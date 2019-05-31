@@ -80,7 +80,7 @@ namespace ISAAR.MSolve.Solvers.Iterative
             watch.Stop();
             Logger.LogTaskDuration("Iterative algorithm", watch.ElapsedMilliseconds);
             Logger.LogIterativeAlgorithm(stats.NumIterationsRequired, stats.ResidualNormRatioEstimation);
-            Logger.IncrementIteration();
+            Logger.IncrementAnalysisStep();
         }
 
         protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)
@@ -124,7 +124,7 @@ namespace ISAAR.MSolve.Solvers.Iterative
 
             watch.Stop();
             Logger.LogTaskDuration("Iterative algorithm", watch.ElapsedMilliseconds);
-            Logger.IncrementIteration();
+            Logger.IncrementAnalysisStep();
             return solutionVectors;
         }
 

@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
             watch.Stop();
             Logger.LogTaskDuration("Iterative algorithm", watch.ElapsedMilliseconds);
             Logger.LogIterativeAlgorithm(stats.NumIterationsRequired, stats.ResidualNormRatioEstimation);
-            Logger.IncrementIteration();
+            Logger.IncrementAnalysisStep();
         }
 
         protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)

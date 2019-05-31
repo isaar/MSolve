@@ -65,7 +65,7 @@ namespace ISAAR.MSolve.Solvers.Direct
             factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
             watch.Stop();
             Logger.LogTaskDuration("Back/forward substitutions", watch.ElapsedMilliseconds);
-            Logger.IncrementIteration();
+            Logger.IncrementAnalysisStep();
         }
 
         protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)
@@ -116,7 +116,7 @@ namespace ISAAR.MSolve.Solvers.Direct
             }
             watch.Stop();
             Logger.LogTaskDuration("Back/forward substitutions", watch.ElapsedMilliseconds);
-            Logger.IncrementIteration();
+            Logger.IncrementAnalysisStep();
             return solutionVectors;
         }
 
