@@ -21,6 +21,11 @@ namespace ISAAR.MSolve.Solvers
         IReadOnlyDictionary<int, ILinearSystem> LinearSystems { get; }
 
         /// <summary>
+        /// Logs information, such as linear system size, the time required for various solver tasks, etc.
+        /// </summary>
+        SolverLogger Logger { get; }
+
+        /// <summary>
         /// Assembles the matrix that corresponds to the free freedom degrees of each whole subdomain from the matrices of its 
         /// elements.
         /// </summary>

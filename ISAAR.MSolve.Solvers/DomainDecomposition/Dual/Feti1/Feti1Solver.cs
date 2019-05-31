@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -94,7 +95,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         }
 
         public IReadOnlyDictionary<int, ILinearSystem> LinearSystems { get; }
-        public DualSolverLogger Logger { get; } = new DualSolverLogger();
+        public SolverLogger Logger { get; } = new SolverLogger(name);
 
         public Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider elementMatrixProvider)
         {
@@ -170,6 +171,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 
         public void OrderDofs(bool alsoOrderConstrainedDofs)
         {
+            var watch = new Stopwatch();
+            watch.Start();
+
             // Order dofs
             IGlobalFreeDofOrdering globalOrdering = dofOrderer.OrderFreeDofs(model);
             model.GlobalDofOrdering = globalOrdering;
@@ -193,16 +197,16 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             else lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model);
 
             // Log dof statistics
-            if (Logger != null)
+            watch.Stop();
+            Logger.LogTaskDuration("Dof ordering", watch.ElapsedMilliseconds);
+            Logger.LogNumDofs("Global dofs", globalOrdering.NumGlobalFreeDofs);
+            int numExpandedDomainFreeDofs = 0;
+            foreach (var subdomain in model.Subdomains)
             {
-                Logger.NumUniqueGlobalFreeDofs = model.GlobalDofOrdering.NumGlobalFreeDofs;
-                Logger.NumExpandedDomainFreeDofs = 0;
-                foreach (var subdomain in model.Subdomains)
-                {
-                    Logger.NumExpandedDomainFreeDofs += subdomain.FreeDofOrdering.NumFreeDofs;
-                }
-                Logger.NumLagrangeMultipliers = lagrangeEnumerator.NumLagrangeMultipliers;
+                numExpandedDomainFreeDofs += subdomain.FreeDofOrdering.NumFreeDofs;
             }
+            Logger.LogNumDofs("Expanded domain dofs", numExpandedDomainFreeDofs);
+            Logger.LogNumDofs("Lagrange multipliers", lagrangeEnumerator.NumLagrangeMultipliers);
 
             //Leftover code from Model.ConnectDataStructures().
             //EnumerateSubdomainLagranges();
