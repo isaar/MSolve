@@ -5,11 +5,21 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
+//TODO: Investigate if you can store this in COO like format: rowsPlus, colsPlus, rowsMinus, colsMinus.
+//      When operating with these arrays, there will not be any multiplications, accessing will be faster than
+//      Dictionaries and the code will be portable to C. That would need to be done in another class, optimized for 
+//      multiplications, while this one would be used for assembly. 
+//TODO: Also investigate if column major is more efficient than row major. This depends on how many multiplications are done
+//      as B * vector vs how many B^T * vector. The slicing needed in FETI is B[:, boundaryCols], which is more efficient
+//      in column major formats.
+//TODO: Another approach would be to store the non zeros twice. Once as row major and once as col major.
+//      Investigate if it is worth it for the multiplications, when coupled with the 1st TODO (arrays instead of Dictionaries).
+//      The memory requirements of B matrices should be minimal.
 namespace ISAAR.MSolve.LinearAlgebra.Matrices.Operators
 {
     /// <summary>
     /// Sparse matrix with the non-zero entries being 1 or -1. Its main use is in domain decomposition solvers. In this context, 
-    /// a <see cref="SignedBooleanMatrix"/> represents the equations that enforce continuity between the freedom degrees of 
+    /// a <see cref="SignedBooleanMatrixRowMajor"/> represents the equations that enforce continuity between the freedom degrees of 
     /// subdomains. Each row corresponds to a displacement continuity equation. If this matrix is for the whole domain, all rows 
     /// will have exactly 2 non zero entries (1 and -1). If it is only for a subdomain then some rows may be empty.
     /// Each column corresponds to a freedom degree of one of the subdomains. Columns that correspond to freedom degrees with 
@@ -18,19 +28,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Operators
     /// empty. The internal data structures that store the non-zero entries are row major.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class SignedBooleanMatrix: IMappingMatrix, ISparseMatrix
+    public class SignedBooleanMatrixRowMajor: IMappingMatrix, ISparseMatrix
     {
         /// <summary>
-        /// (row, (column, sign))
+        /// Non-zero entries: (row, (column, sign))
         /// </summary>
         private readonly Dictionary<int, Dictionary<int, int>> data;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="SignedBooleanMatrix"/> with the provided dimensions.
+        /// Initializes a new instance of <see cref="SignedBooleanMatrixRowMajor"/> with the provided dimensions.
         /// </summary>
         /// <param name="numRows">The number of rows of the new matrix.</param>
         /// <param name="numColumns">The number of columns of the new matrix. </param>
-        public SignedBooleanMatrix(int numRows, int numColumns)
+        public SignedBooleanMatrixRowMajor(int numRows, int numColumns)
         {
             this.NumRows = numRows;
             this.NumColumns = numColumns;
@@ -111,10 +121,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Operators
         public double[,] CopyToArray2D() => DenseStrategies.CopyToArray2D(this);
 
         /// <summary>
-        /// Initializes a new <see cref="Matrix"/> instance by copying the entries of this <see cref="SignedBooleanMatrix"/>.
+        /// Initializes a new <see cref="Matrix"/> instance by copying the entries of this <see cref="SignedBooleanMatrixRowMajor"/>.
         /// </summary>
         /// <param name="transpose">
-        /// If true, the new matrix will be transpose to this <see cref="SignedBooleanMatrix"/>. If false, they will 
+        /// If true, the new matrix will be transpose to this <see cref="SignedBooleanMatrixRowMajor"/>. If false, they will 
         /// represent the exact same matrix (in different formats).
         /// </param>
         public Matrix CopyToFullMatrix(bool transpose)
@@ -279,12 +289,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Operators
         }
 
         /// <summary>
-        /// Initializes a new <see cref="SignedBooleanMatrix"/> instance, that is transpose to this: result[i, j] = this[j, i]. 
+        /// Initializes a new <see cref="SignedBooleanMatrixRowMajor"/> instance, that is transpose to this: result[i, j] = this[j, i]. 
         /// The entries will be explicitly copied. This method is meant for testing purposes and thus is not efficient.
         /// </summary>
-        public SignedBooleanMatrix Transpose()
+        public SignedBooleanMatrixRowMajor Transpose()
         {
-            var transpose = new SignedBooleanMatrix(NumColumns, NumRows);
+            var transpose = new SignedBooleanMatrixRowMajor(NumColumns, NumRows);
             foreach (var wholeRow in data)
             {
                 foreach (var colSign in wholeRow.Value)
@@ -319,10 +329,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Operators
             var result = new double[NumRows];
             foreach (var wholeRow in data)
             {
+                double sum = 0.0;
                 foreach (var colSign in wholeRow.Value)
                 {
-                    result[wholeRow.Key] += colSign.Value * vector[colSign.Key];
+                    sum += colSign.Value * vector[colSign.Key];
                 }
+                result[wholeRow.Key] = sum;
             }
             return Vector.CreateFromArray(result, false);
         }

@@ -277,7 +277,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             {
                 int id = linearSystem.Subdomain.ID;
                 Vector f = linearSystem.RhsVector;
-                SignedBooleanMatrix boolean = lagrangeEnumerator.BooleanMatrices[id];
+                SignedBooleanMatrixRowMajor boolean = lagrangeEnumerator.BooleanMatrices[id];
                 Vector Kf = factorizations[id].MultiplyGeneralizedInverseMatrixTimesVector(f);
                 Vector BKf = boolean.Multiply(Kf, false);
                 displacements.AddIntoThis(BKf);

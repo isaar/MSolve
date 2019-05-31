@@ -26,7 +26,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
             this.dofSeparator = dofSeparator;
         }
 
-        public Dictionary<int, SignedBooleanMatrix> BooleanMatrices { get; private set; }
+        public Dictionary<int, SignedBooleanMatrixRowMajor> BooleanMatrices { get; private set; }
 
         //TODO: I am not too thrilled about objects with properties that may or may not be null
         /// <summary>
@@ -49,11 +49,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
                 = DefineBoundaryDofConstraints(dofSeparator);
 
             // Create the signed boolean matrices.
-            BooleanMatrices = new Dictionary<int, SignedBooleanMatrix>();
+            BooleanMatrices = new Dictionary<int, SignedBooleanMatrixRowMajor>();
             foreach (ISubdomain subdomain in model.Subdomains)
             {
                 BooleanMatrices[subdomain.ID] =
-                    new SignedBooleanMatrix(NumLagrangeMultipliers, numRemainderDofs[subdomain.ID]);
+                    new SignedBooleanMatrixRowMajor(NumLagrangeMultipliers, numRemainderDofs[subdomain.ID]);
             }
 
             // Fill the boolean matrices: node major, subdomain medium, dof minor. TODO: not sure about this order.
@@ -65,8 +65,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
                 for (int c = 0; c < numSubdomainCombos; ++c)
                 {
                     //TODO: each subdomain appears in many combinations. It would be faster to cache its indices for the specific dofs.
-                    SignedBooleanMatrix booleanPlus = BooleanMatrices[subdomainsPlus[c].ID];
-                    SignedBooleanMatrix booleanMinus = BooleanMatrices[subdomainsMinus[c].ID];
+                    SignedBooleanMatrixRowMajor booleanPlus = BooleanMatrices[subdomainsPlus[c].ID];
+                    SignedBooleanMatrixRowMajor booleanMinus = BooleanMatrices[subdomainsMinus[c].ID];
                     IReadOnlyDictionary<IDofType, int> dofsPlus = remainderDofOrderings[subdomainsPlus[c].ID].GetDataOfRow(node);
                     IReadOnlyDictionary<IDofType, int> dofsMinus = remainderDofOrderings[subdomainsMinus[c].ID].GetDataOfRow(node);
 
@@ -91,11 +91,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
                 = DefineBoundaryDofConstraints(dofSeparator);
 
             // Create the signed boolean matrices.
-            BooleanMatrices = new Dictionary<int, SignedBooleanMatrix>();
+            BooleanMatrices = new Dictionary<int, SignedBooleanMatrixRowMajor>();
             foreach (ISubdomain subdomain in model.Subdomains)
             {
                 BooleanMatrices[subdomain.ID] =
-                    new SignedBooleanMatrix(NumLagrangeMultipliers, numRemainderDofs[subdomain.ID]);
+                    new SignedBooleanMatrixRowMajor(NumLagrangeMultipliers, numRemainderDofs[subdomain.ID]);
             }
             LagrangeMultipliers = new LagrangeMultiplier[NumLagrangeMultipliers];
 
@@ -108,8 +108,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
                 for (int c = 0; c < numSubdomainCombos; ++c)
                 {
                     //TODO: each subdomain appears in many combinations. It would be faster to cache its indices for the specific dofs.
-                    SignedBooleanMatrix booleanPlus = BooleanMatrices[subdomainsPlus[c].ID];
-                    SignedBooleanMatrix booleanMinus = BooleanMatrices[subdomainsMinus[c].ID];
+                    SignedBooleanMatrixRowMajor booleanPlus = BooleanMatrices[subdomainsPlus[c].ID];
+                    SignedBooleanMatrixRowMajor booleanMinus = BooleanMatrices[subdomainsMinus[c].ID];
 
                     //TODO: The dof indices have already been accessed. Reuse it if possible.
                     IReadOnlyDictionary<IDofType, int> dofsPlus = remainderDofOrderings[subdomainsPlus[c].ID].GetDataOfRow(node);

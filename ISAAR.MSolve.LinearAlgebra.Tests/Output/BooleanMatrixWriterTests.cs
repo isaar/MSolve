@@ -29,10 +29,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Output
             TestWriteOperation(matrix, SignedBoolean5by10.FilePath2);
         }
 
-        private static void TestWriteOperation(SignedBooleanMatrix matrix, string referenceFile)
+        private static void TestWriteOperation(SignedBooleanMatrixRowMajor matrix, string referenceFile)
             => TestWriteOperation(matrix, referenceFile, new BooleanMatrixWriter(true));
 
-        private static void TestWriteOperation(SignedBooleanMatrix matrix, string referenceFile, BooleanMatrixWriter writer)
+        private static void TestWriteOperation(SignedBooleanMatrixRowMajor matrix, string referenceFile, BooleanMatrixWriter writer)
         {
             string tempFile = Guid.NewGuid().ToString() + ".txt";
             writer.WriteToFile(matrix, tempFile);
