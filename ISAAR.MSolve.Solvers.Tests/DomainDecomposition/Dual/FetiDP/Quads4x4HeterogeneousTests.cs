@@ -113,7 +113,11 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             });
 
             double tol = 1E-13;
-            foreach (int s in expectedBpbr.Keys) Assert.True(expectedBpbr[s].Equals(Bpbr[s], tol));
+            foreach (int s in expectedBpbr.Keys)
+            {
+                Matrix explicitBpr = Bpbr[s].MultiplyRight(Matrix.CreateIdentity(Bpbr[s].NumColumns));
+                Assert.True(expectedBpbr[s].Equals(explicitBpr, tol));
+            }
         }
 
         [Fact]

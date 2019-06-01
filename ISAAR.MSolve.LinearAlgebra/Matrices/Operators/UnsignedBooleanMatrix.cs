@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Operators
     /// The internal data structures that store the non-zero entries are row major.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class UnsignedBooleanMatrix : IMappingMatrix
+    public class UnsignedBooleanMatrix : IIndexable2D, IMappingMatrix
     {
         /// <summary>
         /// Non-zero entries: (row, columns)
