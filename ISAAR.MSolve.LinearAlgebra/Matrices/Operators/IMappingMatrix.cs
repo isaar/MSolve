@@ -7,6 +7,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Operators
 {
     public interface IMappingMatrix : IIndexable2D
     {
-        Vector Multiply(Vector vector, bool transposeThis = true);
+        Vector Multiply(Vector vector, bool transposeThis = false);
+        Matrix MultiplyRight(Matrix other, bool transposeThis = false);
     }
 }

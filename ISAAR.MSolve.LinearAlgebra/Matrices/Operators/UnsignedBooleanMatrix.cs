@@ -98,10 +98,16 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Operators
             return DenseStrategies.AreEqual(this, other, tolerance);
         }
 
-        public Vector Multiply(Vector vector, bool transposeThis = true)
+        public Vector Multiply(Vector vector, bool transposeThis = false)
         {
             if (transposeThis) return MultiplyTransposed(vector);
             else return MultiplyUntransposed(vector);
+        }
+
+        public Matrix MultiplyRight(Matrix other, bool transposeThis = false)
+        {
+            if (transposeThis) return MultiplyRightTransposed(other);
+            else return MultiplyRightUntransposed(other);
         }
 
         private Vector MultiplyTransposed(Vector vector)
@@ -135,6 +141,47 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Operators
                 result[wholeRow.Key] = sum;
             }
             return Vector.CreateFromArray(result, false);
+        }
+
+        private Matrix MultiplyRightTransposed(Matrix other)
+        {
+            //TODO: I think that it will pay off to transpose an all integer CSR matrix and store both. Especially in the case 
+            //     of subdomain boolean matrices, that little extra memory should not be of concern.
+            Preconditions.CheckMultiplicationDimensions(this.NumRows, other.NumRows);
+            var result = new double[this.NumColumns * other.NumRows];
+            for (int j = 0; j < other.NumColumns; ++j)
+            {
+                int offset = j * this.NumRows;
+                // Transpose it conceptually and multiply with the vector on the right. 
+                foreach (var wholeRow in data)
+                {
+                    foreach (int col in wholeRow.Value)
+                    {
+                        result[offset + col] += other[wholeRow.Key, j];
+                    }
+                }
+            }
+            return Matrix.CreateFromArray(result, this.NumColumns, other.NumColumns, false);
+        }
+
+        private Matrix MultiplyRightUntransposed(Matrix other)
+        {
+            Preconditions.CheckMultiplicationDimensions(this.NumColumns, other.NumRows);
+            var result = new double[this.NumRows * other.NumColumns];
+            for (int j = 0; j < other.NumColumns; ++j)
+            {
+                int offset = j * this.NumRows;
+                foreach (var wholeRow in data)
+                {
+                    double sum = 0.0;
+                    foreach (int col in wholeRow.Value)
+                    {
+                        sum += other[col, j];
+                    }
+                    result[offset + wholeRow.Key] = sum;
+                }
+            }
+            return Matrix.CreateFromArray(result, this.NumRows, other.NumColumns, false);
         }
     }
 }

@@ -169,6 +169,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Operators
             else return MultiplyUntransposed(vector);
         }
 
+        public Matrix MultiplyRight(Matrix other, bool transposeThis = false)
+        {
+            if (transposeThis) return MultiplyRightTransposed(other);
+            else return MultiplyRightUntransposed(other);
+        }
+
         private Vector MultiplyTransposed(Vector vector)
         {
             Preconditions.CheckMultiplicationDimensions(NumRows, vector.Length);
@@ -198,6 +204,46 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Operators
                 }
             }
             return Vector.CreateFromArray(result, false);
+        }
+
+        private Matrix MultiplyRightTransposed(Matrix other)
+        {
+            //TODO: I think that it will pay off to transpose an all integer CSR matrix and store both. Especially in the case 
+            //     of subdomain boolean matrices, that little extra memory should not be of concern.
+            Preconditions.CheckMultiplicationDimensions(this.NumRows, other.NumRows);
+            var result = new double[this.NumColumns * other.NumRows];
+            for (int j = 0; j < other.NumColumns; ++j)
+            {
+                int offset = j * this.NumRows;
+                foreach (var wholeCol in data)
+                {
+                    double sum = 0.0;
+                    foreach (var rowSign in wholeCol.Value)
+                    {
+                        sum += rowSign.Value * other[rowSign.Key, j];
+                    }
+                    result[offset + wholeCol.Key] = sum;
+                }
+            }
+            return Matrix.CreateFromArray(result, this.NumColumns, other.NumColumns, false);
+        }
+
+        private Matrix MultiplyRightUntransposed(Matrix other)
+        {
+            Preconditions.CheckMultiplicationDimensions(this.NumColumns, other.NumRows);
+            var result = new double[this.NumRows * other.NumColumns];
+            for (int j = 0; j < other.NumColumns; ++j)
+            {
+                int offset = j * this.NumRows;
+                foreach (var wholeCol in data)
+                {
+                    foreach (var rowSign in wholeCol.Value)
+                    {
+                        result[offset + rowSign.Key] += rowSign.Value * other[wholeCol.Key, j];
+                    }
+                }
+            }
+            return Matrix.CreateFromArray(result, this.NumRows, other.NumColumns, false);
         }
     }
 }
