@@ -3,6 +3,8 @@ using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
 
 //TODO: Also implement the Superlumped smoothening from Rixen, Farhat (1999). It should be equivalent to Fragakis' PhD approach.
@@ -65,23 +67,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
             return coeffs;
         }
 
-        public Dictionary<int, Matrix> CalcBoundaryPreconditioningSignedBooleanMatrices(
+        public Dictionary<int, IMappingMatrix> CalcBoundaryPreconditioningSignedBooleanMatrices(
             ILagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, Matrix> boundarySignedBooleanMatrices)
         {
-            // According to Fragakis PhD (e.q. 3.28): 
-            // Bpb = Dλ * Bb * inv(Db(s)), Dλ[λ,λ] = K(i)[b,b] * K(j)[b,b] / Sum(K(1)[b,b] + K(2)[b,b] + ...)
-            // where K(s)[b,b] is the diagonal entry of (s) subdomain's stiffess matrix corresponding to the boundary dof b 
-            // and (i, j) are the subdomains connected via the Lagrange multiplier λ. 
-
-            Matrix Dlambda = BuildDlambda(lagrangeEnumerator); // Common for all subdomains
-            var matricesBpb = new Dictionary<int, Matrix>();
-            foreach (ISubdomain subdomain in model.Subdomains)
-            {
-                Matrix invDb = InvertBoundaryDofStiffnesses(subdomain);
-                Matrix Bb = boundarySignedBooleanMatrices[subdomain.ID];
-                matricesBpb[subdomain.ID] = Bb.MultiplyRight(invDb).MultiplyLeft(Dlambda);
-            }
-            return matricesBpb;
+            return ScalingBooleanMatrixExplicit.CreateBpbOfSubdomains(this, lagrangeEnumerator, boundarySignedBooleanMatrices);
         }
 
         private Matrix BuildDlambda(ILagrangeMultipliersEnumerator lagrangeEnumerator)
@@ -116,5 +105,51 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
             return Db;
         }
 
+        //TODO: This should be modified to CSR or CSC format and then benchmarked against the implicit alternative.
+        private class ScalingBooleanMatrixExplicit : IMappingMatrix
+        {
+            private readonly Matrix explicitBpb;
+
+            internal ScalingBooleanMatrixExplicit(Matrix explicitBpb)
+            {
+                this.explicitBpb = explicitBpb;
+            }
+
+            public int NumColumns => explicitBpb.NumColumns;
+
+            public int NumRows => explicitBpb.NumRows;
+
+            public double this[int rowIdx, int colIdx] => explicitBpb[rowIdx, colIdx];
+
+            internal static Dictionary<int, IMappingMatrix> CreateBpbOfSubdomains(
+                HeterogeneousStiffnessDistribution stiffnessDistribution, ILagrangeMultipliersEnumerator lagrangeEnumerator, 
+                Dictionary<int, Matrix> boundarySignedBooleanMatrices)
+            {
+                // According to Fragakis PhD (e.q. 3.28): 
+                // Bpb = Dλ * Bb * inv(Db(s)), Dλ[λ,λ] = K(i)[b,b] * K(j)[b,b] / Sum(K(1)[b,b] + K(2)[b,b] + ...)
+                // where K(s)[b,b] is the diagonal entry of (s) subdomain's stiffess matrix corresponding to the boundary dof b 
+                // and (i, j) are the subdomains connected via the Lagrange multiplier λ. 
+
+                Matrix Dlambda = stiffnessDistribution.BuildDlambda(lagrangeEnumerator); // Common for all subdomains
+                var matricesBpb = new Dictionary<int, IMappingMatrix>();
+                foreach (ISubdomain subdomain in stiffnessDistribution.model.Subdomains)
+                {
+                    Matrix invDb = stiffnessDistribution.InvertBoundaryDofStiffnesses(subdomain);
+                    Matrix Bb = boundarySignedBooleanMatrices[subdomain.ID];
+                    Matrix Bpb = Bb.MultiplyRight(invDb).MultiplyLeft(Dlambda);
+                    matricesBpb[subdomain.ID] = new ScalingBooleanMatrixExplicit(Bpb);
+                }
+                return matricesBpb;
+            }
+
+            public bool Equals(IIndexable2D other, double tolerance = 1E-13)
+                => explicitBpb.Equals(other, tolerance);
+
+            public Vector Multiply(Vector vector, bool transposeThis = false)
+                => explicitBpb.Multiply(vector, transposeThis);
+
+            public Matrix MultiplyRight(Matrix other, bool transposeThis = false)
+                => explicitBpb.MultiplyRight(other, transposeThis);
+        }
     }
 }

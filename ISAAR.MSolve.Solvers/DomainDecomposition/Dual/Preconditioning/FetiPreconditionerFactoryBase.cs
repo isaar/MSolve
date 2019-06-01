@@ -5,6 +5,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 
 //TODO: perhaps these helper methods should be somewhere more centrally, which will also include extracting Kib, Kii
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning
@@ -15,7 +16,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning
             IDofSeparator dofSeparator, ILagrangeMultipliersEnumerator lagrangeEnumerator,
             Dictionary<int, IMatrixView> stiffnessMatrices);
 
-        protected Dictionary<int, Matrix> CalcBoundaryPreconditioningBooleanMatrices(IStiffnessDistribution stiffnessDistribution,
+        protected Dictionary<int, IMappingMatrix> CalcBoundaryPreconditioningBooleanMatrices(IStiffnessDistribution stiffnessDistribution,
             IDofSeparator dofSeparator, ILagrangeMultipliersEnumerator lagrangeEnumerator)
         {
             int numContinuityEquations = lagrangeEnumerator.NumLagrangeMultipliers;
@@ -27,7 +28,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning
                 Matrix Bb = B.GetSubmatrix(rowsToKeep, dofSeparator.BoundaryDofIndices[id]);
                 matricesBb[id] = Bb;
             }
-            Dictionary<int, Matrix> matricesBpb = stiffnessDistribution.CalcBoundaryPreconditioningSignedBooleanMatrices(
+            Dictionary<int, IMappingMatrix> matricesBpb = stiffnessDistribution.CalcBoundaryPreconditioningSignedBooleanMatrices(
                 lagrangeEnumerator, matricesBb);
             
             return matricesBpb;

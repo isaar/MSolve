@@ -8,6 +8,7 @@ using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Problems;
@@ -61,7 +62,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             var stiffnessDistribution = (IStiffnessDistribution)fi.GetValue(fetiSolver);
             MethodInfo method = preconditionerFactory.GetType().GetMethod("CalcBoundaryPreconditioningBooleanMatrices",
                 BindingFlags.NonPublic | BindingFlags.Instance);
-            var Bpbr = (Dictionary<int, Matrix>)method.Invoke(preconditionerFactory, 
+            var Bpbr = (Dictionary<int, IMappingMatrix>)method.Invoke(preconditionerFactory, 
                 new object[] { stiffnessDistribution, dofSeparator, lagrangeEnumerator });
 
             // Compare the mapping matrices against the expected ones

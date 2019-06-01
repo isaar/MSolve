@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
@@ -10,12 +11,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning
 {
     public class LumpedPreconditioner : IFetiPreconditioner
     {
-        private readonly Dictionary<int, Matrix> preconditioningBoundarySignedBooleanMatrices;
+        private readonly Dictionary<int, IMappingMatrix> preconditioningBoundarySignedBooleanMatrices;
         private readonly Dictionary<int, Matrix> stiffnessesBoundaryBoundary;
         private readonly int[] subdomainIDs;
 
         private LumpedPreconditioner(int[] subdomainIDs, Dictionary<int, Matrix> stiffnessesBoundaryBoundary,
-            Dictionary<int, Matrix> preconditioningBoundarySignedBooleanMatrices)
+            Dictionary<int, IMappingMatrix> preconditioningBoundarySignedBooleanMatrices)
         {
             this.subdomainIDs = subdomainIDs;
             this.preconditioningBoundarySignedBooleanMatrices = preconditioningBoundarySignedBooleanMatrices;
@@ -30,7 +31,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning
             lhs.Clear(); //TODO: this should be avoided
             foreach (int id in subdomainIDs)
             {
-                Matrix Bpb = preconditioningBoundarySignedBooleanMatrices[id];
+                IMappingMatrix Bpb = preconditioningBoundarySignedBooleanMatrices[id];
                 Matrix Kbb = stiffnessesBoundaryBoundary[id];
                 Vector subdomainContribution = Bpb.Multiply(Kbb.Multiply(Bpb.Multiply(rhs, true)));
                 lhs.AddIntoThis(subdomainContribution);
@@ -43,7 +44,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning
             lhs.Clear(); //TODO: this should be avoided
             foreach (int id in subdomainIDs)
             {
-                Matrix Bpb = preconditioningBoundarySignedBooleanMatrices[id];
+                IMappingMatrix Bpb = preconditioningBoundarySignedBooleanMatrices[id];
                 Matrix Kbb = stiffnessesBoundaryBoundary[id];
                 Matrix subdomainContribution = Bpb.MultiplyRight(Kbb.MultiplyRight(Bpb.MultiplyRight(rhs, true)));
                 lhs.AddIntoThis(subdomainContribution);
@@ -57,8 +58,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning
                 Dictionary<int, IMatrixView> stiffnessMatrices)
             {
                 int[] subdomainIDs = dofSeparator.BoundaryDofIndices.Keys.ToArray();
-                Dictionary<int, Matrix> boundaryBooleans = CalcBoundaryPreconditioningBooleanMatrices(stiffnessDistribution, 
-                    dofSeparator, lagrangeEnumerator);
+                Dictionary<int, IMappingMatrix> boundaryBooleans = CalcBoundaryPreconditioningBooleanMatrices(
+                    stiffnessDistribution, dofSeparator, lagrangeEnumerator);
                 Dictionary<int, Matrix> stiffnessesBoundaryBoundary = 
                     ExtractStiffnessesBoundaryBoundary(dofSeparator, stiffnessMatrices);
                 return new LumpedPreconditioner(subdomainIDs, stiffnessesBoundaryBoundary, boundaryBooleans);

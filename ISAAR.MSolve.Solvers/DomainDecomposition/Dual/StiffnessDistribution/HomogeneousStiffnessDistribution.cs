@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
@@ -34,16 +36,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
             return coeffs;
         }
 
-        public Dictionary<int, Matrix> CalcBoundaryPreconditioningSignedBooleanMatrices(
+        public Dictionary<int, IMappingMatrix> CalcBoundaryPreconditioningSignedBooleanMatrices(
             ILagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, Matrix> boundarySignedBooleanMatrices)
         {
-            var matricesBpb = new Dictionary<int, Matrix>();
-            foreach (int id in boundarySignedBooleanMatrices.Keys)
-            {
-                Matrix inverseMultiplicities = InvertDofMultiplicities(boundaryDofMultiplicities[id]);
-                matricesBpb[id] = boundarySignedBooleanMatrices[id].MultiplyRight(inverseMultiplicities);
-            }
-            return matricesBpb;
+            return ScalingBooleanMatrixExplicit.CreateBpbOfSubdomains(this, lagrangeEnumerator, boundarySignedBooleanMatrices);
         }
 
         private static Dictionary<int, int[]> FindBoundaryDofMultiplicities(IDofSeparator dofSeparator)
@@ -72,17 +68,58 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
             return inverse;
         }
 
-        //TODO: Add this to linear algebra: ScaleRow, ScaleRows, ScaleColumn, ScaleColumns, plus ~IntoThis versions.
-        //      Alternatively only add left and right multiplication with diagonal matrices.
-        private static Matrix ScaleMatrixColumnsIntoThis(Matrix matrix, double[] scalars)
+        //TODO: This should be modified to CSR or CSC format and then benchmarked against the implicit alternative.
+        private class ScalingBooleanMatrixExplicit : IMappingMatrix
         {
-            var result = Matrix.CreateZero(matrix.NumRows, matrix.NumColumns);
-            for (int j = 0; j < matrix.NumColumns; ++j)
+            private readonly Matrix explicitBpb;
+
+            internal ScalingBooleanMatrixExplicit(Matrix explicitBpb)
             {
-                for (int i = 0; i < matrix.NumRows; ++i) result[i, j] = matrix[i, j] * scalars[j];
+                this.explicitBpb = explicitBpb;
             }
-            return result;
+
+            public int NumColumns => explicitBpb.NumColumns;
+
+            public int NumRows => explicitBpb.NumRows;
+
+            public double this[int rowIdx, int colIdx] => explicitBpb[rowIdx, colIdx];
+
+            internal static Dictionary<int, IMappingMatrix> CreateBpbOfSubdomains(
+                HomogeneousStiffnessDistribution stiffnessDistribution, ILagrangeMultipliersEnumerator lagrangeEnumerator,
+                Dictionary<int, Matrix> boundarySignedBooleanMatrices)
+            {
+                var matricesBpb = new Dictionary<int, IMappingMatrix>();
+                foreach (int id in boundarySignedBooleanMatrices.Keys)
+                {
+                    Matrix inverseMultiplicities = InvertDofMultiplicities(stiffnessDistribution.boundaryDofMultiplicities[id]);
+                    Matrix Bpb = boundarySignedBooleanMatrices[id].MultiplyRight(inverseMultiplicities);
+                    matricesBpb[id] = new ScalingBooleanMatrixExplicit(Bpb);
+                }
+                return matricesBpb;
+            }
+
+            public bool Equals(IIndexable2D other, double tolerance = 1E-13)
+                => explicitBpb.Equals(other, tolerance);
+
+            public Vector Multiply(Vector vector, bool transposeThis = false)
+                => explicitBpb.Multiply(vector, transposeThis);
+
+            public Matrix MultiplyRight(Matrix other, bool transposeThis = false)
+                => explicitBpb.MultiplyRight(other, transposeThis);
         }
+
+        #region older code
+        ////TODO: Add this to linear algebra: ScaleRow, ScaleRows, ScaleColumn, ScaleColumns, plus ~IntoThis versions.
+        ////      Alternatively only add left and right multiplication with diagonal matrices.
+        //private static Matrix ScaleMatrixColumnsIntoThis(Matrix matrix, double[] scalars)
+        //{
+        //    var result = Matrix.CreateZero(matrix.NumRows, matrix.NumColumns);
+        //    for (int j = 0; j < matrix.NumColumns; ++j)
+        //    {
+        //        for (int i = 0; i < matrix.NumRows; ++i) result[i, j] = matrix[i, j] * scalars[j];
+        //    }
+        //    return result;
+        //}
 
         //public Matrix CalcBoundaryPreconditioningSignedBooleanMatrix(Matrix boundarySignedBooleanMatrix,
         //    int[] boundaryDofsMultiplicity)
@@ -111,5 +148,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
         //    }
         //    return result;
         //}
+        #endregion
     }
 }
