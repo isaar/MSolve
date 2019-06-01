@@ -110,6 +110,35 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Operators
             else return MultiplyRightUntransposed(other);
         }
 
+        /// <summary>
+        /// WARNING: this only works if this matrix is a mapping matrix L used in FETI solvers, meaning :
+        /// 1) There are more columns than rows.
+        /// 2) Each row of this matrix must have exactly one 1 and all other 0,
+        /// 3) Each column must have at most one 1. It is possible that a column is completely 0.
+        /// Essentially this method performs global matrix assembly: globalK = L^T * localK * L.
+        /// </summary>
+        /// <param name="other"></param>
+        public Matrix ThisTransposeTimesOtherTimesThis(Matrix other) //TODO: this should be implemented for symmetric matrices
+        {
+            //TODO: Move this class to project Solvers where the following assumptions are always satisfied.
+            //TODO: Otherwise, rename this method to specify for which instances it works correctly.
+
+            // Rows of this matrix correspond to rows of matrix "other" (local). Columns of this matrix correspond to columns
+            // of matrix "resutl" (global).
+            Preconditions.CheckMultiplicationDimensions(other.NumColumns, this.NumRows);
+            var result = Matrix.CreateZero(this.NumColumns, this.NumColumns);
+            for (int otherCol = 0; otherCol < other.NumColumns; ++otherCol)
+            {
+                int resultCol = this[];
+                for (int otherRow = 0; otherRow < other.NumRows; ++otherRow)
+                {
+                    int resultRow = this[];
+                    result[resultRow, resultCol] = other[otherRow, otherCol];
+                }
+            }
+            return result;
+        }
+
         private Vector MultiplyTransposed(Vector vector)
         {
             //TODO: I think that it will pay off to transpose an all integer CSR matrix and store both. Especially in the case 

@@ -6,6 +6,7 @@ using ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Commons;
@@ -54,7 +55,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
             {
                 // fcStar[s] = fbc[s] - Krc[s]^T * inv(Krr[s]) * fr[s]
                 // globalFcStar = sum_over_s(Lc[s]^T * fcStar[s])
-                Matrix Lc = dofSeparator.CornerBooleanMatrices[s];
+                UnsignedBooleanMatrix Lc = dofSeparator.CornerBooleanMatrices[s];
                 Vector fcStar = fbc[s] - Krc[s].Multiply(factorizedKrr[s].SolveLinearSystem(fr[s]), true);
                 globalFcStar.AddIntoThis(Lc.Multiply(fcStar, true));
             }
@@ -110,9 +111,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
             {
                 // KccStar[s] = Kcc[s] - Krc[s]^T * inv(Krr[s]) * Krc[s]
                 // globalKccStar = sum_over_s(Lc[s]^T * KccStar[s] * Lc[s])
-                Matrix Lc = dofSeparator.CornerBooleanMatrices[s];
+                UnsignedBooleanMatrix Lc = dofSeparator.CornerBooleanMatrices[s];
                 Matrix KccStar = Kcc[s] - Krc[s].MultiplyRight(factorizedKrr[s].SolveLinearSystems(Krc[s]), true);
-                globalKccStar.AddIntoThis(Lc.ThisTransposeTimesOtherTimesThis(KccStar));
+                Matrix KccStarLc = Lc.MultiplyLeft(KccStar)
+                globalKccStar.AddIntoThis(Lc.MultiplyRight(ThisTransposeTimesOtherTimesThis(KccStar));
             }
             return globalKccStar;
         }

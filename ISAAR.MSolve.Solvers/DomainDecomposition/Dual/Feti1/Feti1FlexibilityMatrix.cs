@@ -31,9 +31,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             {
                 int id = keyFactor.Key;
                 SemidefiniteCholeskySkyline factor = keyFactor.Value;
-                SignedBooleanMatrixRowMajor boolean = lagrangeEnumerator.BooleanMatrices[id];
-                Vector FBx = factor.MultiplyGeneralizedInverseMatrixTimesVector(boolean.Multiply(lhs, true)); 
-                Vector BFBx = boolean.Multiply(FBx, false);
+                SignedBooleanMatrixColMajor B = lagrangeEnumerator.BooleanMatrices[id];
+                Vector FBx = factor.MultiplyGeneralizedInverseMatrixTimesVector(B.Multiply(lhs, true)); 
+                Vector BFBx = B.Multiply(FBx, false);
                 rhs.AddIntoThis(BFBx);
             }
         }
@@ -45,9 +45,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             {
                 int id = keyFactor.Key;
                 SemidefiniteCholeskySkyline factor = keyFactor.Value;
-                SignedBooleanMatrixRowMajor boolean = lagrangeEnumerator.BooleanMatrices[id];
-                Vector FBx = factor.MultiplyGeneralizedInverseMatrixTimesVector(boolean.Multiply(lhs, true));
-                Vector BFBx = boolean.Multiply(FBx, false);
+                SignedBooleanMatrixColMajor B = lagrangeEnumerator.BooleanMatrices[id];
+                Vector FBx = factor.MultiplyGeneralizedInverseMatrixTimesVector(B.Multiply(lhs, true));
+                Vector BFBx = B.Multiply(FBx, false);
                 rhs.AddIntoThis(BFBx);
             }
             return rhs;

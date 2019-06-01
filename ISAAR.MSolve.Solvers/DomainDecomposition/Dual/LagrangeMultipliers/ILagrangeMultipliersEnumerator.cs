@@ -7,7 +7,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
 {
     public interface ILagrangeMultipliersEnumerator
     {
-        Dictionary<int, SignedBooleanMatrixRowMajor> BooleanMatrices { get; }
+        Dictionary<int, SignedBooleanMatrixColMajor> BooleanMatrices { get; }
 
         //TODO: I am not too thrilled about objects with properties that may or may not be null
         /// <summary>

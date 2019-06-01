@@ -13,13 +13,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Projection
 {
     public class Feti1Projection : IInterfaceProjection
     {
-        private readonly Dictionary<int, SignedBooleanMatrixRowMajor> booleanMatrices;
+        private readonly Dictionary<int, SignedBooleanMatrixColMajor> booleanMatrices;
         private readonly IMatrixQ matrixQ;
         private readonly Dictionary<int, List<Vector>> rigidBodyModes;
         private Matrix matrixG;
         private CholeskyFull factorGQG; // Because Karmath suggests using POTRF, POTRS.
 
-        internal Feti1Projection(Dictionary<int, SignedBooleanMatrixRowMajor> booleanMatrices, 
+        internal Feti1Projection(Dictionary<int, SignedBooleanMatrixColMajor> booleanMatrices, 
             Dictionary<int, List<Vector>> rigidBodyModes, IMatrixQ matrixQ)
         {
             this.booleanMatrices = booleanMatrices;
@@ -92,7 +92,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Projection
             int colCounter = 0;
             foreach (int subdomain in booleanMatrices.Keys)
             {
-                SignedBooleanMatrixRowMajor matrixB = booleanMatrices[subdomain];
+                SignedBooleanMatrixColMajor matrixB = booleanMatrices[subdomain];
                 List<Vector> matrixR = rigidBodyModes[subdomain];
                 foreach (Vector columnR in matrixR)
                 {

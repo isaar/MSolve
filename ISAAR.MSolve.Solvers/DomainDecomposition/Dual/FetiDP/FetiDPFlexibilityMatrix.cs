@@ -11,10 +11,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 {
     public class FetiDPFlexibilityMatrix
     {
-        private readonly Dictionary<int, SignedBooleanMatrixRowMajor> Br;
+        private readonly Dictionary<int, SignedBooleanMatrixColMajor> Br;
         private readonly Dictionary<int, CholeskyFull> factorizedKrr;
         private readonly Dictionary<int, Matrix> Krc;
-        private readonly Dictionary<int, Matrix> Lc;
+        private readonly Dictionary<int, UnsignedBooleanMatrix> Lc;
         private readonly int numCornerDofs;
 
         public FetiDPFlexibilityMatrix(Dictionary<int, CholeskyFull> factorizedKrr, Dictionary<int, Matrix> Krc, 

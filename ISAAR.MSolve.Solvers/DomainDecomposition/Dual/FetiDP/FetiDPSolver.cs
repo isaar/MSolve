@@ -322,7 +322,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             var dr = Vector.CreateZero(lagrangeEnumerator.NumLagrangeMultipliers);
             foreach (int s in linearSystems.Keys)
             {
-                SignedBooleanMatrixRowMajor Br = lagrangeEnumerator.BooleanMatrices[s];
+                SignedBooleanMatrixColMajor Br = lagrangeEnumerator.BooleanMatrices[s];
                 dr.AddIntoThis(Br.Multiply(factorizedKrr[s].SolveLinearSystem(fr[s])));
             }
             return dr;

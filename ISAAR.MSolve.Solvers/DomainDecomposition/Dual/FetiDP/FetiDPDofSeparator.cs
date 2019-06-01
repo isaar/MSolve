@@ -6,6 +6,7 @@ using System.Text;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 
 //TODO: Remove code duplication between this and Feti1DofSeparator
 //TODO: Perhaps I should also find and expose the indices of boundary remainder and internal remainder dofs into the sequence 
@@ -30,7 +31,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
         /// <summary>
         /// Also called Bc in papers by Farhat or Lc in NTUA theses. 
         /// </summary>
-        public Dictionary<int, Matrix> CornerBooleanMatrices { get; private set; } //TODO: This should be sparse
+        public Dictionary<int, UnsignedBooleanMatrix> CornerBooleanMatrices { get; private set; } //TODO: This should be sparse
 
         /// <summary>
         /// Indices of (boundary) corner dofs into the sequence of all free dofs of each subdomain.
@@ -117,16 +118,16 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             }
 
             // Fill Bc matrix of each subdomain 
-            CornerBooleanMatrices = new Dictionary<int, Matrix>();
+            CornerBooleanMatrices = new Dictionary<int, UnsignedBooleanMatrix>();
             foreach (ISubdomain subdomain in model.Subdomains)
             {
                 DofTable localCornerDofOrdering = SubdomainCornerDofOrderings[subdomain.ID];
                 int numLocalCornerDofs = localCornerDofOrdering.EntryCount;
-                var Bc = Matrix.CreateZero(numLocalCornerDofs, NumGlobalCornerDofs);
+                var Bc = new UnsignedBooleanMatrix(numLocalCornerDofs, NumGlobalCornerDofs);
                 foreach ((INode node, IDofType dofType, int localIdx) in localCornerDofOrdering)
                 {
                     int globalIdx = globalCornerDofOrdering[node, dofType];
-                    Bc[localIdx, globalIdx] = 1;
+                    Bc.AddEntry(localIdx, globalIdx);
                 }
                 CornerBooleanMatrices[subdomain.ID] = Bc;
             }
