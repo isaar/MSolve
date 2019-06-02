@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra;
@@ -113,6 +114,8 @@ namespace ISAAR.MSolve.FEM.Elements
         {
             this.dofEnumerator = dofEnumerator;
         }
+
+        public CellType CellType { get; } = CellType.Hexa8;
 
         public IElementDofEnumerator DofEnumerator
         {

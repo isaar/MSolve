@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
@@ -62,6 +63,8 @@ namespace ISAAR.MSolve.FEM.Elements
             get { return dofEnumerator; }
             set { dofEnumerator = value; }
         }
+
+        public CellType CellType { get; } = CellType.Line;
 
         public abstract void SaveGeometryState();
         public abstract void UpdateState(double[] incrementalNodeDisplacements);

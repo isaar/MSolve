@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
@@ -60,6 +61,7 @@ namespace ISAAR.MSolve.FEM.Elements
             this.beamAxisZ = new double[AXIS_COUNT];
         }
 
+        public CellType CellType { get; } = CellType.Line;
         public int ID => 100;
         public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
         public IList<EmbeddedNode> EmbeddedNodes { get { return embeddedNodes; } }

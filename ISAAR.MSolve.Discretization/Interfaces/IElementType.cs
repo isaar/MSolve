@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.Discretization.Interfaces
@@ -14,6 +15,7 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 
     public interface IElementType
     {
+        CellType CellType { get; }
         IElementDofEnumerator DofEnumerator { get; set; }
         IMatrix StiffnessMatrix(IElement element);
         IMatrix MassMatrix(IElement element);

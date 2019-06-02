@@ -4,6 +4,7 @@ using System.Linq;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
@@ -37,11 +38,15 @@ namespace ISAAR.MSolve.FEM.Elements
             for (int i = 0; i < iInt2; i++)
                 materialsAtGaussPoints[i] = (ElasticMaterial2D)material.Clone();
         }
+
         public Quad4(ElasticMaterial2D material, IElementDofEnumerator dofEnumerator)
             : this(material)
         {
             this.dofEnumerator = dofEnumerator;
         }
+
+        public CellType CellType { get; } = CellType.Quad4;
+
         public IElementDofEnumerator DofEnumerator
         {
             get { return dofEnumerator; }

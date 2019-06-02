@@ -4,6 +4,7 @@ using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
@@ -55,6 +56,7 @@ namespace ISAAR.MSolve.FEM.Elements
         public InterpolationShell8 Interpolation { get; }
         public IQuadrature3D QuadratureForStiffness { get; }
 
+        public CellType CellType { get; } = CellType.Unknown;
         public int ID => 12;
 
         public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;

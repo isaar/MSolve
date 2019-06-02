@@ -11,6 +11,9 @@ namespace ISAAR.MSolve.Discretization.Mesh
     /// </summary>
     public enum CellType
     {
+        // 0 ---- 1
+        Line,
+
         // 3 ---- 2							
         // |      |                            
         // |      |                            
@@ -209,6 +212,8 @@ namespace ISAAR.MSolve.Discretization.Mesh
         //       `\   |           `\  \ 
         //         `\.'             `\ \ 
         //           1--------8--------2
-        Pyra14
+        Pyra14,
+
+        Unknown
     }
 }

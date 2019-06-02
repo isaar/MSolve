@@ -4,6 +4,7 @@ using System.Linq;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Interfaces;
@@ -31,8 +32,9 @@ namespace ISAAR.MSolve.IGA.Elements
 			materialsAtThicknessGP =
 				new Dictionary<GaussLegendrePoint3D, Dictionary<GaussLegendrePoint3D, IShellMaterial>>();
 
+        public CellType CellType { get; } = CellType.Unknown;
 
-		public TSplineKirchhoffLoveShellElementMaterial(int id, Patch patch, int degreeKsi, int degreeHeta,
+        public TSplineKirchhoffLoveShellElementMaterial(int id, Patch patch, int degreeKsi, int degreeHeta,
 			double thickness, Matrix extractionOperator, IShellMaterial shellMaterial)
 		{
 			this.ID = id;

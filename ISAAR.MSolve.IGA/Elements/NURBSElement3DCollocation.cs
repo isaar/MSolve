@@ -6,6 +6,7 @@ using System.Text;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
@@ -28,6 +29,7 @@ namespace ISAAR.MSolve.IGA.Elements
         protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
         protected IDofType[][] dofTypes;
         protected readonly static IDofType[] controlPointDOFTypes = new StructuralDof[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ };
+        public CellType CellType { get; } = CellType.Unknown;
 
 
         public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
