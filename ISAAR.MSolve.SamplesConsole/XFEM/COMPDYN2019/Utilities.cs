@@ -5,6 +5,7 @@ using System.Text;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Logging.DomainDecomposition;
 using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
@@ -43,7 +44,7 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
         public static void PlotSubdomains(string plotPath, XModel model)
         {
             model.ConnectDataStructures();
-            var writer = new VtkMeshPartitionWriter();
+            var writer = new MeshPartitionWriter();
             var nodesPerSubdomain = new Dictionary<int, IReadOnlyList<XNode>>();
             var elementsPerSubdomain = new Dictionary<int, IReadOnlyList<IXFiniteElement>>();
             foreach (int subdomainID in model.Subdomains.Keys)

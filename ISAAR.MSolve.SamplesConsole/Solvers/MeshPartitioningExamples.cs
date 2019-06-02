@@ -7,6 +7,7 @@ using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.Discretization.Mesh.Generation;
 using ISAAR.MSolve.Discretization.Mesh.Generation.GMSH;
+using ISAAR.MSolve.Logging.DomainDecomposition;
 using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.Solvers.DomainDecomposition.MeshPartitioning;
 using ISAAR.MSolve.XFEM.Elements;
@@ -69,7 +70,7 @@ namespace ISAAR.MSolve.SamplesConsole.Solvers
             model.ConnectDataStructures();
 
             // Plot the resulting subdomains
-            var writer = new VtkMeshPartitionWriter();
+            var writer = new MeshPartitionWriter();
             var nodesPerSubdomain = new Dictionary<int, IReadOnlyList<XNode>>(); 
             var elementsPerSubdomain = new Dictionary<int, IReadOnlyList<IXFiniteElement>>();
             foreach (int subdomainID in model.Subdomains.Keys)
@@ -148,7 +149,7 @@ namespace ISAAR.MSolve.SamplesConsole.Solvers
             model.ConnectDataStructures();
 
             // Plot the resulting subdomains
-            var writer = new VtkMeshPartitionWriter();
+            var writer = new MeshPartitionWriter();
             var nodesPerSubdomain = new Dictionary<int, IReadOnlyList<XNode>>();
             var elementsPerSubdomain = new Dictionary<int, IReadOnlyList<IXFiniteElement>>();
             foreach (int subdomainID in model.Subdomains.Keys)
