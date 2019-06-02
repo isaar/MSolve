@@ -53,6 +53,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Projection
             CalculateMatrixG();
             //Matrix GQG = matrixG.ThisTransposeTimesOtherTimesThis(matrixQ);
             Matrix GQG = matrixG.MultiplyRight(matrixQ.Multiply(matrixG), true);
+
+            var writer = new LinearAlgebra.Output.FullMatrixWriter();
+            writer.WriteToFile(GQG, @"C:\Users\Serafeim\Desktop\output.txt");
+
+
             factorGQG = GQG.FactorCholesky(true);
         }
 

@@ -69,9 +69,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
         }
 
         public Dictionary<int, IMappingMatrix> CalcBoundaryPreconditioningSignedBooleanMatrices(
-            ILagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, Matrix> boundarySignedBooleanMatrices)
+            ILagrangeMultipliersEnumerator lagrangeEnumerator, 
+            Dictionary<int, SignedBooleanMatrixColMajor> boundarySignedBooleanMatrices)
         {
-            return ScalingBooleanMatrixExplicit.CreateBpbOfSubdomains(this, lagrangeEnumerator, boundarySignedBooleanMatrices);
+            return ScalingBooleanMatrixImplicit.CreateBpbOfSubdomains(this, lagrangeEnumerator, boundarySignedBooleanMatrices);
         }
 
         private DiagonalMatrix BuildDlambda(ILagrangeMultipliersEnumerator lagrangeEnumerator)
@@ -123,11 +124,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
 
             public int NumRows => explicitBpb.NumRows;
 
-            public double this[int rowIdx, int colIdx] => explicitBpb[rowIdx, colIdx];
-
             internal static Dictionary<int, IMappingMatrix> CreateBpbOfSubdomains(
                 HeterogeneousStiffnessDistribution stiffnessDistribution, ILagrangeMultipliersEnumerator lagrangeEnumerator, 
-                Dictionary<int, Matrix> boundarySignedBooleanMatrices)
+                Dictionary<int, SignedBooleanMatrixColMajor> boundarySignedBooleanMatrices)
             {
                 // According to Fragakis PhD (e.q. 3.28): 
                 // Bpb = Dλ * Bb * inv(Db(s)), Dλ[λ,λ] = K(i)[b,b] * K(j)[b,b] / Sum(K(1)[b,b] + K(2)[b,b] + ...)
@@ -138,16 +137,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
                 var matricesBpb = new Dictionary<int, IMappingMatrix>();
                 foreach (ISubdomain subdomain in stiffnessDistribution.model.Subdomains)
                 {
-                    Matrix Bb = boundarySignedBooleanMatrices[subdomain.ID];
+                    SignedBooleanMatrixColMajor Bb = boundarySignedBooleanMatrices[subdomain.ID];
                     Matrix invDb = stiffnessDistribution.InvertBoundaryDofStiffnesses(subdomain).CopyToFullMatrix();
                     Matrix Bpb = Bb.MultiplyRight(invDb).MultiplyLeft(Dlambda);
                     matricesBpb[subdomain.ID] = new ScalingBooleanMatrixExplicit(Bpb);
                 }
                 return matricesBpb;
             }
-
-            public bool Equals(IIndexable2D other, double tolerance = 1E-13)
-                => explicitBpb.Equals(other, tolerance);
 
             public Vector Multiply(Vector vector, bool transposeThis = false)
                 => explicitBpb.Multiply(vector, transposeThis);
@@ -165,7 +161,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
             /// <summary>
             /// Signed boolean matrix with only the boundary dofs of the subdomain as columns. 
             /// </summary>
-            private readonly Matrix Bb;
+            private readonly SignedBooleanMatrixColMajor Bb;
 
             /// <summary>
             /// Diagonal matrix that stores for each dof the product of the stiffnesses corresponding to that dof in each 
@@ -178,7 +174,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
             /// </summary>
             private readonly DiagonalMatrix invDb;
 
-            private ScalingBooleanMatrixImplicit(DiagonalMatrix Dlambda, Matrix Bb, DiagonalMatrix invMb)
+            private ScalingBooleanMatrixImplicit(DiagonalMatrix Dlambda, SignedBooleanMatrixColMajor Bb, DiagonalMatrix invMb)
             {
                 this.Dlambda = Dlambda;
                 this.Bb = Bb;
@@ -191,7 +187,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
 
             internal static Dictionary<int, IMappingMatrix> CreateBpbOfSubdomains(
                 HeterogeneousStiffnessDistribution stiffnessDistribution, ILagrangeMultipliersEnumerator lagrangeEnumerator,
-                Dictionary<int, Matrix> boundarySignedBooleanMatrices)
+                Dictionary<int, SignedBooleanMatrixColMajor> boundarySignedBooleanMatrices)
             {
                 // According to Fragakis PhD (e.q. 3.28): 
                 // Bpb = Dλ * Bb * inv(Db(s)), Dλ[λ,λ] = K(i)[b,b] * K(j)[b,b] / Sum(K(1)[b,b] + K(2)[b,b] + ...)
@@ -202,7 +198,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
                 var matricesBpb = new Dictionary<int, IMappingMatrix>();
                 foreach (ISubdomain subdomain in stiffnessDistribution.model.Subdomains)
                 {
-                    Matrix Bb = boundarySignedBooleanMatrices[subdomain.ID];
+                    SignedBooleanMatrixColMajor Bb = boundarySignedBooleanMatrices[subdomain.ID];
                     DiagonalMatrix invDb = stiffnessDistribution.InvertBoundaryDofStiffnesses(subdomain);
                     matricesBpb[subdomain.ID] = new ScalingBooleanMatrixImplicit(Dlambda, Bb, invDb);
                 }

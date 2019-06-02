@@ -17,6 +17,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
         Dictionary<int, double> CalcBoundaryDofCoefficients(INode node, IDofType dofType);
 
         Dictionary<int, IMappingMatrix> CalcBoundaryPreconditioningSignedBooleanMatrices(
-            ILagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, Matrix> boundarySignedBooleanMatrices);
+            ILagrangeMultipliersEnumerator lagrangeEnumerator, 
+            Dictionary<int, SignedBooleanMatrixColMajor> boundarySignedBooleanMatrices);
     }
 }

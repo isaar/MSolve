@@ -20,34 +20,17 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning
             IDofSeparator dofSeparator, ILagrangeMultipliersEnumerator lagrangeEnumerator)
         {
             int numContinuityEquations = lagrangeEnumerator.NumLagrangeMultipliers;
-            int[] rowsToKeep = Enumerable.Range(0, numContinuityEquations).ToArray(); // Same for all subdomains
-            var matricesBb = new Dictionary<int, Matrix>();
+            var matricesBb = new Dictionary<int, SignedBooleanMatrixColMajor>();
             foreach (int id in dofSeparator.BoundaryDofIndices.Keys)
             {
-                Matrix B = lagrangeEnumerator.BooleanMatrices[id].CopyToFullMatrix(false);
-                Matrix Bb = B.GetSubmatrix(rowsToKeep, dofSeparator.BoundaryDofIndices[id]);
+                SignedBooleanMatrixColMajor B = lagrangeEnumerator.BooleanMatrices[id];
+                SignedBooleanMatrixColMajor Bb = B.GetColumns(dofSeparator.BoundaryDofIndices[id], false);
                 matricesBb[id] = Bb;
             }
             Dictionary<int, IMappingMatrix> matricesBpb = stiffnessDistribution.CalcBoundaryPreconditioningSignedBooleanMatrices(
                 lagrangeEnumerator, matricesBb);
             
             return matricesBpb;
-        }
-
-        //TODO: This is not used anywhere
-        protected Dictionary<int, Matrix> ExtractBoundaryBooleanMatrices(IDofSeparator dofSeparator,
-            ILagrangeMultipliersEnumerator lagrangeEnumerator)
-        {
-            int numContinuityEquations = lagrangeEnumerator.NumLagrangeMultipliers;
-            int[] rowsToKeep = Enumerable.Range(0, numContinuityEquations).ToArray(); // Same for all subdomains
-            var boundaryBooleanMatrices = new Dictionary<int, Matrix>();
-            foreach (int id in dofSeparator.BoundaryDofIndices.Keys)
-            {
-                Matrix booleanMatrix = lagrangeEnumerator.BooleanMatrices[id].CopyToFullMatrix(false);
-                Matrix boundaryBooleanMatrix = booleanMatrix.GetSubmatrix(rowsToKeep, dofSeparator.BoundaryDofIndices[id]);
-                boundaryBooleanMatrices.Add(id, boundaryBooleanMatrix);
-            }
-            return boundaryBooleanMatrices;
         }
 
         protected Dictionary<int, Matrix> ExtractStiffnessesBoundaryBoundary(IDofSeparator dofSeparator,

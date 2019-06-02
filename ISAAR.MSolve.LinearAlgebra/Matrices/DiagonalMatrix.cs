@@ -5,6 +5,8 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
+//TODO: Use MKL vector math function vdMul(), vdInv(). See: 
+//      https://software.intel.com/en-us/mkl-developer-reference-c-vm-mathematical-functions#0C983A0A-02BA-46A9-AAA5-EAD9D8869ADD
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
@@ -186,9 +188,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: This should be delegated to each matrix type which should scale its rows itself efficiently.
             Preconditions.CheckMultiplicationDimensions(this, matrix);
             var result = Matrix.CreateZero(matrix.NumRows, matrix.NumColumns);
-            for (int i = 0; i < matrix.NumRows; ++i)
+            for (int j = 0; j < matrix.NumColumns; ++j) 
             {
-                for (int j = 0; j < matrix.NumColumns; ++j) result[i, j] = diagonal[i] * matrix[i, j];
+                for (int i = 0; i < matrix.NumRows; ++i) result[i, j] = diagonal[i] * matrix[i, j];
             }
             return result;
         }

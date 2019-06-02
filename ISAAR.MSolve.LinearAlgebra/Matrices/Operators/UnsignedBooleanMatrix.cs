@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -124,15 +126,17 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Operators
             //TODO: Otherwise, rename this method to specify for which instances it works correctly.
 
             // Rows of this matrix correspond to rows of matrix "other" (local). Columns of this matrix correspond to columns
-            // of matrix "resutl" (global).
+            // of matrix "result" (global).
             Preconditions.CheckMultiplicationDimensions(other.NumColumns, this.NumRows);
             var result = Matrix.CreateZero(this.NumColumns, this.NumColumns);
             for (int otherCol = 0; otherCol < other.NumColumns; ++otherCol)
             {
-                int resultCol = this[];
+                Debug.Assert(data[otherCol].Count == 1);
+                int resultCol = data[otherCol].First();
                 for (int otherRow = 0; otherRow < other.NumRows; ++otherRow)
                 {
-                    int resultRow = this[];
+                    Debug.Assert(data[otherRow].Count == 1);
+                    int resultRow = data[otherRow].First();
                     result[resultRow, resultCol] = other[otherRow, otherCol];
                 }
             }

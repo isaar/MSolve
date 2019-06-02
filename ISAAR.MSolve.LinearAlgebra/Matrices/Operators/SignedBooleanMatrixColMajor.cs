@@ -141,21 +141,21 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Operators
             var clone = new SignedBooleanMatrixColMajor(this.NumRows, colsToKeep.Length);
             if (deepCopy)
             {
-                foreach (int colIdx in colsToKeep)
+                for (int j = 0; j < colsToKeep.Length; ++j)
                 {
                     var cloneColumn = new Dictionary<int, int>();
-                    foreach (var rowSign in this.data[colIdx])
+                    foreach (var rowSign in this.data[colsToKeep[j]])
                     {
                         cloneColumn[rowSign.Key] = rowSign.Value;
                     }
-                    clone.data[colIdx] = cloneColumn;
+                    clone.data[j] = cloneColumn;
                 }
             }
             else
             {
-                foreach (int colIdx in colsToKeep)
+                for (int j = 0; j < colsToKeep.Length; ++j)
                 {
-                    clone.data[colIdx] = this.data[colIdx];
+                    clone.data[j] = this.data[colsToKeep[j]];
                 }
             }
             return clone;
@@ -214,7 +214,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Operators
             var result = new double[this.NumColumns * other.NumRows];
             for (int j = 0; j < other.NumColumns; ++j)
             {
-                int offset = j * this.NumRows;
+                int offset = j * this.NumColumns;
                 foreach (var wholeCol in data)
                 {
                     double sum = 0.0;

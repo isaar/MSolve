@@ -143,7 +143,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
         //[InlineData(1E-6, InterfaceSolver.Method2, Precond.Dirichlet, MatrixQ.Precond, Residual.Exact, 9)] // converges, stagnates almost before the tolerance and then diverges
         //[InlineData(1E-6, InterfaceSolver.Method3, Precond.Dirichlet, MatrixQ.Precond, Residual.Exact, 23)] //3
         //[InlineData(1E-6, InterfaceSolver.Method4, Precond.Dirichlet, MatrixQ.Precond, Residual.Exact, 9)] // converges, stagnates almost before the tolerance and then diverges
-        [InlineData(1E-6, InterfaceSolver.Default, Precond.Dirichlet, MatrixQ.Precond, Residual.Approximate, 9)]
+        //[InlineData(1E-6, InterfaceSolver.Default, Precond.Dirichlet, MatrixQ.Precond, Residual.Approximate, 9)]
         public static void Run(double stiffnessRatio, InterfaceSolver interfaceSolver, Precond precond, MatrixQ q,
             Residual convergence, int iterExpected)
         {

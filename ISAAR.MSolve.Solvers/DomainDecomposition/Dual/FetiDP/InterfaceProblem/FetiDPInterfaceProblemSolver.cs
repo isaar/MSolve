@@ -113,8 +113,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
                 // globalKccStar = sum_over_s(Lc[s]^T * KccStar[s] * Lc[s])
                 UnsignedBooleanMatrix Lc = dofSeparator.CornerBooleanMatrices[s];
                 Matrix KccStar = Kcc[s] - Krc[s].MultiplyRight(factorizedKrr[s].SolveLinearSystems(Krc[s]), true);
-                Matrix KccStarLc = Lc.MultiplyLeft(KccStar)
-                globalKccStar.AddIntoThis(Lc.MultiplyRight(ThisTransposeTimesOtherTimesThis(KccStar));
+                globalKccStar.AddIntoThis(Lc.ThisTransposeTimesOtherTimesThis(KccStar));
             }
             return globalKccStar;
         }
