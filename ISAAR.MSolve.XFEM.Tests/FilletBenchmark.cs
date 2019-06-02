@@ -10,8 +10,11 @@ using ISAAR.MSolve.Discretization.Mesh.Generation;
 using ISAAR.MSolve.Discretization.Mesh.Generation.GMSH;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.Logging.DomainDecomposition;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP;
 using ISAAR.MSolve.XFEM.Analyzers;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
 using ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving;
@@ -88,8 +91,10 @@ namespace ISAAR.MSolve.XFEM.Tests
         /// </summary>
         private readonly double jIntegralRadiusOverElementSize;
 
-        private readonly string lsmPlotDirectory;
         private readonly string meshPath;
+        private readonly string lsmPlotDirectory;
+        private readonly string subdomainPlotDirectory;
+
         private readonly string propagationPath;
         private readonly bool writePropagation;
 
@@ -98,7 +103,6 @@ namespace ISAAR.MSolve.XFEM.Tests
         /// boundary or if the fracture toughness is exceeded.
         /// </summary>
         private readonly int maxIterations;
-        //private readonly int numSubdomains;
 
         private TrackingExteriorCrackLSM crack;
         private BidirectionalMesh2D<XNode, XContinuumElement2D> mesh;
@@ -108,19 +112,19 @@ namespace ISAAR.MSolve.XFEM.Tests
         /// </summary>
         /// <param name="growthLength">The length by which the crack grows in each iteration.</param>
         public FilletBenchmark(double growthLength, double jIntegralRadiusOverElementSize, string meshPath,
-             string lsmPlotDirectory, string propagationPath, bool writePropagation, int maxIterations,
-              bool rigidBCs, double heavisideTol/*, int numSubdomains*/)
+             string lsmPlotDirectory, string subdomainPlotDirectory, string propagationPath, bool writePropagation,
+             int maxIterations, bool rigidBCs, double heavisideTol)
         {
             this.growthLength = growthLength;
             this.jIntegralRadiusOverElementSize = jIntegralRadiusOverElementSize;
             this.meshPath = meshPath;
             this.lsmPlotDirectory = lsmPlotDirectory;
+            this.subdomainPlotDirectory = subdomainPlotDirectory;
             this.propagationPath = propagationPath;
             this.writePropagation = writePropagation;
             this.maxIterations = maxIterations;
             this.rigidBCs = rigidBCs;
             this.heavisideTol = heavisideTol;
-            //this.numSubdomains = numSubdomains;
         }
 
         /// <summary>
@@ -146,6 +150,16 @@ namespace ISAAR.MSolve.XFEM.Tests
             var problem = new ProblemStructural(Model, solver);
             var analyzer = new QuasiStaticCrackPropagationAnalyzer(Model, solver, problem, crack, fractureToughness, 
                 maxIterations);
+
+            // Subdomain plots
+            if (subdomainPlotDirectory != null)
+            {
+                if (solver is FetiDPSolver fetDP)
+                {
+                    analyzer.DDLogger = new DomainDecompositionLoggerFetiDP(subdomainPlotDirectory, fetDP);
+                }
+                else analyzer.DDLogger = new DomainDecompositionLogger(subdomainPlotDirectory);
+            }
 
             analyzer.Initialize();
             analyzer.Analyze();
@@ -336,6 +350,8 @@ namespace ISAAR.MSolve.XFEM.Tests
             /// </summary>
             public string LsmPlotDirectory { get; set; } = null;
 
+            public string SubdomainPlotDirectory { get; set; } = null;
+
             /// <summary>
             /// The maximum number of crack propagation steps. The analysis may stop earlier if the crack has reached the domain 
             /// boundary or if the fracture toughness is exceeded.
@@ -356,7 +372,8 @@ namespace ISAAR.MSolve.XFEM.Tests
             public FilletBenchmark BuildBenchmark()
             {
                 return new FilletBenchmark(growthLength, JintegralRadiusOverElementSize, meshPath, LsmPlotDirectory,
-                    PropagationPath, WritePropagation, MaxIterations, RigidBCs, HeavisideEnrichmentTolerance);
+                    SubdomainPlotDirectory, PropagationPath, WritePropagation, 
+                    MaxIterations, RigidBCs, HeavisideEnrichmentTolerance);
             }
         }
 

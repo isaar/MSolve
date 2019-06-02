@@ -5,6 +5,7 @@ using System.Text;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Logging.DomainDecomposition;
 using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
@@ -22,36 +23,40 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
 {
     public class Holes
     {
+        private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes.msh";
+        private const string leftCrackPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Plots\Left";
+        private const string rightCrackPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Plots\Right";
+        private const string subdomainPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Plots\Subdomains";
+
         public static void Run()
         {
-            string subdomainPlotPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Plots\subdomains.vtk";
+            HolesBenchmark benchmarkSub10;
 
             // Skyline
-            HolesBenchmark benchmarkSub1 = CreateSingleSubdomainBenchmark();
-            ISolver skylineSolver = DefineSolver(benchmarkSub1, SolverType.Skyline);
+            //HolesBenchmark benchmarkSub1 = CreateSingleSubdomainBenchmark();
+            //ISolver skylineSolver = DefineSolver(benchmarkSub1, SolverType.Skyline);
             //Console.WriteLine("Uncracked analysis, 1 subdomain, Skyline   : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub1.Model, skylineSolver));
             //Console.WriteLine("Cracked analysis only 1 step, 1 subdomain, Skyline   : norm2(globalU) = " +
             //    RunSingleCrackedStep(benchmarkSub1.Model, benchmarkSub1.Crack, skylineSolver));
-            Console.WriteLine("Skyline solver, 1 subdomain: ");
-            RunCrackPropagationAnalysis(benchmarkSub1, skylineSolver);
+            //Console.WriteLine("Skyline solver, 1 subdomain: ");
+            //RunCrackPropagationAnalysis(benchmarkSub1, skylineSolver);
 
             // FETI-1 10 subdomains
-            HolesBenchmark benchmarkSub10;
-            //benchmarkSub10 = CreateMultiSubdomainBenchmark(10);
+            benchmarkSub10 = CreateMultiSubdomainBenchmark(10);
+            ISolver solverFeti1 = DefineSolver(benchmarkSub10, SolverType.Feti1);
             //PlotSubdomains(subdomainPlotPath, benchmarkSub10.Model);
-            //ISolver solverFeti1 = DefineSolver(benchmarkSub10, SolverType.Feti1);
             //Console.WriteLine("Uncracked analysis, 10 subdomains, FETI-1  : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub10.Model, solverFeti1));
             //Console.WriteLine("Cracked analysis only 1 step, 10 subdomains, FETI-1  : norm2(globalU) = " +
             //    RunSingleCrackedStep(benchmarkSub10.Model, benchmarkSub10.Crack, solverFeti1));
             //Console.WriteLine("FETI-1, 10 subdomains: ");
-            //RunCrackPropagationAnalysis(benchmarkSub10, solverFeti1);
+            RunCrackPropagationAnalysis(benchmarkSub10, solverFeti1);
 
             // FETI-DP 10 subdomains
             //benchmarkSub10 = CreateMultiSubdomainBenchmark(10);
-            //PlotSubdomains(subdomainPlotPath, benchmarkSub10.Model);
             //ISolver solverFetiDP = DefineSolver(benchmarkSub10, SolverType.FetiDP);
+            //PlotSubdomains(subdomainPlotPath, benchmarkSub10.Model);
             //Console.WriteLine("Uncracked analysis, 10 subdomains, FETI-DP : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub10.Model, solverFetiDP));
             //Console.WriteLine("Cracked analysis only 1 step, 10 subdomains, FETI-DP : norm2(globalU) = " +
@@ -149,15 +154,12 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
 
         private static HolesBenchmark CreateSingleSubdomainBenchmark()
         {
-            string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes.msh";
-            string leftCrackPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Plots\Left";
-            string rightCrackPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Plots\Right";
-
             double growthLength = 1.0; // mm. Must be sufficiently larger than the element size.
 
             var builder = new HolesBenchmark.Builder(meshPath, growthLength);
             builder.LeftLsmPlotDirectory = leftCrackPlotDirectory;
             builder.RightLsmPlotDirectory = rightCrackPlotDirectory;
+            builder.SubdomainPlotDirectory = subdomainPlotDirectory;
 
             builder.HeavisideEnrichmentTolerance = 0.12;
 
@@ -231,6 +233,33 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                 return builder.BuildSolver(benchmark.Model);
             }
             else throw new ArgumentException("Invalid solver choice.");
+        }
+
+        private static void PlotSubdomains(HolesBenchmark benchmark, ISolver solver)
+        {
+            string subdomainPlotPath = subdomainPlotDirectory + "\\subdomains.vtk";
+            string boundaryNodesPlotPath = subdomainPlotDirectory + "\\boundary_nodes.vtk";
+            string cornerNodesPlotPath = subdomainPlotDirectory + "\\corner_nodes.vtk";
+
+            if (solver is Feti1Solver feti1)
+            {
+                benchmark.Model.ConnectDataStructures();
+                var writer = new MeshPartitionWriter();
+                writer.WriteSubdomainElements(subdomainPlotPath, benchmark.Model);
+                writer.WriteBoundaryNodes(boundaryNodesPlotPath, benchmark.Model);
+            }
+            else if (solver is FetiDPSolver fetiDP)
+            {
+                benchmark.Model.ConnectDataStructures();
+                var writer = new MeshPartitionWriter();
+                writer.WriteSubdomainElements(subdomainPlotPath, benchmark.Model);
+                writer.WriteBoundaryNodes(boundaryNodesPlotPath, benchmark.Model);
+
+                var allCornerNodes = new HashSet<INode>();
+                foreach (INode[] cornerNodes in fetiDP.CornerNodesOfSubdomains.Values) allCornerNodes.UnionWith(cornerNodes);
+                writer.WriteSpecialNodes(cornerNodesPlotPath, "corner_nodes", allCornerNodes);
+            }
+            else throw new ArgumentException("Invalid solver");
         }
 
         private static void RunCrackPropagationAnalysis(HolesBenchmark benchmark, ISolver solver)

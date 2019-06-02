@@ -5,6 +5,7 @@ using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Logging.DomainDecomposition;
 using ISAAR.MSolve.Logging.Interfaces;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.LinearSystems;
@@ -40,8 +41,7 @@ namespace ISAAR.MSolve.XFEM.Analyzers
             this.maxIterations = maxIterations;
         }
 
-        public Dictionary<int, IAnalyzerLog[]> Logs => throw new NotImplementedException();
-
+        public IDomainDecompositionLogger DDLogger { get; set; }
         public CrackPropagationTermination Termination { get; private set;}
 
         public void Initialize(bool isFirstAnalysis = true)
@@ -65,6 +65,9 @@ namespace ISAAR.MSolve.XFEM.Analyzers
 
                 // Apply the updated enrichements.
                 crack.UpdateEnrichments();
+
+                // Plot domain decomposition data, if necessary
+                if (DDLogger != null) DDLogger.PlotSubdomains(model);
 
                 // Order and count dofs
                 solver.OrderDofs(false);

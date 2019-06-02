@@ -27,7 +27,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
     {
         internal const string name = "FETI-DP Solver"; // for error messages
         private readonly Dictionary<int, SkylineAssembler> assemblers;
-        private readonly Dictionary<int, INode[]> cornerNodesOfSubdomains;
         private readonly ICrosspointStrategy crosspointStrategy = new FullyRedundantConstraints();
         private readonly IDofOrderer dofOrderer;
         private readonly IFetiDPInterfaceProblemSolver interfaceProblemSolver;
@@ -59,7 +58,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             if (model.Subdomains.Count == 1) throw new InvalidSolverException(
                 $"{name} cannot be used if there is only 1 subdomain");
             this.model = model;
-            this.cornerNodesOfSubdomains = cornerNodesOfSubdomains;
+            this.CornerNodesOfSubdomains = cornerNodesOfSubdomains;
 
             // Subdomains
             subdomains = new Dictionary<int, ISubdomain>();
@@ -90,6 +89,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             this.problemIsHomogeneous = problemIsHomogeneous;
         }
 
+        public Dictionary<int, INode[]> CornerNodesOfSubdomains { get; private set; }
         public IReadOnlyDictionary<int, ILinearSystem> LinearSystems { get; }
         public SolverLogger Logger { get; } = new SolverLogger(name);
 
@@ -195,8 +195,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 
             // Define boundary / internal dofs
             dofSeparator = new FetiDPDofSeparator();
-            dofSeparator.SeparateDofs(model, cornerNodesOfSubdomains);
-            dofSeparator.DefineCornerMappingMatrices(model, cornerNodesOfSubdomains);
+            dofSeparator.SeparateDofs(model, CornerNodesOfSubdomains);
+            dofSeparator.DefineCornerMappingMatrices(model, CornerNodesOfSubdomains);
 
             // Define lagrange multipliers and boolean matrices
             this.lagrangeEnumerator = new FetiDPLagrangeMultipliersEnumerator(crosspointStrategy, dofSeparator);

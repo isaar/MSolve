@@ -10,8 +10,10 @@ using ISAAR.MSolve.Discretization.Mesh.Generation;
 using ISAAR.MSolve.Discretization.Mesh.Generation.GMSH;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.Logging.DomainDecomposition;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP;
 using ISAAR.MSolve.XFEM.Analyzers;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.CrackGeometry.CrackTip;
@@ -104,6 +106,7 @@ namespace ISAAR.MSolve.XFEM.Tests
         private readonly string meshPath;
         private readonly string leftLsmPlotDirectory;
         private readonly string rightLsmPlotDirectory;
+        private readonly string subdomainPlotDirectory;
         private readonly string leftPropagationPath;
         private readonly string rightPropagationPath;
         private readonly bool writePropagation;
@@ -113,7 +116,6 @@ namespace ISAAR.MSolve.XFEM.Tests
         /// boundary or if the fracture toughness is exceeded.
         /// </summary>
         private readonly int maxIterations;
-        //private readonly int numSubdomains;
         private readonly double tipEnrichmentRadius;
 
         /// <summary>
@@ -121,9 +123,9 @@ namespace ISAAR.MSolve.XFEM.Tests
         /// </summary>
         /// <param name="growthLength">The length by which the crack grows in each iteration.</param>
         private HolesBenchmark(string meshPath, double growthLength, BoundaryConditions bc, double jIntegralRadiusOverElementSize,
-             double tipEnrichmentRadius, string leftLsmPlotDirectory, string rightLsmPlotDirectory,
+             double tipEnrichmentRadius, string leftLsmPlotDirectory, string rightLsmPlotDirectory, string subdomainPlotDirectory,
              string leftPropagationPath, string rightPropagationPath, bool writePropagation,
-             int maxIterations, double heavisideTol/*, int numSubdomains*/)
+             int maxIterations, double heavisideTol)
         {
             this.meshPath = meshPath;
             this.growthLength = growthLength;
@@ -132,12 +134,12 @@ namespace ISAAR.MSolve.XFEM.Tests
             this.tipEnrichmentRadius = tipEnrichmentRadius;
             this.leftLsmPlotDirectory = leftLsmPlotDirectory;
             this.rightLsmPlotDirectory = rightLsmPlotDirectory;
+            this.subdomainPlotDirectory = subdomainPlotDirectory;
             this.leftPropagationPath = leftPropagationPath;
             this.rightPropagationPath = rightPropagationPath;
             this.writePropagation = writePropagation;
             this.maxIterations = maxIterations;
             this.heavisideTol = heavisideTol;
-            //this.numSubdomains = numSubdomains;
         }
 
         /// <summary>
@@ -164,6 +166,16 @@ namespace ISAAR.MSolve.XFEM.Tests
             var problem = new ProblemStructural(Model, solver);
             var analyzer = new QuasiStaticCrackPropagationAnalyzer(Model, solver, problem, Crack, fractureToughness,
                 maxIterations);
+
+            // Subdomain plots
+            if (subdomainPlotDirectory != null)
+            {
+                if (solver is FetiDPSolver fetDP)
+                {
+                    analyzer.DDLogger = new DomainDecompositionLoggerFetiDP(subdomainPlotDirectory, fetDP);
+                }
+                else analyzer.DDLogger = new DomainDecompositionLogger(subdomainPlotDirectory);
+            }
 
             analyzer.Initialize();
             analyzer.Analyze();
@@ -468,6 +480,8 @@ namespace ISAAR.MSolve.XFEM.Tests
             /// </summary>
             public string RightLsmPlotDirectory { get; set; } = null;
 
+            public string SubdomainPlotDirectory { get; set; } = null;
+
             /// <summary>
             /// The maximum number of crack propagation steps. The analysis may stop earlier if the crack has reached the domain 
             /// boundary or if the fracture toughness is exceeded.
@@ -488,7 +502,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             public HolesBenchmark BuildBenchmark()
             {
                 return new HolesBenchmark(meshPath, growthLength, BC, JintegralRadiusOverElementSize, TipEnrichmentRadius,
-                    LeftLsmPlotDirectory, RightLsmPlotDirectory, 
+                    LeftLsmPlotDirectory, RightLsmPlotDirectory, SubdomainPlotDirectory,
                     LeftPropagationPath, RightPropagationPath, WritePropagation,
                     MaxIterations, HeavisideEnrichmentTolerance);
             }
