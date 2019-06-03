@@ -26,7 +26,10 @@ namespace ISAAR.MSolve.Logging.DomainDecomposition
             writer.WriteBoundaryNodes($"{plotDirectoryPath}\\boundary_nodes_{analysisStep}.vtk", model);
 
             var allCornerNodes = new HashSet<INode>();
-            foreach (INode[] cornerNodes in solver.CornerNodesOfSubdomains.Values) allCornerNodes.UnionWith(cornerNodes);
+            foreach (IEnumerable<INode> cornerNodes in solver.CornerNodesOfSubdomains.Values)
+            {
+                allCornerNodes.UnionWith(cornerNodes);
+            }
             writer.WriteSpecialNodes($"{plotDirectoryPath}\\corner_nodes_{analysisStep}.vtk", "corner_nodes", allCornerNodes);
 
             ++analysisStep;

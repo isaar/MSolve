@@ -28,15 +28,16 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             BottomConstrainXDisplacementY_TopConstrainXDisplacementY
         }
 
-        public static Dictionary<int, INode[]> FindCornerNodesFromCrosspoints2D(IStructuralModel model)
+        public static Dictionary<int, HashSet<INode>> FindCornerNodesFromCrosspoints2D(IStructuralModel model)
         {
             //TODO: This is also done by the analyzer. Perhaps it should not.
             model.ConnectDataStructures();
-            var cornerNodes = new Dictionary<int, INode[]>();
+            var cornerNodes = new Dictionary<int, HashSet<INode>>();
             foreach (ISubdomain subdomain in model.Subdomains)
             {
                 // In 2D, if multiplicity > 2, the node is a crosspoint 
-                cornerNodes[subdomain.ID] = subdomain.Nodes.Where(node => node.SubdomainsDictionary.Count > 2).ToArray();
+                cornerNodes[subdomain.ID] = new HashSet<INode>(subdomain.Nodes.Where(
+                    node => node.SubdomainsDictionary.Count > 2));
             }
             return cornerNodes;
         }

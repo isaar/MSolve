@@ -11,6 +11,7 @@ using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.CornerNodes;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
 using ISAAR.MSolve.Solvers.DomainDecomposition.MeshPartitioning;
 using ISAAR.MSolve.XFEM.Elements;
@@ -220,7 +221,7 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             else if (solverType == SolverType.FetiDP)
             {
                 benchmark.Model.ConnectDataStructures();
-                Dictionary<int, INode[]> cornerNodes = null;
+                Dictionary<int, HashSet<INode>> cornerNodes = null;
                 
                 if (benchmark.Model.Subdomains.Count == 5)
                 {
@@ -228,9 +229,9 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                     ////cornerNodes = FindCornerNodesFromCrosspoints2D(benchmark.Model);
 
                     // The bottom and right subdomains do not need corner nodes, as they are fully fixed.
-                    cornerNodes = new Dictionary<int, INode[]>();
-                    cornerNodes[0] = new INode[0];
-                    cornerNodes[1] = new INode[0];
+                    cornerNodes = new Dictionary<int, HashSet<INode>>();
+                    cornerNodes[0] = new HashSet<INode>();
+                    cornerNodes[1] = new HashSet<INode>();
 
                     // Find the 4 corners of the cracked subdomain
                     XSubdomain crackedSubdomain = benchmark.Model.Subdomains[4];
@@ -263,19 +264,20 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                     }
 
                     // Fill the rest of the corner nodes
-                    cornerNodes[2] = new INode[] { cornerCrackedBottomLeft, cornerCrackedBottomRight };
-                    cornerNodes[3] = new INode[] { cornerCrackedTopLeft, cornerCrackedTopRight };
-                    cornerNodes[4] = new INode[]
+                    cornerNodes[2] = new HashSet<INode>(new INode[] { cornerCrackedBottomLeft, cornerCrackedBottomRight });
+                    cornerNodes[3] = new HashSet<INode>(new INode[] { cornerCrackedTopLeft, cornerCrackedTopRight });
+                    cornerNodes[4] = new HashSet<INode>(new INode[]
                     {
                         cornerCrackedBottomLeft, cornerCrackedBottomRight, cornerCrackedTopLeft, cornerCrackedTopRight
-                    };
+                    });
                 }
                 else if (benchmark.Model.Subdomains.Count == 7)
                 {
                     cornerNodes = FindCornerNodesFromCrosspoints2D(benchmark.Model);
                 }
 
-                var builder = new FetiDPSolver.Builder(cornerNodes);
+                var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodes);
+                var builder = new FetiDPSolver.Builder(cornerNodeSelection);
                 builder.PreconditionerFactory = new LumpedPreconditioner.Factory();
                 builder.ProblemIsHomogeneous = true;
                 return builder.BuildSolver(benchmark.Model);
@@ -304,7 +306,10 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                 writer.WriteBoundaryNodes(boundaryNodesPlotPath, benchmark.Model);
 
                 var allCornerNodes = new HashSet<INode>();
-                foreach (INode[] cornerNodes in fetiDP.CornerNodesOfSubdomains.Values) allCornerNodes.UnionWith(cornerNodes);
+                foreach (IEnumerable<INode> cornerNodes in fetiDP.CornerNodesOfSubdomains.Values)
+                {
+                    allCornerNodes.UnionWith(cornerNodes);
+                }
                 writer.WriteSpecialNodes(cornerNodesPlotPath, "corner_nodes", allCornerNodes);
             }
             else throw new ArgumentException("Invalid solver");

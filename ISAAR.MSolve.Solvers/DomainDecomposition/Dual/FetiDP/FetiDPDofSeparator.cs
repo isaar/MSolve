@@ -76,12 +76,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
         /// </summary>
         public Dictionary<int, DofTable> SubdomainCornerDofOrderings { get; private set; }
 
-        public void DefineCornerMappingMatrices(IStructuralModel model, Dictionary<int, INode[]> subdomainCornerNodes)
+        public void DefineCornerMappingMatrices(IStructuralModel model, Dictionary<int, HashSet<INode>> subdomainCornerNodes)
         {
             // Gather all corner nodes
             //TODO: This is also calculated in SeparateDofs(). Reuse it.
             var globalCornerNodes = new SortedSet<INode>(); //TODO: Can this be optimized?
-            foreach (IReadOnlyList<INode> subdomainNodes in subdomainCornerNodes.Values)
+            foreach (IEnumerable<INode> subdomainNodes in subdomainCornerNodes.Values)
             {
                 foreach (INode node in subdomainNodes) globalCornerNodes.Add(node);
             }
@@ -132,13 +132,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             }
         }
 
-        public void SeparateDofs(IStructuralModel model, Dictionary<int, INode[]> subdomainCornerNodes)
+        public void SeparateDofs(IStructuralModel model, Dictionary<int, HashSet<INode>> subdomainCornerNodes)
         {
             //TODO: These might be needed elsewhere too, in which case it should probably be sorted.
             var allCornerNodes = new HashSet<INode>();
-            foreach (IReadOnlyList<INode> subdomainNodes in subdomainCornerNodes.Values)
+            foreach (IEnumerable<INode> subdomainNodes in subdomainCornerNodes.Values)
             {
-                foreach (INode node in subdomainNodes) allCornerNodes.Add(node);
+                allCornerNodes.UnionWith(subdomainNodes);
             }
             IEnumerable<INode> allRemainderNodes = model.Nodes.Where(node => !allCornerNodes.Contains(node));
 
@@ -153,7 +153,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 
             foreach (ISubdomain subdomain in model.Subdomains)
             {
-                var cornerNodes = new HashSet<INode>(subdomainCornerNodes[subdomain.ID]);
+                HashSet<INode> cornerNodes = subdomainCornerNodes[subdomain.ID];
                 INode[] remainderAndConstrainedNodes = subdomain.Nodes.Where(node => !cornerNodes.Contains(node)).ToArray(); //TODO: extract this
 
                 // Separate corner / remainder dofs

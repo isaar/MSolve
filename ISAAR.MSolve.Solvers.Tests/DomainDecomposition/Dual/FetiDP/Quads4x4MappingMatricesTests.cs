@@ -50,7 +50,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 
             // Create model
             Model model = CreateModel();
-            Dictionary<int, INode[]> cornerNodes = DefineCornerNodes(model);
+            Dictionary<int, HashSet<INode>> cornerNodes = DefineCornerNodes(model);
             model.ConnectDataStructures();
 
             // Order free dofs.
@@ -109,7 +109,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 
             // Create model
             Model model = CreateModel();
-            Dictionary<int, INode[]> cornerNodes = DefineCornerNodes(model);
+            Dictionary<int, HashSet<INode>> cornerNodes = DefineCornerNodes(model);
             model.ConnectDataStructures();
 
             // Order free dofs.
@@ -177,7 +177,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 
             // Create model
             Model model = CreateModel();
-            Dictionary<int, INode[]> cornerNodes = DefineCornerNodes(model);
+            Dictionary<int, HashSet<INode>> cornerNodes = DefineCornerNodes(model);
             model.ConnectDataStructures();
 
             // Order free dofs.
@@ -238,7 +238,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             return builder.BuildModel();
         }
 
-        public static Dictionary<int, INode[]> DefineCornerNodes(Model model)
+        public static Dictionary<int, HashSet<INode>> DefineCornerNodes(Model model)
         {
             // subdomain 2         subdomain 3                      
             // 20 ---- 21 ---- 22  22---- 23 ---- 24
@@ -258,11 +258,11 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             // |       |       |   |      |       |
             // 0 ----- 1 ----- 2   2 ---- 3 ----- 4
 
-            var cornerNodes = new Dictionary<int, INode[]>();
-            cornerNodes[0] = new INode[] { model.Nodes[2], model.Nodes[12] };
-            cornerNodes[1] = new INode[] { model.Nodes[2], model.Nodes[12], model.Nodes[14] };
-            cornerNodes[2] = new INode[] { model.Nodes[12], model.Nodes[22] };
-            cornerNodes[3] = new INode[] { model.Nodes[12], model.Nodes[14], model.Nodes[22] };
+            var cornerNodes = new Dictionary<int, HashSet<INode>>();
+            cornerNodes[0] = new HashSet<INode>(new INode[] { model.Nodes[2], model.Nodes[12] });
+            cornerNodes[1] = new HashSet<INode>(new INode[] { model.Nodes[2], model.Nodes[12], model.Nodes[14] });
+            cornerNodes[2] = new HashSet<INode>(new INode[] { model.Nodes[12], model.Nodes[22] });
+            cornerNodes[3] = new HashSet<INode>(new INode[] { model.Nodes[12], model.Nodes[14], model.Nodes[22] });
             return cornerNodes;
         }
     }

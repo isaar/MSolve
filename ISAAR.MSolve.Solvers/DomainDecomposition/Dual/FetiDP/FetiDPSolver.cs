@@ -11,6 +11,7 @@ using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.CornerNodes;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
@@ -27,6 +28,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
     {
         internal const string name = "FETI-DP Solver"; // for error messages
         private readonly Dictionary<int, SkylineAssembler> assemblers;
+        private readonly ICornerNodeSelection cornerNodeSelection;
         private readonly ICrosspointStrategy crosspointStrategy = new FullyRedundantConstraints();
         private readonly IDofOrderer dofOrderer;
         private readonly IFetiDPInterfaceProblemSolver interfaceProblemSolver;
@@ -50,7 +52,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
         private IStiffnessDistribution stiffnessDistribution;
         private FetiDPSubdomainGlobalMapping subdomainGlobalMapping;
 
-        private FetiDPSolver(IStructuralModel model, Dictionary<int, INode[]> cornerNodesOfSubdomains,
+        private FetiDPSolver(IStructuralModel model, ICornerNodeSelection cornerNodeSelection,
             IDofOrderer dofOrderer, IFetiPreconditionerFactory preconditionerFactory,
             IFetiDPInterfaceProblemSolver interfaceProblemSolver, bool problemIsHomogeneous)
         {
@@ -58,7 +60,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             if (model.Subdomains.Count == 1) throw new InvalidSolverException(
                 $"{name} cannot be used if there is only 1 subdomain");
             this.model = model;
-            this.CornerNodesOfSubdomains = cornerNodesOfSubdomains;
 
             // Subdomains
             subdomains = new Dictionary<int, ISubdomain>();
@@ -79,6 +80,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             }
             LinearSystems = tempLinearSystems;
 
+            this.cornerNodeSelection = cornerNodeSelection;
             this.dofOrderer = dofOrderer;
             this.preconditionerFactory = preconditionerFactory;
 
@@ -89,7 +91,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             this.problemIsHomogeneous = problemIsHomogeneous;
         }
 
-        public Dictionary<int, INode[]> CornerNodesOfSubdomains { get; private set; }
+        public Dictionary<int, HashSet<INode>> CornerNodesOfSubdomains { get; private set; }
         public IReadOnlyDictionary<int, ILinearSystem> LinearSystems { get; }
         public SolverLogger Logger { get; } = new SolverLogger(name);
 
@@ -192,6 +194,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                 // The next must done by the analyzer, so that subdomain.Forces is retained when doing back to back analyses.
                 //subdomain.Forces = linearSystem.CreateZeroVector();
             }
+
+            // Identify corner nodes
+            CornerNodesOfSubdomains = cornerNodeSelection.SelectCornerNodesOfSubdomains();
 
             // Define boundary / internal dofs
             dofSeparator = new FetiDPDofSeparator();
@@ -420,11 +425,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 
         public class Builder
         {
-            private Dictionary<int, INode[]> cornerNodesOfEachSubdomain; //TODO: These should probably be a HashSet instead of array.
+            private ICornerNodeSelection cornerNodeSelection; //TODO: These should probably be a HashSet instead of array.
 
-            public Builder(Dictionary<int, INode[]> cornerNodesOfEachSubdomain)
+            public Builder(ICornerNodeSelection cornerNodeSelection)
             {
-                this.cornerNodesOfEachSubdomain = cornerNodesOfEachSubdomain;
+                this.cornerNodeSelection = cornerNodeSelection;
             }
 
             //TODO: We need to specify the ordering for remainder and possibly internal dofs, while IDofOrderer only works for free dofs.
@@ -438,7 +443,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             public bool ProblemIsHomogeneous { get; set; } = true;
 
             public FetiDPSolver BuildSolver(IStructuralModel model)
-                => new FetiDPSolver(model, cornerNodesOfEachSubdomain, DofOrderer, PreconditionerFactory, 
+                => new FetiDPSolver(model, cornerNodeSelection, DofOrderer, PreconditionerFactory, 
                      InterfaceProblemSolver, ProblemIsHomogeneous);
         }
     }

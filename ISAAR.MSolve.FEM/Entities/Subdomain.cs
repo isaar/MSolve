@@ -121,48 +121,6 @@ namespace ISAAR.MSolve.FEM.Entities
             //}
         }
 
-        public int[] GetCornerNodes()
-        {
-            int nodex1y1z1 = -1;
-            int nodex2y1z1 = -1;
-            int nodex1y2z1 = -1;
-            int nodex2y2z1 = -1;
-            int nodex1y1z2 = -1;
-            int nodex2y1z2 = -1;
-            int nodex1y2z2 = -1;
-            int nodex2y2z2 = -1;
-            double x1 = Double.MaxValue;
-            double x2 = Double.MinValue;
-            double y1 = Double.MaxValue;
-            double y2 = Double.MinValue;
-            double z1 = Double.MaxValue;
-            double z2 = Double.MinValue;
-
-            foreach (var kv in nodes)
-            {
-                if (x1 > kv.X) x1 = kv.X;
-                if (x2 < kv.X) x2 = kv.X;
-                if (y1 > kv.Y) y1 = kv.Y;
-                if (y2 < kv.Y) y2 = kv.Y;
-                if (z1 > kv.Z) z1 = kv.Z;
-                if (z2 < kv.Z) z2 = kv.Z;
-
-                if (x1 == kv.X && y1 == kv.Y && z1 == kv.Z) nodex1y1z1 = kv.ID;
-                if (x2 == kv.X && y1 == kv.Y && z1 == kv.Z) nodex2y1z1 = kv.ID;
-                if (x1 == kv.X && y2 == kv.Y && z1 == kv.Z) nodex1y2z1 = kv.ID;
-                if (x2 == kv.X && y2 == kv.Y && z1 == kv.Z) nodex2y2z1 = kv.ID;
-                if (x1 == kv.X && y1 == kv.Y && z2 == kv.Z) nodex1y1z2 = kv.ID;
-                if (x2 == kv.X && y1 == kv.Y && z2 == kv.Z) nodex2y1z2 = kv.ID;
-                if (x1 == kv.X && y2 == kv.Y && z2 == kv.Z) nodex1y2z2 = kv.ID;
-                if (x2 == kv.X && y2 == kv.Y && z2 == kv.Z) nodex2y2z2 = kv.ID;
-            }
-
-            // If the problem is 2D, duplicate nodes are returned which causes subsequent problems. Thus they are filtered here.
-            // TODO: Avoid this.
-            return (new[] { nodex1y1z1, nodex2y1z1, nodex1y2z1, nodex2y2z1, nodex1y1z2, nodex2y1z2, nodex1y2z2, nodex2y2z2 }).
-                Distinct().ToArray();
-        }
-
         public IVector GetRhsFromSolution(IVectorView solution, IVectorView dSolution)
         {
             var forces = Vector.CreateZero(FreeDofOrdering.NumFreeDofs); //TODO: use Vector

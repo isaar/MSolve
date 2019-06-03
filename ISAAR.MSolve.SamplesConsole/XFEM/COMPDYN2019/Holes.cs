@@ -12,6 +12,7 @@ using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.CornerNodes;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
 using ISAAR.MSolve.Solvers.DomainDecomposition.MeshPartitioning;
 using ISAAR.MSolve.XFEM.Elements;
@@ -215,7 +216,7 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             }
             else if (solverType == SolverType.FetiDP)
             {
-                Dictionary<int, INode[]> cornerNodes = null;
+                Dictionary<int, HashSet<INode>> cornerNodes = null;
 
                 if (benchmark.Model.Subdomains.Count == 10)
                 {
@@ -227,7 +228,8 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                 }
 
                 // Must also specify corner nodes
-                var builder = new FetiDPSolver.Builder(cornerNodes);
+                var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodes);
+                var builder = new FetiDPSolver.Builder(cornerNodeSelection);
                 builder.PreconditionerFactory = new LumpedPreconditioner.Factory();
                 builder.ProblemIsHomogeneous = true;
                 return builder.BuildSolver(benchmark.Model);
@@ -256,7 +258,10 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                 writer.WriteBoundaryNodes(boundaryNodesPlotPath, benchmark.Model);
 
                 var allCornerNodes = new HashSet<INode>();
-                foreach (INode[] cornerNodes in fetiDP.CornerNodesOfSubdomains.Values) allCornerNodes.UnionWith(cornerNodes);
+                foreach (IEnumerable<INode> cornerNodes in fetiDP.CornerNodesOfSubdomains.Values)
+                {
+                    allCornerNodes.UnionWith(cornerNodes);
+                }
                 writer.WriteSpecialNodes(cornerNodesPlotPath, "corner_nodes", allCornerNodes);
             }
             else throw new ArgumentException("Invalid solver");
