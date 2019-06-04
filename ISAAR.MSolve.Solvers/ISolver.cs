@@ -26,6 +26,11 @@ namespace ISAAR.MSolve.Solvers
         SolverLogger Logger { get; }
 
         /// <summary>
+        /// The name of the solver for logging purposes.
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
         /// Assembles the matrix that corresponds to the free freedom degrees of each whole subdomain from the matrices of its 
         /// elements.
         /// </summary>

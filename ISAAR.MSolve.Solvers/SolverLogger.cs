@@ -66,7 +66,7 @@ namespace ISAAR.MSolve.Solvers
                 WriteHeader(writer, title);
 
                 // Dofs
-                for (int i = 0; i <= currentStep; ++i)
+                for (int i = 0; i < currentStep; ++i)
                 {
                     foreach (var categoryDofs in numDofsPerCategory[i])
                     {
@@ -76,7 +76,7 @@ namespace ISAAR.MSolve.Solvers
                 }
 
                 // Durations
-                for (int i = 0; i <= currentStep; ++i)
+                for (int i = 0; i < currentStep; ++i)
                 {
                     foreach (var taskDuration in taskDurations[i])
                     {
@@ -86,7 +86,7 @@ namespace ISAAR.MSolve.Solvers
                 }
 
                 // Iterative algorithm data
-                for (int i = 0; i <= currentStep; ++i)
+                for (int i = 0; i < currentStep; ++i)
                 {
                     (int iter, double res) = iterativeAlgorithmData[i];
                     writer.Write($"Analysis iteration {i}: ");
@@ -107,7 +107,7 @@ namespace ISAAR.MSolve.Solvers
 
                 // Dofs
                 var numDofsRange = new SortedDictionary<string, (int min, int max)>();
-                for (int i = 0; i <= currentStep; ++i)
+                for (int i = 0; i < currentStep; ++i)
                 {
                     foreach (var categoryDofs in numDofsPerCategory[i])
                     {
@@ -137,7 +137,7 @@ namespace ISAAR.MSolve.Solvers
                 // Durations
                 long totalDuration = 0;
                 var taskTotalDurations = new SortedDictionary<string, long>();
-                for (int i = 0; i <= currentStep; ++i)
+                for (int i = 0; i < currentStep; ++i)
                 {
                     foreach (var taskDuration in taskDurations[i])
                     {
@@ -157,7 +157,7 @@ namespace ISAAR.MSolve.Solvers
                 // Iterative algorithm data
                 int minIterations = int.MaxValue, maxIterations = int.MinValue;
                 double minResNorm = double.MaxValue, maxResNorm = double.MinValue;
-                for (int i = 0; i <= currentStep; ++i)
+                for (int i = 0; i < currentStep; ++i)
                 {
                     (int iter, double res) = iterativeAlgorithmData[i];
                     minIterations = (iter < minIterations) ? iter : minIterations;

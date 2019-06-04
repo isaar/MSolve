@@ -94,6 +94,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
         public Dictionary<int, HashSet<INode>> CornerNodesOfSubdomains { get; private set; }
         public IReadOnlyDictionary<int, ILinearSystem> LinearSystems { get; }
         public SolverLogger Logger { get; } = new SolverLogger(name);
+        public string Name => name;
 
         public Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider elementMatrixProvider)
         {

@@ -73,7 +73,7 @@ namespace ISAAR.MSolve.Solvers.Iterative
                 linearSystem.Solution, true, () => linearSystem.CreateZeroVector()); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0
             if (!stats.HasConverged)
             {
-                throw new IterativeSolverNotConvergedException(name + " did not converge to a solution. PCG algorithm run for"
+                throw new IterativeSolverNotConvergedException(Name + " did not converge to a solution. PCG algorithm run for"
                     + $" {stats.NumIterationsRequired} iterations and the residual norm ratio was"
                     + $" {stats.ResidualNormRatioEstimation}");
             }

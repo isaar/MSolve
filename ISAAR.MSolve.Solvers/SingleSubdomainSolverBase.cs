@@ -26,7 +26,6 @@ namespace ISAAR.MSolve.Solvers
         protected readonly IGlobalMatrixAssembler<TMatrix> assembler;
         protected readonly IDofOrderer dofOrderer;
         protected readonly IStructuralModel model;
-        protected readonly string name; // for error messages
         protected readonly ISubdomain subdomain;
         protected readonly SingleSubdomainSystem<TMatrix> linearSystem;
 
@@ -44,11 +43,13 @@ namespace ISAAR.MSolve.Solvers
 
             this.dofOrderer = dofOrderer;
             this.assembler = assembler;
+            this.Name = name;
             this.Logger = new SolverLogger(name);
         }
 
         public IReadOnlyDictionary<int, ILinearSystem> LinearSystems { get; }
         public SolverLogger Logger { get; }
+        public string Name { get; }
 
         public virtual Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider elementMatrixProvider)
         {

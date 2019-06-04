@@ -38,10 +38,12 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
 			this.dofRowOrderer = dofRowOrderer;
 			this.dofColOrderer = dofColOrderer;
 			this.assembler = assembler;
+            this.Name = name;
 		}
         
 		public IReadOnlyDictionary<int, ILinearSystem> LinearSystems { get; }
         public SolverLogger Logger { get; }
+        public string Name { get; }
 
         public virtual Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider elementMatrixProvider)
         {
