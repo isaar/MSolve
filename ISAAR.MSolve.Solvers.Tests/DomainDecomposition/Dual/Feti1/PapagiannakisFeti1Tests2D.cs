@@ -9,6 +9,7 @@ using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
 using Xunit;
 using static ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem.Feti1ProjectedInterfaceProblemSolver;
@@ -217,7 +218,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             Model multiSubdomainModel = CreateModel(stiffnessRatio);
 
             // Solver
-            var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
+            var fetiMatrices = new DenseFeti1SubdomainMatrixManager.Factory();
+            var solverBuilder = new Feti1Solver.Builder(fetiMatrices, factorizationTolerance);
 
             // Homogeneous/heterogeneous problem, matrix Q.
             solverBuilder.ProblemIsHomogeneous = stiffnessRatio == 1.0;

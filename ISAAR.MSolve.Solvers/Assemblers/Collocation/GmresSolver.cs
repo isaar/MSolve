@@ -33,11 +33,11 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
 
         public override void Solve()
         {
-            if (linearSystem == null) linearSystem.Solution = linearSystem.CreateZeroVector();
-            else linearSystem.Solution.Clear();
+            if (linearSystem == null) linearSystem.SolutionConcrete = linearSystem.CreateZeroVectorConcrete();
+            else linearSystem.SolutionConcrete.Clear();
 
-            IterativeStatistics stats = gmresAlgorithm.Solve(linearSystem.Matrix, linearSystem.RhsVector,
-                linearSystem.Solution, true, () => linearSystem.CreateZeroVector());
+            IterativeStatistics stats = gmresAlgorithm.Solve(linearSystem.Matrix, linearSystem.RhsConcrete,
+                linearSystem.SolutionConcrete, true, () => linearSystem.CreateZeroVector());
 
             if (!stats.HasConverged)
                 throw new IterativeSolverNotConvergedException("Gmres did not converge");

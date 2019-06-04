@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
-using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
@@ -12,13 +12,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
     public class Feti1FlexibilityMatrix : IInterfaceFlexibilityMatrix
     {
         private readonly Feti1LagrangeMultipliersEnumerator lagrangeEnumerator;
-        private readonly Dictionary<int, SemidefiniteCholeskySkyline> factorizations;
+        private readonly Dictionary<int, IFeti1SubdomainMatrixManager> matrixManagers;
 
-        internal Feti1FlexibilityMatrix(Dictionary<int, SemidefiniteCholeskySkyline> factorizations,
+        internal Feti1FlexibilityMatrix(Dictionary<int, IFeti1SubdomainMatrixManager> matrixManagers,
             Feti1LagrangeMultipliersEnumerator lagrangeEnumerator)
         {
             this.lagrangeEnumerator = lagrangeEnumerator;
-            this.factorizations = factorizations;
+            this.matrixManagers = matrixManagers;
             this.Order = lagrangeEnumerator.NumLagrangeMultipliers;
         }
 
@@ -27,12 +27,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         public void Multiply(Vector lhs, Vector rhs)
         {
             rhs.Clear(); //TODO: perhaps this should be done outside.
-            foreach (var keyFactor in factorizations)
+            foreach (var keyFactor in matrixManagers)
             {
                 int id = keyFactor.Key;
-                SemidefiniteCholeskySkyline factor = keyFactor.Value;
+                IFeti1SubdomainMatrixManager matrixManager = keyFactor.Value;
                 SignedBooleanMatrixColMajor B = lagrangeEnumerator.BooleanMatrices[id];
-                Vector FBx = factor.MultiplyGeneralizedInverseMatrixTimesVector(B.Multiply(lhs, true)); 
+                Vector FBx = matrixManager.MultiplyInverseKffTimes(B.Multiply(lhs, true)); 
                 Vector BFBx = B.Multiply(FBx, false);
                 rhs.AddIntoThis(BFBx);
             }
@@ -41,12 +41,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         public Vector Multiply(Vector lhs)
         {
             var rhs = Vector.CreateZero(Order);
-            foreach (var keyFactor in factorizations)
+            foreach (var keyFactor in matrixManagers)
             {
                 int id = keyFactor.Key;
-                SemidefiniteCholeskySkyline factor = keyFactor.Value;
+                IFeti1SubdomainMatrixManager matrixManager = keyFactor.Value;
                 SignedBooleanMatrixColMajor B = lagrangeEnumerator.BooleanMatrices[id];
-                Vector FBx = factor.MultiplyGeneralizedInverseMatrixTimesVector(B.Multiply(lhs, true));
+                Vector FBx = matrixManager.MultiplyInverseKffTimes(B.Multiply(lhs, true));
                 Vector BFBx = B.Multiply(FBx, false);
                 rhs.AddIntoThis(BFBx);
             }

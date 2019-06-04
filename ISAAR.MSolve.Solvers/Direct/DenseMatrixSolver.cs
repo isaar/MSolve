@@ -102,7 +102,7 @@ namespace ISAAR.MSolve.Solvers.Direct
         public override void Solve()
         {
 
-            if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
+            if (linearSystem.SolutionConcrete == null) linearSystem.SolutionConcrete = linearSystem.CreateZeroVectorConcrete();
             //else linearSystem.Solution.Clear(); // no need to waste computational time on this in a direct solver
 
             if (mustInvert)
@@ -111,7 +111,7 @@ namespace ISAAR.MSolve.Solvers.Direct
                 else inverse = linearSystem.Matrix.FactorLU(factorizeInPlace).Invert(true);
                 mustInvert = false;
             }
-            inverse.MultiplyIntoResult(linearSystem.RhsVector, linearSystem.Solution);
+            inverse.MultiplyIntoResult(linearSystem.RhsConcrete, linearSystem.SolutionConcrete);
         }
 
         protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)

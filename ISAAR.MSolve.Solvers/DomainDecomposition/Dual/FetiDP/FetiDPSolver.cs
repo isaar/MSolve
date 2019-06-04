@@ -208,7 +208,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
         {
             foreach (var linearSystem in linearSystems.Values)
             {
-                if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
+                if (linearSystem.SolutionConcrete == null) linearSystem.SolutionConcrete = linearSystem.CreateZeroVectorConcrete();
             }
 
             // Separate the force vector
@@ -218,7 +218,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             {
                 int[] remainderDofs = dofSeparator.RemainderDofIndices[s];
                 int[] cornerDofs = dofSeparator.CornerDofIndices[s];
-                Vector f = linearSystems[s].RhsVector;
+                Vector f = linearSystems[s].RhsConcrete;
                 fr[s] = f.GetSubvector(remainderDofs);
                 fbc[s] = f.GetSubvector(cornerDofs);
             }
@@ -274,7 +274,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 
             // Calculate the displacements of each subdomain
             Dictionary<int, Vector> actualDisplacements = CalcActualDisplacements(lagranges, uc, Krc, fr);
-            foreach (var idSystem in linearSystems) idSystem.Value.Solution = actualDisplacements[idSystem.Key];
+            foreach (var idSystem in linearSystems) idSystem.Value.SolutionConcrete = actualDisplacements[idSystem.Key];
         }
 
         /// <summary>
@@ -335,7 +335,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             var stiffnessMatrices = new Dictionary<int, IMatrixView>();
             foreach (var idKrr in matricesKrr) stiffnessMatrices.Add(idKrr.Key, idKrr.Value);
             preconditioner = preconditionerFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator,
-                lagrangeEnumerator, stiffnessMatrices);
+                lagrangeEnumerator, null /*stiffnessMatrices*/);
         }
 
         /// <summary>
@@ -351,7 +351,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             var subdomainForces = new Dictionary<int, IVectorView>();
             foreach (var linearSystem in linearSystems.Values)
             {
-                subdomainForces[linearSystem.Subdomain.ID] = linearSystem.RhsVector;
+                subdomainForces[linearSystem.Subdomain.ID] = linearSystem.RhsConcrete;
             }
             return subdomainGlobalMapping.CalculateGlobalForcesNorm(subdomainForces);
         }

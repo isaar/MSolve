@@ -44,7 +44,7 @@ namespace ISAAR.MSolve.Solvers.Direct
         /// </summary>
         public override void Solve()
         {
-            if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
+            if (linearSystem.SolutionConcrete == null) linearSystem.SolutionConcrete = linearSystem.CreateZeroVectorConcrete();
             //else linearSystem.Solution.Clear(); // no need to waste computational time on this in a direct solver
 
             if (mustFactorize)
@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.Solvers.Direct
                 mustFactorize = false;
             }
 
-            factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
+            factorizedMatrix.SolveLinearSystem(linearSystem.RhsConcrete, linearSystem.SolutionConcrete);
         }
 
         protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)
@@ -88,7 +88,7 @@ namespace ISAAR.MSolve.Solvers.Direct
                 catch (InsufficientMemoryException) //TODO: what about OutOfMemoryException?
                 {
                     // Solve each linear system separately, to avoid copying the RHS matrix to a dense one.
-                    Vector solutionVector = linearSystem.CreateZeroVector();
+                    Vector solutionVector = linearSystem.CreateZeroVectorConcrete();
                     for (int j = 0; j < numRhs; ++j)
                     {
                         if (j != 0) solutionVector.Clear();

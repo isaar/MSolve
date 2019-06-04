@@ -468,7 +468,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             foreach (var idMatrixPair in Krr) repackagedKrr[idMatrixPair.Key] = idMatrixPair.Value;
             var stiffnessDistribution = new HomogeneousStiffnessDistribution(model, dofSeparator);
             IFetiPreconditioner preconditioner = 
-                precondFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator, lagrangeEnumerator, repackagedKrr);
+                precondFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator, lagrangeEnumerator, null /*repackagedKrr*/);
 
             // Solve the interface problem
             var flexibility = new FetiDPFlexibilityMatrix(factorizedKrr, Krc, lagrangeEnumerator, dofSeparator);
