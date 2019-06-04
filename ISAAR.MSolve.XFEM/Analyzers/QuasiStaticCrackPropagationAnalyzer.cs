@@ -66,9 +66,6 @@ namespace ISAAR.MSolve.XFEM.Analyzers
                 // Apply the updated enrichements.
                 crack.UpdateEnrichments();
 
-                // Plot domain decomposition data, if necessary
-                if (DDLogger != null) DDLogger.PlotSubdomains(model);
-
                 // Order and count dofs
                 solver.OrderDofs(false);
                 foreach (ILinearSystem linearSystem in linearSystems.Values)
@@ -89,9 +86,9 @@ namespace ISAAR.MSolve.XFEM.Analyzers
 
                 // Solve the linear system
                 solver.Solve();
-                //Vector constrainedDisplacements = model.CalculateConstrainedDisplacements(solver.DofOrderer);
-                var freeDisplacements = new Dictionary<int, Vector>();
-                foreach (int s in linearSystems.Keys) freeDisplacements[s] = (Vector)(linearSystems[s].Solution); //TODO: avoid this cast.
+
+                // Plot domain decomposition data, if necessary
+                if (DDLogger != null) DDLogger.PlotSubdomains(model);
 
                 //// Output field data
                 //if (fieldOutput != null)
@@ -100,6 +97,9 @@ namespace ISAAR.MSolve.XFEM.Analyzers
                 //}
 
                 // Let the crack propagate
+                //Vector constrainedDisplacements = model.CalculateConstrainedDisplacements(solver.DofOrderer);
+                var freeDisplacements = new Dictionary<int, Vector>();
+                foreach (int s in linearSystems.Keys) freeDisplacements[s] = (Vector)(linearSystems[s].Solution); //TODO: avoid this cast.
                 crack.Propagate(freeDisplacements);
 
                 // Check convergence 

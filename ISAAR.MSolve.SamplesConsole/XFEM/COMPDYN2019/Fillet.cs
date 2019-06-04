@@ -16,6 +16,7 @@ using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
 using ISAAR.MSolve.Solvers.DomainDecomposition.MeshPartitioning;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Solvers;
 using ISAAR.MSolve.XFEM.Tests;
 using static ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019.Utilities;
 
@@ -24,8 +25,9 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
     public class Fillet
     {
         private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Fillet\Mesh\fillet.msh";
-        private const string plotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Fillet\Plots";
+        private const string crackPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Fillet\Plots";
         private const string subdomainPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Fillet\Plots\Subdomains";
+        private const string solverLogPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Fillet\solver_log.txt";
 
         public static void Run()
         {
@@ -59,24 +61,24 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             //RunCrackPropagationAnalysis(benchmarkSub7, solverFeti1);
 
             // FETI-DP 5 subdomains
-            FilletBenchmark benchmarkSub5 = CreateMultiSubdomainBenchmark(5);
-            ISolver solverFetiDP = DefineSolver(benchmarkSub5, SolverType.FetiDP);
+            //FilletBenchmark benchmarkSub5 = CreateMultiSubdomainBenchmark(5);
+            //ISolver solverFetiDP = DefineSolver(benchmarkSub5, SolverType.FetiDP);
             //PlotSubdomains(benchmarkSub5, solverFetiDP);
             //Console.WriteLine("Uncracked analysis, 5 subdomains, FETI-DP : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub5.Model, solverFetiDP));
             //Console.WriteLine("Cracked analysis only 1 step, 5 subdomains, FETI-DP : norm2(globalU) = " +
             //    RunSingleCrackedStep(benchmarkSub5.Model, benchmarkSub5.Crack, solverFetiDP));
-            RunCrackPropagationAnalysis(benchmarkSub5, solverFetiDP);
+            //RunCrackPropagationAnalysis(benchmarkSub5, solverFetiDP);
 
             // FETI-DP 7 subdomains
-            //FilletBenchmark benchmarkSub7 = CreateMultiSubdomainBenchmark(7);
-            //ISolver solverFetiDP = DefineSolver(benchmarkSub7, SolverType.FetiDP);
+            FilletBenchmark benchmarkSub7 = CreateMultiSubdomainBenchmark(7);
+            ISolver solverFetiDP = DefineSolver(benchmarkSub7, SolverType.FetiDP);
             //PlotSubdomains(benchmarkSub7, solverFetiDP);
             //Console.WriteLine("Uncracked analysis, 7 subdomains, FETI-DP : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub7.Model, solverFetiDP));
             //Console.WriteLine("Cracked analysis only 1 step, 7 subdomains, FETI-DP : norm2(globalU) = " +
             //    RunSingleCrackedStep(benchmarkSub7.Model, benchmarkSub7.Crack, solverFetiDP));
-            //RunCrackPropagationAnalysis(benchmarkSub7, solverFetiDP);
+            RunCrackPropagationAnalysis(benchmarkSub7, solverFetiDP);
 
             Console.Write("\nEnd");
         }
@@ -164,7 +166,7 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             double growthLength = 5; // mm. Must be sufficiently larger than the element size.
 
             var builder = new FilletBenchmark.Builder(meshPath, growthLength);
-            builder.LsmPlotDirectory = plotDirectory;
+            builder.LsmPlotDirectory = crackPlotDirectory;
             builder.SubdomainPlotDirectory = subdomainPlotDirectory;
             builder.HeavisideEnrichmentTolerance = 0.01;
             builder.RigidBCs = true;
@@ -276,7 +278,8 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                     cornerNodes = FindCornerNodesFromCrosspoints2D(benchmark.Model);
                 }
 
-                var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodes);
+                //var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodes);
+                var cornerNodeSelection = new CrackedFetiDPSubdomainCornerNodes(benchmark.Crack, cornerNodes);
                 var builder = new FetiDPSolver.Builder(cornerNodeSelection);
                 builder.PreconditionerFactory = new LumpedPreconditioner.Factory();
                 builder.ProblemIsHomogeneous = true;
@@ -326,6 +329,9 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                 Console.WriteLine($"{point.X} {point.Y}");
             }
             Console.WriteLine();
+
+            solver.Logger.WriteToFile(solverLogPath, $"{solver.Name}_log", true);
+            solver.Logger.WriteAggregatesToFile(solverLogPath, $"{solver.Name}_log", true);
         }
     }
 }

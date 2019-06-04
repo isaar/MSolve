@@ -17,6 +17,7 @@ using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
 using ISAAR.MSolve.Solvers.DomainDecomposition.MeshPartitioning;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Solvers;
 using ISAAR.MSolve.XFEM.Tests;
 using static ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019.Utilities;
 
@@ -28,6 +29,7 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
         private const string leftCrackPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Plots\Left";
         private const string rightCrackPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Plots\Right";
         private const string subdomainPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Plots\Subdomains";
+        private const string solverLogPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Fillet\solver_log.txt";
 
         public static void Run()
         {
@@ -44,26 +46,26 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             //RunCrackPropagationAnalysis(benchmarkSub1, skylineSolver);
 
             // FETI-1 10 subdomains
-            benchmarkSub10 = CreateMultiSubdomainBenchmark(10);
-            ISolver solverFeti1 = DefineSolver(benchmarkSub10, SolverType.Feti1);
+            //benchmarkSub10 = CreateMultiSubdomainBenchmark(10);
+            //ISolver solverFeti1 = DefineSolver(benchmarkSub10, SolverType.Feti1);
             //PlotSubdomains(subdomainPlotPath, benchmarkSub10.Model);
             //Console.WriteLine("Uncracked analysis, 10 subdomains, FETI-1  : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub10.Model, solverFeti1));
             //Console.WriteLine("Cracked analysis only 1 step, 10 subdomains, FETI-1  : norm2(globalU) = " +
             //    RunSingleCrackedStep(benchmarkSub10.Model, benchmarkSub10.Crack, solverFeti1));
             //Console.WriteLine("FETI-1, 10 subdomains: ");
-            RunCrackPropagationAnalysis(benchmarkSub10, solverFeti1);
+            //RunCrackPropagationAnalysis(benchmarkSub10, solverFeti1);
 
             // FETI-DP 10 subdomains
-            //benchmarkSub10 = CreateMultiSubdomainBenchmark(10);
-            //ISolver solverFetiDP = DefineSolver(benchmarkSub10, SolverType.FetiDP);
+            benchmarkSub10 = CreateMultiSubdomainBenchmark(10);
+            ISolver solverFetiDP = DefineSolver(benchmarkSub10, SolverType.FetiDP);
             //PlotSubdomains(subdomainPlotPath, benchmarkSub10.Model);
             //Console.WriteLine("Uncracked analysis, 10 subdomains, FETI-DP : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub10.Model, solverFetiDP));
             //Console.WriteLine("Cracked analysis only 1 step, 10 subdomains, FETI-DP : norm2(globalU) = " +
             //    RunSingleCrackedStep(benchmarkSub10.Model, benchmarkSub10.Crack, solverFetiDP));
             //Console.WriteLine("FETI-DP, 10 subdomains: ");
-            //RunCrackPropagationAnalysis(benchmarkSub10, solverFetiDP);
+            RunCrackPropagationAnalysis(benchmarkSub10, solverFetiDP);
 
             Console.Write("\nEnd");
         }
@@ -228,7 +230,8 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                 }
 
                 // Must also specify corner nodes
-                var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodes);
+                //var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodes);
+                var cornerNodeSelection = new CrackedFetiDPSubdomainCornerNodes(benchmark.Crack, cornerNodes);
                 var builder = new FetiDPSolver.Builder(cornerNodeSelection);
                 builder.PreconditionerFactory = new LumpedPreconditioner.Factory();
                 builder.ProblemIsHomogeneous = true;
@@ -284,6 +287,9 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                 Console.WriteLine($"{point.X} {point.Y}");
             }
             Console.WriteLine();
+
+            solver.Logger.WriteToFile(solverLogPath, $"{solver.Name}_log", true);
+            solver.Logger.WriteAggregatesToFile(solverLogPath, $"{solver.Name}_log", true);
         }
     }
 }
