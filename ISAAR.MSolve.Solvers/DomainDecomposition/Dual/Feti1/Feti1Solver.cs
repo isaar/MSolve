@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         private readonly IFeti1InterfaceProblemSolver interfaceProblemSolver;
         private readonly Dictionary<int, ISingleSubdomainLinearSystem> linearSystems;
         private readonly Dictionary<int, IFeti1SubdomainMatrixManager> matrixManagers;
-        private readonly Dictionary<int, IFetiSubdomainMatrixManager> matrixManagersGeneral; //TODO: redessign. They are the same as above, but Dictionary is not covariant
+        private readonly Dictionary<int, IFetiSubdomainMatrixManager> matrixManagersGeneral; //TODO: redesign. They are the same as above, but Dictionary is not covariant
         private readonly IStructuralModel model;
         //private readonly PdeOrder pde; // Instead the user explicitly sets Q.
         private readonly IFetiPreconditionerFactory preconditionerFactory;
@@ -152,9 +152,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         public void HandleMatrixWillBeSet()
         {
             isStiffnessModified = true;
-
             foreach (IFeti1SubdomainMatrixManager matrixManager in matrixManagers.Values) matrixManager.Clear();
-
             flexibility = null;
             preconditioner = null;
             projection = null;

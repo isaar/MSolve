@@ -4,6 +4,7 @@ using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
 
 //TODO: This could be split into an interface with the same name and an IFtiDPCoarseProblemSolver.
@@ -13,11 +14,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
     {
         void ClearCoarseProblemMatrix();
 
-        void CreateCoarseProblemMatrix(FetiDPDofSeparator dofSeparator, Dictionary<int, CholeskyFull> factorizedKrr,
-            Dictionary<int, Matrix> Krc, Dictionary<int, Matrix> Kcc);
+        void CreateCoarseProblemMatrix(FetiDPDofSeparator dofSeparator, 
+            Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers);
 
-        Vector CreateCoarseProblemRhs(FetiDPDofSeparator dofSeparator, Dictionary<int, CholeskyFull> factorizedKrr,
-            Dictionary<int, Matrix> Krc, Dictionary<int, Vector> fr, Dictionary<int, Vector> fbc);
+        Vector CreateCoarseProblemRhs(FetiDPDofSeparator dofSeparator, 
+            Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers, 
+            Dictionary<int, Vector> fr, Dictionary<int, Vector> fbc);
 
         Vector SolveCoarseProblem(Vector rhs);
 

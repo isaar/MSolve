@@ -20,6 +20,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
         [Fact]
         public static void TestDofSeparation()
         {
+            //TODO: These should be available from properties
             int[][] cornerDofsExpected = new int[4][];
             int[][] remainderDofsExpected = new int[4][];
             int[][] boundaryRemainderDofsExpected = new int[4][];

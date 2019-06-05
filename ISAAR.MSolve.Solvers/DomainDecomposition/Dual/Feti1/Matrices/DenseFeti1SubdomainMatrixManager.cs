@@ -35,16 +35,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
 
         public IMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement> elements, 
             IElementMatrixProvider matrixProvider)
-        {
-            return assembler.BuildGlobalMatrix(dofOrdering, elements, matrixProvider);
-        }
+            => assembler.BuildGlobalMatrix(dofOrdering, elements, matrixProvider);
 
         public (IMatrix Kff, IMatrixView Kfc, IMatrixView Kcf, IMatrixView Kcc) BuildGlobalSubmatrices(
             ISubdomainFreeDofOrdering freeDofOrdering, ISubdomainConstrainedDofOrdering constrainedDofOrdering, 
             IEnumerable<IElement> elements, IElementMatrixProvider matrixProvider)
-        {
-            return assembler.BuildGlobalSubmatrices(freeDofOrdering, constrainedDofOrdering, elements, matrixProvider);
-        }
+            => assembler.BuildGlobalSubmatrices(freeDofOrdering, constrainedDofOrdering, elements, matrixProvider);
 
         public void Clear()
         {
