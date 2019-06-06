@@ -13,6 +13,11 @@ using ISAAR.MSolve.Solvers.LinearSystems;
 //TODO: Add state checking for all the managed matrices. A state machine (using State pattern) should help.
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
 {
+    /// <summary>
+    /// Dense format for Kii, Kbi/Kib, Kbb and Skyline for Kff. Useful during prototyping and for debugging. 
+    /// For performance the other alternatives are probably better.
+    /// Authors: Serafeim Bakalakos
+    /// </summary>
     public class DenseFeti1SubdomainMatrixManager : IFeti1SubdomainMatrixManager
     {
         private readonly SkylineAssembler assembler = new SkylineAssembler();

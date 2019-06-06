@@ -218,7 +218,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             Model multiSubdomainModel = CreateModel(stiffnessRatio);
 
             // Solver
-            var fetiMatrices = new DenseFeti1SubdomainMatrixManager.Factory();
+            //var fetiMatrices = new DenseFeti1SubdomainMatrixManager.Factory();
+            var fetiMatrices = new SkylineFeti1SubdomainMatrixManager.Factory();
             var solverBuilder = new Feti1Solver.Builder(fetiMatrices, factorizationTolerance);
 
             // Homogeneous/heterogeneous problem, matrix Q.
