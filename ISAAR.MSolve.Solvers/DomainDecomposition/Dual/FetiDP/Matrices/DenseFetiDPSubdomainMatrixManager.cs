@@ -132,17 +132,17 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
 
         public void ExtractKcc(int[] cornerDofs)
         {
-            Kcc = linearSystem.Matrix.GetSubmatrix(cornerDofs, cornerDofs);
+            Kcc = linearSystem.Matrix.GetSubmatrixFull(cornerDofs, cornerDofs);
         }
 
         public void ExtractKcrKrc(int[] cornerDofs, int[] remainderDofs)
         {
-            Krc = linearSystem.Matrix.GetSubmatrix(remainderDofs, cornerDofs);
+            Krc = linearSystem.Matrix.GetSubmatrixFull(remainderDofs, cornerDofs);
         }
 
         public void ExtractKrr(int[] remainderDofs)
         {
-            Krr = linearSystem.Matrix.GetSubmatrix(remainderDofs, remainderDofs);
+            Krr = linearSystem.Matrix.GetSubmatrixFull(remainderDofs, remainderDofs);
         }
 
         public void HandleDofOrderingWillBeModified() => assembler.HandleDofOrderingWillBeModified();

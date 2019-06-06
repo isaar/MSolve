@@ -9,12 +9,16 @@ using ISAAR.MSolve.LinearAlgebra.Providers.Managed;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
+using System.Linq;
 
 //TODO: Also linear combinations with other matrix types may be useful, e.g. Skyline (K) with diagonal (M), but I think 
 //      that for global matrices, this should be done through concrete class to use DoEntrywiseIntoThis methods. 
 //TODO: Checks like: col - row <= colHeight can be written more efficiently without calculating the height:
 //      entryOffset = diagOffsets[col] + col - row, entryOffset <= diagOffsets[col+1]
 //TODO: Throw MatrixDataOverwrittenException whenever necessary. Possibly make the values and diagOffsets readonly again.
+//TODO: In most algorithms, I can cache in local variables for each column the height, diagOffset and diagOffset + colIdx
+//TODO: Most algorithms implemented here should be moved to a class the holds the implementations and called from there.
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
@@ -78,22 +82,24 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             get
             {
                 ProcessIndices(ref rowIdx, ref colIdx);
+                int diagOffset = diagOffsets[colIdx];
+                int maxColumnHeight = diagOffsets[colIdx + 1] - diagOffset - 1; // excluding diagonal
                 int entryHeight = colIdx - rowIdx; // excluding diagonal
-                int maxColumnHeight = diagOffsets[colIdx + 1] - diagOffsets[colIdx] - 1; // excluding diagonal
                 if (entryHeight > maxColumnHeight) return 0.0; // outside stored non zero pattern
-                else return values[diagOffsets[colIdx] + entryHeight];
+                else return values[diagOffset + entryHeight];
             }
             set
             {
                 ProcessIndices(ref rowIdx, ref colIdx);
+                int diagOffset = diagOffsets[colIdx];
+                int maxColumnHeight = diagOffsets[colIdx + 1] - diagOffset - 1; // excluding diagonal
                 int entryHeight = colIdx - rowIdx; // excluding diagonal
-                int maxColumnHeight = diagOffsets[colIdx + 1] - diagOffsets[colIdx] - 1; // excluding diagonal
                 if (entryHeight > maxColumnHeight)
                 {
                     throw new SparsityPatternModifiedException($"In column {colIdx} only rows [{maxColumnHeight}, {colIdx}]"
                         + $" can be changed, but you are trying to set entry ({rowIdx}, {colIdx})");
                 }
-                else values[diagOffsets[colIdx] + entryHeight] = value;
+                else values[diagOffset + entryHeight] = value;
             }
         }
 
@@ -799,19 +805,190 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="ISliceable2D.GetSubmatrix(int[], int[])"/>.
         /// </summary>
-        public Matrix GetSubmatrix(int[] rowIndices, int[] colIndices)
+        public IMatrix GetSubmatrix(int[] rowIndices, int[] colIndices) => GetSubmatrixFull(rowIndices, colIndices);
+
+        /// <summary>
+        /// See <see cref="ISliceable2D.GetSubmatrix(int, int, int, int)"/>.
+        /// </summary>
+        public IMatrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
+        {
+            int[] rowIndices = Enumerable.Range(rowStartInclusive, rowEndExclusive - rowStartInclusive).ToArray();
+            int[] colIndices = Enumerable.Range(colStartInclusive, colEndExclusive - colStartInclusive).ToArray();
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
+            return GetSubmatrix(rowIndices, colIndices);
+        }
+
+        public CscMatrix GetSubmatrixCsc(int[] rowIndices, int[] colIndices)
+        {
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
+
+            var submatrix = DokColMajor.CreateEmpty(rowIndices.Length, colIndices.Length);
+            for (int subCol = 0; subCol < colIndices.Length; ++subCol)
+            {
+                int col = colIndices[subCol];
+                int diagOffset = diagOffsets[col];
+                int colHeight = diagOffsets[col + 1] - diagOffset - 1; // excluding diagonal
+                for (int subRow = 0; subRow < rowIndices.Length; ++subRow)
+                {
+                    int row = rowIndices[subRow];
+                    if (row <= col)
+                    {
+                        int entryHeight = col - row; // excluding diagonal
+                        if (entryHeight <= colHeight) // inside stored non zero pattern
+                        {
+                            double val = values[diagOffset + entryHeight];
+                            if (val != 0.0) submatrix[subRow, subCol] = val; // Skyline format stores many unnecessary zeros.
+                        }
+                    }
+                    else // Transpose row <-> col. The cached column height and offset must be recalculated.
+                    {
+                        int transposedDiagOffset = diagOffsets[row];
+                        int transposedColHeight = diagOffsets[row + 1] - transposedDiagOffset - 1; // excluding diagonal
+                        int entryHeight = row - col; // excluding diagonal
+                        if (entryHeight <= transposedColHeight) // inside stored non zero pattern
+                        {
+                            double val = values[transposedDiagOffset + entryHeight];
+                            if (val != 0.0) submatrix[subRow, subCol] = val; // Skyline format stores many unnecessary zeros.
+                        }
+                    }
+                }
+            }
+            return submatrix.BuildCscMatrix(true);
+        }
+
+        public Matrix GetSubmatrixFull(int[] rowIndices, int[] colIndices)
         {
             if (isOverwritten) throw new MatrixDataOverwrittenException();
             return DenseStrategies.GetSubmatrix(this, rowIndices, colIndices);
         }
 
-        /// <summary>
-        /// See <see cref="ISliceable2D.GetSubmatrix(int, int, int, int)"/>.
-        /// </summary>
-        public Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
+        public Matrix GetSubmatrixSymmetricFull(int[] indices)
         {
             if (isOverwritten) throw new MatrixDataOverwrittenException();
-            return DenseStrategies.GetSubmatrix(this, rowStartInclusive, rowEndExclusive, colStartInclusive, colEndExclusive);
+
+            int subOrder = indices.Length;
+            var submatrix = Matrix.CreateZero(subOrder, subOrder);
+            for (int subCol = 0; subCol < subOrder; ++subCol)
+            {
+                int col = indices[subCol];
+                int diagOffset = diagOffsets[col];
+                int colHeight = diagOffsets[col + 1] - diagOffset - 1; // excluding diagonal
+                for (int subRow = 0; subRow <= subCol; ++subRow)
+                {
+                    int row = indices[subRow];
+                    if (row <= col)
+                    {
+                        int entryHeight = col - row; // excluding diagonal
+                        if (entryHeight <= colHeight) // inside stored non zero pattern
+                        {
+                            double val = values[diagOffset + entryHeight];
+                            if (val != 0.0) // TODO: Not sure if this speeds up things
+                            {
+                                submatrix[subRow, subCol] = val;
+                                submatrix[subCol, subRow] = val;
+                            }
+                        }
+                    }
+                    else // Transpose row <-> col. The cached column height and offset must be recalculated.
+                    {
+                        int transposedDiagOffset = diagOffsets[row];
+                        int transposedColHeight = diagOffsets[row + 1] - transposedDiagOffset - 1; // excluding diagonal
+                        int entryHeight = row - col; // excluding diagonal
+                        if (entryHeight <= transposedColHeight) // inside stored non zero pattern
+                        {
+                            double val = values[transposedDiagOffset + entryHeight];
+                            if (val != 0.0) // TODO: Not sure if this speeds up things
+                            {
+                                submatrix[subRow, subCol] = val;
+                                submatrix[subCol, subRow] = val;
+                            }
+                        }
+                    }
+                }
+            }
+            return submatrix;
+
+            //// I am not sure that the above is faster than: 
+            //return DenseStrategies.GetSubmatrix(this, indices, indices);
+        }
+
+        public SkylineMatrix GetSubmatrixSymmetricSkyline(int[] indices) 
+        {
+            //TODO: perhaps this can be combined with the CSC and full version to get all 2 submatrices needed for 
+            //      Schur complements more efficiently.
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
+
+            int subOrder = indices.Length;
+            var submatrix = DokSymmetric.CreateEmpty(subOrder);
+            for (int subCol = 0; subCol < subOrder; ++subCol)
+            {
+                int col = indices[subCol];
+                int diagOffset = diagOffsets[col];
+                int colHeight = diagOffsets[col + 1] - diagOffset - 1; // excluding diagonal
+                for (int subRow = 0; subRow <= subCol; ++subRow)
+                {
+                    int row = indices[subRow];
+                    if (row <= col)
+                    {
+                        int entryHeight = col - row; // excluding diagonal
+                        if (entryHeight <= colHeight) // inside stored non zero pattern
+                        {
+                            double val = values[diagOffset + entryHeight];
+                            if (val != 0.0) submatrix[subRow, subCol] = val; // Skyline format stores many unnecessary zeros.
+                        }
+                    }
+                    else // Transpose row <-> col. The cached column height and offset must be recalculated.
+                    {
+                        int transposedDiagOffset = diagOffsets[row];
+                        int transposedColHeight = diagOffsets[row + 1] - transposedDiagOffset - 1; // excluding diagonal
+                        int entryHeight = row - col; // excluding diagonal
+                        if (entryHeight <= transposedColHeight) // inside stored non zero pattern
+                        {
+                            double val = values[transposedDiagOffset + entryHeight];
+                            if (val != 0.0) submatrix[subRow, subCol] = val; // Skyline format stores many unnecessary zeros.
+                        }
+                    }
+                }
+            }
+            return submatrix.BuildSkylineMatrix();
+        }
+
+        public SkylineMatrix GetSubmatrixSymmetricSkylineLegacy(int[] indices)
+        {
+            // Taken from G. Stavroulakis code in a FETI-DP solver.
+            //TODO: It does not seem to work correctly if indices is not sorted in ascending order.
+            //TODO: compare against the version that uses DOK, in terms of a) time/memory required for creating the submatrix,
+            //      b) quality of the submatrix the DOK version may avoid some zeros.
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
+
+            int subOrder = indices.Length;
+            int[] subDiagOffsets = new int[subOrder + 1];
+            int offset = 0;
+            for (int i = 0; i < subOrder; i++)
+            {
+                subDiagOffsets[i] = offset;
+                int col = indices[i];
+                int fromRow = col - this.diagOffsets[col + 1] + this.diagOffsets[col] + 1; // top non zero entry of this col
+                var newRows = indices.Count(x => x >= fromRow && x <= col);
+                offset += newRows;
+            }
+            subDiagOffsets[subOrder] = offset;
+
+            var subValues = new double[subDiagOffsets[subDiagOffsets.Length - 1]];
+            offset = 0;
+            for (int i = 0; i < subOrder; i++)
+            {
+                int col = indices[i];
+                int fromRow = col - this.diagOffsets[col + 1] + this.diagOffsets[col] + 1; // top non zero entry of this col
+                var newRows = indices.Where(x => x >= fromRow && x <= col).OrderByDescending(x => x).ToArray<int>();
+                for (int j = 0; j < newRows.Length; j++)
+                {
+                    subValues[offset] = this.values[this.diagOffsets[col] + col - newRows[j]];
+                    offset++;
+                }
+            }
+
+            return new SkylineMatrix(subOrder, subValues, subDiagOffsets);
         }
 
         /// <summary>

@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
         {
             try
             {
-                inverseKii = linearSystem.Matrix.GetSubmatrix(internalDofs, internalDofs);
+                inverseKii = linearSystem.Matrix.GetSubmatrixFull(internalDofs, internalDofs);
                 inverseKii.InvertInPlace();
             }
             catch (MatrixDataOverwrittenException)
@@ -93,7 +93,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
         {
             try
             {
-                Kbb = linearSystem.Matrix.GetSubmatrix(boundaryDofs, boundaryDofs);
+                Kbb = linearSystem.Matrix.GetSubmatrixFull(boundaryDofs, boundaryDofs);
             }
             catch (MatrixDataOverwrittenException)
             {
@@ -107,7 +107,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
         {
             try
             {
-                Kbi = linearSystem.Matrix.GetSubmatrix(boundaryDofs, internalDofs);
+                Kbi = linearSystem.Matrix.GetSubmatrixFull(boundaryDofs, internalDofs);
             }
             catch (MatrixDataOverwrittenException)
             {

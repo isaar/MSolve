@@ -51,7 +51,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// Thrown if the entries of <paramref name="rowIndices"/> or <paramref name="colIndices"/> violate the described 
         /// constraints.
         /// </exception>
-        Matrix GetSubmatrix(int[] rowIndices, int[] colIndices);
+        IMatrix GetSubmatrix(int[] rowIndices, int[] colIndices);
 
         /// <summary>
         /// Returns a submatrix with entries (i, j) of the original matrix, such that 
@@ -79,6 +79,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// Thrown if <paramref name="rowStartInclusive"/>, <paramref name="rowEndExclusive"/>, 
         /// <paramref name="colStartInclusive"/> or <paramref name="colEndExclusive"/> violate the described constraints.
         /// </exception>
-        Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive);
+        IMatrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive);
     }
 }

@@ -618,6 +618,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="ISliceable2D.GetSubmatrix(int[], int[])"/>.
         /// </summary>
+        IMatrix ISliceable2D.GetSubmatrix(int[] rowIndices, int[] colIndices) => GetSubmatrix(rowIndices, colIndices);
+
         public Matrix GetSubmatrix(int[] rowIndices, int[] colIndices)
         {
             if (isOverwritten) throw new MatrixDataOverwrittenException();
@@ -633,6 +635,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="ISliceable2D.GetSubmatrix(int, int, int, int)"/>.
         /// </summary>
+        IMatrix ISliceable2D.GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
+            => GetSubmatrix(rowStartInclusive, rowEndExclusive, colStartInclusive, colEndExclusive);
+
         public Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
         {
             if (isOverwritten) throw new MatrixDataOverwrittenException();

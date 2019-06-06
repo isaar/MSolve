@@ -96,10 +96,10 @@ namespace ISAAR.MSolve.XFEM.Utilities
 
         public Vector GetRow(int rowIndex) => DenseStrategies.GetRow(this, rowIndex);
 
-        public Matrix GetSubmatrix(int[] rowIndices, int[] colIndices) 
+        public IMatrix GetSubmatrix(int[] rowIndices, int[] colIndices) 
             => DenseStrategies.GetSubmatrix(this, rowIndices, colIndices);
 
-        public Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
+        public IMatrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
             => DenseStrategies.GetSubmatrix(this, rowStartInclusive, rowEndExclusive, colStartInclusive, colEndExclusive);
 
         public IMatrix LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
