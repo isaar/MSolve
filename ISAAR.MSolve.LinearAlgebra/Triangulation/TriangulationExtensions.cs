@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.LinearAlgebra.Triangulation
@@ -20,8 +21,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         /// </exception>
         public static Vector SolveLinearSystem(this ITriangulation triangulation, Vector rhsVector)
         {
-            var solution = Vector.CreateZero(rhsVector.Length);
+            var solution = Vector.CreateZero(triangulation.Order);
             triangulation.SolveLinearSystem(rhsVector, solution);
+            return solution;
+        }
+
+        public static Matrix SolveLinearSystems(this LdlSkyline triangulation, Matrix rhsMatrix)
+        {
+            var solution = Matrix.CreateZero(triangulation.Order, rhsMatrix.NumColumns);
+            triangulation.SolveLinearSystems(rhsMatrix, solution);
             return solution;
         }
     }

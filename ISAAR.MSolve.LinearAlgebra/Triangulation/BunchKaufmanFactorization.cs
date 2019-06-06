@@ -13,6 +13,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
     /// </summary>
     public class BunchKaufmanFactorization : ITriangulation
     {
+        public int Order => throw new NotImplementedException();
+
         public double CalcDeterminant()
         {
             throw new NotImplementedException();
