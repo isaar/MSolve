@@ -11,8 +11,10 @@ using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.CornerNodes;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
 using ISAAR.MSolve.Solvers.DomainDecomposition.MeshPartitioning;
 using ISAAR.MSolve.XFEM.Elements;
@@ -211,7 +213,8 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                 {
                     throw new NotImplementedException();
                 }
-                var builder = new Feti1Solver.Builder(factorizationTolerances);
+                var fetiMatrices = new DenseFeti1SubdomainMatrixManager.Factory();
+                var builder = new Feti1Solver.Builder(fetiMatrices, factorizationTolerances);
                 builder.PreconditionerFactory = new LumpedPreconditioner.Factory();
                 builder.ProblemIsHomogeneous = true;
                 return builder.BuildSolver(benchmark.Model);
@@ -232,7 +235,8 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                 // Must also specify corner nodes
                 //var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodes);
                 var cornerNodeSelection = new CrackedFetiDPSubdomainCornerNodes(benchmark.Crack, cornerNodes);
-                var builder = new FetiDPSolver.Builder(cornerNodeSelection);
+                var fetiMatrices = new DenseFetiDPSubdomainMatrixManager.Factory();
+                var builder = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices);
                 builder.PreconditionerFactory = new LumpedPreconditioner.Factory();
                 builder.ProblemIsHomogeneous = true;
                 return builder.BuildSolver(benchmark.Model);

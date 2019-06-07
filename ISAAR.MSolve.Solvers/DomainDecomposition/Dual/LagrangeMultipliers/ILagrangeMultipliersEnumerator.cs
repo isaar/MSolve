@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers
 {
     public interface ILagrangeMultipliersEnumerator
     {
-        Dictionary<int, SignedBooleanMatrix> BooleanMatrices { get; }
+        Dictionary<int, SignedBooleanMatrixColMajor> BooleanMatrices { get; }
 
         //TODO: I am not too thrilled about objects with properties that may or may not be null
         /// <summary>

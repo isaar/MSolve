@@ -9,6 +9,7 @@ using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
 using Xunit;
 using static ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem.Feti1ProjectedInterfaceProblemSolver;
@@ -143,7 +144,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
         //[InlineData(1E-6, InterfaceSolver.Method2, Precond.Dirichlet, MatrixQ.Precond, Residual.Exact, 9)] // converges, stagnates almost before the tolerance and then diverges
         //[InlineData(1E-6, InterfaceSolver.Method3, Precond.Dirichlet, MatrixQ.Precond, Residual.Exact, 23)] //3
         //[InlineData(1E-6, InterfaceSolver.Method4, Precond.Dirichlet, MatrixQ.Precond, Residual.Exact, 9)] // converges, stagnates almost before the tolerance and then diverges
-        [InlineData(1E-6, InterfaceSolver.Default, Precond.Dirichlet, MatrixQ.Precond, Residual.Approximate, 9)]
+        //[InlineData(1E-6, InterfaceSolver.Default, Precond.Dirichlet, MatrixQ.Precond, Residual.Approximate, 9)]
         public static void Run(double stiffnessRatio, InterfaceSolver interfaceSolver, Precond precond, MatrixQ q,
             Residual convergence, int iterExpected)
         {
@@ -221,7 +222,9 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             // Solver
             var factorizationTolerances = new Dictionary<int, double>();
             foreach (Subdomain s in multiSubdomainModel.Subdomains) factorizationTolerances[s.ID] = factorizationTolerance;
-            var solverBuilder = new Feti1Solver.Builder(factorizationTolerances);
+            //var fetiMatrices = new DenseFeti1SubdomainMatrixManager.Factory();
+            var fetiMatrices = new SkylineFeti1SubdomainMatrixManager.Factory();
+            var solverBuilder = new Feti1Solver.Builder(fetiMatrices, factorizationTolerances);
 
             // Homogeneous/heterogeneous problem, matrix Q.
             solverBuilder.ProblemIsHomogeneous = stiffnessRatio == 1.0;

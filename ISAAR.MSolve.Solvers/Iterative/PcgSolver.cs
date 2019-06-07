@@ -53,8 +53,8 @@ namespace ISAAR.MSolve.Solvers.Iterative
         public override void Solve()
         {
             var watch = new Stopwatch();
-            if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
-            else linearSystem.Solution.Clear();
+            if (linearSystem.SolutionConcrete == null) linearSystem.SolutionConcrete = linearSystem.CreateZeroVectorConcrete();
+            else linearSystem.SolutionConcrete.Clear();
 
             // Preconditioning
             if (mustUpdatePreconditioner)
@@ -69,8 +69,8 @@ namespace ISAAR.MSolve.Solvers.Iterative
 
             // Iterative algorithm
             watch.Start();
-            IterativeStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, linearSystem.RhsVector,
-                linearSystem.Solution, true, () => linearSystem.CreateZeroVector()); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0
+            IterativeStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, linearSystem.RhsConcrete,
+                linearSystem.SolutionConcrete, true, () => linearSystem.CreateZeroVector()); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0
             if (!stats.HasConverged)
             {
                 throw new IterativeSolverNotConvergedException(Name + " did not converge to a solution. PCG algorithm run for"
@@ -105,7 +105,7 @@ namespace ISAAR.MSolve.Solvers.Iterative
             int systemOrder = linearSystem.Matrix.NumColumns;
             int numRhs = otherMatrix.NumColumns;
             var solutionVectors = Matrix.CreateZero(systemOrder, numRhs);
-            Vector solutionVector = linearSystem.CreateZeroVector();
+            Vector solutionVector = linearSystem.CreateZeroVectorConcrete();
 
             // Solve each linear system
             for (int j = 0; j < numRhs; ++j)

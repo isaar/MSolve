@@ -28,12 +28,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
             this.Order = order;
             this.factorization = factorization;
         }
+        public int NumColumns => Order;
 
         /// <summary>
         /// The number of non-zero entries (and explicitly stored zeros) in the explicitly stored lower and upper triangular 
         /// factors after LU factorization.
         /// </summary>
         public int NumNonZerosUpper => factorization.NonZerosCount;
+
+        public int NumRows => Order;
 
         /// <summary>
         /// The number of rows/columns of the square matrix. 

@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// major order. Uses LAPACK. Do not use this, since it is an experimantal class, which will probably be removed.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class SymmetricMatrix: IMatrix, ISymmetricMatrix, IEntrywiseOperableView2D<SymmetricMatrix, SymmetricMatrix>, 
+    public class SymmetricMatrix : IMatrix, ISymmetricMatrix, IEntrywiseOperableView2D<SymmetricMatrix, SymmetricMatrix>,
         IEntrywiseOperable2D<SymmetricMatrix>
     {
         /// <summary>
@@ -99,7 +99,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="definiteness">If the caller knows that the matrix is positive definite, etc, he can set this property 
         ///     during creation of the <see cref="SymmetricMatrix"/> object.</param>
         /// <returns></returns>
-        public static SymmetricMatrix CreateFromArray(double[,] array2D, 
+        public static SymmetricMatrix CreateFromArray(double[,] array2D,
             DefiniteProperty definiteness = DefiniteProperty.Unknown)
         {
             int numRows = array2D.GetLength(0);
@@ -164,7 +164,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <returns></returns>
         public static SymmetricMatrix CreateFromMatrix(Matrix originalMatrix)
         {
-            double[] data = Conversions.FullColMajorToPackedUpperColMajor(originalMatrix.NumColumns, 
+            double[] data = Conversions.FullColMajorToPackedUpperColMajor(originalMatrix.NumColumns,
                 originalMatrix.RawData);
             return new SymmetricMatrix(data, originalMatrix.NumColumns, DefiniteProperty.Unknown);
         }
@@ -178,20 +178,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         {
             double[] data = new double[((order + 1) * order) / 2];
             //This matrix will be used as a canvas, thus we cannot infer that it is indefinite yet.
-            return new SymmetricMatrix(data, order, DefiniteProperty.Unknown); 
+            return new SymmetricMatrix(data, order, DefiniteProperty.Unknown);
         }
 
         #region operators (use extension operators when they become available)
-        public static SymmetricMatrix operator +(SymmetricMatrix matrix1, SymmetricMatrix matrix2) 
+        public static SymmetricMatrix operator +(SymmetricMatrix matrix1, SymmetricMatrix matrix2)
             => matrix1.DoEntrywise(matrix2, (x, y) => x + y);
 
-        public static SymmetricMatrix operator -(SymmetricMatrix matrix1, SymmetricMatrix matrix2) 
+        public static SymmetricMatrix operator -(SymmetricMatrix matrix1, SymmetricMatrix matrix2)
             => matrix1.DoEntrywise(matrix2, (x, y) => x - y);
 
-        public static SymmetricMatrix operator *(double scalar, SymmetricMatrix matrix) 
+        public static SymmetricMatrix operator *(double scalar, SymmetricMatrix matrix)
             => matrix.DoToAllEntries(x => scalar * x);
 
-        public static SymmetricMatrix operator *(SymmetricMatrix matrix, double scalar) 
+        public static SymmetricMatrix operator *(SymmetricMatrix matrix, double scalar)
             => matrix.DoToAllEntries(x => scalar * x);
 
         public static IMatrixView operator *(SymmetricMatrix matrixLeft, IMatrixView matrixRight)
@@ -413,7 +413,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public ITriangulation Factorize(bool tryCholesky = true)
         {
             // This should throw an exception if the posdef assumption is wrong.
-            if (Definiteness == DefiniteProperty.PositiveDefinite) return FactorCholesky();  
+            if (Definiteness == DefiniteProperty.PositiveDefinite) return FactorCholesky();
 
             if (tryCholesky)
             {
@@ -470,13 +470,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="ISliceable2D.GetSubmatrix(int[], int[])"/>.
         /// </summary>
-        public Matrix GetSubmatrix(int[] rowIndices, int[] colIndices)
+        public IMatrix GetSubmatrix(int[] rowIndices, int[] colIndices)
             => DenseStrategies.GetSubmatrix(this, rowIndices, colIndices);
 
         /// <summary>
         /// See <see cref="ISliceable2D.GetSubmatrix(int, int, int, int)"/>.
         /// </summary>
-        public Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
+        public IMatrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
             => DenseStrategies.GetSubmatrix(this, rowStartInclusive, rowEndExclusive, colStartInclusive, colEndExclusive);
 
         public IMatrix LinearCombination(double thisCoefficient, IMatrixView otherMatrix, double otherCoefficient)
@@ -620,7 +620,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                     // A[j,i] = A[i,j], but doubling it will not work for all reductions
                     int idx1D = Find1DIndex(i, j);
                     aggregator = processEntry(data[idx1D], aggregator);
-                    aggregator = processEntry(data[idx1D], aggregator); 
+                    aggregator = processEntry(data[idx1D], aggregator);
                 }
             }
             // no zeros implied
@@ -667,9 +667,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int Find1DIndex(int i, int j)
-        {
-            return i + (j * (j + 1)) / 2;
-        }
+        internal int Find1DIndex(int i, int j) => i + (j * (j + 1)) / 2;
     }
 }

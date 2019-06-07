@@ -19,6 +19,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
 	{
         protected readonly IGlobalMatrixRectangularAssembler<TMatrix> assembler;
         protected readonly IStructuralAsymmetricModel model;
+        protected readonly string name;
         protected readonly IAsymmetricSubdomain subdomain;
         protected readonly SingleSubdomainSystem<TMatrix> linearSystem;
         protected readonly IAsymmetricDofOrderer dofRowOrderer;
@@ -38,7 +39,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
 			this.dofRowOrderer = dofRowOrderer;
 			this.dofColOrderer = dofColOrderer;
 			this.assembler = assembler;
-            this.Name = name;
+            this.Logger = new SolverLogger(name);
 		}
         
 		public IReadOnlyDictionary<int, ILinearSystem> LinearSystems { get; }
@@ -55,6 +56,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
             Logger.LogTaskDuration("Matrix assembly", watch.ElapsedMilliseconds);
             return new Dictionary<int, IMatrix> { { subdomain.ID, matrix } };
         }
+        
 
         public virtual Dictionary<int, (IMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView
             matrixConstrFree,
@@ -68,7 +70,7 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
                                                     + " they must have been ordered first.");
             }
             (IMatrix Aff, IMatrixView Afc, IMatrixView Acf, IMatrixView Acc) = assembler.BuildGlobalSubmatrices(
-                subdomain.FreeDofRowOrdering, subdomain.FreeDofColOrdering, subdomain.ConstrainedDofRowOrdering, 
+                subdomain.FreeDofRowOrdering, subdomain.FreeDofColOrdering, subdomain.ConstrainedDofRowOrdering,
                 subdomain.ConstrainedDofColOrdering, subdomain.Elements, elementMatrixProvider);
             watch.Stop();
             Logger.LogTaskDuration("Matrix assembly", watch.ElapsedMilliseconds);
@@ -94,30 +96,29 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
             return new Dictionary<int, Matrix>{{id, result}};
         }
 
-
         public void OrderDofs(bool alsoOrderConstrainedDofs)
 		{
             var watch = new Stopwatch();
             watch.Start();
 
             IGlobalFreeDofOrdering globalRowOrdering = dofRowOrderer.OrderFreeDofs(model);
-			IGlobalFreeDofOrdering globalColOrdering = dofColOrderer.OrderFreeDofs(model);
-			assembler.HandleDofOrderingWillBeModified();
+            IGlobalFreeDofOrdering globalColOrdering = dofColOrderer.OrderFreeDofs(model);
+            assembler.HandleDofOrderingWillBeModified();
 
-			model.GlobalRowDofOrdering = globalRowOrdering;
-			model.GlobalColDofOrdering = globalColOrdering;
+            model.GlobalRowDofOrdering = globalRowOrdering;
+            model.GlobalColDofOrdering = globalColOrdering;
 
-			foreach (var subdomain in model.Subdomains)
-			{
-				subdomain.FreeDofRowOrdering = globalRowOrdering.SubdomainDofOrderings[subdomain];
-				subdomain.FreeDofColOrdering = globalColOrdering.SubdomainDofOrderings[subdomain];
+            foreach (var subdomain in model.Subdomains)
+            {
+                subdomain.FreeDofRowOrdering = globalRowOrdering.SubdomainDofOrderings[subdomain];
+                subdomain.FreeDofColOrdering = globalColOrdering.SubdomainDofOrderings[subdomain];
 
                 if (alsoOrderConstrainedDofs)
                 {
-                    subdomain.ConstrainedDofRowOrdering= dofRowOrderer.OrderConstrainedDofs(subdomain);
+                    subdomain.ConstrainedDofRowOrdering = dofRowOrderer.OrderConstrainedDofs(subdomain);
                     subdomain.ConstrainedDofColOrdering = dofColOrderer.OrderConstrainedDofs(subdomain);
                 }
-			}
+            }
 
             watch.Stop();
             Logger.LogTaskDuration("Dof ordering", watch.ElapsedMilliseconds);

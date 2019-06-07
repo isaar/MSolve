@@ -5,6 +5,7 @@ using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
@@ -19,6 +20,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
         [Fact]
         public static void TestDofSeparation()
         {
+            //TODO: These should be available from properties
             int[][] cornerDofsExpected = new int[4][];
             int[][] remainderDofsExpected = new int[4][];
             int[][] boundaryRemainderDofsExpected = new int[4][];
@@ -198,7 +200,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             Assert.Equal(expectedNumCornerDofs, dofSeparator.NumGlobalCornerDofs);
             for (int id = 0; id < 4; ++id)
             {
-                Matrix Lc = dofSeparator.CornerBooleanMatrices[id];
+                UnsignedBooleanMatrix Lc = dofSeparator.CornerBooleanMatrices[id];
                 Assert.True(expectedLc[id].Equals(Lc, tolerance));
             }
         }

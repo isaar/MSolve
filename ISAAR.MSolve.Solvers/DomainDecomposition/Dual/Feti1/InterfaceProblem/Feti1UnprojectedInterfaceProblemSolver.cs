@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using ISAAR.MSolve.LinearAlgebra.Iterative;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -36,14 +35,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem
             Feti1Projection projection, Vector disconnectedDisplacements, Vector rigidBodyModesWork, double globalForcesNorm,
             SolverLogger logger)
         {
-            // Particular part of the lagrange multipliers: λ0 = Q * G * inv(G^T * Q * G) * e
+            // PCPG starts from the particular lagrange multipliers: λ0 = Q * G * inv(G^T * Q * G) * e
             Vector lagranges = projection.CalcParticularLagrangeMultipliers(rigidBodyModesWork);
-
-            // Run PCPG using the particular lagranges as initial guess.
-            IFetiPcgConvergence pcpgConvergenceStrategy =
+            IFetiPcgConvergence pcpgConvergenceStrategy = 
                 pcgConvergenceStrategyFactory.CreateConvergenceStrategy(globalForcesNorm);
             var pcpg = new PcpgAlgorithm(maxIterationsProvider, pcpgConvergenceTolerance, pcpgConvergenceStrategy);
-            IterativeStatistics stats =
+            IterativeStatistics stats = 
                 pcpg.Solve(flexibility, preconditioner, projection, disconnectedDisplacements, lagranges);
             if (!stats.HasConverged)
             {
@@ -52,7 +49,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem
                     + $" {stats.ResidualNormRatioEstimation}");
             }
 
-            // Log statistics about PCPG execution
+            // Log statistics about PCG execution
             logger.LogIterativeAlgorithm(stats.NumIterationsRequired, stats.ResidualNormRatioEstimation);
             return lagranges;
         }

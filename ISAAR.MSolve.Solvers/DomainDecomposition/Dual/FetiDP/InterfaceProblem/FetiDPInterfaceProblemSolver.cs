@@ -6,11 +6,14 @@ using ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
 
+//TODO: Should the matrix managers be injected into the constructor?
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
 {
     /// <summary>
@@ -37,25 +40,30 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
             factorizedGlobalKccStar = null;
         }
 
-        public void CreateCoarseProblemMatrix(FetiDPDofSeparator dofSeparator, Dictionary<int, CholeskyFull> factorizedKrr, 
-            Dictionary<int, Matrix> Krc, Dictionary<int, Matrix> Kcc)
+        public void CreateCoarseProblemMatrix(FetiDPDofSeparator dofSeparator, 
+            Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers)
         {
             // Static condensation of remainder dofs (Schur complement).
-            var globalKccStar = CreateGlobalKccStar(dofSeparator, factorizedKrr, Krc, Kcc);
+            var globalKccStar = CreateGlobalKccStar(dofSeparator, matrixManagers);
             factorizedGlobalKccStar = globalKccStar.FactorCholesky(true);
         }
 
-        public Vector CreateCoarseProblemRhs(FetiDPDofSeparator dofSeparator, Dictionary<int, CholeskyFull> factorizedKrr,
-            Dictionary<int, Matrix> Krc, Dictionary<int, Vector> fr, Dictionary<int, Vector> fbc)
+        public Vector CreateCoarseProblemRhs(FetiDPDofSeparator dofSeparator, 
+            Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers, 
+            Dictionary<int, Vector> fr, Dictionary<int, Vector> fbc)
         {
             // Static condensation for the force vectors
             var globalFcStar = Vector.CreateZero(dofSeparator.NumGlobalCornerDofs);
-            foreach (int s in factorizedKrr.Keys)
+            foreach (int s in matrixManagers.Keys)
             {
+                IFetiDPSubdomainMatrixManager matrices = matrixManagers[s];
+
                 // fcStar[s] = fbc[s] - Krc[s]^T * inv(Krr[s]) * fr[s]
                 // globalFcStar = sum_over_s(Lc[s]^T * fcStar[s])
-                Matrix Lc = dofSeparator.CornerBooleanMatrices[s];
-                Vector fcStar = fbc[s] - Krc[s].Multiply(factorizedKrr[s].SolveLinearSystem(fr[s]), true);
+                UnsignedBooleanMatrix Lc = dofSeparator.CornerBooleanMatrices[s];
+                Vector temp = matrices.MultiplyInverseKrrTimes(fr[s]);
+                temp = matrices.MultiplyKcrTimes(temp);
+                Vector fcStar = fbc[s] - temp;
                 globalFcStar.AddIntoThis(Lc.Multiply(fcStar, true));
             }
             return globalFcStar;
@@ -100,18 +108,20 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
             return (lagranges, uc);
         }
 
-        private Matrix CreateGlobalKccStar(FetiDPDofSeparator dofSeparator, Dictionary<int, CholeskyFull> factorizedKrr,
-            Dictionary<int, Matrix> Krc, Dictionary<int, Matrix> Kcc)
+        private Matrix CreateGlobalKccStar(FetiDPDofSeparator dofSeparator,
+            Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers)
         {
             // Static condensation of remainder dofs (Schur complement).
             var globalKccStar = Matrix.CreateZero(dofSeparator.NumGlobalCornerDofs, dofSeparator.NumGlobalCornerDofs);
-            foreach (int s in factorizedKrr.Keys)
+            foreach (int s in matrixManagers.Keys)
             {
+                IFetiDPSubdomainMatrixManager matrices = matrixManagers[s];
+
                 // KccStar[s] = Kcc[s] - Krc[s]^T * inv(Krr[s]) * Krc[s]
                 // globalKccStar = sum_over_s(Lc[s]^T * KccStar[s] * Lc[s])
-                Matrix Lc = dofSeparator.CornerBooleanMatrices[s];
-                Matrix KccStar = Kcc[s] - Krc[s].MultiplyRight(factorizedKrr[s].SolveLinearSystems(Krc[s]), true);
-                globalKccStar.AddIntoThis(Lc.ThisTransposeTimesOtherTimesThis(KccStar));
+                UnsignedBooleanMatrix Lc = dofSeparator.CornerBooleanMatrices[s];
+                matrices.CalcSchurComplementOfRemainderDofs(); //TODO: At this point Kcc and Krc can be cleared. Maybe Krr too.
+                globalKccStar.AddIntoThis(Lc.ThisTransposeTimesOtherTimesThis(matrices.SchurComplementOfRemainderDofs));
             }
             return globalKccStar;
         }

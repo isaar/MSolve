@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.Solvers.Direct
         public override void Solve()
         {
             var watch = new Stopwatch();
-            if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
+            if (linearSystem.SolutionConcrete == null) linearSystem.SolutionConcrete = linearSystem.CreateZeroVectorConcrete();
             //else linearSystem.Solution.Clear(); // no need to waste computational time on this in a direct solver
 
             // Factorization
@@ -62,7 +62,7 @@ namespace ISAAR.MSolve.Solvers.Direct
 
             // Substitutions
             watch.Start();
-            factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
+            factorizedMatrix.SolveLinearSystem(linearSystem.RhsConcrete, linearSystem.SolutionConcrete);
             watch.Stop();
             Logger.LogTaskDuration("Back/forward substitutions", watch.ElapsedMilliseconds);
             Logger.IncrementAnalysisStep();
@@ -104,7 +104,7 @@ namespace ISAAR.MSolve.Solvers.Direct
                 catch (InsufficientMemoryException) //TODO: what about OutOfMemoryException?
                 {
                     // Solve each linear system separately, to avoid copying the RHS matrix to a dense one.
-                    Vector solutionVector = linearSystem.CreateZeroVector();
+                    Vector solutionVector = linearSystem.CreateZeroVectorConcrete();
                     for (int j = 0; j < numRhs; ++j)
                     {
                         if (j != 0) solutionVector.Clear();

@@ -18,7 +18,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
 
         protected SkylineFactorizationBase(int order, double[] values, int[] diagOffsets)
         {
-            this.NumColumns = order;
+            this.Order = order;
             this.values = values;
             this.diagOffsets = diagOffsets;
         }
@@ -26,12 +26,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         /// <summary>
         /// The number of columns of the matrix. 
         /// </summary>
-        public int NumColumns { get; }
+        public int NumColumns => Order;
 
         /// <summary>
         /// The number of rows of the matrix.
         /// </summary>
-        public int NumRows { get { return NumColumns; } }
+        public int NumRows => Order;
+
+        public int Order { get; }
 
         /// <summary>
         /// See <see cref="IIndexable2D.this[int, int]"/>.
@@ -57,19 +59,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         /// See <see cref="ISparseMatrix.EnumerateNonZeros"/>.
         /// </summary>
         public IEnumerable<(int row, int col, double value)> EnumerateNonZeros()
-            => SkylineMatrix.CreateFromArrays(NumColumns, values, diagOffsets, false, false).EnumerateNonZeros();
+            => SkylineMatrix.CreateFromArrays(Order, values, diagOffsets, false, false).EnumerateNonZeros();
 
         /// <summary>
         /// See <see cref="IIndexable2D.Equals(IIndexable2D, double)"/>.
         /// </summary>
         public bool Equals(IIndexable2D other, double tolerance = 1E-13) //TODO: what are the semantics of this? It cannot be compared to matrices. Perhaps IIndexable2D should not have Equals()
-            => SkylineMatrix.CreateFromArrays(NumColumns, values, diagOffsets, false, false).Equals(other, tolerance);
+            => SkylineMatrix.CreateFromArrays(Order, values, diagOffsets, false, false).Equals(other, tolerance);
 
         /// <summary>
         /// See <see cref="ISparseMatrix.GetSparseFormat"/>.
         /// </summary>
         public SparseFormat GetSparseFormat()
-            => SkylineMatrix.CreateFromArrays(NumColumns, values, diagOffsets, false, false).GetSparseFormat();
+            => SkylineMatrix.CreateFromArrays(Order, values, diagOffsets, false, false).GetSparseFormat();
 
 
         public abstract double CalcDeterminant();

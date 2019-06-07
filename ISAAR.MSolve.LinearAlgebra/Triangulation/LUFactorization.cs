@@ -62,6 +62,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         /// </summary>
         public bool IsSingular { get; }
 
+        public int NumColumns => Order;
+        public int NumRows => Order;
+
         /// <summary>
         /// The number of rows/columns of the original square matrix. 
         /// </summary>

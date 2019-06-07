@@ -3,26 +3,26 @@ using System.Collections.Generic;
 using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 {
     public class FetiDPFlexibilityMatrix
     {
-        private readonly Dictionary<int, SignedBooleanMatrix> Br;
-        private readonly Dictionary<int, CholeskyFull> factorizedKrr;
-        private readonly Dictionary<int, Matrix> Krc;
-        private readonly Dictionary<int, Matrix> Lc;
+        private readonly Dictionary<int, SignedBooleanMatrixColMajor> Br;
+        private readonly Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers;
+        private readonly Dictionary<int, UnsignedBooleanMatrix> Lc;
         private readonly int numCornerDofs;
 
-        public FetiDPFlexibilityMatrix(Dictionary<int, CholeskyFull> factorizedKrr, Dictionary<int, Matrix> Krc, 
-            FetiDPLagrangeMultipliersEnumerator lagrangeEnumerator, FetiDPDofSeparator dofSeparator)
+        public FetiDPFlexibilityMatrix(FetiDPDofSeparator dofSeparator, FetiDPLagrangeMultipliersEnumerator lagrangeEnumerator, 
+            Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers)
         {
             this.Br = lagrangeEnumerator.BooleanMatrices;
             this.Lc = dofSeparator.CornerBooleanMatrices;
-            this.factorizedKrr = factorizedKrr;
-            this.Krc = Krc;
+            this.matrixManagers = matrixManagers;
             this.numCornerDofs = dofSeparator.NumGlobalCornerDofs;
             this.Order = lagrangeEnumerator.NumLagrangeMultipliers;
         }
@@ -39,8 +39,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             rhs.Clear();
             foreach (int s in Br.Keys)
             {
+                IFetiDPSubdomainMatrixManager matrices = matrixManagers[s];
                 Vector temp = Br[s].Multiply(lhs, true);
-                temp = factorizedKrr[s].SolveLinearSystem(temp);
+                temp = matrices.MultiplyInverseKrrTimes(temp);
                 temp = Br[s].Multiply(temp);
                 rhs.AddIntoThis(temp);
             }
@@ -54,9 +55,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             var result = Vector.CreateZero(Order);
             foreach (int s in Br.Keys)
             {
+                IFetiDPSubdomainMatrixManager matrices = matrixManagers[s];
                 Vector temp = Lc[s].Multiply(vector);
-                temp = Krc[s].Multiply(temp);
-                temp = factorizedKrr[s].SolveLinearSystem(temp);
+                temp = matrices.MultiplyKrcTimes(temp);
+                temp = matrices.MultiplyInverseKrrTimes(temp);
                 temp = Br[s].Multiply(temp);
                 result.AddIntoThis(temp);
             }
@@ -71,9 +73,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             var result = Vector.CreateZero(numCornerDofs);
             foreach (int s in Br.Keys)
             {
+                IFetiDPSubdomainMatrixManager matrices = matrixManagers[s];
                 Vector temp = Br[s].Multiply(vector, true);
-                temp = factorizedKrr[s].SolveLinearSystem(temp);
-                temp = Krc[s].Multiply(temp, true);
+                temp = matrices.MultiplyInverseKrrTimes(temp);
+                temp = matrices.MultiplyKcrTimes(temp);
                 temp = Lc[s].Multiply(temp, true);
                 result.AddIntoThis(temp);
             }

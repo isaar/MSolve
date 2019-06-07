@@ -19,7 +19,7 @@ namespace ISAAR.MSolve.Solvers.LinearSystems
         where TMatrix : class, IMatrix //TODO: perhaps this should be IMatrixView
         where TVector : class, IVector
     {
-        private const int initialSize = int.MinValue;
+        protected const int initialSize = int.MinValue;
 
         protected LinearSystemBase(ISubdomain subdomain)
         {
@@ -46,7 +46,7 @@ namespace ISAAR.MSolve.Solvers.LinearSystems
 
         IVector ILinearSystem.RhsVector
         {
-            get => RhsVector;
+            get => RhsConcrete;
             set
             {
                 if (value.Length != this.Size)
@@ -55,7 +55,7 @@ namespace ISAAR.MSolve.Solvers.LinearSystems
                         + " this linear system. Make sure that it is initialization was delegated to this linear system"
                         + " after the latest dof ordering.");
                 }
-                RhsVector = (TVector)value;
+                RhsConcrete = (TVector)value;
             }
         }
 
@@ -63,28 +63,21 @@ namespace ISAAR.MSolve.Solvers.LinearSystems
 
         public ISubdomain Subdomain { get; }
 
-        IVectorView ILinearSystem.Solution { get => Solution; }
 
         internal TMatrix Matrix { get; set; }
 
-        internal TVector RhsVector { get; set; }
+        public TVector RhsConcrete { get; set; }
 
-        internal TVector Solution { get; set; }
-
-        IVector ILinearSystem.CreateZeroVector()
-        {
-            if (Size == initialSize) throw new InvalidOperationException(
-                "The linear system size must be set before creating vectors. First of all order the subdomain freedom degrees.");
-            return CreateZeroVector();
-        }
+        IVectorView ILinearSystem.Solution { get => SolutionConcrete; }
+        public TVector SolutionConcrete { get; set; }
 
         public virtual void Reset()
         {
             foreach (var observer in MatrixObservers) observer.HandleMatrixWillBeSet();
 
             // Override the method if memory needs to be disposed in a more complicated way.
-            RhsVector = null;
-            Solution = null;
+            RhsConcrete = null;
+            SolutionConcrete = null;
             Matrix = null;
 
             if (Subdomain is IAsymmetricSubdomain asymmetricSubdomain)
@@ -110,9 +103,8 @@ namespace ISAAR.MSolve.Solvers.LinearSystems
                 }
                 Size = Subdomain.FreeDofOrdering.NumFreeDofs;
             }
-            
         }
 
-        internal abstract TVector CreateZeroVector();
+        public abstract IVector CreateZeroVector();
     }
 }

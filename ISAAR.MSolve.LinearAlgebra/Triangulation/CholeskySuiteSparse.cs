@@ -40,11 +40,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
             ReleaseResources();
         }
 
+        public int NumColumns => Order;
+
         /// <summary>
         /// The number of non-zero entries (and explicitly stored zeros) in the explicitly stored upper triangular factor 
         /// after Cholesky factorization.
         /// </summary>
         public int NumNonZerosUpper { get => SuiteSparsePInvokes.GetFactorNonZeros(factorizedMatrix); }
+
+        public int NumRows => Order;
 
         /// <summary>
         /// The number of rows/columns of the square matrix. 

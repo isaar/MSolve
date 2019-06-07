@@ -104,7 +104,7 @@ namespace ISAAR.MSolve.Solvers.Direct
         public override void Solve()
         {
             var watch = new Stopwatch();
-            if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
+            if (linearSystem.SolutionConcrete == null) linearSystem.SolutionConcrete = linearSystem.CreateZeroVectorConcrete();
             //else linearSystem.Solution.Clear(); // no need to waste computational time on this in a direct solver
 
             // Factorization
@@ -121,7 +121,7 @@ namespace ISAAR.MSolve.Solvers.Direct
 
             // Substitutions
             watch.Start();
-            inverse.MultiplyIntoResult(linearSystem.RhsVector, linearSystem.Solution);
+            inverse.MultiplyIntoResult(linearSystem.RhsConcrete, linearSystem.SolutionConcrete);
             watch.Stop();
             Logger.LogTaskDuration("Back/forward substitutions", watch.ElapsedMilliseconds);
             Logger.IncrementAnalysisStep();
