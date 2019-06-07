@@ -73,12 +73,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             var externalLinearSystems = new Dictionary<int, ILinearSystem>();
             foreach (ISubdomain subdomain in model.Subdomains)
             {
-                int id = subdomain.ID;
+                int s = subdomain.ID;
                 var matrixManager = matrixManagerFactory.CreateMatricesManager(subdomain);
-                matrixManagers[id] = matrixManager;
-                matrixManagersGeneral[id] = matrixManager;
-                this.linearSystems[id] = matrixManager.LinearSystem;
-                externalLinearSystems[id] = matrixManager.LinearSystem;
+                matrixManagers[s] = matrixManager;
+                matrixManagersGeneral[s] = matrixManager;
+                this.linearSystems[s] = matrixManager.LinearSystem;
+                externalLinearSystems[s] = matrixManager.LinearSystem;
             }
             LinearSystems = externalLinearSystems;
 

@@ -220,9 +220,11 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             Model multiSubdomainModel = CreateModel(stiffnessRatio);
 
             // Solver
+            var factorizationTolerances = new Dictionary<int, double>();
+            foreach (Subdomain s in multiSubdomainModel.Subdomains) factorizationTolerances[s.ID] = factorizationTolerance;
             //var fetiMatrices = new DenseFeti1SubdomainMatrixManager.Factory();
             var fetiMatrices = new SkylineFeti1SubdomainMatrixManager.Factory();
-            var solverBuilder = new Feti1Solver.Builder(fetiMatrices, factorizationTolerance);
+            var solverBuilder = new Feti1Solver.Builder(fetiMatrices, factorizationTolerances);
 
             // Homogeneous/heterogeneous problem, matrix Q.
             solverBuilder.ProblemIsHomogeneous = stiffnessRatio == 1.0;

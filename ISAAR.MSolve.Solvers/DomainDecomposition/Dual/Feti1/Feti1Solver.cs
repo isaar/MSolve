@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         internal const string name = "FETI Level-1 Solver"; // for error messages
         private readonly ICrosspointStrategy crosspointStrategy = new FullyRedundantConstraints();
         private readonly IDofOrderer dofOrderer;
-        private readonly double factorizationPivotTolerance;
+        private readonly Dictionary<int, double> factorPivotTolerances;
         private readonly IFeti1InterfaceProblemSolver interfaceProblemSolver;
         private readonly Dictionary<int, ISingleSubdomainLinearSystem> linearSystems;
         private readonly Dictionary<int, IFeti1SubdomainMatrixManager> matrixManagers;
@@ -54,8 +54,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         private Feti1SubdomainGlobalMapping subdomainGlobalMapping;
 
         private Feti1Solver(IStructuralModel model, IFeti1SubdomainMatrixManagerFactory matrixManagerFactory, 
-            IDofOrderer dofOrderer, double factorizationPivotTolerance, IFetiPreconditionerFactory preconditionerFactory, 
-            IFeti1InterfaceProblemSolver interfaceProblemSolver, bool problemIsHomogeneous, bool projectionMatrixQIsIdentity)
+            IDofOrderer dofOrderer, Dictionary<int, double> factorPivotTolerances, 
+            IFetiPreconditionerFactory preconditionerFactory, IFeti1InterfaceProblemSolver interfaceProblemSolver, 
+            bool problemIsHomogeneous, bool projectionMatrixQIsIdentity)
         {
             // Model
             if (model.Subdomains.Count == 1) throw new InvalidSolverException(
@@ -73,17 +74,17 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             var externalLinearSystems = new Dictionary<int, ILinearSystem>();
             foreach (ISubdomain subdomain in model.Subdomains)
             {
-                int id = subdomain.ID;
+                int s = subdomain.ID;
                 var matrixManager = matrixManagerFactory.CreateMatricesManager(subdomain);
-                matrixManagers[id] = matrixManager;
-                matrixManagersGeneral[id] = matrixManager;
-                this.linearSystems[id] = matrixManager.LinearSystem;
-                externalLinearSystems[id] = matrixManager.LinearSystem;
+                matrixManagers[s] = matrixManager;
+                matrixManagersGeneral[s] = matrixManager;
+                this.linearSystems[s] = matrixManager.LinearSystem;
+                externalLinearSystems[s] = matrixManager.LinearSystem;
             }
             LinearSystems = externalLinearSystems;
 
             this.dofOrderer = dofOrderer;
-            this.factorizationPivotTolerance = factorizationPivotTolerance;
+            this.factorPivotTolerances = factorPivotTolerances;
             this.preconditionerFactory = preconditionerFactory;
 
             // Interface problem
@@ -245,7 +246,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 watch.Restart();
                 foreach (int s in subdomains.Keys)
                 {
-                    matrixManagers[s].InvertKff(factorizationPivotTolerance, factorizeInPlace);
+                    matrixManagers[s].InvertKff(factorPivotTolerances[s], factorizeInPlace);
                 }
                 watch.Stop();
                 Logger.LogTaskDuration("Matrix factorization", watch.ElapsedMilliseconds);
@@ -297,16 +298,16 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             {
                 // u = inv(K) * (f - B^T * λ), for non floating subdomains
                 // u = generalizedInverse(K) * (f - B^T * λ) + R * a, for floating subdomains
-                int id = linearSystem.Subdomain.ID;
-                Vector forces = linearSystem.RhsConcrete - lagrangeEnumerator.BooleanMatrices[id].Multiply(lagranges, true);
-                Vector displacements = matrixManagers[id].MultiplyInverseKffTimes(forces);
+                int s = linearSystem.Subdomain.ID;
+                Vector forces = linearSystem.RhsConcrete - lagrangeEnumerator.BooleanMatrices[s].Multiply(lagranges, true);
+                Vector displacements = matrixManagers[s].MultiplyInverseKffTimes(forces);
 
-                foreach (Vector rbm in matrixManagers[id].RigidBodyModes)
+                foreach (Vector rbm in matrixManagers[s].RigidBodyModes)
                 {
                     displacements.AxpyIntoThis(rbm, rigidBodyModeCoeffs[rbmOffset++]);
                 }
 
-                actualdisplacements[id] = displacements;
+                actualdisplacements[s] = displacements;
             }
             return actualdisplacements;
         }
@@ -320,10 +321,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             var displacements = Vector.CreateZero(lagrangeEnumerator.NumLagrangeMultipliers);
             foreach (var linearSystem in linearSystems.Values)
             {
-                int id = linearSystem.Subdomain.ID;
+                int s = linearSystem.Subdomain.ID;
                 Vector f = linearSystem.RhsConcrete;
-                SignedBooleanMatrixColMajor B = lagrangeEnumerator.BooleanMatrices[id];
-                Vector Kf = matrixManagers[id].MultiplyInverseKffTimes(f);
+                SignedBooleanMatrixColMajor B = lagrangeEnumerator.BooleanMatrices[s];
+                Vector Kf = matrixManagers[s].MultiplyInverseKffTimes(f);
                 Vector BKf = B.Multiply(Kf, false);
                 displacements.AddIntoThis(BKf);
             }
@@ -356,9 +357,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             int idx = 0;
             foreach (var linearSystem in linearSystems.Values)
             {
-                int id = linearSystem.Subdomain.ID;
+                int s = linearSystem.Subdomain.ID;
                 Vector forces = linearSystem.RhsConcrete;
-                foreach (Vector rbm in matrixManagers[id].RigidBodyModes) work[idx++] = rbm * forces;
+                foreach (Vector rbm in matrixManagers[s].RigidBodyModes) work[idx++] = rbm * forces;
             }
 
             return work;
@@ -418,13 +419,14 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 
         public class Builder
         {
-            private readonly double factorizationPivotTolerance;
+            private readonly Dictionary<int, double> factorPivotTolerances;
             private readonly IFeti1SubdomainMatrixManagerFactory matrixManagerFactory;
 
-            public Builder(IFeti1SubdomainMatrixManagerFactory matrixManagerFactory, double factorizationPivotTolerance)
+            public Builder(IFeti1SubdomainMatrixManagerFactory matrixManagerFactory, 
+                Dictionary<int, double> factorPivotTolerances)
             {
                 //TODO: This is a very volatile parameter and the user should not have to specify it. 
-                this.factorizationPivotTolerance = factorizationPivotTolerance;
+                this.factorPivotTolerances = factorPivotTolerances;
                 this.matrixManagerFactory = matrixManagerFactory;
             }
 
@@ -440,7 +442,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             //public PdeOrder PdeOrder { get; set; } = PdeOrder.Second; // Instead the user explicitly sets Q.
 
             public Feti1Solver BuildSolver(IStructuralModel model)
-                => new Feti1Solver(model, matrixManagerFactory, DofOrderer, factorizationPivotTolerance, PreconditionerFactory,
+                => new Feti1Solver(model, matrixManagerFactory, DofOrderer, factorPivotTolerances, PreconditionerFactory,
                      InterfaceProblemSolver, ProblemIsHomogeneous, ProjectionMatrixQIsIdentity);
         }
     }
