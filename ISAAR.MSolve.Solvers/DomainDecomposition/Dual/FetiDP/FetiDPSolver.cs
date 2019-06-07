@@ -10,6 +10,7 @@ using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.Commons;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.CornerNodes;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
@@ -26,7 +27,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
     public class FetiDPSolver : ISolver
     {
         internal const string name = "FETI-DP Solver"; // for error messages
-        private readonly Dictionary<int, INode[]> cornerNodesOfSubdomains;
+        private readonly ICornerNodeSelection cornerNodeSelection;
         private readonly ICrosspointStrategy crosspointStrategy = new FullyRedundantConstraints();
         private readonly IDofOrderer dofOrderer;
         private readonly IFetiDPInterfaceProblemSolver interfaceProblemSolver;
@@ -51,7 +52,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
         private IStiffnessDistribution stiffnessDistribution;
         private FetiDPSubdomainGlobalMapping subdomainGlobalMapping;
 
-        private FetiDPSolver(IStructuralModel model, Dictionary<int, INode[]> cornerNodesOfSubdomains,
+        private FetiDPSolver(IStructuralModel model, ICornerNodeSelection cornerNodeSelection,
             IFetiDPSubdomainMatrixManagerFactory matrixManagerFactory, IDofOrderer dofOrderer, 
             IFetiPreconditionerFactory preconditionerFactory, IFetiDPInterfaceProblemSolver interfaceProblemSolver, 
             bool problemIsHomogeneous)
@@ -60,7 +61,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             if (model.Subdomains.Count == 1) throw new InvalidSolverException(
                 $"{name} cannot be used if there is only 1 subdomain");
             this.model = model;
-            this.cornerNodesOfSubdomains = cornerNodesOfSubdomains;
+            this.cornerNodeSelection = cornerNodeSelection;
 
             // Subdomains
             subdomains = new Dictionary<int, ISubdomain>();
@@ -92,6 +93,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             this.problemIsHomogeneous = problemIsHomogeneous;
         }
 
+        public Dictionary<int, HashSet<INode>> CornerNodesOfSubdomains { get; private set; }
         public IReadOnlyDictionary<int, ILinearSystem> LinearSystems { get; }
         public SolverLogger Logger { get; } = new SolverLogger(name);
         public string Name => name;
@@ -194,10 +196,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                 //subdomain.Forces = linearSystem.CreateZeroVector();
             }
 
+            // Identify corner nodes
+            CornerNodesOfSubdomains = cornerNodeSelection.SelectCornerNodesOfSubdomains();
+
             // Define boundary / internal dofs
             dofSeparator = new FetiDPDofSeparator();
-            dofSeparator.SeparateDofs(model, cornerNodesOfSubdomains);
-            dofSeparator.DefineCornerMappingMatrices(model, cornerNodesOfSubdomains);
+            dofSeparator.SeparateDofs(model, CornerNodesOfSubdomains);
+            dofSeparator.DefineCornerMappingMatrices(model, CornerNodesOfSubdomains);
 
             // Define lagrange multipliers and boolean matrices
             this.lagrangeEnumerator = new FetiDPLagrangeMultipliersEnumerator(crosspointStrategy, dofSeparator);
@@ -415,13 +420,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 
         public class Builder
         {
-            private Dictionary<int, INode[]> cornerNodesOfEachSubdomain; //TODO: These should probably be a HashSet instead of array.
+            private ICornerNodeSelection cornerNodeSelection;
             private readonly IFetiDPSubdomainMatrixManagerFactory matrixManagerFactory;
 
-            public Builder(Dictionary<int, INode[]> cornerNodesOfEachSubdomain, 
-                IFetiDPSubdomainMatrixManagerFactory matrixManagerFactory)
+            public Builder(ICornerNodeSelection cornerNodeSelection, IFetiDPSubdomainMatrixManagerFactory matrixManagerFactory)
             {
-                this.cornerNodesOfEachSubdomain = cornerNodesOfEachSubdomain;
+                this.cornerNodeSelection = cornerNodeSelection;
                 this.matrixManagerFactory = matrixManagerFactory;
             }
 
@@ -436,7 +440,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             public bool ProblemIsHomogeneous { get; set; } = true;
 
             public FetiDPSolver BuildSolver(IStructuralModel model)
-                => new FetiDPSolver(model, cornerNodesOfEachSubdomain, matrixManagerFactory, DofOrderer, PreconditionerFactory, 
+                => new FetiDPSolver(model, cornerNodeSelection, matrixManagerFactory, DofOrderer, PreconditionerFactory, 
                      InterfaceProblemSolver, ProblemIsHomogeneous);
         }
     }

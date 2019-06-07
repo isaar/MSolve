@@ -12,6 +12,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.CornerNodes;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
@@ -413,9 +414,10 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
         {
             // Setup the model and solver
             Model model = Quads4x4MappingMatricesTests.CreateModel();
-            Dictionary<int, INode[]> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
+            Dictionary<int, HashSet<INode>> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
             var fetiMatrices = new DenseFetiDPSubdomainMatrixManager.Factory();
-            var solver = new FetiDPSolver.Builder(cornerNodes, fetiMatrices).BuildSolver(model);
+            var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodes);
+            var solver = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices).BuildSolver(model);
             model.ConnectDataStructures();
             solver.OrderDofs(false);
 
@@ -449,9 +451,10 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             //TODO: Perhaps use the Br, Bc from the class that tests them instead of the solver.
 
             Model model = Quads4x4MappingMatricesTests.CreateModel();
-            Dictionary<int, INode[]> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
+            Dictionary<int, HashSet<INode>> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
             var fetiMatrices = new DenseFetiDPSubdomainMatrixManager.Factory();
-            FetiDPSolver solver = new FetiDPSolver.Builder(cornerNodes, fetiMatrices).BuildSolver(model);
+            var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodes);
+            FetiDPSolver solver = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices).BuildSolver(model);
             model.ConnectDataStructures();
             solver.OrderDofs(false);
 
@@ -476,9 +479,10 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
         {
             // Setup the model and solver
             Model model = Quads4x4MappingMatricesTests.CreateModel();
-            Dictionary<int, INode[]> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
+            Dictionary<int, HashSet<INode>> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
             var fetiMatrices = new DenseFetiDPSubdomainMatrixManager.Factory();
-            var solver = new FetiDPSolver.Builder(cornerNodes, fetiMatrices).BuildSolver(model);
+            var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodes);
+            var solver = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices).BuildSolver(model);
             model.ConnectDataStructures();
             solver.OrderDofs(false);
 
@@ -509,9 +513,10 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
         {
             // Setup the model and solver
             Model model = Quads4x4MappingMatricesTests.CreateModel();
-            Dictionary<int, INode[]> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
+            Dictionary<int, HashSet<INode>> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
             var fetiMatrices = new DenseFetiDPSubdomainMatrixManager.Factory();
-            var solver = new FetiDPSolver.Builder(cornerNodes, fetiMatrices).BuildSolver(model);
+            var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodes);
+            var solver = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices).BuildSolver(model);
             model.ConnectDataStructures();
             solver.OrderDofs(false);
 
@@ -556,9 +561,10 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
         {
             // Setup the model and solver
             Model model = Quads4x4MappingMatricesTests.CreateModel();
-            Dictionary<int, INode[]> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
+            Dictionary<int, HashSet<INode>> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
             var fetiMatrices = new DenseFetiDPSubdomainMatrixManager.Factory();
-            var solver = new FetiDPSolver.Builder(cornerNodes, fetiMatrices).BuildSolver(model);
+            var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodes);
+            var solver = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices).BuildSolver(model);
             model.ConnectDataStructures();
             solver.OrderDofs(false);
 
@@ -607,9 +613,10 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
         {
             // Setup the model and solver
             Model model = Quads4x4MappingMatricesTests.CreateModel();
-            Dictionary<int, INode[]> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
+            Dictionary<int, HashSet<INode>> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
             var fetiMatrices = new DenseFetiDPSubdomainMatrixManager.Factory();
-            var solver = new FetiDPSolver.Builder(cornerNodes, fetiMatrices).BuildSolver(model);
+            var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodes);
+            var solver = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices).BuildSolver(model);
             var problem = new ProblemStructural(model, solver);
             var linearAnalyzer = new LinearAnalyzer(model, solver, problem);
             var staticAnalyzer = new StaticAnalyzer(model, solver, problem, linearAnalyzer);

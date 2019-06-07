@@ -9,6 +9,7 @@ using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.CornerNodes;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
@@ -134,27 +135,27 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 
             // Corner nodes
             double meshTol = 1E-6;
-            var cornerNodesOfEachSubdomain = new Dictionary<int, INode[]>();
+            var cornerNodesOfEachSubdomain = new Dictionary<int, HashSet<INode>>();
             foreach (Subdomain subdomain in multiSubdomainModel.Subdomains)
             {
                 subdomain.DefineNodesFromElements(); //TODO: This will also be called by the analyzer.
-                int[] cornerNodeIDs = subdomain.GetCornerNodes();
-                var cornerNodes = new List<INode>();
-                foreach (int id in cornerNodeIDs)
+                INode[] corners = CornerNodeUtilities.FindCornersOfRectangle2D(subdomain);
+                var cornerNodes = new HashSet<INode>();
+                foreach (INode node in corners)
                 {
-                    Node node = multiSubdomainModel.NodesDictionary[id];
                     if (node.Constraints.Count > 0) continue;
                     if ((Math.Abs(node.X - domainLengthX) <= meshTol) && (Math.Abs(node.Y) <= meshTol)) continue;
                     if ((Math.Abs(node.X - domainLengthX) <= meshTol) && (Math.Abs(node.Y - domainLengthY) <= meshTol)) continue;
                     cornerNodes.Add(node);
                 }
-                cornerNodesOfEachSubdomain[subdomain.ID] = cornerNodes.ToArray();
+                cornerNodesOfEachSubdomain[subdomain.ID] = cornerNodes;
             }
 
             // Solver
             var fetiMatrices = new SkylineFetiDPSubdomainMatrixManager.Factory();
             //var fetiMatrices = new DenseFetiDPSubdomainMatrixManager.Factory();
-            var solverBuilder = new FetiDPSolver.Builder(cornerNodesOfEachSubdomain, fetiMatrices);
+            var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodesOfEachSubdomain);
+            var solverBuilder = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices);
             solverBuilder.ProblemIsHomogeneous = stiffnessRatio == 1.0;
             //solverBuilder.ProblemIsHomogeneous = false;
 
