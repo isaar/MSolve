@@ -124,6 +124,20 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
             }
         }
 
+        public void SolveLinearSystems(CscMatrix rhsVectors, Matrix solutionVectors)
+        {
+            Preconditions.CheckSystemSolutionDimensions(this.NumRows, rhsVectors.NumRows);
+            Preconditions.CheckMultiplicationDimensions(this.Order, solutionVectors.NumRows);
+            Preconditions.CheckSameColDimension(rhsVectors, solutionVectors);
+
+            for (int j = 0; j < rhsVectors.NumColumns; ++j)
+            {
+                double[] rhsColumn = rhsVectors.GetColumn(j).RawData;
+                int offset = j * NumRows;
+                SolveWithOffsets(Order, values, diagOffsets, rhsColumn, 0, solutionVectors.RawData, offset);
+            }
+        }
+
         internal static (List<int> dependentColumns, List<double[]> nullSpaceBasis) FactorizeInternal(int order, double[] values,
             int[] diagOffsets, double pivotTolerance)
         {

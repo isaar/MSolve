@@ -111,7 +111,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
         {
             try
             {
-                Kib = linearSystem.Matrix.GetSubmatrixCsc(boundaryDofs, internalDofs);
+                Kib = linearSystem.Matrix.GetSubmatrixCsc(internalDofs, boundaryDofs);
             }
             catch (MatrixDataOverwrittenException)
             {
@@ -225,7 +225,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
             if (Kib == null)
             {
                 throw new InvalidOperationException(
-                    "The boundary-internal stiffness submatrix 'Kbi' of this subdomain must be calculated first.");
+                    "The internal-boundary stiffness submatrix 'Kib' of this subdomain must be calculated first.");
             }
             return Kib.Multiply(vector);
         }
@@ -235,7 +235,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
             if (Kib == null)
             {
                 throw new InvalidOperationException(
-                    "The boundary-internal stiffness submatrix 'Kbi' of this subdomain must be calculated first.");
+                    "The internal-boundary stiffness submatrix 'Kib' of this subdomain must be calculated first.");
             }
             return Kib.MultiplyRight(matrix);
         }
@@ -245,7 +245,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
         public class Factory : IFeti1SubdomainMatrixManagerFactory
         {
             public IFeti1SubdomainMatrixManager CreateMatricesManager(ISubdomain subdomain)
-                => new DenseFeti1SubdomainMatrixManager(subdomain);
+                => new SkylineFeti1SubdomainMatrixManager(subdomain);
         }
     }
 }

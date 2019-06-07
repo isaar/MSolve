@@ -92,8 +92,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         private static void TestGetSubmatrix()
         {
             // These are useful for debugging
-            string outputPath = @"C:\Users\Serafeim\Desktop\output.txt";
-            var writer = new LinearAlgebra.Output.FullMatrixWriter();
+            //string outputPath = @"C:\Users\Serafeim\Desktop\output.txt";
+            //var writer = new LinearAlgebra.Output.FullMatrixWriter();
 
             var matrix = Matrix.CreateFromArray(
                 MultiDiagonalMatrices.CreateSymmetric(100, new int[] { 2, 4, 8, 16, 32, 64 }));
@@ -106,13 +106,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
 
             Matrix subMatrixFull = matrixSky.GetSubmatrixSymmetricFull(indices);
             SkylineMatrix subMatrixSky = matrixSky.GetSubmatrixSymmetricSkyline(indices);
-            SkylineMatrix subMatrixSkyLegacy = matrixSky.GetSubmatrixSymmetricSkylineLegacy(indices);
-            //writer.WriteToFile(subMatrixSkyLegacy, outputPath, true);
+            //writer.WriteToFile(subMatrixSky, outputPath, true);
             CscMatrix subMatrixCsc = matrixSky.GetSubmatrixCsc(indices, indices);
 
             Matrix subMatrixPermFull = matrixSky.GetSubmatrixSymmetricFull(indicesPerm);
             SkylineMatrix subMatrixPermSky = matrixSky.GetSubmatrixSymmetricSkyline(indicesPerm);
-            SkylineMatrix subMatrixPermSkyLegacy = matrixSky.GetSubmatrixSymmetricSkylineLegacy(indicesPerm);
             CscMatrix subMatrixPermCsc = matrixSky.GetSubmatrixCsc(indicesPerm, indicesPerm);
 
             CscMatrix subMatrixRectCsc = matrixSky.GetSubmatrixCsc(rowIndices, colIndices);
@@ -121,13 +119,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
             //writer.WriteToFile(subMatrixExpected, outputPath, true);
             Assert.True(subMatrixExpected.Equals(subMatrixFull));
             Assert.True(subMatrixExpected.Equals(subMatrixSky));
-            Assert.True(subMatrixExpected.Equals(subMatrixSkyLegacy));
             Assert.True(subMatrixExpected.Equals(subMatrixCsc));
 
             Matrix subMatrixPermExpected = matrix.GetSubmatrix(indicesPerm, indicesPerm);
             Assert.True(subMatrixPermExpected.Equals(subMatrixPermFull));
             Assert.True(subMatrixPermExpected.Equals(subMatrixPermSky));
-            //Assert.True(subMatrixPermExpected.Equals(subMatrixPermSkyLegacy)); //TODO: does not work
             Assert.True(subMatrixPermExpected.Equals(subMatrixPermCsc));
 
             Matrix subMatrixRectExpected = matrix.GetSubmatrix(rowIndices, colIndices);

@@ -150,7 +150,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             }
 
             // Solver
-            var fetiMatrices = new DenseFetiDPSubdomainMatrixManager.Factory();
+            var fetiMatrices = new SkylineFetiDPSubdomainMatrixManager.Factory();
+            //var fetiMatrices = new DenseFetiDPSubdomainMatrixManager.Factory();
             var solverBuilder = new FetiDPSolver.Builder(cornerNodesOfEachSubdomain, fetiMatrices);
             solverBuilder.ProblemIsHomogeneous = stiffnessRatio == 1.0;
             //solverBuilder.ProblemIsHomogeneous = false;

@@ -226,7 +226,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
             if (Kbi == null)
             {
                 throw new InvalidOperationException(
-                    "The boundary-internal stiffness submatrix 'Kbi' of this subdomain must be calculated first.");
+                    "The internal-boundary stiffness submatrix 'Kib' of this subdomain must be calculated first.");
             }
             return Kbi.Multiply(vector, true);
         }
@@ -236,7 +236,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
             if (Kbi == null)
             {
                 throw new InvalidOperationException(
-                    "The boundary-internal stiffness submatrix 'Kbi' of this subdomain must be calculated first.");
+                    "The internal-boundary stiffness submatrix 'Kib' of this subdomain must be calculated first.");
             }
             return Kbi.MultiplyRight(matrix, true);
         }

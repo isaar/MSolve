@@ -5,6 +5,7 @@ using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.SchurComplements;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
@@ -13,26 +14,25 @@ using ISAAR.MSolve.Solvers.LinearSystems;
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
 {
     /// <summary>
-    /// Dense format for Kii, Kbi/Kib, Kbb, Krr, Krc/Kcr, Kcc, KccStar and Skyline for Kff.
-    /// Useful during prototyping and for debugging. For performance the other alternatives are probably better.
+    /// Dense format for Kbb, Kcc, KccStar, skyline for Kff, Krr, Kii and CSC for Kib, Krc.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class DenseFetiDPSubdomainMatrixManager : IFetiDPSubdomainMatrixManager
+    public class SkylineFetiDPSubdomainMatrixManager : IFetiDPSubdomainMatrixManager
     {
         private readonly SkylineAssembler assembler = new SkylineAssembler();
         private readonly SingleSubdomainSystem<SkylineMatrix> linearSystem;
 
         private DiagonalMatrix inverseKiiDiagonal;
-        private Matrix inverseKii;
-        private CholeskyFull inverseKrr;
+        private LdlSkyline inverseKii;
+        private LdlSkyline inverseKrr;
         private Matrix Kbb;
-        private Matrix Kbi;
+        private CscMatrix Kib;
         private Matrix Kcc;
-        private Matrix KccStar; 
-        private Matrix Krc;
-        private Matrix Krr;
+        private Matrix KccStar;
+        private CscMatrix Krc;
+        private SkylineMatrix Krr;
 
-        public DenseFetiDPSubdomainMatrixManager(ISubdomain subdomain)
+        public SkylineFetiDPSubdomainMatrixManager(ISubdomain subdomain)
         {
             this.linearSystem = new SingleSubdomainSystem<SkylineMatrix>(subdomain);
         }
@@ -41,7 +41,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
 
         public Matrix SchurComplementOfRemainderDofs => KccStar;
 
-        public IMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement> elements, 
+        public IMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement> elements,
             IElementMatrixProvider matrixProvider)
             => assembler.BuildGlobalMatrix(dofOrdering, elements, matrixProvider);
 
@@ -57,25 +57,25 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
             inverseKiiDiagonal = null;
             inverseKrr = null;
             Kbb = null;
-            Kbi = null;
+            Kib = null;
             Kcc = null;
             Krc = null;
             Krr = null;
             //linearSystem.Matrix = null; // DO NOT DO THAT!!! The analyzer manages that.
         }
 
-        public void CalcSchurComplementOfRemainderDofs()
+        public void CalcSchurComplementOfRemainderDofs() //TODO: This should be done in a dedicated class
         {
             // KccStar[s] = Kcc[s] - Krc[s]^T * inv(Krr[s]) * Krc[s]
-            KccStar = Kcc - Krc.MultiplyRight(inverseKrr.SolveLinearSystems(Krc), true);
+            KccStar = SchurComplementCsc.CalcSchurComplementFull(Kcc, Krc, inverseKrr);
         }
 
         public void ExtractAndInvertKii(int[] internalDofs)
         {
             try
             {
-                inverseKii = Krr.GetSubmatrix(internalDofs, internalDofs);
-                inverseKii.InvertInPlace();
+                SkylineMatrix Kii = Krr.GetSubmatrixSymmetricSkyline(internalDofs);
+                inverseKii = Kii.FactorLdl(true);
             }
             catch (MatrixDataOverwrittenException)
             {
@@ -94,7 +94,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
                 {
                     int idx = internalDofs[i];
                     diagonal[i] = 1.0 / Krr[idx, idx];
-                    //diagonal[i] = linearSystem.Matrix[idx, idx];
+                    //diagonal[i] = Krr[idx, idx];
                 }
                 inverseKiiDiagonal = DiagonalMatrix.CreateFromArray(diagonal, false);
                 //inverseKiiDiagonal.Invert();
@@ -111,7 +111,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
         {
             try
             {
-                Kbb = Krr.GetSubmatrix(boundaryDofs, boundaryDofs);
+                Kbb = Krr.GetSubmatrixSymmetricFull(boundaryDofs);
             }
             catch (MatrixDataOverwrittenException)
             {
@@ -125,7 +125,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
         {
             try
             {
-                Kbi = Krr.GetSubmatrix(boundaryDofs, internalDofs);
+                Kib = Krr.GetSubmatrixCsc(internalDofs, boundaryDofs);
             }
             catch (MatrixDataOverwrittenException)
             {
@@ -142,19 +142,19 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
 
         public void ExtractKcrKrc(int[] cornerDofs, int[] remainderDofs)
         {
-            Krc = linearSystem.Matrix.GetSubmatrixFull(remainderDofs, cornerDofs);
+            Krc = linearSystem.Matrix.GetSubmatrixCsc(remainderDofs, cornerDofs);
         }
 
         public void ExtractKrr(int[] remainderDofs)
         {
-            Krr = linearSystem.Matrix.GetSubmatrixFull(remainderDofs, remainderDofs);
+            Krr = linearSystem.Matrix.GetSubmatrixSymmetricSkyline(remainderDofs);
         }
 
         public void HandleDofOrderingWillBeModified() => assembler.HandleDofOrderingWillBeModified();
 
         public void InvertKrr(bool inPlace)
         {
-            inverseKrr = Krr.FactorCholesky(inPlace);
+            inverseKrr = Krr.FactorLdl(inPlace);
         }
 
         public Vector MultiplyInverseKiiDiagonalTimes(Vector vector)
@@ -184,7 +184,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
                 throw new InvalidOperationException("The inverse of the internal_remainder - internal_remainder stiffness"
                     + " submatrix 'inv(Kii)' of this subdomain must be calculated first.");
             }
-            return inverseKii * vector;
+            return inverseKii.SolveLinearSystem(vector);
         }
 
         public Matrix MultiplyInverseKiiTimes(Matrix matrix)
@@ -194,7 +194,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
                 throw new InvalidOperationException("The inverse of the internal_remainder - internal_remainder stiffness"
                     + " submatrix 'inv(Kii)' of this subdomain must be calculated first.");
             }
-            return inverseKii * matrix;
+            return inverseKii.SolveLinearSystems(matrix);
         }
 
         public Vector MultiplyInverseKrrTimes(Vector vector)
@@ -226,22 +226,22 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
 
         public Vector MultiplyKbiTimes(Vector vector)
         {
-            if (Kbi == null)
+            if (Kib == null)
             {
                 throw new InvalidOperationException("The boundary_remainder - internal_remainder stiffness submatrix"
                     + " 'Kbi' of this subdomain must be calculated first.");
             }
-            return Kbi * vector;
+            return Kib.Multiply(vector, true);
         }
 
         public Matrix MultiplyKbiTimes(Matrix matrix)
         {
-            if (Kbi == null)
+            if (Kib == null)
             {
                 throw new InvalidOperationException("The boundary_remainder - internal_remainder stiffness submatrix"
                     + " 'Kbi' of this subdomain must be calculated first.");
             }
-            return Kbi * matrix;
+            return Kib.MultiplyRight(matrix, true);
         }
 
         public Vector MultiplyKccTimes(Vector vector)
@@ -266,22 +266,22 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
 
         public Vector MultiplyKibTimes(Vector vector)
         {
-            if (Kbi == null)
+            if (Kib == null)
             {
                 throw new InvalidOperationException("The internal_remainder - boundary_remainder stiffness submatrix"
                     + " 'Kib' of this subdomain must be calculated first.");
             }
-            return Kbi.Multiply(vector, true);
+            return Kib.Multiply(vector);
         }
 
         public Matrix MultiplyKibTimes(Matrix matrix)
         {
-            if (Kbi == null)
+            if (Kib == null)
             {
                 throw new InvalidOperationException("The internal_remainder - boundary_remainder stiffness submatrix"
                     + " 'Kib' of this subdomain must be calculated first.");
             }
-            return Kbi.MultiplyRight(matrix, true);
+            return Kib.MultiplyRight(matrix);
         }
 
         public Vector MultiplyKrcTimes(Vector vector)
@@ -291,13 +291,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
                 throw new InvalidOperationException("The remainder-corner stiffness submatrix"
                     + " 'Krc' of this subdomain must be calculated first.");
             }
-            return Krc * vector;
+            return Krc.Multiply(vector);
         }
 
         public class Factory : IFetiDPSubdomainMatrixManagerFactory
         {
             public IFetiDPSubdomainMatrixManager CreateMatricesManager(ISubdomain subdomain)
-                => new DenseFetiDPSubdomainMatrixManager(subdomain);
+                => new SkylineFetiDPSubdomainMatrixManager(subdomain);
         }
     }
 }
