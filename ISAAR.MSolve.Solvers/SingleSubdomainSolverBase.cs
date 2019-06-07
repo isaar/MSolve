@@ -44,33 +44,41 @@ namespace ISAAR.MSolve.Solvers
 
             this.dofOrderer = dofOrderer;
             this.assembler = assembler;
+            this.Logger = new SolverLogger(name);
         }
 
         public IReadOnlyDictionary<int, ILinearSystem> LinearSystems { get; }
+        public SolverLogger Logger { get; }
+        public string Name { get; }
 
         public virtual Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider elementMatrixProvider)
         {
-            return new Dictionary<int, IMatrix>
-            {
-                { subdomain.ID,
-                    assembler.BuildGlobalMatrix(subdomain.FreeDofOrdering, subdomain.Elements, elementMatrixProvider) }
-            };
+            var watch = new Stopwatch();
+            watch.Start();
+            TMatrix matrix = assembler.BuildGlobalMatrix(subdomain.FreeDofOrdering, subdomain.Elements, elementMatrixProvider);
+            watch.Stop();
+            Logger.LogTaskDuration("Matrix assembly", watch.ElapsedMilliseconds);
+            return new Dictionary<int, IMatrix> { { subdomain.ID, matrix } };
         }
 
         public virtual Dictionary<int, (IMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
             IMatrixView matrixConstrConstr)> BuildGlobalSubmatrices(IElementMatrixProvider elementMatrixProvider)
         {
+            var watch = new Stopwatch();
+            watch.Start();
             if (subdomain.ConstrainedDofOrdering == null)
             {
                 throw new InvalidOperationException("In order to build the matrices corresponding to constrained dofs,"
                     + " they must have been ordered first.");
             }
-            return new Dictionary<int, (IMatrix Aff, IMatrixView Afc, IMatrixView Acf, IMatrixView Acc)>
+            (IMatrix Aff, IMatrixView Afc, IMatrixView Acf, IMatrixView Acc) = assembler.BuildGlobalSubmatrices(
+                subdomain.FreeDofOrdering, subdomain.ConstrainedDofOrdering, subdomain.Elements, elementMatrixProvider);
+            watch.Stop();
+            Logger.LogTaskDuration("Matrix assembly", watch.ElapsedMilliseconds);
+            return new Dictionary<int, (IMatrix, IMatrixView, IMatrixView, IMatrixView)>
             {
-                { subdomain.ID, assembler.BuildGlobalSubmatrices(subdomain.FreeDofOrdering, subdomain.ConstrainedDofOrdering,
-                        subdomain.Elements, elementMatrixProvider) }
+                { subdomain.ID, (Aff, Afc, Acf, Acc) }
             };
-            
         }
 
         public Dictionary<int, SparseVector> DistributeNodalLoads(Table<INode, IDofType, double> globalNodalLoads)
@@ -100,9 +108,12 @@ namespace ISAAR.MSolve.Solvers
 
         public void OrderDofs(bool alsoOrderConstrainedDofs)
         {
+            var watch = new Stopwatch();
+            watch.Start();
+
             IGlobalFreeDofOrdering globalOrdering = dofOrderer.OrderFreeDofs(model);
             assembler.HandleDofOrderingWillBeModified();
-            
+
             model.GlobalDofOrdering = globalOrdering;
             foreach (ISubdomain subdomain in model.Subdomains)
             {
@@ -114,6 +125,10 @@ namespace ISAAR.MSolve.Solvers
             }
             //EnumerateSubdomainLagranges();
             //EnumerateDOFMultiplicity();
+
+            watch.Stop();
+            Logger.LogTaskDuration("Dof ordering", watch.ElapsedMilliseconds);
+            Logger.LogNumDofs("Global dofs", globalOrdering.NumGlobalFreeDofs);
         }
 
         public abstract void Initialize();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -33,14 +34,19 @@ namespace ISAAR.MSolve.Solvers.Assemblers.Collocation
 
         public override void Solve()
         {
+            var watch = new Stopwatch();
             if (linearSystem == null) linearSystem.SolutionConcrete = linearSystem.CreateZeroVectorConcrete();
             else linearSystem.SolutionConcrete.Clear();
 
+            watch.Start();
             IterativeStatistics stats = gmresAlgorithm.Solve(linearSystem.Matrix, linearSystem.RhsConcrete,
                 linearSystem.SolutionConcrete, true, () => linearSystem.CreateZeroVector());
-
             if (!stats.HasConverged)
                 throw new IterativeSolverNotConvergedException("Gmres did not converge");
+            watch.Stop();
+            Logger.LogTaskDuration("Iterative algorithm", watch.ElapsedMilliseconds);
+            Logger.LogIterativeAlgorithm(stats.NumIterationsRequired, stats.ResidualNormRatioEstimation);
+            Logger.IncrementAnalysisStep();
         }
 
         protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)

@@ -61,7 +61,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem
 
         public Vector CalcLagrangeMultipliers(Feti1FlexibilityMatrix flexibility, IFetiPreconditioner preconditioner, 
             Feti1Projection projection, Vector disconnectedDisplacements, Vector rigidBodyModesWork, double globalForcesNorm,
-            DualSolverLogger logger)
+            SolverLogger logger)
         {
             int systemOrder = flexibility.Order;
 
@@ -86,21 +86,20 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem
             var lagrangesBar = Vector.CreateZero(systemOrder);
             IterativeStatistics stats = pcg.Solve(pcgMatrix, pcgPreconditioner, pcgRhs, lagrangesBar, true,
                 () => Vector.CreateZero(systemOrder));
-
-            // Log statistics about PCG execution
             if (!stats.HasConverged)
             {
                 throw new IterativeSolverNotConvergedException(Feti1Solver.name + " did not converge to a solution. PCG"
                     + $" algorithm run for {stats.NumIterationsRequired} iterations and the residual norm ratio was"
                     + $" {stats.ResidualNormRatioEstimation}");
             }
-            logger.PcgIterations = stats.NumIterationsRequired;
-            logger.PcgResidualNormRatio = stats.ResidualNormRatioEstimation;
 
             // Calculate the actual lagrange multipliers from the separation formula: λ = λ0 + P * λbar
             var lagranges = Vector.CreateZero(systemOrder);
             projection.ProjectVector(lagrangesBar, lagranges, false);
             lagranges.AddIntoThis(lagrangesParticular);
+
+            // Log statistics about PCG execution
+            logger.LogIterativeAlgorithm(stats.NumIterationsRequired, stats.ResidualNormRatioEstimation);
             return lagranges;
         }
 

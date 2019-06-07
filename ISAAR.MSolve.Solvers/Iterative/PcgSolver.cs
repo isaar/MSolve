@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Iterative;
@@ -51,38 +52,56 @@ namespace ISAAR.MSolve.Solvers.Iterative
         /// </summary>
         public override void Solve()
         {
+            var watch = new Stopwatch();
             if (linearSystem.SolutionConcrete == null) linearSystem.SolutionConcrete = linearSystem.CreateZeroVectorConcrete();
             else linearSystem.SolutionConcrete.Clear();
 
+            // Preconditioning
             if (mustUpdatePreconditioner)
             {
+                watch.Start();
                 preconditioner = preconditionerFactory.CreatePreconditionerFor(linearSystem.Matrix);
+                watch.Stop();
+                Logger.LogTaskDuration("Calculating preconditioner", watch.ElapsedMilliseconds);
+                watch.Reset();
                 mustUpdatePreconditioner = false;
             }
 
+            // Iterative algorithm
+            watch.Start();
             IterativeStatistics stats = pcgAlgorithm.Solve(linearSystem.Matrix, preconditioner, linearSystem.RhsConcrete,
                 linearSystem.SolutionConcrete, true, () => linearSystem.CreateZeroVector()); //TODO: This way, we don't know that x0=0, which will result in an extra b-A*0
             if (!stats.HasConverged)
             {
-                throw new IterativeSolverNotConvergedException(name + " did not converge to a solution. PCG algorithm run for"
+                throw new IterativeSolverNotConvergedException(Name + " did not converge to a solution. PCG algorithm run for"
                     + $" {stats.NumIterationsRequired} iterations and the residual norm ratio was"
                     + $" {stats.ResidualNormRatioEstimation}");
             }
+            watch.Stop();
+            Logger.LogTaskDuration("Iterative algorithm", watch.ElapsedMilliseconds);
+            Logger.LogIterativeAlgorithm(stats.NumIterationsRequired, stats.ResidualNormRatioEstimation);
+            Logger.IncrementAnalysisStep();
         }
 
         protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)
         {
             //TODO: Use a reorthogonalizetion approach when solving multiple rhs vectors. It would be even better if the CG
             //      algorithm exposed a method for solving for multiple rhs vectors.
+            var watch = new Stopwatch();
 
             // Preconditioning
             if (mustUpdatePreconditioner)
             {
+                watch.Start();
                 preconditioner = preconditionerFactory.CreatePreconditionerFor(linearSystem.Matrix);
+                watch.Stop();
+                Logger.LogTaskDuration("Calculating preconditioner", watch.ElapsedMilliseconds);
+                watch.Reset();
                 mustUpdatePreconditioner = false;
             }
 
-            // Solution vectors
+            // Iterative algorithm
+            watch.Start();
             int systemOrder = linearSystem.Matrix.NumColumns;
             int numRhs = otherMatrix.NumColumns;
             var solutionVectors = Matrix.CreateZero(systemOrder, numRhs);
@@ -103,6 +122,9 @@ namespace ISAAR.MSolve.Solvers.Iterative
                 solutionVectors.SetSubcolumn(j, solutionVector);
             }
 
+            watch.Stop();
+            Logger.LogTaskDuration("Iterative algorithm", watch.ElapsedMilliseconds);
+            Logger.IncrementAnalysisStep();
             return solutionVectors;
         }
 

@@ -29,9 +29,10 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             double factorizationTolerance = 1E-4; // Defining the rigid body modes is very sensitive to this. TODO: The user shouldn't have to specify such a volatile parameter.
             double equalityTolerance = 1E-7;
             IVectorView expectedDisplacements = SolveModelWithoutSubdomains(numElementsX, numElementsY);
-            (IVectorView computedDisplacements, DualSolverLogger logger) = 
+            (IVectorView computedDisplacements, SolverLogger logger) = 
                 SolveModelWithSubdomains(numElementsX, numElementsY, factorizationTolerance);
-            Debug.WriteLine($"Iterations: {logger.PcgIterations}");
+            int pcgIterations = logger.GetNumIterationsOfIterativeAlgorithm(analysisStep: 0);
+            Debug.WriteLine($"Iterations: {pcgIterations}");
             Assert.True(expectedDisplacements.Equals(computedDisplacements, equalityTolerance));
         }
 
@@ -75,7 +76,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             return model;
         }
 
-        private static (IVectorView U, DualSolverLogger logger) SolveModelWithSubdomains(int numElementsX, int numElementsY,
+        private static (IVectorView U, SolverLogger logger) SolveModelWithSubdomains(int numElementsX, int numElementsY,
             double factorizationTolerance)
         {
             Model multiSubdomainModel = CreateModel(numElementsX, numElementsY);
