@@ -198,6 +198,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
                 var matricesBpb = new Dictionary<int, IMappingMatrix>();
                 foreach (ISubdomain subdomain in stiffnessDistribution.model.Subdomains)
                 {
+                    //if (!subdomain.MaterialsModified) continue;
                     SignedBooleanMatrixColMajor Bb = boundarySignedBooleanMatrices[subdomain.ID];
                     DiagonalMatrix invDb = stiffnessDistribution.InvertBoundaryDofStiffnesses(subdomain);
                     matricesBpb[subdomain.ID] = new ScalingBooleanMatrixImplicit(Dlambda, Bb, invDb);

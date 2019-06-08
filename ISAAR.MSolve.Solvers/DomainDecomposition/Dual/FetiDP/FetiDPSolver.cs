@@ -80,6 +80,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                 matrixManagersGeneral[s] = matrixManager;
                 this.linearSystems[s] = matrixManager.LinearSystem;
                 externalLinearSystems[s] = matrixManager.LinearSystem;
+                matrixManager.LinearSystem.MatrixObservers.Add(this);
             }
             LinearSystems = externalLinearSystems;
 
@@ -106,10 +107,19 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             var matricesReadonly = new Dictionary<int, IMatrixView>();
             foreach (ISubdomain subdomain in model.Subdomains) //TODO: this must be done in parallel
             {
-                IMatrix stiffness = matrixManagers[subdomain.ID].BuildGlobalMatrix(subdomain.FreeDofOrdering,
-                    subdomain.Elements, elementMatrixProvider);
-                matricesReadonly[subdomain.ID] = stiffness;
-                matrices[subdomain.ID] = stiffness;
+                int s = subdomain.ID;
+                IMatrix stiffness;
+                if (subdomain.MaterialsModified)
+                {
+                    stiffness = matrixManagers[s].BuildGlobalMatrix(subdomain.FreeDofOrdering,
+                        subdomain.Elements, elementMatrixProvider);
+                }
+                else
+                {
+                    stiffness = (IMatrix)(linearSystems[s].Matrix); //TODO: remove the cast
+                }
+                matricesReadonly[s] = stiffness;
+                matrices[s] = stiffness;
             }
             watch.Stop();
             Logger.LogTaskDuration("Matrix assembly", watch.ElapsedMilliseconds);
@@ -130,16 +140,21 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             var matricesReadonly = new Dictionary<int, IMatrixView>();
             foreach (ISubdomain subdomain in model.Subdomains) //TODO: this must be done in parallel
             {
+                int s = subdomain.ID;
+                if (!subdomain.MaterialsModified)
+                {
+                    throw new NotImplementedException("This optimization is not implemented");
+                }
                 if (subdomain.ConstrainedDofOrdering == null)
                 {
                     throw new InvalidOperationException("In order to build the matrices corresponding to constrained dofs of,"
-                        + $" subdomain {subdomain.ID}, they must have been ordered first.");
+                        + $" subdomain {s}, they must have been ordered first.");
                 }
                 (IMatrix Kff, IMatrixView Kfc, IMatrixView Kcf, IMatrixView Kcc) =
-                    matrixManagers[subdomain.ID].BuildGlobalSubmatrices(subdomain.FreeDofOrdering,
-                    subdomain.ConstrainedDofOrdering, subdomain.Elements, elementMatrixProvider);
-                matrices[subdomain.ID] = (Kff, Kfc, Kcf, Kcc);
-                matricesReadonly[subdomain.ID] = Kff;
+                    matrixManagers[s].BuildGlobalSubmatrices(subdomain.FreeDofOrdering, subdomain.ConstrainedDofOrdering, 
+                    subdomain.Elements, elementMatrixProvider);
+                matrices[s] = (Kff, Kfc, Kcf, Kcc);
+                matricesReadonly[s] = Kff;
             }
             watch.Stop();
             Logger.LogTaskDuration("Matrix assembly", watch.ElapsedMilliseconds);
@@ -178,7 +193,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             throw new NotImplementedException();
         }
 
-        public void OrderDofs(bool alsoOrderConstrainedDofs)
+        public void OrderDofs(bool alsoOrderConstrainedDofs) //TODO: Only order dofs of subdomains that are modified
         {
             var watch = new Stopwatch();
             watch.Start();
@@ -255,6 +270,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                 watch.Start();
                 foreach (int s in subdomains.Keys)
                 {
+                    if (!subdomains[s].MaterialsModified) continue;
                     IFetiDPSubdomainMatrixManager matrices = matrixManagers[s];
                     int[] remainderDofs = dofSeparator.RemainderDofIndices[s];
                     int[] cornerDofs = dofSeparator.CornerDofIndices[s];

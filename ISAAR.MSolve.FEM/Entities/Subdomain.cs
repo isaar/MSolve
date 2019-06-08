@@ -53,7 +53,7 @@ namespace ISAAR.MSolve.FEM.Entities
         //        return modified;
         //    }
         //}
-        public bool MaterialsModified { get; set; }
+        public bool MaterialsModified { get; set; } = true; // At first they are modified
         
         //TODO: This belongs in EquivalentLoadsAssembler
         //TODO: the constraintScalingFactor parameter is not used.

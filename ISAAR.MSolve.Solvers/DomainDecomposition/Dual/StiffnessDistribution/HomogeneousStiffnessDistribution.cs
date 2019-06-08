@@ -139,11 +139,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
                 Dictionary<int, SignedBooleanMatrixColMajor> boundarySignedBooleanMatrices)
             {
                 var matricesBpb = new Dictionary<int, IMappingMatrix>();
-                foreach (int id in boundarySignedBooleanMatrices.Keys)
+                foreach (int s in boundarySignedBooleanMatrices.Keys)
                 {
-                    SignedBooleanMatrixColMajor Bb = boundarySignedBooleanMatrices[id];
-                    DiagonalMatrix invMb = InvertDofMultiplicities(stiffnessDistribution.boundaryDofMultiplicities[id]);
-                    matricesBpb[id] = new ScalingBooleanMatrixImplicit(Bb, invMb);
+                    //if (subdomain)
+                    SignedBooleanMatrixColMajor Bb = boundarySignedBooleanMatrices[s];
+                    DiagonalMatrix invMb = InvertDofMultiplicities(stiffnessDistribution.boundaryDofMultiplicities[s]);
+                    matricesBpb[s] = new ScalingBooleanMatrixImplicit(Bb, invMb);
                 }
                 return matricesBpb;
             }
