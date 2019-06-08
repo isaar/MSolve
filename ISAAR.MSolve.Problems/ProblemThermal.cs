@@ -85,7 +85,7 @@ namespace ISAAR.MSolve.Problems
             bool mustRebuild = false;
             foreach (ISubdomain subdomain in model.Subdomains)
             {
-                if (subdomain.MaterialsModified)
+                if (subdomain.StiffnessModified)
                 {
                     mustRebuild = true;
                     break;

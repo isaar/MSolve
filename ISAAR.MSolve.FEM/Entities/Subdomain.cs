@@ -53,8 +53,9 @@ namespace ISAAR.MSolve.FEM.Entities
         //        return modified;
         //    }
         //}
-        public bool MaterialsModified { get; set; } = true; // At first they are modified
-        
+        public bool StiffnessModified { get; set; } = true; // At first it is modified
+        public bool ConnectivityModified { get; set; } = true; // At first it is modified
+
         //TODO: This belongs in EquivalentLoadsAssembler
         //TODO: the constraintScalingFactor parameter is not used.
         public double[] CalculateElementIncrementalConstraintDisplacements(IElement element, double constraintScalingFactor)//QUESTION: would it be maybe more clear if we passed the constraintsDictionary as argument??
@@ -134,7 +135,7 @@ namespace ISAAR.MSolve.FEM.Entities
                 double[] localdSolution = CalculateElementDisplacements(element, dSolution);
                 element.ElementType.CalculateStresses(element, localSolution, localdSolution);
                 if (element.ElementType.MaterialModified)
-                    element.Subdomain.MaterialsModified = true;
+                    element.Subdomain.StiffnessModified = true;
                 var f = element.ElementType.CalculateForces(element, localSolution, localdSolution);
                 FreeDofOrdering.AddVectorElementToSubdomain(element, f, forces);
             }
@@ -143,7 +144,7 @@ namespace ISAAR.MSolve.FEM.Entities
 
         public void ResetMaterialsModifiedProperty()
         {
-            this.MaterialsModified = false;
+            this.StiffnessModified = false;
             foreach (Element element in Elements) element.ElementType.ResetMaterialModified();
         }
 
@@ -180,7 +181,7 @@ namespace ISAAR.MSolve.FEM.Entities
                 ImposePrescribed_d_DisplacementsWithInitialConditionSEffect(element, localdSolution, boundaryNodes, initialConvergedBoundaryDisplacements, totalBoundaryDisplacements, nIncrement, totalIncrements);
                 element.ElementType.CalculateStresses(element, localSolution, localdSolution);
                 if (element.ElementType.MaterialModified)
-                    element.Subdomain.MaterialsModified = true;
+                    element.Subdomain.StiffnessModified = true;
                 var f = element.ElementType.CalculateForces(element, localSolution, localdSolution);
                 FreeDofOrdering.AddVectorElementToSubdomain(element, f, forces);
             }

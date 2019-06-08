@@ -110,7 +110,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             {
                 int s = subdomain.ID;
                 IMatrix stiffness;
-                if (subdomain.MaterialsModified)
+                if (subdomain.StiffnessModified)
                 {
                     stiffness = matrixManagers[s].BuildGlobalMatrix(subdomain.FreeDofOrdering,
                         subdomain.Elements, elementMatrixProvider);
@@ -142,7 +142,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             foreach (ISubdomain subdomain in model.Subdomains) //TODO: this must be done in parallel
             {
                 int s = subdomain.ID;
-                if (!subdomain.MaterialsModified)
+                if (!subdomain.StiffnessModified)
                 {
                     throw new NotImplementedException("This optimization is not implemented");
                 }
@@ -446,7 +446,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             }
 
             public IDofOrderer DofOrderer { get; set; } = 
-                new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
+                new ReusingDofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
 
             public IFeti1InterfaceProblemSolver InterfaceProblemSolver { get; set; } = 
                 (new Feti1ProjectedInterfaceProblemSolver.Builder()).Build();

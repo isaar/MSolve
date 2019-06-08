@@ -35,7 +35,8 @@ namespace ISAAR.MSolve.IGA.Entities
 
         public Vector Forces { get; set; }
 
-        public bool MaterialsModified { get; set; }
+        public bool StiffnessModified { get; set; }
+        public bool ConnectivityModified { get; set; }
 
         public Table<ControlPoint, IDofType, double> ControlPointLoads { get; set; }
 
@@ -142,7 +143,7 @@ namespace ISAAR.MSolve.IGA.Entities
                 double[] localdSolution = CalculateElementDisplacements(element, dSolution);
                 element.ElementType.CalculateStresses(element, localSolution, localdSolution);
                 if (element.ElementType.MaterialModified)
-                    element.Patch.MaterialsModified = true;
+                    element.Patch.StiffnessModified = true;
                 var f = element.ElementType.CalculateForces(element, localSolution, localdSolution);
                 FreeDofOrdering.AddVectorElementToSubdomain(element, f, forces);
             }
@@ -151,7 +152,7 @@ namespace ISAAR.MSolve.IGA.Entities
 
         public void ResetMaterialsModifiedProperty()
         {
-            this.MaterialsModified = false;
+            this.StiffnessModified = false;
             foreach (Element element in Elements) element.ElementType.ResetMaterialModified();
 
         }

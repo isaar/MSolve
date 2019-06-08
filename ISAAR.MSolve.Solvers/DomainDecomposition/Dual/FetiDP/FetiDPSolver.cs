@@ -109,7 +109,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             {
                 int s = subdomain.ID;
                 IMatrix stiffness;
-                if (subdomain.MaterialsModified)
+                if (subdomain.StiffnessModified)
                 {
                     stiffness = matrixManagers[s].BuildGlobalMatrix(subdomain.FreeDofOrdering,
                         subdomain.Elements, elementMatrixProvider);
@@ -141,7 +141,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             foreach (ISubdomain subdomain in model.Subdomains) //TODO: this must be done in parallel
             {
                 int s = subdomain.ID;
-                if (!subdomain.MaterialsModified)
+                if (!subdomain.StiffnessModified)
                 {
                     throw new NotImplementedException("This optimization is not implemented");
                 }
@@ -270,7 +270,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                 watch.Start();
                 foreach (int s in subdomains.Keys)
                 {
-                    if (!subdomains[s].MaterialsModified) continue;
+                    if (!subdomains[s].StiffnessModified) continue;
                     IFetiDPSubdomainMatrixManager matrices = matrixManagers[s];
                     int[] remainderDofs = dofSeparator.RemainderDofIndices[s];
                     int[] cornerDofs = dofSeparator.CornerDofIndices[s];
@@ -447,7 +447,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 
             //TODO: We need to specify the ordering for remainder and possibly internal dofs, while IDofOrderer only works for free dofs.
             public IDofOrderer DofOrderer { get; set; } =
-                new DofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
+                new ReusingDofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
 
             public IFetiDPInterfaceProblemSolver InterfaceProblemSolver { get; set; } =
                 new FetiDPInterfaceProblemSolver.Builder().Build();
