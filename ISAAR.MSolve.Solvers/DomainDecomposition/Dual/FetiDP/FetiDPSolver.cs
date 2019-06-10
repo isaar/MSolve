@@ -22,6 +22,7 @@ using ISAAR.MSolve.Solvers.Ordering;
 using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
 //TODO: Rigid body modes do not have to be computed each time the stiffness matrix changes. 
+//TODO: Optimizations for the case that stiffness changes, but connectivity remains the same!
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 {
     public class FetiDPSolver : ISolver
@@ -203,6 +204,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             model.GlobalDofOrdering = globalOrdering;
             foreach (ISubdomain subdomain in model.Subdomains)
             {
+                if (!subdomain.ConnectivityModified) continue; //TODO: Not sure about this
+
                 matrixManagers[subdomain.ID].HandleDofOrderingWillBeModified();
                 subdomain.FreeDofOrdering = globalOrdering.SubdomainDofOrderings[subdomain];
                 if (alsoOrderConstrainedDofs) subdomain.ConstrainedDofOrdering = dofOrderer.OrderConstrainedDofs(subdomain);
@@ -212,15 +215,16 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             }
 
             // Identify corner nodes
-            CornerNodesOfSubdomains = cornerNodeSelection.SelectCornerNodesOfSubdomains();
+            CornerNodesOfSubdomains = cornerNodeSelection.SelectCornerNodesOfSubdomains(); //TODO: Could this cause change in connectivity?
 
             // Define boundary / internal dofs
             dofSeparator = new FetiDPDofSeparator();
             dofSeparator.SeparateDofs(model, CornerNodesOfSubdomains);
             dofSeparator.DefineCornerMappingMatrices(model, CornerNodesOfSubdomains);
 
-            // Define lagrange multipliers and boolean matrices
-            this.lagrangeEnumerator = new FetiDPLagrangeMultipliersEnumerator(crosspointStrategy, dofSeparator);
+            //TODO: B matrices could also be reused in some cases
+            // Define lagrange multipliers and boolean matrices. 
+            this.lagrangeEnumerator = new FetiDPLagrangeMultipliersEnumerator(crosspointStrategy, dofSeparator); 
             if (problemIsHomogeneous) lagrangeEnumerator.DefineBooleanMatrices(model); // optimization in this case
             else lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model);
 
