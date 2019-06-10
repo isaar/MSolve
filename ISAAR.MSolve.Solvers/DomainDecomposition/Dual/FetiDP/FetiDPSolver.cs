@@ -31,6 +31,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
         private readonly ICornerNodeSelection cornerNodeSelection;
         private readonly ICrosspointStrategy crosspointStrategy = new FullyRedundantConstraints();
         private readonly IDofOrderer dofOrderer;
+        private readonly FetiDPDofSeparator dofSeparator;
         private readonly IFetiDPInterfaceProblemSolver interfaceProblemSolver;
         private readonly Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers;
         private readonly Dictionary<int, IFetiSubdomainMatrixManager> matrixManagersGeneral; //TODO: redesign. They are the same as above, but Dictionary is not covariant
@@ -44,7 +45,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
         //      Lists are better in analyzers and solvers. Dictionaries may be better in the preprocessors.
         private readonly Dictionary<int, ISubdomain> subdomains;
 
-        private FetiDPDofSeparator dofSeparator;
         private bool factorizeInPlace = true;
         private FetiDPFlexibilityMatrix flexibility;
         private bool isStiffnessModified = true;
@@ -86,6 +86,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             LinearSystems = externalLinearSystems;
 
             this.dofOrderer = dofOrderer;
+            this.dofSeparator = new FetiDPDofSeparator();
             this.preconditionerFactory = preconditionerFactory;
 
             // Interface problem
@@ -112,6 +113,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                 IMatrix stiffness;
                 if (subdomain.StiffnessModified)
                 {
+                    Debug.WriteLine($"Assembling the free-free stiffness matrix of subdomain {s}");
                     stiffness = matrixManagers[s].BuildGlobalMatrix(subdomain.FreeDofOrdering,
                         subdomain.Elements, elementMatrixProvider);
                 }
@@ -178,7 +180,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
         public void HandleMatrixWillBeSet()
         {
             isStiffnessModified = true;
-            foreach (IFetiDPSubdomainMatrixManager matrixManager in matrixManagers.Values) matrixManager.Clear();
+            foreach (ISubdomain subdomain in subdomains.Values)
+            {
+                if (subdomain.StiffnessModified) matrixManagers[subdomain.ID].Clear();
+            }
             flexibility = null;
             preconditioner = null;
             interfaceProblemSolver.ClearCoarseProblemMatrix();
@@ -218,7 +223,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             CornerNodesOfSubdomains = cornerNodeSelection.SelectCornerNodesOfSubdomains(); //TODO: Could this cause change in connectivity?
 
             // Define boundary / internal dofs
-            dofSeparator = new FetiDPDofSeparator();
             dofSeparator.SeparateDofs(model, CornerNodesOfSubdomains);
             dofSeparator.DefineCornerMappingMatrices(model, CornerNodesOfSubdomains);
 
@@ -294,7 +298,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 
                 // Factorize each subdomain's Krr
                 watch.Restart();
-                foreach (int s in subdomains.Keys) matrixManagers[s].InvertKrr(true);
+                foreach (int s in subdomains.Keys) matrixManagers[s].InvertKrr(factorizeInPlace); //TODO: If I can reuse Krr, I can also reuse its factorization. Therefore this must be inPlace. In contrast, FETI-1 needs Kff intact for Stiffness distribution, in the current design).
                 watch.Stop();
                 Logger.LogTaskDuration("Matrix factorization", watch.ElapsedMilliseconds);
 

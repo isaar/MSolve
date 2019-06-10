@@ -4,9 +4,12 @@ using System.Diagnostics;
 using ISAAR.MSolve.Analyzers.Interfaces;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Providers;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Logging.DomainDecomposition;
 using ISAAR.MSolve.Logging.Interfaces;
+using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.LinearSystems;
 using ISAAR.MSolve.XFEM.CrackGeometry;
@@ -26,19 +29,29 @@ namespace ISAAR.MSolve.XFEM.Analyzers
         private readonly IReadOnlyDictionary<int, ILinearSystem> linearSystems;
         private readonly int maxIterations;
         private readonly XModel model;
-        private readonly IStaticProvider problem;
-        private readonly ISolver solver;
 
-        public QuasiStaticCrackPropagationAnalyzer(XModel model, ISolver solver, IStaticProvider problem,
+        //private readonly IStaticProvider problem; //TODO: refactor and use this instead
+        private readonly ElementStructuralStiffnessProvider problem = new ElementStructuralStiffnessProvider();
+        private readonly DirichletEquivalentLoadsStructural loadsAssembler; 
+
+        private readonly ISolver solver;
+        private HashSet<ISubdomain> newTipEnrichedSubdomains;
+
+        public QuasiStaticCrackPropagationAnalyzer(XModel model, ISolver solver, /*IStaticProvider problem,*/
             ICrackDescription crack, double fractureToughness, int maxIterations)
         {
             this.model = model;
             this.solver = solver;
+            solver.PreventFromOverwrittingSystemMatrices();
             this.linearSystems = solver.LinearSystems;
-            this.problem = problem;
+            //this.problem = problem;
             this.crack = crack;
             this.fractureToughness = fractureToughness;
             this.maxIterations = maxIterations;
+
+            //TODO: Refactor problem structural and remove the next
+            problem = new ElementStructuralStiffnessProvider();
+            loadsAssembler = new DirichletEquivalentLoadsStructural(problem); ;
         }
 
         public IDomainDecompositionLogger DDLogger { get; set; }
@@ -58,24 +71,28 @@ namespace ISAAR.MSolve.XFEM.Analyzers
         /// <returns></returns>
         public void Analyze()
         {
-            int iteration;
-            for (iteration = 0; iteration < maxIterations; ++iteration)
+            int analysisStep;
+            for (analysisStep = 0; analysisStep < maxIterations; ++analysisStep)
             {
-                Debug.WriteLine($"Iteration {iteration}");
+                Debug.WriteLine($"Crack propagation step {analysisStep}");
 
                 // Apply the updated enrichements.
                 crack.UpdateEnrichments();
+                UpdateModifiedSubdomains();
 
                 // Order and count dofs
                 solver.OrderDofs(false);
                 foreach (ILinearSystem linearSystem in linearSystems.Values)
                 {
-                    linearSystem.Reset(); // Necessary to define the linear system's size 
-                    linearSystem.Subdomain.Forces = Vector.CreateZero(linearSystem.Size);
+                    if (linearSystem.Subdomain.ConnectivityModified)
+                    {
+                        linearSystem.Reset(); // Necessary to define the linear system's size 
+                        linearSystem.Subdomain.Forces = Vector.CreateZero(linearSystem.Size);
+                    }
                 }
 
                 // Create the stiffness matrix and then the forces vector
-                problem.ClearMatrices();
+                //problem.ClearMatrices();
                 BuildMatrices();
                 model.AssignLoads(solver.DistributeNodalLoads);
                 foreach (ILinearSystem linearSystem in linearSystems.Values)
@@ -107,8 +124,8 @@ namespace ISAAR.MSolve.XFEM.Analyzers
 
                 foreach (var tipPropagator in crack.CrackTipPropagators)
                 {
-                    double sifEffective = CalculateEquivalentSIF(tipPropagator.Value.Logger.SIFsMode1[iteration],
-                    tipPropagator.Value.Logger.SIFsMode2[iteration]);
+                    double sifEffective = CalculateEquivalentSIF(tipPropagator.Value.Logger.SIFsMode1[analysisStep],
+                    tipPropagator.Value.Logger.SIFsMode2[analysisStep]);
                     if (sifEffective >= fractureToughness)
                     {
                         Termination = CrackPropagationTermination.FractureToughnessIsExceeded;
@@ -137,8 +154,10 @@ namespace ISAAR.MSolve.XFEM.Analyzers
                     double scalingFactor = 1;
                     IVector initialFreeSolution = linearSystem.CreateZeroVector();
 
-                    IVector equivalentNodalLoads = problem.DirichletLoadsAssembler.GetEquivalentNodalLoads(
-                        linearSystem.Subdomain, initialFreeSolution, scalingFactor);
+                    //IVector equivalentNodalLoads = problem.DirichletLoadsAssembler.GetEquivalentNodalLoads(
+                    //    linearSystem.Subdomain, initialFreeSolution, scalingFactor);
+                    IVector equivalentNodalLoads = loadsAssembler.GetEquivalentNodalLoads(linearSystem.Subdomain, 
+                        initialFreeSolution, scalingFactor);
                     linearSystem.RhsVector.SubtractIntoThis(equivalentNodalLoads);
                 }
                 catch (KeyNotFoundException)
@@ -151,9 +170,16 @@ namespace ISAAR.MSolve.XFEM.Analyzers
 
         private void BuildMatrices()
         {
+            //Dictionary<int, IMatrixView> stiffnesses = problem.CalculateMatrix();
+            //foreach (ILinearSystem linearSystem in linearSystems.Values)
+            //{
+            //    linearSystem.Matrix = stiffnesses[linearSystem.Subdomain.ID];
+            //}
+
+            Dictionary<int, IMatrix> stiffnesses = solver.BuildGlobalMatrices(problem);
             foreach (ILinearSystem linearSystem in linearSystems.Values)
             {
-                linearSystem.Matrix = problem.CalculateMatrix(linearSystem.Subdomain);
+                linearSystem.Matrix = stiffnesses[linearSystem.Subdomain.ID];
             }
         }
 
@@ -161,6 +187,55 @@ namespace ISAAR.MSolve.XFEM.Analyzers
         private double CalculateEquivalentSIF(double sifMode1, double sifMode2)
         {
             return Math.Sqrt(sifMode1 * sifMode1 + sifMode2 * sifMode2);
+        }
+
+        private HashSet<ISubdomain> FindSubdomainsWithNewTipEnrichedNodes()
+        {
+            var newTipEnrichedSubdomains = new HashSet<ISubdomain>();
+            foreach (ISet<XNode> tipNodes in crack.CrackTipNodesNew.Values)
+            {
+                foreach (XNode node in tipNodes)
+                {
+                    newTipEnrichedSubdomains.UnionWith(node.SubdomainsDictionary.Values);
+                }
+            }
+            return newTipEnrichedSubdomains;
+        }
+
+        private void UpdateModifiedSubdomains()
+        {
+            if (newTipEnrichedSubdomains == null) 
+            {
+                // First analysis step: All subdomains must be fully processed.
+                foreach (XSubdomain subdomain in model.Subdomains.Values)
+                {
+                    subdomain.ConnectivityModified = true;
+                    subdomain.StiffnessModified = true;
+                }
+
+                // Prepare for the next analysis step
+                newTipEnrichedSubdomains = FindSubdomainsWithNewTipEnrichedNodes();
+            }
+            else
+            {
+                // Set them all to unmodified.
+                foreach (XSubdomain subdomain in model.Subdomains.Values)
+                {
+                    subdomain.ConnectivityModified = false;
+                    subdomain.StiffnessModified = false;
+                }
+
+                // The modified subdomains are the ones with tip function enriched nodes during the current 
+                // and the previous analysis step.
+                HashSet<ISubdomain> modifiedSubdomains = newTipEnrichedSubdomains;
+                newTipEnrichedSubdomains = FindSubdomainsWithNewTipEnrichedNodes(); // Prepare for the next analysis step
+                modifiedSubdomains.UnionWith(newTipEnrichedSubdomains);
+                foreach (ISubdomain subdomain in modifiedSubdomains)
+                {
+                    subdomain.ConnectivityModified = true;
+                    subdomain.StiffnessModified = true;
+                }
+            }
         }
     }
 }

@@ -125,6 +125,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                 if (!subdomain.ConnectivityModified) continue;
 
                 int s = subdomain.ID;
+                Debug.WriteLine($"Ordering corder dofs of subdomain {s}");
                 DofTable localCornerDofOrdering = subdomain.FreeDofOrdering.FreeDofs.GetSubtableForNodes(subdomainCornerNodes[s]);
                 SubdomainCornerDofOrderings[s] = localCornerDofOrdering;
             }
@@ -163,6 +164,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                 if (!subdomain.ConnectivityModified) continue;
 
                 int s = subdomain.ID;
+                Debug.WriteLine($"Separating corner-remainder and boundary-internal dofs of subdomain {s}");
                 HashSet<INode> cornerNodes = subdomainCornerNodes[s];
                 INode[] remainderAndConstrainedNodes = subdomain.Nodes.Where(node => !cornerNodes.Contains(node)).ToArray(); //TODO: extract this
 

@@ -164,7 +164,7 @@ namespace ISAAR.MSolve.XFEM.Tests
         public void Analyze(ISolver solver)
         {
             var problem = new ProblemStructural(Model, solver);
-            var analyzer = new QuasiStaticCrackPropagationAnalyzer(Model, solver, problem, Crack, fractureToughness,
+            var analyzer = new QuasiStaticCrackPropagationAnalyzer(Model, solver, /*problem,*/ Crack, fractureToughness,
                 maxIterations);
 
             // Subdomain plots

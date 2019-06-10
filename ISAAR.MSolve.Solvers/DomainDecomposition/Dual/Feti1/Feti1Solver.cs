@@ -28,6 +28,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         internal const string name = "FETI Level-1 Solver"; // for error messages
         private readonly ICrosspointStrategy crosspointStrategy = new FullyRedundantConstraints();
         private readonly IDofOrderer dofOrderer;
+        private readonly Feti1DofSeparator dofSeparator;
         private readonly Dictionary<int, double> factorPivotTolerances;
         private readonly IFeti1InterfaceProblemSolver interfaceProblemSolver;
         private readonly Dictionary<int, ISingleSubdomainLinearSystem> linearSystems;
@@ -44,7 +45,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         //      Lists are better in analyzers and solvers. Dictionaries may be better in the preprocessors.
         private readonly Dictionary<int, ISubdomain> subdomains;
 
-        private Feti1DofSeparator dofSeparator;
         private bool factorizeInPlace = true;
         private Feti1FlexibilityMatrix flexibility;
         private bool isStiffnessModified = true;
@@ -86,6 +86,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             LinearSystems = externalLinearSystems;
 
             this.dofOrderer = dofOrderer;
+            this.dofSeparator = new Feti1DofSeparator();
             this.factorPivotTolerances = factorPivotTolerances;
             this.preconditionerFactory = preconditionerFactory;
 
@@ -113,6 +114,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 IMatrix stiffness;
                 if (subdomain.StiffnessModified)
                 {
+                    Debug.WriteLine($"Assembling the free-free stiffness matrix of subdomain {s}");
                     stiffness = matrixManagers[s].BuildGlobalMatrix(subdomain.FreeDofOrdering,
                         subdomain.Elements, elementMatrixProvider);
                 }
@@ -179,7 +181,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         public void HandleMatrixWillBeSet()
         {
             isStiffnessModified = true;
-            foreach (IFeti1SubdomainMatrixManager matrixManager in matrixManagers.Values) matrixManager.Clear();
+            foreach (ISubdomain subdomain in subdomains.Values)
+            {
+                if (subdomain.StiffnessModified) matrixManagers[subdomain.ID].Clear();
+            }
             flexibility = null;
             preconditioner = null;
             projection = null;
@@ -215,7 +220,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             }
 
             // Define boundary / internal dofs
-            dofSeparator = new Feti1DofSeparator();
             dofSeparator.SeparateDofs(model);
 
             //TODO: B matrices could also be reused in some cases
