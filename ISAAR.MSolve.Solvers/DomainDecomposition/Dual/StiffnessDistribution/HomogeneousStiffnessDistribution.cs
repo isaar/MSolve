@@ -11,22 +11,18 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
 {
     public class HomogeneousStiffnessDistribution : IStiffnessDistribution
     {
-        private readonly Dictionary<int, int[]> boundaryDofMultiplicities;
+        private readonly Dictionary<int, double[]> inverseBoundaryDofMultiplicities;
         private readonly IDofSeparator dofSeparator;
+        private readonly IStructuralModel model;
 
         public HomogeneousStiffnessDistribution(IStructuralModel model, IDofSeparator dofSeparator)
         {
+            this.model = model;
             this.dofSeparator = dofSeparator;
-            this.boundaryDofMultiplicities = FindBoundaryDofMultiplicities(dofSeparator);
+            this.inverseBoundaryDofMultiplicities = FindInverseBoundaryDofMultiplicities(dofSeparator);
         }
 
-        public double[] CalcBoundaryDofCoefficients(ISubdomain subdomain)
-        {
-            int[] multiplicites = boundaryDofMultiplicities[subdomain.ID];
-            var inverseMultiplicites = new double[multiplicites.Length];
-            for (int i = 0; i < multiplicites.Length; ++i) inverseMultiplicites[i] = 1.0 / multiplicites[i];
-            return inverseMultiplicites;
-        }
+        public double[] CalcBoundaryDofCoefficients(ISubdomain subdomain) => inverseBoundaryDofMultiplicities[subdomain.ID];
 
         public Dictionary<int, double> CalcBoundaryDofCoefficients(INode node, IDofType dofType)
         {
@@ -40,20 +36,26 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
             ILagrangeMultipliersEnumerator lagrangeEnumerator, 
             Dictionary<int, SignedBooleanMatrixColMajor> boundarySignedBooleanMatrices)
         {
-            return ScalingBooleanMatrixImplicit.CreateBpbOfSubdomains(this, lagrangeEnumerator, boundarySignedBooleanMatrices);
+            var Bpb = new Dictionary<int, IMappingMatrix>();
+            foreach (ISubdomain subdomain in model.Subdomains)
+            {
+                SignedBooleanMatrixColMajor Bb = boundarySignedBooleanMatrices[subdomain.ID];
+                Bpb[subdomain.ID] = ScalingBooleanMatrixImplicit.CreateBpb(subdomain, this, lagrangeEnumerator, Bb);
+            }
+            return Bpb;
         }
 
-        private static Dictionary<int, int[]> FindBoundaryDofMultiplicities(IDofSeparator dofSeparator)
+        private static Dictionary<int, double[]> FindInverseBoundaryDofMultiplicities(IDofSeparator dofSeparator)
         {
-            var allMultiplicities = new Dictionary<int, int[]>();
+            var allMultiplicities = new Dictionary<int, double[]>();
             foreach (var idBoundaryDofs in dofSeparator.BoundaryDofs)
             {
                 int subdomainID = idBoundaryDofs.Key;
                 (INode node, IDofType dofType)[] boundaryDofs = idBoundaryDofs.Value;
-                var multiplicities = new int[boundaryDofs.Length];
+                var multiplicities = new double[boundaryDofs.Length];
                 for (int i = 0; i < boundaryDofs.Length; ++i)
                 {
-                    multiplicities[i] = boundaryDofs[i].node.SubdomainsDictionary.Count;
+                    multiplicities[i] = 1.0 / boundaryDofs[i].node.SubdomainsDictionary.Count;
                 }
                 allMultiplicities[subdomainID] = multiplicities;
             }
@@ -86,19 +88,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
 
             public int NumRows => explicitBpb.NumRows;
 
-            internal static Dictionary<int, IMappingMatrix> CreateBpbOfSubdomains(
-                HomogeneousStiffnessDistribution stiffnessDistribution, ILagrangeMultipliersEnumerator lagrangeEnumerator,
-                Dictionary<int, SignedBooleanMatrixColMajor> boundarySignedBooleanMatrices)
+            internal static IMappingMatrix CreateBpb(ISubdomain subdomain, HomogeneousStiffnessDistribution stiffnessDistribution,
+                 ILagrangeMultipliersEnumerator lagrangeEnumerator, SignedBooleanMatrixColMajor boundarySignedBooleanMatrix)
             {
-                var matricesBpb = new Dictionary<int, IMappingMatrix>();
-                foreach (int id in boundarySignedBooleanMatrices.Keys)
-                {
-                    SignedBooleanMatrixColMajor Bb = boundarySignedBooleanMatrices[id];
-                    DiagonalMatrix invMb = InvertDofMultiplicities(stiffnessDistribution.boundaryDofMultiplicities[id]);
-                    Matrix Bpb = Bb.MultiplyRight(invMb.CopyToFullMatrix());
-                    matricesBpb[id] = new ScalingBooleanMatrixExplicit(Bpb);
-                }
-                return matricesBpb;
+                DiagonalMatrix invMb = DiagonalMatrix.CreateFromArray(
+                    stiffnessDistribution.inverseBoundaryDofMultiplicities[subdomain.ID]);
+                Matrix Bpb = boundarySignedBooleanMatrix.MultiplyRight(invMb.CopyToFullMatrix());
+                return new ScalingBooleanMatrixExplicit(Bpb);
             }
 
             public Vector Multiply(Vector vector, bool transposeThis = false)
@@ -134,19 +130,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
 
             public int NumRows => Bb.NumRows;
 
-            internal static Dictionary<int, IMappingMatrix> CreateBpbOfSubdomains(
-                HomogeneousStiffnessDistribution stiffnessDistribution, ILagrangeMultipliersEnumerator lagrangeEnumerator,
-                Dictionary<int, SignedBooleanMatrixColMajor> boundarySignedBooleanMatrices)
+            internal static IMappingMatrix CreateBpb(ISubdomain subdomain, HomogeneousStiffnessDistribution stiffnessDistribution, 
+                ILagrangeMultipliersEnumerator lagrangeEnumerator, SignedBooleanMatrixColMajor boundarySignedBooleanMatrix)
             {
-                var matricesBpb = new Dictionary<int, IMappingMatrix>();
-                foreach (int s in boundarySignedBooleanMatrices.Keys)
-                {
-                    //if (subdomain)
-                    SignedBooleanMatrixColMajor Bb = boundarySignedBooleanMatrices[s];
-                    DiagonalMatrix invMb = InvertDofMultiplicities(stiffnessDistribution.boundaryDofMultiplicities[s]);
-                    matricesBpb[s] = new ScalingBooleanMatrixImplicit(Bb, invMb);
-                }
-                return matricesBpb;
+                DiagonalMatrix invMb = DiagonalMatrix.CreateFromArray(
+                    stiffnessDistribution.inverseBoundaryDofMultiplicities[subdomain.ID]);
+                return new ScalingBooleanMatrixImplicit(boundarySignedBooleanMatrix, invMb);
             }
 
             public Vector Multiply(Vector vector, bool transposeThis = false)
