@@ -265,11 +265,15 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 watch.Stop();
                 Logger.LogTaskDuration("Calculating preconditioner", watch.ElapsedMilliseconds);
 
-                // Factorize each subdomain's Kff
+                // Invert each subdomain's Kff
                 watch.Restart();
                 foreach (int s in subdomains.Keys)
                 {
-                    matrixManagers[s].InvertKff(factorPivotTolerances[s], factorizeInPlace);
+                    if (subdomains[s].StiffnessModified)
+                    {
+                        Debug.WriteLine($"Inverting the free-free stiffness matrix of subdomain {s}");
+                        matrixManagers[s].InvertKff(factorPivotTolerances[s], factorizeInPlace);
+                    }
                 }
                 watch.Stop();
                 Logger.LogTaskDuration("Matrix factorization", watch.ElapsedMilliseconds);
@@ -407,7 +411,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         /// <summary>
         /// Calculate the norm of the forces vector |f| = |K*u|. It is needed to check the convergence of PCG/PCPG.
         /// </summary>
-        private double CalcGlobalForcesNorm()
+        private double CalcGlobalForcesNorm() //TODO: can this be reused for reanalysis? Probably not a good idea e.g. for Dirichlet bc
         {
             //TODO: It would be better to do that using the global vector to avoid the homogeneous/heterogeneous averaging
             //      That would require the analyzer to build the global vector too though. Caution: we cannot take just 

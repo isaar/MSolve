@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Iterative;
 using ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Preconditioning;
@@ -25,11 +26,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
         private readonly IMaxIterationsProvider maxIterationsProvider;
         private readonly double pcgConvergenceTolerance;
         private readonly IFetiPcgConvergenceFactory pcgConvergenceStrategyFactory;
+        private readonly IReadOnlyList<ISubdomain> subdomains;
         private CholeskyFull factorizedGlobalKccStar;
 
-        public FetiDPInterfaceProblemSolver(IMaxIterationsProvider maxIterationsProvider,
+        public FetiDPInterfaceProblemSolver(IReadOnlyList<ISubdomain> subdomains, IMaxIterationsProvider maxIterationsProvider,
             double pcgConvergenceTolerance, IFetiPcgConvergenceFactory pcgConvergenceStrategyFactory)
         {
+            this.subdomains = subdomains;
             this.maxIterationsProvider = maxIterationsProvider;
             this.pcgConvergenceTolerance = pcgConvergenceTolerance;
             this.pcgConvergenceStrategyFactory = pcgConvergenceStrategyFactory;
@@ -118,9 +121,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
                 IFetiDPSubdomainMatrixManager matrices = matrixManagers[s];
 
                 // KccStar[s] = Kcc[s] - Krc[s]^T * inv(Krr[s]) * Krc[s]
+                if (subdomains[s].StiffnessModified)
+                {
+                    matrices.CalcSchurComplementOfRemainderDofs(); //TODO: At this point Kcc and Krc can be cleared. Maybe Krr too.
+                }
+
                 // globalKccStar = sum_over_s(Lc[s]^T * KccStar[s] * Lc[s])
                 UnsignedBooleanMatrix Lc = dofSeparator.CornerBooleanMatrices[s];
-                matrices.CalcSchurComplementOfRemainderDofs(); //TODO: At this point Kcc and Krc can be cleared. Maybe Krr too.
                 globalKccStar.AddIntoThis(Lc.ThisTransposeTimesOtherTimesThis(matrices.SchurComplementOfRemainderDofs));
             }
             return globalKccStar;
@@ -142,8 +149,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
                 new ApproximateResidualConvergence.Factory();
             public double PcgConvergenceTolerance { get; set; } = 1E-7;
 
-            public FetiDPInterfaceProblemSolver Build() => new FetiDPInterfaceProblemSolver(
-                MaxIterationsProvider, PcgConvergenceTolerance, PcgConvergenceStrategyFactory);
+            public FetiDPInterfaceProblemSolver Build(IStructuralModel model) => new FetiDPInterfaceProblemSolver(
+                model.Subdomains, MaxIterationsProvider, PcgConvergenceTolerance, PcgConvergenceStrategyFactory);
         }
 
         internal class InterfaceProblemMatrix : ILinearTransformation

@@ -105,7 +105,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Projection
                 List<Vector> matrixR = matrixManagers[s].RigidBodyModes;
                 foreach (Vector columnR in matrixR)
                 {
-                    Vector columnG = matrixB.Multiply(columnR, false);
+                    Vector columnG = matrixB.Multiply(columnR, false); //TODO: Perhaps I can cache some of these for reanalysis.
                     matrixG.SetSubcolumn(colCounter++, columnG);
                 }
             }

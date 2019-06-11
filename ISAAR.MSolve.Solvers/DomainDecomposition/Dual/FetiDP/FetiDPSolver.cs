@@ -298,7 +298,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 
                 // Factorize each subdomain's Krr
                 watch.Restart();
-                foreach (int s in subdomains.Keys) matrixManagers[s].InvertKrr(factorizeInPlace); //TODO: If I can reuse Krr, I can also reuse its factorization. Therefore this must be inPlace. In contrast, FETI-1 needs Kff intact for Stiffness distribution, in the current design).
+                foreach (int s in subdomains.Keys)
+                {
+                    //TODO: If I can reuse Krr, I can also reuse its factorization. Therefore this must be inPlace. In contrast, FETI-1 needs Kff intact for Stiffness distribution, in the current design).
+                    matrixManagers[s].InvertKrr(false); 
+                }
                 watch.Stop();
                 Logger.LogTaskDuration("Matrix factorization", watch.ElapsedMilliseconds);
 
@@ -457,15 +461,24 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             public IDofOrderer DofOrderer { get; set; } =
                 new ReusingDofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
 
-            public IFetiDPInterfaceProblemSolver InterfaceProblemSolver { get; set; } =
-                new FetiDPInterfaceProblemSolver.Builder().Build();
-
+            public IFetiDPInterfaceProblemSolver InterfaceProblemSolver { get; set; } = null;
             public IFetiPreconditionerFactory PreconditionerFactory { get; set; } = new LumpedPreconditioner.Factory();
             public bool ProblemIsHomogeneous { get; set; } = true;
 
             public FetiDPSolver BuildSolver(IStructuralModel model)
-                => new FetiDPSolver(model, cornerNodeSelection, matrixManagerFactory, DofOrderer, PreconditionerFactory, 
-                     InterfaceProblemSolver, ProblemIsHomogeneous);
+            {
+                if (InterfaceProblemSolver != null)
+                {
+                    return new FetiDPSolver(model, cornerNodeSelection, matrixManagerFactory, DofOrderer, PreconditionerFactory,
+                        InterfaceProblemSolver, ProblemIsHomogeneous);
+                }
+                else
+                {
+                    IFetiDPInterfaceProblemSolver interfaceSolver = new FetiDPInterfaceProblemSolver.Builder().Build(model);
+                    return new FetiDPSolver(model, cornerNodeSelection, matrixManagerFactory, DofOrderer, PreconditionerFactory,
+                        interfaceSolver, ProblemIsHomogeneous);
+                }
+            }
         }
     }
 }
