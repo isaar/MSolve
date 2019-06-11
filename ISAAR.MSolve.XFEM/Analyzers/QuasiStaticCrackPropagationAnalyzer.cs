@@ -42,7 +42,7 @@ namespace ISAAR.MSolve.XFEM.Analyzers
         {
             this.model = model;
             this.solver = solver;
-            solver.PreventFromOverwrittingSystemMatrices();
+            solver.PreventFromOverwrittingSystemMatrices(); //TODO: This can be avoided
             this.linearSystems = solver.LinearSystems;
             //this.problem = problem;
             this.crack = crack;

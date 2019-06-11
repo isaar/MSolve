@@ -183,7 +183,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             var interfaceSolverBuilder = new FetiDPInterfaceProblemSolver.Builder();
             interfaceSolverBuilder.PcgConvergenceStrategyFactory = new ApproximateResidualConvergence.Factory();
             interfaceSolverBuilder.PcgConvergenceTolerance = pcgConvergenceTolerance;
-            solverBuilder.InterfaceProblemSolver = interfaceSolverBuilder.Build();
+            solverBuilder.InterfaceProblemSolver = interfaceSolverBuilder.Build(multiSubdomainModel);
 
             FetiDPSolver fetiSolver = solverBuilder.BuildSolver(multiSubdomainModel);
             //if (residualIsExact) exactResidualConvergence.FetiSolver = fetiSolver;

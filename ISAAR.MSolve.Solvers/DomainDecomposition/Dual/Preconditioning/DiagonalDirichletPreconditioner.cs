@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -65,16 +67,19 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning
 
         public class Factory : FetiPreconditionerFactoryBase
         {
-            public override IFetiPreconditioner CreatePreconditioner(IStiffnessDistribution stiffnessDistribution,
-                IDofSeparator dofSeparator, ILagrangeMultipliersEnumerator lagrangeEnumerator,
-                Dictionary<int, IFetiSubdomainMatrixManager> matrixManagers)
+            public override IFetiPreconditioner CreatePreconditioner(IStructuralModel model,
+                IStiffnessDistribution stiffnessDistribution, IDofSeparator dofSeparator,
+                ILagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, IFetiSubdomainMatrixManager> matrixManagers)
             {
+                IReadOnlyList<ISubdomain> subdomains = model.Subdomains;
                 int[] subdomainIDs = dofSeparator.BoundaryDofIndices.Keys.ToArray();
                 Dictionary<int, IMappingMatrix> boundaryBooleans = CalcBoundaryPreconditioningBooleanMatrices(
                     stiffnessDistribution, dofSeparator, lagrangeEnumerator);
 
                 foreach (int s in subdomainIDs)
                 {
+                    if (!subdomains[s].StiffnessModified) continue;
+                    Debug.WriteLine($"Extracting boundary/internal submatrices of subdomain {s} for preconditioning");
                     IFetiSubdomainMatrixManager matrixManager = matrixManagers[s];
                     int[] boundaryDofs = dofSeparator.BoundaryDofIndices[s];
                     int[] internalDofs = dofSeparator.InternalDofIndices[s];

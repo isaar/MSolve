@@ -31,9 +31,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 
         private void SeparateBoundaryInternalDofs(IStructuralModel model)
         {
-            InternalDofIndices = new Dictionary<int, int[]>();
-            BoundaryDofIndices = new Dictionary<int, int[]>();
-            BoundaryDofs = new Dictionary<int, (INode node, IDofType dofType)[]>();
             foreach (ISubdomain subdomain in model.Subdomains)
             {
                 if (!subdomain.ConnectivityModified) continue;

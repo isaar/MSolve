@@ -183,7 +183,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             isStiffnessModified = true;
             foreach (ISubdomain subdomain in subdomains.Values)
             {
-                if (subdomain.StiffnessModified) matrixManagers[subdomain.ID].Clear();
+                if (subdomain.StiffnessModified)
+                {
+                    Debug.WriteLine($"Clearing saved matrices of subdomain {subdomain.ID}.");
+                    matrixManagers[subdomain.ID].Clear();
+                }
             }
             flexibility = null;
             preconditioner = null;
@@ -260,7 +264,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             {
                 // Calculate the preconditioner before factorizing each subdomain's Kff 
                 watch.Start();
-                preconditioner = preconditionerFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator,
+                preconditioner = preconditionerFactory.CreatePreconditioner(model, stiffnessDistribution, dofSeparator,
                     lagrangeEnumerator, matrixManagersGeneral);
                 watch.Stop();
                 Logger.LogTaskDuration("Calculating preconditioner", watch.ElapsedMilliseconds);
@@ -271,7 +275,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 {
                     if (subdomains[s].StiffnessModified)
                     {
-                        Debug.WriteLine($"Inverting the free-free stiffness matrix of subdomain {s}");
+                        Debug.WriteLine($"Inverting the free-free stiffness matrix of subdomain {s}" 
+                            + (factorizeInPlace ? "in place.": "using extra memory."));
                         matrixManagers[s].InvertKff(factorPivotTolerances[s], factorizeInPlace);
                     }
                 }

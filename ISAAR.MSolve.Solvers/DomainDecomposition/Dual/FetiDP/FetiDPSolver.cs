@@ -182,7 +182,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             isStiffnessModified = true;
             foreach (ISubdomain subdomain in subdomains.Values)
             {
-                if (subdomain.StiffnessModified) matrixManagers[subdomain.ID].Clear();
+                if (subdomain.StiffnessModified)
+                {
+                    Debug.WriteLine($"Clearing saved matrices of subdomain {subdomain.ID}.");
+                    matrixManagers[subdomain.ID].Clear();
+                }
             }
             flexibility = null;
             preconditioner = null;
@@ -291,7 +295,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 
                 // Calculate the preconditioner before factorizing each subdomain's Kff 
                 watch.Restart();
-                preconditioner = preconditionerFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator,
+                preconditioner = preconditionerFactory.CreatePreconditioner(model, stiffnessDistribution, dofSeparator,
                     lagrangeEnumerator, matrixManagersGeneral);
                 watch.Stop();
                 Logger.LogTaskDuration("Calculating preconditioner", watch.ElapsedMilliseconds);
@@ -300,8 +304,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                 watch.Restart();
                 foreach (int s in subdomains.Keys)
                 {
+                    if (!subdomains[s].StiffnessModified) continue;
                     //TODO: If I can reuse Krr, I can also reuse its factorization. Therefore this must be inPlace. In contrast, FETI-1 needs Kff intact for Stiffness distribution, in the current design).
-                    matrixManagers[s].InvertKrr(false); 
+                    Debug.WriteLine($"Inverting the remainder-remainder stiffness matrix of subdomain {s} in place.");
+                    matrixManagers[s].InvertKrr(true);
                 }
                 watch.Stop();
                 Logger.LogTaskDuration("Matrix factorization", watch.ElapsedMilliseconds);
@@ -398,16 +404,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                 dr.AddIntoThis(temp);
             }
             return dr;
-        }
-
-        private void BuildPreconditioner(Dictionary<int, Matrix> matricesKrr)
-        {
-            // Create the preconditioner. 
-            //TODO: this should be done simultaneously with the factorizations to avoid duplicate factorizations.
-            var stiffnessMatrices = new Dictionary<int, IMatrixView>();
-            foreach (var idKrr in matricesKrr) stiffnessMatrices.Add(idKrr.Key, idKrr.Value);
-            preconditioner = preconditionerFactory.CreatePreconditioner(stiffnessDistribution, dofSeparator,
-                lagrangeEnumerator, null /*stiffnessMatrices*/);
         }
 
         /// <summary>

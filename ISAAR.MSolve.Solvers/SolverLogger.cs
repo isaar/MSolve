@@ -86,11 +86,14 @@ namespace ISAAR.MSolve.Solvers
                 }
 
                 // Iterative algorithm data
-                for (int i = 0; i < currentStep; ++i)
+                if (iterativeAlgorithmData.Count == currentStep) // This is false for direct solvers
                 {
-                    (int iter, double res) = iterativeAlgorithmData[i];
-                    writer.Write($"Analysis iteration {i}: ");
-                    writer.WriteLine($"Iterative algorithm: num iterations = {iter} - redisual norm ratio = {res} ms");
+                    for (int i = 0; i < currentStep; ++i)
+                    {
+                        (int iter, double res) = iterativeAlgorithmData[i];
+                        writer.Write($"Analysis iteration {i}: ");
+                        writer.WriteLine($"Iterative algorithm: num iterations = {iter} - redisual norm ratio = {res} ms");
+                    }
                 }
 
                 writer.WriteLine();
@@ -155,18 +158,21 @@ namespace ISAAR.MSolve.Solvers
                 writer.WriteLine($"All tasks: total duration = {totalDuration} ms");
 
                 // Iterative algorithm data
-                int minIterations = int.MaxValue, maxIterations = int.MinValue;
-                double minResNorm = double.MaxValue, maxResNorm = double.MinValue;
-                for (int i = 0; i < currentStep; ++i)
+                if (iterativeAlgorithmData.Count == currentStep) // This is false for direct solvers
                 {
-                    (int iter, double res) = iterativeAlgorithmData[i];
-                    minIterations = (iter < minIterations) ? iter : minIterations;
-                    maxIterations = (iter > maxIterations) ? iter : maxIterations;
-                    minResNorm = (res < minResNorm) ? res : minResNorm;
-                    maxResNorm = (res < maxResNorm) ? res : maxResNorm;
+                    int minIterations = int.MaxValue, maxIterations = int.MinValue;
+                    double minResNorm = double.MaxValue, maxResNorm = double.MinValue;
+                    for (int i = 0; i < currentStep; ++i)
+                    {
+                        (int iter, double res) = iterativeAlgorithmData[i];
+                        minIterations = (iter < minIterations) ? iter : minIterations;
+                        maxIterations = (iter > maxIterations) ? iter : maxIterations;
+                        minResNorm = (res < minResNorm) ? res : minResNorm;
+                        maxResNorm = (res < maxResNorm) ? res : maxResNorm;
+                    }
+                    Console.WriteLine($"Iterative algorithm iterations: min = {minIterations} - max = {maxIterations}");
+                    Console.WriteLine($"Iterative algorithm residual norm ratio: min = {minResNorm} - max = {maxResNorm}");
                 }
-                Console.WriteLine($"Iterative algorithm iterations: min = {minIterations} - max = {maxIterations}");
-                Console.WriteLine($"Iterative algorithm residual norm ratio: min = {minResNorm} - max = {maxResNorm}");
 
                 writer.WriteLine();
                 writer.WriteLine();

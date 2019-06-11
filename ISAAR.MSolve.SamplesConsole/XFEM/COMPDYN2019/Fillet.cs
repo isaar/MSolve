@@ -34,13 +34,13 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
         public static void Run()
         {
             // Skyline
-            //FilletBenchmark benchmarkSub1 = CreateSingleSubdomainBenchmark();
-            //ISolver skylineSolver = DefineSolver(benchmarkSub1, SolverType.Skyline);
+            FilletBenchmark benchmarkSub1 = CreateSingleSubdomainBenchmark();
+            ISolver skylineSolver = DefineSolver(benchmarkSub1, SolverType.Skyline);
             //Console.WriteLine("Uncracked analysis, 1 subdomain,  Skyline : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub1.Model, skylineSolver));
             //Console.WriteLine("Cracked analysis only 1 step, 1 subdomain,  Skyline : norm2(globalU) = " +
             //    RunSingleCrackedStep(benchmarkSub1.Model, benchmarkSub1.Crack, skylineSolver));
-            //RunCrackPropagationAnalysis(benchmarkSub1, skylineSolver);
+            RunCrackPropagationAnalysis(benchmarkSub1, skylineSolver);
 
             // FETI-1 5 subdomains
             //FilletBenchmark benchmarkSub5 = CreateMultiSubdomainBenchmark(5);
@@ -53,14 +53,14 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             //RunCrackPropagationAnalysis(benchmarkSub5, solverFeti1);
 
             // FETI-1 7 subdomains
-            //FilletBenchmark benchmarkSub7 = CreateMultiSubdomainBenchmark(7);
-            //ISolver solverFeti1 = DefineSolver(benchmarkSub7, SolverType.Feti1);
+            FilletBenchmark benchmarkSub7 = CreateMultiSubdomainBenchmark(7);
+            ISolver solverFeti1 = DefineSolver(benchmarkSub7, SolverType.Feti1);
             //PlotSubdomains(benchmarkSub7, solverFeti1);
             //Console.WriteLine("Uncracked analysis, 7 subdomains, FETI-1  : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub7.Model, solverFeti1));
             //Console.WriteLine("Cracked analysis only 1 step, 5 subdomains, FETI-1  : norm2(globalU) = " +
             //    RunSingleCrackedStep(benchmarkSub7.Model, benchmarkSub7.Crack, solverFeti1));
-            //RunCrackPropagationAnalysis(benchmarkSub7, solverFeti1);
+            RunCrackPropagationAnalysis(benchmarkSub7, solverFeti1);
 
             // FETI-DP 5 subdomains
             //FilletBenchmark benchmarkSub5 = CreateMultiSubdomainBenchmark(5);
@@ -73,7 +73,8 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             //RunCrackPropagationAnalysis(benchmarkSub5, solverFetiDP);
 
             // FETI-DP 7 subdomains
-            FilletBenchmark benchmarkSub7 = CreateMultiSubdomainBenchmark(7);
+            //FilletBenchmark benchmarkSub7 = CreateMultiSubdomainBenchmark(7);
+            benchmarkSub7 = CreateMultiSubdomainBenchmark(7);
             ISolver solverFetiDP = DefineSolver(benchmarkSub7, SolverType.FetiDP);
             //PlotSubdomains(benchmarkSub7, solverFetiDP);
             //Console.WriteLine("Uncracked analysis, 7 subdomains, FETI-DP : norm2(globalU) = " +
