@@ -4,6 +4,10 @@ using System.Text;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
+//TODO: During initialization, the solver and its verious strategies should inform IFetiDPSubdomainMatrixManager what matrices
+//      will be necessary. IFetiDPSubdomainMatrixManager should then determine the correct order they must be created in and
+//      notify the solver and each strategy when they are ready for consumption. Also once a matrix has been fully used, 
+//      it should be cleared to conserve memory. This also applies for Kff.
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
 {
     /// <summary>

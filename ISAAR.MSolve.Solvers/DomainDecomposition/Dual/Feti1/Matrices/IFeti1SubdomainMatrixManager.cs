@@ -8,6 +8,10 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.LinearSystems;
 
+//TODO: During initialization, the solver and its verious strategies should inform IFetiDPSubdomainMatrixManager what matrices
+//      will be necessary. IFetiDPSubdomainMatrixManager should then determine the correct order they must be created in and
+//      notify the solver and each strategy when they are ready for consumption. Also once a matrix has been fully used, 
+//      it should be cleared to conserve memory. This also applies for Kff.
 //TODO: Perhaps I should split this into subinterfaces: 
 //      1) The matrices Kbi, Kii, diag(Kii) are not always needed.
 //      2) The factorization iof Kff depends on if the user chooses analytical vs algebraic computation of the rbms.

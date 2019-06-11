@@ -35,7 +35,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
 
         public ISingleSubdomainLinearSystem LinearSystem => linearSystem;
 
-        public List<Vector> RigidBodyModes { get; private set; }
+        public List<Vector> RigidBodyModes { get; private set; } = null;
 
         public IMatrix BuildGlobalMatrix(ISubdomainFreeDofOrdering dofOrdering, IEnumerable<IElement> elements,
             IElementMatrixProvider matrixProvider)
@@ -46,9 +46,14 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
             IEnumerable<IElement> elements, IElementMatrixProvider matrixProvider)
             => assembler.BuildGlobalSubmatrices(freeDofOrdering, constrainedDofOrdering, elements, matrixProvider);
 
+        /// <summary>
+        /// If the matrices stored in this object have already been calculated, they will be reused even if the original  
+        /// free-free stiffness matrix has changed. To avoid that, this method must be called. 
+        /// </summary>
         public void Clear()
         {
             inverseKff = null;
+            RigidBodyModes = null;
             inverseKii = null;
             inverseKiiDiagonal = null;
             Kbb = null;
@@ -56,8 +61,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
             //linearSystem.Matrix = null; // DO NOT DO THAT!!! The analyzer manages that.
         }
 
+        /// <summary>
+        /// Will do nothing if it was already called. To perform this for a different stiffness matrix, first call 
+        /// <see cref="Clear"/>.
+        /// </summary>
         public void ExtractAndInvertKiiDiagonal(int[] internalDofs)
         {
+            if (inverseKiiDiagonal != null) return;
             try
             {
                 var diagonal = new double[internalDofs.Length];
@@ -78,8 +88,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
             }
         }
 
+        /// <summary>
+        /// Will do nothing if it was already called. To perform this for a different stiffness matrix, first call 
+        /// <see cref="Clear"/>.
+        /// </summary>
         public void ExtractAndInvertKii(int[] internalDofs)
         {
+            if (inverseKii != null) return;
             try
             {
                 SkylineMatrix Kii = linearSystem.Matrix.GetSubmatrixSymmetricSkyline(internalDofs);
@@ -93,8 +108,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
             }
         }
 
+        /// <summary>
+        /// Will do nothing if it was already called. To perform this for a different stiffness matrix, first call 
+        /// <see cref="Clear"/>.
+        /// </summary>
         public void ExtractKbb(int[] boundaryDofs)
         {
+            if (Kbb != null) return;
             try
             {
                 Kbb = linearSystem.Matrix.GetSubmatrixFull(boundaryDofs, boundaryDofs);
@@ -107,8 +127,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
             }
         }
 
+        /// <summary>
+        /// Will do nothing if it was already called. To perform this for a different stiffness matrix, first call 
+        /// <see cref="Clear"/>.
+        /// </summary>
         public void ExtractKbiKib(int[] boundaryDofs, int[] internalDofs)
         {
+            if (Kib != null) return;
             try
             {
                 Kib = linearSystem.Matrix.GetSubmatrixCsc(internalDofs, boundaryDofs);
@@ -123,8 +148,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
 
         public void HandleDofOrderingWillBeModified() => assembler.HandleDofOrderingWillBeModified();
 
+        /// <summary>
+        /// Will do nothing if it was already called. To perform this for a different stiffness matrix, first call 
+        /// <see cref="Clear"/>.
+        /// </summary>
         public void InvertKff(double factorizationTolerance, bool inPlace)
         {
+            if (RigidBodyModes != null) return;
             inverseKff = linearSystem.Matrix.FactorSemidefiniteCholesky(inPlace, factorizationTolerance);
             RigidBodyModes = new List<Vector>();
             foreach (double[] rbm in inverseKff.NullSpaceBasis)

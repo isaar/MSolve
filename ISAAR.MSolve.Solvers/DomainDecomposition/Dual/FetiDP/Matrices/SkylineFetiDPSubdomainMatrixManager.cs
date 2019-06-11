@@ -51,6 +51,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
             IEnumerable<IElement> elements, IElementMatrixProvider matrixProvider)
             => assembler.BuildGlobalSubmatrices(freeDofOrdering, constrainedDofOrdering, elements, matrixProvider);
 
+        /// <summary>
+        /// Will do nothing if it was already called. To perform this for a different stiffness matrix, first call 
+        /// <see cref="Clear"/>.
+        /// </summary>
         public void Clear()
         {
             inverseKii = null;
@@ -61,17 +65,28 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
             Kcc = null;
             Krc = null;
             Krr = null;
+            KccStar = null;
             //linearSystem.Matrix = null; // DO NOT DO THAT!!! The analyzer manages that.
         }
 
-        public void CalcSchurComplementOfRemainderDofs() //TODO: This should be done in a dedicated class
+        /// <summary>
+        /// Will do nothing if it was already called. To perform this for a different stiffness matrix, first call 
+        /// <see cref="Clear"/>.
+        /// </summary>
+        public void CalcSchurComplementOfRemainderDofs()
         {
             // KccStar[s] = Kcc[s] - Krc[s]^T * inv(Krr[s]) * Krc[s]
+            if (KccStar != null) return;
             KccStar = SchurComplementCsc.CalcSchurComplementFull(Kcc, Krc, inverseKrr);
         }
 
+        /// <summary>
+        /// Will do nothing if it was already called. To perform this for a different stiffness matrix, first call 
+        /// <see cref="Clear"/>.
+        /// </summary>
         public void ExtractAndInvertKii(int[] internalDofs)
         {
+            if (inverseKii != null) return;
             try
             {
                 SkylineMatrix Kii = Krr.GetSubmatrixSymmetricSkyline(internalDofs);
@@ -85,8 +100,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
             }
         }
 
+        /// <summary>
+        /// Will do nothing if it was already called. To perform this for a different stiffness matrix, first call 
+        /// <see cref="Clear"/>.
+        /// </summary>
         public void ExtractAndInvertKiiDiagonal(int[] internalDofs)
         {
+            if (inverseKiiDiagonal != null) return;
             try
             {
                 var diagonal = new double[internalDofs.Length];
@@ -107,8 +127,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
             }
         }
 
+        /// <summary>
+        /// Will do nothing if it was already called. To perform this for a different stiffness matrix, first call 
+        /// <see cref="Clear"/>.
+        /// </summary>
         public void ExtractKbb(int[] boundaryDofs)
         {
+            if (Kbb != null) return;
             try
             {
                 Kbb = Krr.GetSubmatrixSymmetricFull(boundaryDofs);
@@ -121,8 +146,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
             }
         }
 
+        /// <summary>
+        /// Will do nothing if it was already called. To perform this for a different stiffness matrix, first call 
+        /// <see cref="Clear"/>.
+        /// </summary>
         public void ExtractKbiKib(int[] boundaryDofs, int[] internalDofs)
         {
+            if (Kib != null) return;
             try
             {
                 Kib = Krr.GetSubmatrixCsc(internalDofs, boundaryDofs);
@@ -135,25 +165,54 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
             }
         }
 
+        /// <summary>
+        /// Will do nothing if it was already called. To perform this for a different stiffness matrix, first call 
+        /// <see cref="Clear"/>.
+        /// </summary>
         public void ExtractKcc(int[] cornerDofs)
         {
+            if (Kcc != null) return;
             Kcc = linearSystem.Matrix.GetSubmatrixFull(cornerDofs, cornerDofs);
         }
 
+        /// <summary>
+        /// Will do nothing if it was already called. To perform this for a different stiffness matrix, first call 
+        /// <see cref="Clear"/>.
+        /// </summary>
         public void ExtractKcrKrc(int[] cornerDofs, int[] remainderDofs)
         {
+            if (Krc != null) return;
             Krc = linearSystem.Matrix.GetSubmatrixCsc(remainderDofs, cornerDofs);
         }
 
+        /// <summary>
+        /// Will do nothing if it was already called. To perform this for a different stiffness matrix, first call 
+        /// <see cref="Clear"/>.
+        /// </summary>
         public void ExtractKrr(int[] remainderDofs)
         {
+            if (Krr != null)
+            {
+                if (inverseKrr != null)
+                {
+                    throw new InvalidOperationException("The remainder-remainder stiffness submatrix of this subdomain has"
+                        + " already been calculated and then overwritten and cannot be used anymore. Restructure your code so"
+                        + " that all operations that need Krr are finished before inverting it.");
+                }
+                return;
+            }
             Krr = linearSystem.Matrix.GetSubmatrixSymmetricSkyline(remainderDofs);
         }
 
         public void HandleDofOrderingWillBeModified() => assembler.HandleDofOrderingWillBeModified();
 
+        /// <summary>
+        /// Will do nothing if it was already called. To perform this for a different stiffness matrix, first call 
+        /// <see cref="Clear"/>.
+        /// </summary>
         public void InvertKrr(bool inPlace)
         {
+            if (inverseKrr != null) return;
             inverseKrr = Krr.FactorLdl(inPlace);
         }
 
