@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 if (!subdomain.ConnectivityModified) continue;
 
                 int s = subdomain.ID;
-                Debug.WriteLine($"Separating boundary-internal dofs of subdomain {s}");
+                Debug.WriteLine($"{this.GetType().Name}: Separating boundary-internal dofs of subdomain {s}");
                 (int[] internalDofIndices, int[] boundaryDofIndices, (INode node, IDofType dofType)[] boundaryDofConnectivities)
                     = base.SeparateBoundaryInternalDofs(subdomain.Nodes, subdomain.FreeDofOrdering.FreeDofs);
 

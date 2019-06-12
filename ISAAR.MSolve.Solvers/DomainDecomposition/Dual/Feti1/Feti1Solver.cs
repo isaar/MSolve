@@ -39,6 +39,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         private readonly IFetiPreconditionerFactory preconditionerFactory;
         private readonly bool problemIsHomogeneous;
         private readonly bool projectionMatrixQIsIdentity;
+        private readonly IStiffnessDistribution stiffnessDistribution;
 
         //TODO: fix the mess of Dictionary<int, ISubdomain>, List<ISubdomain>, Dictionary<int, Subdomain>, List<Subdomain>
         //      The concrete are useful for the preprocessor mostly, while analyzers, solvers need the interface versions.
@@ -51,7 +52,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         private Feti1LagrangeMultipliersEnumerator lagrangeEnumerator;
         private IFetiPreconditioner preconditioner;
         private Feti1Projection projection;
-        private IStiffnessDistribution stiffnessDistribution;
         private Feti1SubdomainGlobalMapping subdomainGlobalMapping;
 
         private Feti1Solver(IStructuralModel model, IFeti1SubdomainMatrixManagerFactory matrixManagerFactory, 
@@ -81,7 +81,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 matrixManagersGeneral[s] = matrixManager;
                 this.linearSystems[s] = matrixManager.LinearSystem;
                 externalLinearSystems[s] = matrixManager.LinearSystem;
-                matrixManager.LinearSystem.MatrixObservers.Add(this);
+
+                //TODO: This will call HandleMatrixWillBeSet() once for each subdomain. For now I will clear the data when 
+                //      BuildMatrices() is called. Redesign this.
+                //matrixManager.LinearSystem.MatrixObservers.Add(this); 
             }
             LinearSystems = externalLinearSystems;
 
@@ -96,6 +99,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             // Homogeneous/heterogeneous problems
             this.problemIsHomogeneous = problemIsHomogeneous;
             this.projectionMatrixQIsIdentity = projectionMatrixQIsIdentity;
+            if (problemIsHomogeneous) this.stiffnessDistribution = new HomogeneousStiffnessDistribution(model, dofSeparator);
+            else this.stiffnessDistribution = new HeterogeneousStiffnessDistribution(model, dofSeparator);
         }
 
         public IReadOnlyDictionary<int, ILinearSystem> LinearSystems { get; }
@@ -104,6 +109,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 
         public Dictionary<int, IMatrix> BuildGlobalMatrices(IElementMatrixProvider elementMatrixProvider)
         {
+            HandleMatrixWillBeSet(); //TODO: temporary solution to avoid this getting called once for each linear system/observable
+
             var watch = new Stopwatch();
             watch.Start();
             var matrices = new Dictionary<int, IMatrix>();
@@ -114,7 +121,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 IMatrix stiffness;
                 if (subdomain.StiffnessModified)
                 {
-                    Debug.WriteLine($"Assembling the free-free stiffness matrix of subdomain {s}");
+                    Debug.WriteLine($"{this.GetType().Name}: Assembling the free-free stiffness matrix of subdomain {s}");
                     stiffness = matrixManagers[s].BuildGlobalMatrix(subdomain.FreeDofOrdering,
                         subdomain.Elements, elementMatrixProvider);
                 }
@@ -122,15 +129,16 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 {
                     stiffness = (IMatrix)(linearSystems[s].Matrix); //TODO: remove the cast
                 }
-                matricesReadonly[s] = stiffness;
                 matrices[s] = stiffness;
+                matricesReadonly[s] = stiffness;
             }
             watch.Stop();
             Logger.LogTaskDuration("Matrix assembly", watch.ElapsedMilliseconds);
 
             // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
             //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
-            DetermineStiffnessDistribution(matricesReadonly);
+            stiffnessDistribution.Update(matricesReadonly);
+            subdomainGlobalMapping = new Feti1SubdomainGlobalMapping(model, dofSeparator, stiffnessDistribution);
 
             return matrices;
         }
@@ -138,6 +146,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         public Dictionary<int, (IMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
             IMatrixView matrixConstrConstr)> BuildGlobalSubmatrices(IElementMatrixProvider elementMatrixProvider)
         {
+            HandleMatrixWillBeSet(); //TODO: temporary solution to avoid this getting called once for each linear system/observable
+
             var watch = new Stopwatch();
             watch.Start();
             var matrices = new Dictionary<int, (IMatrix Aff, IMatrixView Afc, IMatrixView Acf, IMatrixView Acc)>();
@@ -165,7 +175,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
 
             // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
             //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
-            DetermineStiffnessDistribution(matricesReadonly);
+            stiffnessDistribution.Update(matricesReadonly);
+            subdomainGlobalMapping = new Feti1SubdomainGlobalMapping(model, dofSeparator, stiffnessDistribution);
 
             return matrices;
         }
@@ -185,7 +196,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             {
                 if (subdomain.StiffnessModified)
                 {
-                    Debug.WriteLine($"Clearing saved matrices of subdomain {subdomain.ID}.");
+                    Debug.WriteLine($"{this.GetType().Name}: Clearing saved matrices of subdomain {subdomain.ID}.");
                     matrixManagers[subdomain.ID].Clear();
                 }
             }
@@ -275,8 +286,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 {
                     if (subdomains[s].StiffnessModified)
                     {
-                        Debug.WriteLine($"Inverting the free-free stiffness matrix of subdomain {s}" 
-                            + (factorizeInPlace ? "in place.": "using extra memory."));
+                        Debug.WriteLine($"{this.GetType().Name}: Inverting the free-free stiffness matrix of subdomain {s}" 
+                            + (factorizeInPlace ? " in place.": " using extra memory."));
                         matrixManagers[s].InvertKff(factorPivotTolerances[s], factorizeInPlace);
                     }
                 }
@@ -429,24 +440,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 subdomainForces[linearSystem.Subdomain.ID] = linearSystem.RhsConcrete;
             }
             return subdomainGlobalMapping.CalculateGlobalForcesNorm(subdomainForces);
-        }
-
-        private void DetermineStiffnessDistribution(Dictionary<int, IMatrixView> stiffnessMatrices)
-        {
-            // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
-            //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
-            if (problemIsHomogeneous)
-            {
-                stiffnessDistribution = new HomogeneousStiffnessDistribution(model, dofSeparator);
-            }
-            else
-            {
-                Table<INode, IDofType, BoundaryDofLumpedStiffness> boundaryDofStiffnesses =
-                    BoundaryDofLumpedStiffness.ExtractBoundaryDofLumpedStiffnesses(
-                        dofSeparator.GlobalBoundaryDofs, stiffnessMatrices);
-                stiffnessDistribution = new HeterogeneousStiffnessDistribution(model, dofSeparator, boundaryDofStiffnesses);
-            }
-            subdomainGlobalMapping = new Feti1SubdomainGlobalMapping(model, dofSeparator, stiffnessDistribution);
         }
 
         public class Builder

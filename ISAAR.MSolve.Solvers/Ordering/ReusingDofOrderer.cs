@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
                 else
                 {
                     // Order subdomain dofs
-                    Debug.WriteLine($"Ordering free dofs of subdomain {subdomain.ID}");
+                    Debug.WriteLine($"{this.GetType().Name}: Ordering free dofs of subdomain {subdomain.ID}");
                     (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) = freeOrderingStrategy.OrderSubdomainDofs(subdomain);
                     if (cacheElementToSubdomainDofMaps)
                     {
@@ -81,7 +81,7 @@ namespace ISAAR.MSolve.Solvers.Ordering
                     if (!subdomain.ConnectivityModified) subdomainOrdering = subdomain.FreeDofOrdering;
                     else 
                     {
-                        Debug.WriteLine($"Ordering free dofs of subdomain {subdomain.ID}");
+                        Debug.WriteLine($"{this.GetType().Name}: Ordering free dofs of subdomain {subdomain.ID}");
                         (int numSubdomainFreeDofs, DofTable subdomainFreeDofs) = freeOrderingStrategy.OrderSubdomainDofs(subdomain);
                         if (cacheElementToSubdomainDofMaps)
                         {

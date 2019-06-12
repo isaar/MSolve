@@ -19,5 +19,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
         Dictionary<int, IMappingMatrix> CalcBoundaryPreconditioningSignedBooleanMatrices(
             ILagrangeMultipliersEnumerator lagrangeEnumerator, 
             Dictionary<int, SignedBooleanMatrixColMajor> boundarySignedBooleanMatrices);
+
+        void Update(Dictionary<int, IMatrixView> stiffnessesFreeFree);
     }
 }

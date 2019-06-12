@@ -593,6 +593,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             var repackagedKrr = new Dictionary<int, IMatrixView>();
             foreach (var idMatrixPair in Krr) repackagedKrr[idMatrixPair.Key] = idMatrixPair.Value;
             var stiffnessDistribution = new HomogeneousStiffnessDistribution(model, dofSeparator);
+            stiffnessDistribution.Update(null);
             IFetiPreconditioner preconditioner = precondFactory.CreatePreconditioner(model,
                 stiffnessDistribution, dofSeparator, lagrangeEnumerator, matrixManagersPreconditioning);
 

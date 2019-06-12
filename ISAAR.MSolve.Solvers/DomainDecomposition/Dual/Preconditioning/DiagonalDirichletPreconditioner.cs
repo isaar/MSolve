@@ -79,7 +79,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning
                 foreach (int s in subdomainIDs)
                 {
                     if (!subdomains[s].StiffnessModified) continue;
-                    Debug.WriteLine($"Extracting boundary/internal submatrices of subdomain {s} for preconditioning");
+                    Debug.WriteLine($"{typeof(DiagonalDirichletPreconditioner).Name}.{this.GetType().Name}:" 
+                        + $" Extracting boundary/internal submatrices of subdomain {s} for preconditioning");
                     IFetiSubdomainMatrixManager matrixManager = matrixManagers[s];
                     int[] boundaryDofs = dofSeparator.BoundaryDofIndices[s];
                     int[] internalDofs = dofSeparator.InternalDofIndices[s];

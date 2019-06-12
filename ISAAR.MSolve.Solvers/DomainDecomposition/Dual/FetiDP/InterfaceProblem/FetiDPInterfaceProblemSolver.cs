@@ -124,7 +124,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
                 // KccStar[s] = Kcc[s] - Krc[s]^T * inv(Krr[s]) * Krc[s]
                 if (subdomains[s].StiffnessModified)
                 {
-                    Debug.WriteLine($"Calculating Schur complement of remainder dofs for the stiffness of subdomain {s}");
+                    Debug.WriteLine($"{this.GetType().Name}: Calculating Schur complement of remainder dofs" 
+                        + " for the stiffness of subdomain {s}");
                     matrices.CalcSchurComplementOfRemainderDofs(); //TODO: At this point Kcc and Krc can be cleared. Maybe Krr too.
                 }
 

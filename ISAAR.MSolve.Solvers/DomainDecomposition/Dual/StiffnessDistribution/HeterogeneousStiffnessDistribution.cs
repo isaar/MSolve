@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -7,6 +8,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
+using ISAAR.MSolve.Solvers.LinearSystems;
 
 //TODO: Also implement the Superlumped smoothening from Rixen, Farhat (1999). It should be equivalent to Fragakis' PhD approach.
 //TODO: Use this to map displacements, forces, etc between subdomain - global level.
@@ -18,18 +20,19 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
 {
     public class HeterogeneousStiffnessDistribution : IStiffnessDistribution
     {
-        //TODO: perhaps it would be faster to have a field Dictionary<int, double[]> boundaryDofStiffnesses, instead of the next
-        private readonly Table<INode, IDofType, BoundaryDofLumpedStiffness> boundaryDofStiffnesses;
-
         private readonly IDofSeparator dofSeparator;
-        private readonly IStructuralModel model;
+        private readonly IReadOnlyList<ISubdomain> subdomains;
+        private readonly Dictionary<int, DiagonalMatrix> inverseDbMatrices;
 
-        public HeterogeneousStiffnessDistribution(IStructuralModel model, IDofSeparator dofSeparator,
-            Table<INode, IDofType, BoundaryDofLumpedStiffness> boundaryDofStiffnesses)
+        //TODO: Is it more efficient to use (INode node, DOFType[] dofTypes)[]? It would reduce the cost of accessing node data?
+        //TODO: perhaps it would be faster to have a field Dictionary<int, double[]> boundaryDofStiffnesses, instead of the next
+        private Table<INode, IDofType, BoundaryDofLumpedStiffness> boundaryDofStiffnesses;
+
+        public HeterogeneousStiffnessDistribution(IStructuralModel model, IDofSeparator dofSeparator)
         {
-            this.model = model;
+            this.subdomains = model.Subdomains;
             this.dofSeparator = dofSeparator;
-            this.boundaryDofStiffnesses = boundaryDofStiffnesses;
+            inverseDbMatrices = new Dictionary<int, DiagonalMatrix>();
         }
 
         public double[] CalcBoundaryDofCoefficients(ISubdomain subdomain)
@@ -75,6 +78,40 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
             return ScalingBooleanMatrixImplicit.CreateBpbOfSubdomains(this, lagrangeEnumerator, boundarySignedBooleanMatrices);
         }
 
+        public void Update(Dictionary<int, IMatrixView> stiffnessesFreeFree)
+        {
+            Table<INode, IDofType, BoundaryDofLumpedStiffness> previousBoundaryDofStiffnesses = this.boundaryDofStiffnesses;
+            this.boundaryDofStiffnesses = new Table<INode, IDofType, BoundaryDofLumpedStiffness>();
+            foreach (var nodeDofsPair in dofSeparator.GlobalBoundaryDofs)
+            {
+                INode node = nodeDofsPair.Key;
+                foreach (IDofType dofType in nodeDofsPair.Value)
+                {
+                    var subdomainStiffnesses = new Dictionary<ISubdomain, double>();
+                    double totalStiffness = 0.0;
+                    foreach (ISubdomain subdomain in node.SubdomainsDictionary.Values)
+                    {
+                        double stiffness;
+                        if (subdomain.StiffnessModified)
+                        {
+                            int dofIdx = subdomain.FreeDofOrdering.FreeDofs[node, dofType];
+                            IMatrixView Kff = stiffnessesFreeFree[subdomain.ID];
+                            stiffness = Kff[dofIdx, dofIdx]; //TODO: optimized GetDiagonal(i) method for matrices.
+                        }
+                        else
+                        {
+                            // If at the current and previous analysis steps Kff is the same for this subdomain, then Kff might 
+                            // be overwritten by its factorization and we cannot access Kff(i, i)
+                            stiffness = previousBoundaryDofStiffnesses[node, dofType].SubdomainStiffnesses[subdomain];
+                        }
+                        subdomainStiffnesses[subdomain] = stiffness;
+                        totalStiffness += stiffness;
+                    }
+                    boundaryDofStiffnesses[node, dofType] = new BoundaryDofLumpedStiffness(subdomainStiffnesses, totalStiffness);
+                }
+            }
+        }
+
         private DiagonalMatrix BuildDlambda(ILagrangeMultipliersEnumerator lagrangeEnumerator)
         {
             int numLagranges = lagrangeEnumerator.NumLagrangeMultipliers;
@@ -96,15 +133,22 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
         //TODO: Kbb is also calculated for most preconditioners. Just take its diagonal and invert.
         private DiagonalMatrix InvertBoundaryDofStiffnesses(ISubdomain subdomain)
         {
-            (INode node, IDofType dofType)[] boundaryDofs = dofSeparator.BoundaryDofs[subdomain.ID];
-            var invDb = new double[boundaryDofs.Length];
-            for (int i = 0; i < boundaryDofs.Length; ++i)
+            if (subdomain.StiffnessModified)
             {
-                (INode node, IDofType dofType) = boundaryDofs[i];
-                double subdomainStiffness = boundaryDofStiffnesses[node, dofType].SubdomainStiffnesses[subdomain];
-                invDb[i] = 1.0 / subdomainStiffness;
+                Debug.WriteLine($"{this.GetType().Name}: Calculating inv(diag(Kbb)) of subomain {subdomain.ID}");
+                (INode node, IDofType dofType)[] boundaryDofs = dofSeparator.BoundaryDofs[subdomain.ID];
+                var invDb = new double[boundaryDofs.Length];
+                for (int i = 0; i < boundaryDofs.Length; ++i)
+                {
+                    (INode node, IDofType dofType) = boundaryDofs[i];
+                    double subdomainStiffness = boundaryDofStiffnesses[node, dofType].SubdomainStiffnesses[subdomain];
+                    invDb[i] = 1.0 / subdomainStiffness;
+                }
+                var result = DiagonalMatrix.CreateFromArray(invDb, false);
+                inverseDbMatrices[subdomain.ID] = result;
+                return result;
             }
-            return DiagonalMatrix.CreateFromArray(invDb, false);
+            else return inverseDbMatrices[subdomain.ID];
         }
 
         //TODO: This should be modified to CSR or CSC format and then benchmarked against the implicit alternative.
@@ -135,10 +179,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
 
                 Matrix Dlambda = stiffnessDistribution.BuildDlambda(lagrangeEnumerator).CopyToFullMatrix(); // Common for all subdomains
                 var matricesBpb = new Dictionary<int, IMappingMatrix>();
-                foreach (ISubdomain subdomain in stiffnessDistribution.model.Subdomains)
+                foreach (ISubdomain subdomain in stiffnessDistribution.subdomains)
                 {
                     SignedBooleanMatrixColMajor Bb = boundarySignedBooleanMatrices[subdomain.ID];
-                    Matrix invDb = stiffnessDistribution.InvertBoundaryDofStiffnesses(subdomain).CopyToFullMatrix();
+                    Matrix invDb = stiffnessDistribution.InvertBoundaryDofStiffnesses(subdomain).CopyToFullMatrix(); //TODO: This can be reused from previous analysis steps
                     Matrix Bpb = Bb.MultiplyRight(invDb).MultiplyLeft(Dlambda);
                     matricesBpb[subdomain.ID] = new ScalingBooleanMatrixExplicit(Bpb);
                 }
@@ -196,11 +240,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
 
                 DiagonalMatrix Dlambda = stiffnessDistribution.BuildDlambda(lagrangeEnumerator); // Common for all subdomains
                 var matricesBpb = new Dictionary<int, IMappingMatrix>();
-                foreach (ISubdomain subdomain in stiffnessDistribution.model.Subdomains)
+                foreach (ISubdomain subdomain in stiffnessDistribution.subdomains)
                 {
                     //if (!subdomain.MaterialsModified) continue;
                     SignedBooleanMatrixColMajor Bb = boundarySignedBooleanMatrices[subdomain.ID];
-                    DiagonalMatrix invDb = stiffnessDistribution.InvertBoundaryDofStiffnesses(subdomain);
+                    DiagonalMatrix invDb = stiffnessDistribution.InvertBoundaryDofStiffnesses(subdomain); //TODO: This can be reused from previous analysis steps
                     matricesBpb[subdomain.ID] = new ScalingBooleanMatrixImplicit(Dlambda, Bb, invDb);
                 }
                 return matricesBpb;
