@@ -38,13 +38,13 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             FilletBenchmark benchmarkSub7;
 
             // Skyline
-            //benchmarkSub1 = CreateSingleSubdomainBenchmark();
-            //ISolver skylineSolver = DefineSolver(benchmarkSub1, SolverType.Skyline);
+            benchmarkSub1 = CreateSingleSubdomainBenchmark();
+            ISolver skylineSolver = DefineSolver(benchmarkSub1, SolverType.Skyline);
             //Console.WriteLine("Uncracked analysis, 1 subdomain,  Skyline : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub1.Model, skylineSolver));
             //Console.WriteLine("Cracked analysis only 1 step, 1 subdomain,  Skyline : norm2(globalU) = " +
             //    RunSingleCrackedStep(benchmarkSub1.Model, benchmarkSub1.Crack, skylineSolver));
-            //RunCrackPropagationAnalysis(benchmarkSub1, skylineSolver);
+            RunCrackPropagationAnalysis(benchmarkSub1, skylineSolver);
 
             // FETI-1 5 subdomains
             //benchmarkSub5 = CreateMultiSubdomainBenchmark(5);
@@ -223,9 +223,11 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                 {
                     throw new NotImplementedException();
                 }
-                var fetiMatrices = new DenseFeti1SubdomainMatrixManager.Factory();
+                //var fetiMatrices = new DenseFeti1SubdomainMatrixManager.Factory();
+                var fetiMatrices = new SkylineFeti1SubdomainMatrixManager.Factory();
                 var builder = new Feti1Solver.Builder(fetiMatrices, factorizationTolerances);
-                builder.PreconditionerFactory = new LumpedPreconditioner.Factory();
+                //builder.PreconditionerFactory = new LumpedPreconditioner.Factory();
+                builder.PreconditionerFactory = new DirichletPreconditioner.Factory();
                 builder.ProblemIsHomogeneous = true;
                 return builder.BuildSolver(benchmark.Model);
             }
@@ -289,9 +291,11 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
 
                 //var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodes);
                 var cornerNodeSelection = new CrackedFetiDPSubdomainCornerNodes(benchmark.Crack, cornerNodes);
-                var fetiMatrices = new DenseFetiDPSubdomainMatrixManager.Factory();
+                //var fetiMatrices = new DenseFetiDPSubdomainMatrixManager.Factory();
+                var fetiMatrices = new SkylineFetiDPSubdomainMatrixManager.Factory();
                 var builder = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices);
-                builder.PreconditionerFactory = new LumpedPreconditioner.Factory();
+                //builder.PreconditionerFactory = new LumpedPreconditioner.Factory();
+                builder.PreconditionerFactory = new DirichletPreconditioner.Factory();
                 builder.ProblemIsHomogeneous = true;
                 return builder.BuildSolver(benchmark.Model);
             }

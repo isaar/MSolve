@@ -23,6 +23,20 @@ namespace ISAAR.MSolve.Geometry.Shapes
             segments.Add(new DirectedSegment2D(first, second));
         }
 
+        public PolyLine2D(params CartesianPoint[] points)
+        {
+            vertices = new List<CartesianPoint>();
+            segments = new List<DirectedSegment2D>();
+            angles = new List<double>();
+
+            for (int i = 0; i < points.Length-1; ++i)
+            {
+                vertices.Add(points[i]);
+                vertices.Add(points[i+1]);
+                segments.Add(new DirectedSegment2D(points[i], points[i + 1]));
+            }
+        }
+
         public CartesianPoint End { get { return vertices[vertices.Count - 1]; } }
         public IReadOnlyList<DirectedSegment2D> Segments { get { return segments; } }
         public CartesianPoint Start { get { return vertices[0]; } }

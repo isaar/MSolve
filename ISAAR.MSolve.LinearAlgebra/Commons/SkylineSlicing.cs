@@ -44,6 +44,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
 
         internal static CscMatrix GetSubmatrixCsc(double[] skyValues, int[] skyDiagOffsets, int[] rowsToKeep, int[] colsToKeep)
         {
+            if ((rowsToKeep.Length == 0) || (colsToKeep.Length == 0))
+            {
+                return CscMatrix.CreateFromArrays(rowsToKeep.Length, colsToKeep.Length, new double[0], new int[0],
+                    new int[1] { 0 }, false);
+            }
             var submatrix = DokColMajor.CreateEmpty(rowsToKeep.Length, colsToKeep.Length);
             for (int subCol = 0; subCol < colsToKeep.Length; ++subCol)
             {
@@ -168,6 +173,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             //      Schur complements more efficiently.
 
             int subOrder = rowsColsToKeep.Length;
+            if (subOrder == 0) return SkylineMatrix.CreateFromArrays(subOrder, new double[0], new int[1] { 0 }, false, false);
             var submatrix = DokSymmetric.CreateEmpty(subOrder);
             for (int subCol = 0; subCol < subOrder; ++subCol)
             {
