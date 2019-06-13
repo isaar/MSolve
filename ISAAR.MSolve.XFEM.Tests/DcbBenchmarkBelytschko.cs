@@ -36,11 +36,11 @@ namespace ISAAR.MSolve.XFEM.Tests
     public class DcbBenchmarkBelytschko //: IBenchmark
     {
         #region constants
-        /// <summary>
-        /// The material used for the J-integral computation. It msut be stored separately from individual element materials.
-        /// </summary>
-        private static readonly HomogeneousElasticMaterial2D globalHomogeneousMaterial =
-            HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
+        ///// <summary>
+        ///// The material used for the J-integral computation. It msut be stored separately from individual element materials.
+        ///// </summary>
+        //private static readonly HomogeneousElasticMaterial2D globalHomogeneousMaterial =
+        //    HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
 
         /// <summary>
         /// The maximum value that the effective SIF can reach before collapse occurs.
@@ -68,6 +68,7 @@ namespace ISAAR.MSolve.XFEM.Tests
         private readonly double jIntegralRadiusOverElementSize;
 
         private readonly int numElementsY;
+        private readonly int numSubdomainsX;
         private readonly int numSubdomainsY;
 
         private readonly string lsmPlotDirectory;
@@ -88,11 +89,12 @@ namespace ISAAR.MSolve.XFEM.Tests
         /// 
         /// </summary>
         /// <param name="growthLength">The length by which the crack grows in each iteration.</param>
-        public DcbBenchmarkBelytschko(int numElementsY, int numSubdomainsY, double growthLength, double tipEnrichmentRadius,
-            double jIntegralRadiusOverElementSize, string lsmPlotDirectory, string subdomainPlotDirectory, int maxIterations, 
-            double heavisideTol)
+        public DcbBenchmarkBelytschko(int numElementsY, int numSubdomainsX, int numSubdomainsY, double growthLength, 
+            double tipEnrichmentRadius, double jIntegralRadiusOverElementSize,  int maxIterations, double heavisideTol,
+            string lsmPlotDirectory, string subdomainPlotDirectory)
         {
             this.numElementsY = numElementsY;
+            this.numSubdomainsX = numSubdomainsX;
             this.numSubdomainsY = numSubdomainsY;
             this.growthLength = growthLength;
             this.tipEnrichmentRadius = tipEnrichmentRadius;
@@ -157,7 +159,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             var builder = new Uniform2DXModelBuilder();
             builder.DomainLengthX = L;
             builder.DomainLengthY = h;
-            builder.NumSubdomainsX = 3 * numSubdomainsY;
+            builder.NumSubdomainsX = numSubdomainsX;
             builder.NumSubdomainsY = numSubdomainsY;
             builder.NumTotalElementsX = 3 * numElementsY;
             builder.NumTotalElementsY = numElementsY;
@@ -172,6 +174,7 @@ namespace ISAAR.MSolve.XFEM.Tests
 
         private void InitializeCrack()
         {
+            var globalHomogeneousMaterial = HomogeneousElasticMaterial2D.CreateMaterialForPlaneStrain(E, v);
             IPropagator propagator = new Propagator(mesh, jIntegralRadiusOverElementSize,
                 new HomogeneousMaterialAuxiliaryStates(globalHomogeneousMaterial),
                 new HomogeneousSIFCalculator(globalHomogeneousMaterial),
@@ -179,8 +182,8 @@ namespace ISAAR.MSolve.XFEM.Tests
 
             CrackMouth = new CartesianPoint(0.0, h/2);
             var crackKink = new CartesianPoint(a, h / 2);
-            var crackTip = new CartesianPoint(a + da * Math.Cos(dTheta), h/2 - da * Math.Sin(dTheta));
-            var initialCrack = new PolyLine2D(CrackMouth, crackKink, crackTip);
+            //var crackTip = new CartesianPoint(a + da * Math.Cos(dTheta), h/2 - da * Math.Sin(dTheta));
+            //var initialCrack = new PolyLine2D(CrackMouth, crackKink, crackTip);
             var lsmCrack = new TrackingExteriorCrackLSM(propagator, tipEnrichmentRadius, new RelativeAreaResolver(heavisideTol));
             lsmCrack.Mesh = mesh;
 
@@ -195,18 +198,21 @@ namespace ISAAR.MSolve.XFEM.Tests
             }
 
             // Mesh geometry interaction
-            lsmCrack.InitializeGeometry(initialCrack);
+            lsmCrack.InitializeGeometry(CrackMouth, crackKink);
+            lsmCrack.UpdateGeometry(dTheta, da);
             this.crack = lsmCrack;
         }
 
         public class Builder //: IBenchmarkBuilder
         {
             private readonly int numElementsY;
+            private readonly int numSubdomainsX;
             private readonly int numSubdomainsY;
 
-            public Builder(int numElementsY, int numSubdomainsY)
+            public Builder(int numElementsY, int numSubdomainsX, int numSubdomainsY)
             {
                 this.numElementsY = numElementsY;
+                this.numSubdomainsX = numSubdomainsX;
                 this.numSubdomainsY = numSubdomainsY;
             }
 
@@ -255,9 +261,9 @@ namespace ISAAR.MSolve.XFEM.Tests
 
             public DcbBenchmarkBelytschko BuildBenchmark()
             {
-                return new DcbBenchmarkBelytschko(numElementsY, numSubdomainsY, GrowthLength, TipEnrichmentRadius, 
-                    JintegralRadiusOverElementSize, LsmPlotDirectory, SubdomainPlotDirectory, MaxIterations, 
-                    HeavisideEnrichmentTolerance);
+                return new DcbBenchmarkBelytschko(numElementsY, numSubdomainsX, numSubdomainsY, GrowthLength, TipEnrichmentRadius, 
+                    JintegralRadiusOverElementSize, MaxIterations, HeavisideEnrichmentTolerance,
+                    LsmPlotDirectory, SubdomainPlotDirectory);
             }
         }
     }

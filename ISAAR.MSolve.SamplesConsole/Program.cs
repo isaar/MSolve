@@ -52,8 +52,9 @@ namespace ISAAR.MSolve.SamplesConsole
             //MeshPartitioningExamples.PartitionMeshes();
 
             // COMPDYN benchmarks
-            Fillet.Run();
+            //Fillet.Run();
             //Holes.Run();
+            DoubleCantileverBeam.Run();
         }
 
         private static void SolveBuildingInNoSoilSmall()

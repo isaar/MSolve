@@ -20,7 +20,7 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
 {
     public class DoubleCantileverBeam
     {
-        private const int numElementsY = 40;
+        private const int numElementsY = 11;
         private const double tipEnrichementRadius = 0.0;
         private const string crackPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\DCB\Plots";
         private const string subdomainPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\DCB\Plots\Subdomains";
@@ -28,19 +28,20 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
 
         public static void Run()
         {
+            int numSubdomainsX = 1;
             int numSubdomainsY = 1;
             var solverType = SolverType.Skyline;
 
-            DcbBenchmarkBelytschko benchmark = CreateBenchmark(numElementsY, numSubdomainsY, tipEnrichementRadius);
+            DcbBenchmarkBelytschko benchmark = CreateBenchmark(numElementsY, numSubdomainsX, numSubdomainsY, tipEnrichementRadius);
             ISolver solver = DefineSolver(benchmark, solverType);
             RunCrackPropagationAnalysis(benchmark, solver);
 
             Console.Write("\nEnd");
         }
 
-        private static DcbBenchmarkBelytschko CreateBenchmark(int numElementsY, int numSubdomainsY, double tipEnrichmentRadius)
+        private static DcbBenchmarkBelytschko CreateBenchmark(int numElementsY, int numSubdomainsX, int numSubdomainsY, double tipEnrichmentRadius)
         {
-            var builder = new DcbBenchmarkBelytschko.Builder(numElementsY, numSubdomainsY);
+            var builder = new DcbBenchmarkBelytschko.Builder(numElementsY, numSubdomainsX, numSubdomainsY);
             builder.LsmPlotDirectory = crackPlotDirectory;
             builder.SubdomainPlotDirectory = subdomainPlotDirectory;
             builder.HeavisideEnrichmentTolerance = 0.01;

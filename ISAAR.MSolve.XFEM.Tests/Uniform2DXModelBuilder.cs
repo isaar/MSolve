@@ -108,7 +108,6 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
                 }
             }
             double thickness = 1.0;
-            var dynamicProperties = new DynamicMaterial(1.0, 0.0, 0.0);
             IMaterialField2D[] materials = youngModuli.Select(
                 E => HomogeneousElasticMaterial2D.CreateMaterialForPlaneStress(E, 0.3, thickness)).ToArray();
 
@@ -141,8 +140,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
             }
 
             // Mesh usable for crack-mesh interaction
-            var mesh = new BidirectionalMesh2D<XNode, XContinuumElement2D>(vertices, elements, 
-                new Rectangular2DBoundary(0.0, DomainLengthX, 0.0, DomainLengthY));
+            model.Boundary = new Rectangular2DBoundary(0.0, DomainLengthX, 0.0, DomainLengthY);
+            var mesh = new BidirectionalMesh2D<XNode, XContinuumElement2D>(vertices, elements, model.Boundary);
 
             // Apply prescribed displacements
             foreach ((BoundaryRegion region, IDofType dof, double displacement) in prescribedDisplacements)
