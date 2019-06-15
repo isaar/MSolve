@@ -53,8 +53,9 @@ namespace ISAAR.MSolve.XFEM.Entities
         public void BuildXSubdomainDictionary()
         {
             foreach (IXFiniteElement element in ElementsDictionary.Values)
-                if (!SubdomainsDictionary.ContainsKey(element.Subdomain.ID))
-                    SubdomainsDictionary.Add(element.Subdomain.ID, element.Subdomain);
+            {
+                SubdomainsDictionary[element.Subdomain.ID] = element.Subdomain;
+            }
         }
         #endregion
     }

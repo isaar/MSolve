@@ -122,15 +122,16 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition
             var elements = new XContinuumElement2D[cells.Count];
             for (int e = 0; e < cells.Count; ++e)
             {
+                CellConnectivity<XNode> cell = cells[e];
                 int NumSubdomainsContainingThis = 0;
                 for (int s = 0; s < numTotalSubdomains; ++s)
                 {
-                    if (boundaries[s].Contains(cells[e], meshTolerance))
+                    if (boundaries[s].Contains(cell, meshTolerance))
                     {
                         ++NumSubdomainsContainingThis;
 
                         // Create the element
-                        XContinuumElement2D element = elementFactories[s].CreateElement(e, cells[e].CellType, cells[e].Vertices);
+                        XContinuumElement2D element = elementFactories[s].CreateElement(e, cell.CellType, cell.Vertices);
                         elements[e] = element;
                         model.Elements.Add(element);
                         model.Subdomains[s].Elements.Add(element);

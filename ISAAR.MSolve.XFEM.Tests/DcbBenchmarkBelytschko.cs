@@ -30,6 +30,7 @@ using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Integration;
 using ISAAR.MSolve.XFEM.Materials;
+using ISAAR.MSolve.XFEM.Solvers;
 
 namespace ISAAR.MSolve.XFEM.Tests
 {
@@ -125,11 +126,13 @@ namespace ISAAR.MSolve.XFEM.Tests
 
         //public string PlotDirectory { get { return lsmPlotDirectory; } }
 
+        public TipAdaptivePartitioner Partitioner { get; set; } // Refactor its injection
+
         public void Analyze(ISolver solver)
         {
             var problem = new ProblemStructural(Model, solver);
             var analyzer = new QuasiStaticCrackPropagationAnalyzer(Model, solver, /*problem,*/ crack, fractureToughness,
-                maxIterations);
+                maxIterations, Partitioner);
 
             // Subdomain plots
             if (subdomainPlotDirectory != null)
@@ -143,7 +146,6 @@ namespace ISAAR.MSolve.XFEM.Tests
 
             analyzer.Initialize();
             analyzer.Analyze();
-
         }
 
         public void InitializeModel()
@@ -182,8 +184,10 @@ namespace ISAAR.MSolve.XFEM.Tests
 
             CrackMouth = new CartesianPoint(0.0, h/2);
             var crackKink = new CartesianPoint(a, h / 2);
+            var initialCrack = new PolyLine2D(CrackMouth, crackKink);
+            initialCrack.UpdateGeometry(-dTheta, da);
             //var crackTip = new CartesianPoint(a + da * Math.Cos(dTheta), h/2 - da * Math.Sin(dTheta));
-            //var initialCrack = new PolyLine2D(CrackMouth, crackKink, crackTip);
+
             var lsmCrack = new TrackingExteriorCrackLSM(propagator, tipEnrichmentRadius, new RelativeAreaResolver(heavisideTol));
             lsmCrack.Mesh = mesh;
 
@@ -198,8 +202,8 @@ namespace ISAAR.MSolve.XFEM.Tests
             }
 
             // Mesh geometry interaction
-            lsmCrack.InitializeGeometry(CrackMouth, crackKink);
-            lsmCrack.UpdateGeometry(dTheta, da);
+            lsmCrack.InitializeGeometry(initialCrack);
+            //lsmCrack.UpdateGeometry(-dTheta, da);
             this.crack = lsmCrack;
         }
 
@@ -248,7 +252,7 @@ namespace ISAAR.MSolve.XFEM.Tests
             /// The maximum number of crack propagation steps. The analysis may stop earlier if the crack has reached the domain 
             /// boundary or if the fracture toughness is exceeded.
             /// </summary>
-            public int MaxIterations { get; set; } = int.MaxValue;
+            public int MaxIterations { get; set; } = 8; //TODO: After that I noticed very weird behaviour
 
             public string PropagationPath { get; set; }
 

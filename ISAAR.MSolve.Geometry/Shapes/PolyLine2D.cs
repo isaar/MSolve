@@ -8,7 +8,8 @@ namespace ISAAR.MSolve.Geometry.Shapes
 {
     public class PolyLine2D : ICurve2D
     {
-        private readonly List<double> angles;
+        private readonly List<double> anglesBetweenSegments;
+        private readonly List<double> anglesOfSegments;
         private readonly List<DirectedSegment2D> segments;
         private readonly List<CartesianPoint> vertices;
 
@@ -16,11 +17,16 @@ namespace ISAAR.MSolve.Geometry.Shapes
         {
             vertices = new List<CartesianPoint>();
             segments = new List<DirectedSegment2D>();
-            angles = new List<double>();
+            anglesBetweenSegments = new List<double>();
+            anglesOfSegments = new List<double>();
 
             vertices.Add(first);
             vertices.Add(second);
             segments.Add(new DirectedSegment2D(first, second));
+
+            double dx = second.X - first.X;
+            double dy = second.Y - first.Y;
+            anglesOfSegments.Add(Math.Atan2(dy, dx));
         }
 
         public CartesianPoint End { get { return vertices[vertices.Count - 1]; } }
@@ -82,7 +88,7 @@ namespace ISAAR.MSolve.Geometry.Shapes
                         double dx = point.X - vertices[i].X;
                         double dy = point.Y - vertices[i].Y;
                         double distance = Math.Sqrt(dx * dx + dy * dy);
-                        int sign = -Math.Sign(angles[i - 1]); // If growth angle > 0, the convex angle faces the positive area.
+                        int sign = -Math.Sign(anglesBetweenSegments[i - 1]); // If growth angle > 0, the convex angle faces the positive area.
                         distances.Add(sign * distance);
                     }
                     afterPreviousSegment = false;
@@ -106,7 +112,7 @@ namespace ISAAR.MSolve.Geometry.Shapes
                     double dx = point.X - vertices[last].X;
                     double dy = point.Y - vertices[last].Y;
                     double distance = Math.Sqrt(dx * dx + dy * dy);
-                    int sign = -Math.Sign(angles[last - 1]); // If growth angle > 0, the convex angle faces the positive area.
+                    int sign = -Math.Sign(anglesBetweenSegments[last - 1]); // If growth angle > 0, the convex angle faces the positive area.
                     distances.Add(sign * distance);
                 }
                 afterPreviousSegment = false;
@@ -129,6 +135,21 @@ namespace ISAAR.MSolve.Geometry.Shapes
             double dx = firstSegmentStart.X - firstSegmentEnd.X;
             double dy = firstSegmentStart.Y - firstSegmentEnd.Y;
             return Math.Atan2(dy, dx);
+        }
+
+        public void UpdateGeometry(double angleToLastSegment, double length)
+        {
+            double lastGlobalAngle = anglesOfSegments[anglesOfSegments.Count - 1];
+            double newGlobalAngle = MathUtilities.WrapAngle(angleToLastSegment + lastGlobalAngle);
+            double dx = length * Math.Cos(newGlobalAngle);
+            double dy = length * Math.Sin(newGlobalAngle);
+
+            var lastPoint = Vertices[Vertices.Count - 1];
+            var newPoint = new CartesianPoint(lastPoint.X + dx, lastPoint.Y + dy);
+            vertices.Add(newPoint);
+            segments.Add(new DirectedSegment2D(lastPoint, newPoint));
+            anglesBetweenSegments.Add(angleToLastSegment); // These are independent of the global coordinate system
+            anglesOfSegments.Add(newGlobalAngle);
         }
 
         // Perhaps geometry classes should be decoupled from elements and interact through polygons instead.

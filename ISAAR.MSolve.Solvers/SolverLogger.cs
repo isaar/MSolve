@@ -170,8 +170,8 @@ namespace ISAAR.MSolve.Solvers
                         minResNorm = (res < minResNorm) ? res : minResNorm;
                         maxResNorm = (res < maxResNorm) ? res : maxResNorm;
                     }
-                    Console.WriteLine($"Iterative algorithm iterations: min = {minIterations} - max = {maxIterations}");
-                    Console.WriteLine($"Iterative algorithm residual norm ratio: min = {minResNorm} - max = {maxResNorm}");
+                    writer.WriteLine($"Iterative algorithm iterations: min = {minIterations} - max = {maxIterations}");
+                    writer.WriteLine($"Iterative algorithm residual norm ratio: min = {minResNorm} - max = {maxResNorm}");
                 }
 
                 writer.WriteLine();

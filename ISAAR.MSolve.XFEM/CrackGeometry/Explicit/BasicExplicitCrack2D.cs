@@ -462,7 +462,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
                         double dx = globalPoint.X - Vertices[i].X;
                         double dy = globalPoint.Y - Vertices[i].Y;
                         double distance = Math.Sqrt(dx * dx + dy * dy);
-                        int sign = -Math.Sign(Angles[i-1]); // If growth angle > 0, the convex angle faces the positive area.
+                        int sign = -Math.Sign(Angles[i - 1]); // If growth angle > 0, the convex angle faces the positive area.
                         distances.Add(sign * distance);
                     }
                     afterPreviousSegment = false;
