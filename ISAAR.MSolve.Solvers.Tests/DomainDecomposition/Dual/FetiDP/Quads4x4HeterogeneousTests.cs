@@ -43,7 +43,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             var fetiMatrices = new DenseFetiDPSubdomainMatrixManager.Factory();
             var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodes);
             var fetiSolverBuilder = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices);
-            fetiSolverBuilder.InterfaceProblemSolver = interfaceSolverBuilder.Build(model);
+            fetiSolverBuilder.InterfaceProblemSolver = interfaceSolverBuilder.Build();
             fetiSolverBuilder.ProblemIsHomogeneous = false;
             var preconditionerFactory = new DirichletPreconditioner.Factory();
             fetiSolverBuilder.PreconditionerFactory = preconditionerFactory;
@@ -135,11 +135,11 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             // Setup solver
             var interfaceSolverBuilder = new FetiDPInterfaceProblemSolver.Builder();
             interfaceSolverBuilder.PcgConvergenceTolerance = 1E-7;
-            var fetiMatrices = new SkylineFetiDPSubdomainMatrixManager.Factory();
-            //var fetiMatrices = new DenseFetiDPSubdomainMatrixManager.Factory();
+            //var fetiMatrices = new SkylineFetiDPSubdomainMatrixManager.Factory();
+            var fetiMatrices = new DenseFetiDPSubdomainMatrixManager.Factory();
             var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodes);
             var fetiSolverBuilder = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices);
-            fetiSolverBuilder.InterfaceProblemSolver = interfaceSolverBuilder.Build(model);
+            fetiSolverBuilder.InterfaceProblemSolver = interfaceSolverBuilder.Build();
             fetiSolverBuilder.ProblemIsHomogeneous = false;
             fetiSolverBuilder.PreconditionerFactory = new DirichletPreconditioner.Factory();
             FetiDPSolver fetiSolver = fetiSolverBuilder.BuildSolver(model);

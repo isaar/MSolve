@@ -104,7 +104,7 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                 builder.ProblemIsHomogeneous = true;
                 var interfaceProblemSolverBuilder = new FetiDPInterfaceProblemSolver.Builder();
                 interfaceProblemSolverBuilder.PcgConvergenceTolerance = 1E-7;
-                builder.InterfaceProblemSolver = interfaceProblemSolverBuilder.Build(benchmark.Model);
+                builder.InterfaceProblemSolver = interfaceProblemSolverBuilder.Build();
                 return builder.BuildSolver(benchmark.Model);
             }
             else throw new ArgumentException("Invalid solver choice.");

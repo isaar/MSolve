@@ -431,11 +431,11 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             var dofSeparator = (FetiDPDofSeparator)fi.GetValue(solver);
 
             // Calculate the coarse problem matrix and rhs
-            FetiDPInterfaceProblemSolver interfaceSolver = new FetiDPInterfaceProblemSolver.Builder().Build(model);
-            Vector globalFcStar = interfaceSolver.CreateCoarseProblemRhs(dofSeparator, matrixManagers, fr, fbc);
-            MethodInfo method = interfaceSolver.GetType().GetMethod("CreateGlobalKccStar",
+            var coarseSolver = new DenseFetiDPCoarseProblemSolver(model.Subdomains);
+            Vector globalFcStar = coarseSolver.CreateCoarseProblemRhs(dofSeparator, matrixManagers, fr, fbc);
+            MethodInfo method = coarseSolver.GetType().GetMethod("CreateGlobalKccStar",
                 BindingFlags.NonPublic | BindingFlags.Instance); // reflection for the private method
-            Matrix globalKccStar = (Matrix)method.Invoke(interfaceSolver, new object[] { dofSeparator, matrixManagers });
+            Matrix globalKccStar = (Matrix)method.Invoke(coarseSolver, new object[] { dofSeparator, matrixManagers });
 
             // Check against expected matrices
             var expectedKccStar = MatrixKccStar;
@@ -531,23 +531,25 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             var dofSeparator = (FetiDPDofSeparator)fi.GetValue(solver);
 
             // Hardcoded coarse problem matrix and rhs
-            FetiDPInterfaceProblemSolver interfaceSolver = new FetiDPInterfaceProblemSolver.Builder().Build(model);
+            var coarseSolver = new DenseFetiDPCoarseProblemSolver(model.Subdomains);
             Vector globalFcStar = VectorFcStar;
-            CholeskyFull factorKccStar = MatrixKccStar.FactorCholesky(false); // It must be set as a private field using reflection.
-            fi = typeof(FetiDPInterfaceProblemSolver).GetField("factorizedGlobalKccStar",
+            Matrix inverseKccStar = MatrixKccStar.Invert(); // It must be set as a private field using reflection.
+            fi = typeof(DenseFetiDPCoarseProblemSolver).GetField("inverseGlobalKccStar",
                 BindingFlags.NonPublic | BindingFlags.Instance);
-            fi.SetValue(interfaceSolver, factorKccStar);
+            fi.SetValue(coarseSolver, inverseKccStar);
 
             // Create the rhs vector of the interface problem 
+            FetiDPInterfaceProblemSolver interfaceSolver = new FetiDPInterfaceProblemSolver.Builder().Build();
             var flexibility = new FetiDPFlexibilityMatrix(dofSeparator, lagrangeEnumerator, matrixManagers);
             Vector fcStar = VectorFcStar;
             MethodInfo method = interfaceSolver.GetType().GetMethod("CreateInterfaceProblemRhs",
                 BindingFlags.NonPublic | BindingFlags.Instance); // reflection for the private method
-            Vector interfaceRhs = (Vector)method.Invoke(interfaceSolver, new object[] { flexibility, fcStar, dr });
+            Vector interfaceRhs = (Vector)method.Invoke(interfaceSolver, new object[] { flexibility, coarseSolver, fcStar, dr });
 
             // Create the matrix of the interface problem by multiplying with identity matrix
             int numLagranges = lagrangeEnumerator.NumLagrangeMultipliers;
-            var interfaceMatrixImplicit = new FetiDPInterfaceProblemSolver.InterfaceProblemMatrix(flexibility, factorKccStar);
+            var interfaceMatrixImplicit = 
+                new FetiDPInterfaceProblemSolver.InterfaceProblemMatrix(flexibility, coarseSolver);
             Matrix interfaceMatrix = MultiplyWithIdentity(numLagranges, numLagranges, interfaceMatrixImplicit.Multiply); // Action<T> is contravariant!!!
 
             // Check against expected linear system
@@ -581,12 +583,12 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             var dofSeparator = (FetiDPDofSeparator)fi.GetValue(solver);
 
             // Hardcoded coarse problem matrix and rhs
-            FetiDPInterfaceProblemSolver interfaceSolver = new FetiDPInterfaceProblemSolver.Builder().Build(model);
+            var coarseSolver = new DenseFetiDPCoarseProblemSolver(model.Subdomains);
             Vector globalFcStar = VectorFcStar;
-            CholeskyFull factorKccStar = MatrixKccStar.FactorCholesky(false); // It must be set as a private field using reflection.
-            fi = typeof(FetiDPInterfaceProblemSolver).GetField("factorizedGlobalKccStar",
+            Matrix inverseKccStar = MatrixKccStar.Invert(); // It must be set as a private field using reflection.
+            fi = typeof(DenseFetiDPCoarseProblemSolver).GetField("inverseGlobalKccStar",
                 BindingFlags.NonPublic | BindingFlags.Instance);
-            fi.SetValue(interfaceSolver, factorKccStar);
+            fi.SetValue(coarseSolver, inverseKccStar);
 
             // Dirichlet preconditioner
             var precondFactory = new DirichletPreconditioner.Factory();
@@ -598,10 +600,11 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
                 stiffnessDistribution, dofSeparator, lagrangeEnumerator, matrixManagersPreconditioning);
 
             // Solve the interface problem
+            FetiDPInterfaceProblemSolver interfaceSolver = new FetiDPInterfaceProblemSolver.Builder().Build();
             var flexibility = new FetiDPFlexibilityMatrix(dofSeparator, lagrangeEnumerator, matrixManagers);
             var logger = new SolverLogger("mock FETI-DP");
-            (Vector lagranges, Vector uc) =
-                interfaceSolver.SolveInterfaceProblem(flexibility, preconditioner, globalFcStar, dr, GlobalForcesNorm, logger);
+            (Vector lagranges, Vector uc) = interfaceSolver.SolveInterfaceProblem(
+                flexibility, preconditioner, coarseSolver, globalFcStar, dr, GlobalForcesNorm, logger);
 
             // Check against expected solution
             double tol = 1E-7;

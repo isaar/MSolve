@@ -9,6 +9,7 @@ using ISAAR.MSolve.LinearAlgebra.SchurComplements;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem;
 using ISAAR.MSolve.Solvers.LinearSystems;
 
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
@@ -355,6 +356,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
 
         public class Factory : IFetiDPSubdomainMatrixManagerFactory
         {
+            public IFetiDPCoarseProblemSolver CreateCoarseProblemSolver(IReadOnlyList<ISubdomain> subdomains)
+                => throw new NotImplementedException();
+
             public IFetiDPSubdomainMatrixManager CreateMatricesManager(ISubdomain subdomain)
                 => new SkylineFetiDPSubdomainMatrixManager(subdomain);
         }
