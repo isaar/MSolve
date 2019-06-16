@@ -189,6 +189,34 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         }
 
         /// <summary>
+        /// Optimization of <see cref="AddSubmatrixSymmetric(IIndexable2D, int[], int[])"/> if all entries of the submatrix are 
+        /// to be considered. In this case there only 1 array is needed for the dof mapping.
+        /// </summary>
+        /// <param name="subMatrix"></param>
+        /// <param name="subToGlobalIndices"></param>
+        public void AddSubmatrixSymmetric(IIndexable2D subMatrix, int[] subToGlobalIndices)
+        {
+            Debug.Assert(subMatrix.NumRows == subMatrix.NumColumns);
+
+            int numSubRows = subToGlobalIndices.Length;
+            for (int j = 0; j < numSubRows; ++j)
+            {
+                int globalCol = subToGlobalIndices[j];
+                for (int i = 0; i < numSubRows; ++i)
+                {
+                    int globalRow = subToGlobalIndices[i];
+
+                    int height = globalCol - globalRow;
+                    if (height >= 0) // Only process the superdiagonal entries
+                    {
+                        int offset = diagOffsets[globalCol] + globalCol - globalRow;
+                        values[offset] += subMatrix[i, j];
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// See <see cref="ISymmetricMatrixBuilder.AddSubmatrixToLowerTriangle(IIndexable2D, IReadOnlyDictionary{int, int}, 
         /// IReadOnlyDictionary{int, int})"/>
         /// </summary>

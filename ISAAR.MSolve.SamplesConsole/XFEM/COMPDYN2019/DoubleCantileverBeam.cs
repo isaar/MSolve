@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
 {
     public class DoubleCantileverBeam
     {
-        private const int numElementsY = 150;
+        private const int numElementsY = 50;
         private const double tipEnrichementRadius = 0.0;
         private const string crackPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\DCB\Plots\LSM";
         private const string subdomainPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\DCB\Plots\Subdomains";
@@ -34,7 +34,7 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             //int numSubdomainsY = 1;
             //var solverType = SolverType.Skyline;
 
-            int numSubdomainsY = 25;
+            int numSubdomainsY = 5;
             int numSubdomainsX = 3 * numSubdomainsY;
             var solverType = SolverType.FetiDP;
 
@@ -81,9 +81,9 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                 foreach (int s in benchmark.Model.Subdomains.Keys) factorizationTolerances[s] = tol;
                 var fetiMatrices = new SkylineFeti1SubdomainMatrixManager.Factory();
                 var builder = new Feti1Solver.Builder(fetiMatrices, factorizationTolerances);
-                builder.PreconditionerFactory = new LumpedPreconditioner.Factory();
+                //builder.PreconditionerFactory = new LumpedPreconditioner.Factory();
                 //builder.PreconditionerFactory = new DiagonalDirichletPreconditioner.Factory();
-                //builder.PreconditionerFactory = new DirichletPreconditioner.Factory();
+                builder.PreconditionerFactory = new DirichletPreconditioner.Factory();
                 builder.ProblemIsHomogeneous = true;
                 var interfaceProblemSolverBuilder = new Feti1ProjectedInterfaceProblemSolver.Builder();
                 interfaceProblemSolverBuilder.PcgConvergenceTolerance = 1E-7;

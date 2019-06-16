@@ -331,7 +331,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                 flexibility = new FetiDPFlexibilityMatrix(dofSeparator, lagrangeEnumerator, matrixManagers);
 
                 // Static condensation of remainder dofs (Schur complement).
-                coarseProblemSolver.CreateAndInvertCoarseProblemMatrix(dofSeparator, matrixManagers);
+                coarseProblemSolver.CreateAndInvertCoarseProblemMatrix(CornerNodesOfSubdomains, dofSeparator, matrixManagers);
                 watch.Stop();
                 Logger.LogTaskDuration("Setting up interface problem", watch.ElapsedMilliseconds);
                 watch.Reset();

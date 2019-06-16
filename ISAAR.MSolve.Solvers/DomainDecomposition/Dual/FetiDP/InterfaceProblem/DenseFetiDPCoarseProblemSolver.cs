@@ -5,7 +5,6 @@ using System.Text;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
-using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices;
 
@@ -26,8 +25,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
             inverseGlobalKccStar = null;
         }
 
-        public void CreateAndInvertCoarseProblemMatrix(FetiDPDofSeparator dofSeparator, 
-            Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers)
+        public void CreateAndInvertCoarseProblemMatrix(Dictionary<int, HashSet<INode>> cornerNodesOfSubdomains,
+            FetiDPDofSeparator dofSeparator, Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers)
         {
             this.inverseGlobalKccStar = CreateGlobalKccStar(dofSeparator, matrixManagers);
             inverseGlobalKccStar.InvertInPlace();
@@ -39,7 +38,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
         {
             // Static condensation for the force vectors
             var globalFcStar = Vector.CreateZero(dofSeparator.NumGlobalCornerDofs);
-            foreach (int s in matrixManagers.Keys)
+            for (int s = 0; s < subdomains.Count; ++s)
             {
                 IFetiDPSubdomainMatrixManager matrices = matrixManagers[s];
 
@@ -61,7 +60,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
         {
             // Static condensation of remainder dofs (Schur complement).
             var globalKccStar = Matrix.CreateZero(dofSeparator.NumGlobalCornerDofs, dofSeparator.NumGlobalCornerDofs);
-            foreach (int s in matrixManagers.Keys)
+            for (int s = 0; s < subdomains.Count; ++s)
             {
                 IFetiDPSubdomainMatrixManager matrices = matrixManagers[s];
 
