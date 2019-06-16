@@ -86,7 +86,7 @@ namespace ISAAR.MSolve.XFEM.Analyzers
                 if (partitioner != null) partitioner.UpdateSubdomains();
 
                 // Identify unmodified subdomains to avoid fully processing them again.
-                UpdateModifiedSubdomains(); 
+                UpdateModifiedSubdomains();
 
                 // Order and count dofs
                 solver.OrderDofs(false);
