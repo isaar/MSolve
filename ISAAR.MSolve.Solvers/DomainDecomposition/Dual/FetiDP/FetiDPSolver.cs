@@ -28,6 +28,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
     public class FetiDPSolver : ISolver
     {
         internal const string name = "FETI-DP Solver"; // for error messages
+        private readonly IFetiDPCoarseProblemSolver coarseProblemSolver;
         private readonly ICornerNodeSelection cornerNodeSelection;
         private readonly ICrosspointStrategy crosspointStrategy = new FullyRedundantConstraints();
         private readonly IDofOrderer dofOrderer;
@@ -55,8 +56,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 
         private FetiDPSolver(IStructuralModel model, ICornerNodeSelection cornerNodeSelection,
             IFetiDPSubdomainMatrixManagerFactory matrixManagerFactory, IDofOrderer dofOrderer, 
-            IFetiPreconditionerFactory preconditionerFactory, IFetiDPInterfaceProblemSolver interfaceProblemSolver, 
-            bool problemIsHomogeneous)
+            IFetiPreconditionerFactory preconditionerFactory, bool problemIsHomogeneous, 
+            IFetiDPInterfaceProblemSolver interfaceProblemSolver)
         {
             // Model
             if (model.Subdomains.Count == 1) throw new InvalidSolverException(
@@ -93,6 +94,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             this.preconditionerFactory = preconditionerFactory;
 
             // Interface problem
+            this.coarseProblemSolver = matrixManagerFactory.CreateCoarseProblemSolver(model.Subdomains);
             this.interfaceProblemSolver = interfaceProblemSolver;
 
             // Homogeneous/heterogeneous problems
@@ -201,7 +203,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             }
             flexibility = null;
             preconditioner = null;
-            interfaceProblemSolver.ClearCoarseProblemMatrix();
+            coarseProblemSolver.ClearCoarseProblemMatrix();
 
             //stiffnessDistribution = null; //WARNING: do not dispose of this. It is updated when BuildGlobalMatrix() is called.
         }
@@ -329,7 +331,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                 flexibility = new FetiDPFlexibilityMatrix(dofSeparator, lagrangeEnumerator, matrixManagers);
 
                 // Static condensation of remainder dofs (Schur complement).
-                interfaceProblemSolver.CreateCoarseProblemMatrix(dofSeparator, matrixManagers);
+                coarseProblemSolver.CreateAndInvertCoarseProblemMatrix(CornerNodesOfSubdomains, dofSeparator, matrixManagers);
                 watch.Stop();
                 Logger.LogTaskDuration("Setting up interface problem", watch.ElapsedMilliseconds);
                 watch.Reset();
@@ -339,7 +341,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 
             // Static condensation for the force vectors
             watch.Start();
-            Vector globalFcStar = interfaceProblemSolver.CreateCoarseProblemRhs(dofSeparator, matrixManagers, fr, fbc);
+            Vector globalFcStar = coarseProblemSolver.CreateCoarseProblemRhs(dofSeparator, matrixManagers, fr, fbc);
 
             // Calculate the rhs vectors of the interface system
             Vector dr = CalcDisconnectedDisplacements(fr);
@@ -350,7 +352,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             // Solve the interface problem
             watch.Restart();
             (Vector lagranges, Vector uc) = interfaceProblemSolver.SolveInterfaceProblem(flexibility, preconditioner, 
-                globalFcStar, dr, globalForcesNorm, Logger);
+                coarseProblemSolver, globalFcStar, dr, globalForcesNorm, Logger);
             watch.Stop();
             Logger.LogTaskDuration("Solving interface problem", watch.ElapsedMilliseconds);
 
@@ -438,10 +440,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 
         public class Builder
         {
-            private ICornerNodeSelection cornerNodeSelection;
-            private readonly IFetiDPSubdomainMatrixManagerFactory matrixManagerFactory;
+            private readonly ICornerNodeSelection cornerNodeSelection;
+            private readonly IFetiDPSubdomainMatrixManagerFactory matrixManagerFactory; 
 
-            public Builder(ICornerNodeSelection cornerNodeSelection, IFetiDPSubdomainMatrixManagerFactory matrixManagerFactory)
+            public Builder(ICornerNodeSelection cornerNodeSelection, 
+                IFetiDPSubdomainMatrixManagerFactory matrixManagerFactory)
             {
                 this.cornerNodeSelection = cornerNodeSelection;
                 this.matrixManagerFactory = matrixManagerFactory;
@@ -451,24 +454,14 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             public IDofOrderer DofOrderer { get; set; } =
                 new ReusingDofOrderer(new NodeMajorDofOrderingStrategy(), new NullReordering());
 
-            public IFetiDPInterfaceProblemSolver InterfaceProblemSolver { get; set; } = null;
+            public IFetiDPInterfaceProblemSolver InterfaceProblemSolver { get; set; } 
+                = new FetiDPInterfaceProblemSolver.Builder().Build();
             public IFetiPreconditionerFactory PreconditionerFactory { get; set; } = new LumpedPreconditioner.Factory();
             public bool ProblemIsHomogeneous { get; set; } = true;
 
             public FetiDPSolver BuildSolver(IStructuralModel model)
-            {
-                if (InterfaceProblemSolver != null)
-                {
-                    return new FetiDPSolver(model, cornerNodeSelection, matrixManagerFactory, DofOrderer, PreconditionerFactory,
-                        InterfaceProblemSolver, ProblemIsHomogeneous);
-                }
-                else
-                {
-                    IFetiDPInterfaceProblemSolver interfaceSolver = new FetiDPInterfaceProblemSolver.Builder().Build(model);
-                    return new FetiDPSolver(model, cornerNodeSelection, matrixManagerFactory, DofOrderer, PreconditionerFactory,
-                        interfaceSolver, ProblemIsHomogeneous);
-                }
-            }
+                => new FetiDPSolver(model, cornerNodeSelection, matrixManagerFactory, DofOrderer, PreconditionerFactory,
+                        ProblemIsHomogeneous, InterfaceProblemSolver);            
         }
     }
 }

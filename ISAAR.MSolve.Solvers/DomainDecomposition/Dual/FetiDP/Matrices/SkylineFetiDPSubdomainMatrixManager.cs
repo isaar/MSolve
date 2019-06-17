@@ -9,6 +9,7 @@ using ISAAR.MSolve.LinearAlgebra.SchurComplements;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem;
 using ISAAR.MSolve.Solvers.LinearSystems;
 
 //TODO: Kff should probably be a DOK. It will only be used to extract Krr, Krc, Kcc. 
@@ -357,6 +358,9 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
 
         public class Factory : IFetiDPSubdomainMatrixManagerFactory
         {
+            public IFetiDPCoarseProblemSolver CreateCoarseProblemSolver(IReadOnlyList<ISubdomain> subdomains)
+                => new SkylineFetiDPCoarseProblemSolver(subdomains);
+
             public IFetiDPSubdomainMatrixManager CreateMatricesManager(ISubdomain subdomain)
                 => new SkylineFetiDPSubdomainMatrixManager(subdomain);
         }

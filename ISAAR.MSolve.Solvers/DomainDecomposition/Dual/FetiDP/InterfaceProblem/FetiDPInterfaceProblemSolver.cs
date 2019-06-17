@@ -27,63 +27,25 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
         private readonly IMaxIterationsProvider maxIterationsProvider;
         private readonly double pcgConvergenceTolerance;
         private readonly IFetiPcgConvergenceFactory pcgConvergenceStrategyFactory;
-        private readonly IReadOnlyList<ISubdomain> subdomains;
-        private CholeskyFull factorizedGlobalKccStar;
 
-        public FetiDPInterfaceProblemSolver(IReadOnlyList<ISubdomain> subdomains, IMaxIterationsProvider maxIterationsProvider,
+        public FetiDPInterfaceProblemSolver(IMaxIterationsProvider maxIterationsProvider,
             double pcgConvergenceTolerance, IFetiPcgConvergenceFactory pcgConvergenceStrategyFactory)
         {
-            this.subdomains = subdomains;
             this.maxIterationsProvider = maxIterationsProvider;
             this.pcgConvergenceTolerance = pcgConvergenceTolerance;
             this.pcgConvergenceStrategyFactory = pcgConvergenceStrategyFactory;
         }
 
-        public void ClearCoarseProblemMatrix()
-        {
-            factorizedGlobalKccStar = null;
-        }
-
-        public void CreateCoarseProblemMatrix(FetiDPDofSeparator dofSeparator, 
-            Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers)
-        {
-            // Static condensation of remainder dofs (Schur complement).
-            var globalKccStar = CreateGlobalKccStar(dofSeparator, matrixManagers);
-            factorizedGlobalKccStar = globalKccStar.FactorCholesky(true);
-        }
-
-        public Vector CreateCoarseProblemRhs(FetiDPDofSeparator dofSeparator, 
-            Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers, 
-            Dictionary<int, Vector> fr, Dictionary<int, Vector> fbc)
-        {
-            // Static condensation for the force vectors
-            var globalFcStar = Vector.CreateZero(dofSeparator.NumGlobalCornerDofs);
-            foreach (int s in matrixManagers.Keys)
-            {
-                IFetiDPSubdomainMatrixManager matrices = matrixManagers[s];
-
-                // fcStar[s] = fbc[s] - Krc[s]^T * inv(Krr[s]) * fr[s]
-                // globalFcStar = sum_over_s(Lc[s]^T * fcStar[s])
-                UnsignedBooleanMatrix Lc = dofSeparator.CornerBooleanMatrices[s];
-                Vector temp = matrices.MultiplyInverseKrrTimes(fr[s]);
-                temp = matrices.MultiplyKcrTimes(temp);
-                Vector fcStar = fbc[s] - temp;
-                globalFcStar.AddIntoThis(Lc.Multiply(fcStar, true));
-            }
-            return globalFcStar;
-        }
-
-        public Vector SolveCoarseProblem(Vector rhs) => factorizedGlobalKccStar.SolveLinearSystem(rhs);
-
         public (Vector lagrangeMultipliers, Vector cornerDisplacements) SolveInterfaceProblem(FetiDPFlexibilityMatrix flexibility, 
-            IFetiPreconditioner preconditioner, Vector globalFcStar, Vector dr, double globalForcesNorm, SolverLogger logger)
+            IFetiPreconditioner preconditioner, IFetiDPCoarseProblemSolver coarseProblemSolver, 
+            Vector globalFcStar, Vector dr, double globalForcesNorm, SolverLogger logger)
         {
             int systemOrder = flexibility.Order;
 
             // Matrix, preconditioner & rhs
-            var pcgMatrix = new InterfaceProblemMatrix(flexibility, factorizedGlobalKccStar);
+            var pcgMatrix = new InterfaceProblemMatrix(flexibility, coarseProblemSolver);
             var pcgPreconditioner = new InterfaceProblemPreconditioner(preconditioner);
-            Vector pcgRhs = CreateInterfaceProblemRhs(flexibility, globalFcStar, dr);
+            Vector pcgRhs = CreateInterfaceProblemRhs(flexibility, coarseProblemSolver, globalFcStar, dr);
 
             // Solve the interface problem using PCG algorithm
             var pcgBuilder = new PcgAlgorithm.Builder();
@@ -107,39 +69,16 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
             // Calculate corner displacements: uc = inv(KccStar) * (fcStar + FIrc^T * lagranges)
             Vector uc = flexibility.MultiplyTransposedFIrc(lagranges);
             uc.AddIntoThis(globalFcStar);
-            uc = factorizedGlobalKccStar.SolveLinearSystem(uc);
+            uc = coarseProblemSolver.MultiplyInverseCoarseProblemMatrixTimes(uc);
 
             return (lagranges, uc);
         }
 
-        private Matrix CreateGlobalKccStar(FetiDPDofSeparator dofSeparator,
-            Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers)
-        {
-            // Static condensation of remainder dofs (Schur complement).
-            var globalKccStar = Matrix.CreateZero(dofSeparator.NumGlobalCornerDofs, dofSeparator.NumGlobalCornerDofs);
-            foreach (int s in matrixManagers.Keys)
-            {
-                IFetiDPSubdomainMatrixManager matrices = matrixManagers[s];
-
-                // KccStar[s] = Kcc[s] - Krc[s]^T * inv(Krr[s]) * Krc[s]
-                if (subdomains[s].StiffnessModified)
-                {
-                    Debug.WriteLine($"{this.GetType().Name}: Calculating Schur complement of remainder dofs" 
-                        + " for the stiffness of subdomain {s}");
-                    matrices.CalcSchurComplementOfRemainderDofs(); //TODO: At this point Kcc and Krc can be cleared. Maybe Krr too.
-                }
-
-                // globalKccStar = sum_over_s(Lc[s]^T * KccStar[s] * Lc[s])
-                UnsignedBooleanMatrix Lc = dofSeparator.CornerBooleanMatrices[s];
-                globalKccStar.AddIntoThis(Lc.ThisTransposeTimesOtherTimesThis(matrices.SchurComplementOfRemainderDofs));
-            }
-            return globalKccStar;
-        }
-
-        private Vector CreateInterfaceProblemRhs(FetiDPFlexibilityMatrix flexibility, Vector globalFcStar, Vector dr)
+        private Vector CreateInterfaceProblemRhs(FetiDPFlexibilityMatrix flexibility, 
+            IFetiDPCoarseProblemSolver coarseProblemSolver, Vector globalFcStar, Vector dr)
         {
             // rhs = dr - FIrc * inv(KccStar) * fcStar
-            Vector rhs = factorizedGlobalKccStar.SolveLinearSystem(globalFcStar);
+            Vector rhs = coarseProblemSolver.MultiplyInverseCoarseProblemMatrixTimes(globalFcStar);
             rhs = flexibility.MultiplyFIrc(rhs);
             rhs = dr - rhs;
             return rhs;
@@ -152,19 +91,19 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
                 new ApproximateResidualConvergence.Factory();
             public double PcgConvergenceTolerance { get; set; } = 1E-7;
 
-            public FetiDPInterfaceProblemSolver Build(IStructuralModel model) => new FetiDPInterfaceProblemSolver(
-                model.Subdomains, MaxIterationsProvider, PcgConvergenceTolerance, PcgConvergenceStrategyFactory);
+            public FetiDPInterfaceProblemSolver Build() => new FetiDPInterfaceProblemSolver(MaxIterationsProvider, 
+                PcgConvergenceTolerance, PcgConvergenceStrategyFactory);
         }
 
         internal class InterfaceProblemMatrix : ILinearTransformation
         {
+            private readonly IFetiDPCoarseProblemSolver coarseProblemSolver;
             private readonly FetiDPFlexibilityMatrix flexibility;
-            private readonly CholeskyFull factorizedGlobalKccStar;
 
-            internal InterfaceProblemMatrix(FetiDPFlexibilityMatrix flexibility, CholeskyFull factorizedGlobalKccStar)
+            internal InterfaceProblemMatrix(FetiDPFlexibilityMatrix flexibility, IFetiDPCoarseProblemSolver coarseProblemSolver)
             {
                 this.flexibility = flexibility;
-                this.factorizedGlobalKccStar = factorizedGlobalKccStar;
+                this.coarseProblemSolver = coarseProblemSolver;
             }
 
             public int NumColumns => flexibility.Order;
@@ -182,7 +121,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
                 rhs.Clear();
                 flexibility.MultiplyFIrr(lhs, rhs);
                 Vector temp = flexibility.MultiplyTransposedFIrc(lhs);
-                temp = factorizedGlobalKccStar.SolveLinearSystem(temp);
+                temp = coarseProblemSolver.MultiplyInverseCoarseProblemMatrixTimes(temp);
                 temp = flexibility.MultiplyFIrc(temp);
                 rhs.AddIntoThis(temp);
             }

@@ -99,7 +99,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         public TrackingExteriorCrackLSM(IPropagator propagator, double tipEnrichmentAreaRadius = 0.0) :
             this(propagator, tipEnrichmentAreaRadius, null)
         {
-            this.SingularityResolver = new RelativeAreaResolver();
+            this.SingularityResolver = new RelativeAreaResolver(1E-4);
         }
 
         // TODO: Not too fond of the setters, but at least the enrichments are immutable. Perhaps I can pass their

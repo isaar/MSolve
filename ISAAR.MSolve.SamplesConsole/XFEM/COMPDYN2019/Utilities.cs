@@ -11,6 +11,7 @@ using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.CornerNodes;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
@@ -38,6 +39,17 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                 // In 2D, if multiplicity > 2, the node is a crosspoint 
                 cornerNodes[subdomain.ID] = new HashSet<INode>(subdomain.Nodes.Where(
                     node => node.SubdomainsDictionary.Count > 2));
+            }
+            return cornerNodes;
+        }
+
+        public static Dictionary<int, HashSet<INode>> FindCornerNodesFromRectangleCorners(IStructuralModel model)
+        {
+            var cornerNodes = new Dictionary<int, HashSet<INode>>();
+            foreach (ISubdomain subdomain in model.Subdomains)
+            {
+                INode[] subdomainCorners = CornerNodeUtilities.FindCornersOfRectangle2D(subdomain);
+                cornerNodes[subdomain.ID] = new HashSet<INode>(subdomainCorners.Where(node => node.Constraints.Count == 0));
             }
             return cornerNodes;
         }

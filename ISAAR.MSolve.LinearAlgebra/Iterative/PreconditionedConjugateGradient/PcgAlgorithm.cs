@@ -78,7 +78,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient
 
                 // At this point we can check if CG has converged and exit, thus avoiding the uneccesary operations that follow.
                 residualNormRatio = convergence.EstimateResidualNormRatio(this);
-                //Debug.WriteLine($"PCG Iteration = {iteration}: residual norm ratio = {residualNormRatio}");
+                Debug.WriteLine($"PCG Iteration = {iteration}: residual norm ratio = {residualNormRatio}");
                 if (residualNormRatio <= residualTolerance)
                 {
                     return new IterativeStatistics

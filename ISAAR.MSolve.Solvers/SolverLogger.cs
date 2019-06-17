@@ -161,17 +161,21 @@ namespace ISAAR.MSolve.Solvers
                 if (iterativeAlgorithmData.Count == currentStep) // This is false for direct solvers
                 {
                     int minIterations = int.MaxValue, maxIterations = int.MinValue;
+                    double avgIterations = 0.0;
                     double minResNorm = double.MaxValue, maxResNorm = double.MinValue;
                     for (int i = 0; i < currentStep; ++i)
                     {
                         (int iter, double res) = iterativeAlgorithmData[i];
+                        avgIterations += iter;
                         minIterations = (iter < minIterations) ? iter : minIterations;
                         maxIterations = (iter > maxIterations) ? iter : maxIterations;
                         minResNorm = (res < minResNorm) ? res : minResNorm;
                         maxResNorm = (res < maxResNorm) ? res : maxResNorm;
                     }
-                    Console.WriteLine($"Iterative algorithm iterations: min = {minIterations} - max = {maxIterations}");
-                    Console.WriteLine($"Iterative algorithm residual norm ratio: min = {minResNorm} - max = {maxResNorm}");
+                    avgIterations /= currentStep;
+                    writer.WriteLine(
+                        $"Iterative algorithm iterations: min = {minIterations} - max = {maxIterations} - avg = {avgIterations}");
+                    writer.WriteLine($"Iterative algorithm residual norm ratio: min = {minResNorm} - max = {maxResNorm}");
                 }
 
                 writer.WriteLine();

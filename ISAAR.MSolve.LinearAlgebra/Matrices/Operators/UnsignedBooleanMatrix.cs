@@ -100,6 +100,24 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Operators
             return DenseStrategies.AreEqual(this, other, tolerance);
         }
 
+        /// <summary>
+        /// WARNING: this only works if this matrix is a mapping matrix L used in FETI solvers, meaning :
+        /// 1) There are more columns than rows.
+        /// 2) Each row of this matrix must have exactly one 1 and all other 0,
+        /// 3) Each column must have at most one 1. It is possible that a column is completely 0.
+        /// </summary>
+        //TODO: This should be the actual way this matrix is stored. The dictionaries should be for building it only.
+        public int[] GetRowsToColumnsMap()
+        {
+            var map = new int[NumRows];
+            for (int i = 0; i < NumRows; ++i)
+            {
+                Debug.Assert(data[i].Count == 1);
+                map[i] = data[i].First();
+            }
+            return map;
+        }
+
         public Vector Multiply(Vector vector, bool transposeThis = false)
         {
             if (transposeThis) return MultiplyTransposed(vector);

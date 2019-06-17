@@ -12,19 +12,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
 {
     public interface IFetiDPInterfaceProblemSolver
     {
-        void ClearCoarseProblemMatrix();
-
-        void CreateCoarseProblemMatrix(FetiDPDofSeparator dofSeparator, 
-            Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers);
-
-        Vector CreateCoarseProblemRhs(FetiDPDofSeparator dofSeparator, 
-            Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers, 
-            Dictionary<int, Vector> fr, Dictionary<int, Vector> fbc);
-
-        Vector SolveCoarseProblem(Vector rhs);
-
         (Vector lagrangeMultipliers, Vector cornerDisplacements) SolveInterfaceProblem(FetiDPFlexibilityMatrix flexibility, 
-            IFetiPreconditioner preconditioner, Vector globalFcStar, Vector dr,
+            IFetiPreconditioner preconditioner, IFetiDPCoarseProblemSolver coarseProblemSolver, Vector globalFcStar, Vector dr,
             double globalForcesNorm, SolverLogger logger);
     }
 }

@@ -14,6 +14,7 @@ using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.LinearSystems;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Entities;
+using ISAAR.MSolve.XFEM.Solvers;
 
 // TODO: fix a bug that happens when the crack has almost reached the boundary, is inside but no tip can be found
 namespace ISAAR.MSolve.XFEM.Analyzers
@@ -29,6 +30,7 @@ namespace ISAAR.MSolve.XFEM.Analyzers
         private readonly IReadOnlyDictionary<int, ILinearSystem> linearSystems;
         private readonly int maxIterations;
         private readonly XModel model;
+        private readonly TipAdaptivePartitioner partitioner; //TODO: Refactor its injection and usage
 
         //private readonly IStaticProvider problem; //TODO: refactor and use this instead
         private readonly ElementStructuralStiffnessProvider problem = new ElementStructuralStiffnessProvider();
@@ -38,7 +40,7 @@ namespace ISAAR.MSolve.XFEM.Analyzers
         private HashSet<ISubdomain> newTipEnrichedSubdomains;
 
         public QuasiStaticCrackPropagationAnalyzer(XModel model, ISolver solver, /*IStaticProvider problem,*/
-            ICrackDescription crack, double fractureToughness, int maxIterations)
+            ICrackDescription crack, double fractureToughness, int maxIterations, TipAdaptivePartitioner partitioner = null)
         {
             this.model = model;
             this.solver = solver;
@@ -47,6 +49,7 @@ namespace ISAAR.MSolve.XFEM.Analyzers
             this.crack = crack;
             this.fractureToughness = fractureToughness;
             this.maxIterations = maxIterations;
+            this.partitioner = partitioner;
 
             //TODO: Refactor problem structural and remove the next
             problem = new ElementStructuralStiffnessProvider();
@@ -74,9 +77,15 @@ namespace ISAAR.MSolve.XFEM.Analyzers
             for (analysisStep = 0; analysisStep < maxIterations; ++analysisStep)
             {
                 Debug.WriteLine($"Crack propagation step {analysisStep}");
+                Console.WriteLine($"Crack propagation step {analysisStep}");
 
                 // Apply the updated enrichements.
                 crack.UpdateEnrichments();
+
+                // Update the mesh partitioning, if necessary
+                if (partitioner != null) partitioner.UpdateSubdomains();
+
+                // Identify unmodified subdomains to avoid fully processing them again.
                 UpdateModifiedSubdomains();
 
                 // Order and count dofs
@@ -90,6 +99,9 @@ namespace ISAAR.MSolve.XFEM.Analyzers
                     }
                 }
 
+                // Plot domain decomposition data, if necessary
+                if (DDLogger != null) DDLogger.PlotSubdomains(model);
+
                 // Create the stiffness matrix and then the forces vector
                 //problem.ClearMatrices();
                 BuildMatrices();
@@ -102,9 +114,6 @@ namespace ISAAR.MSolve.XFEM.Analyzers
 
                 // Solve the linear system
                 solver.Solve();
-
-                // Plot domain decomposition data, if necessary
-                if (DDLogger != null) DDLogger.PlotSubdomains(model);
 
                 //// Output field data
                 //if (fieldOutput != null)
@@ -188,6 +197,19 @@ namespace ISAAR.MSolve.XFEM.Analyzers
             return Math.Sqrt(sifMode1 * sifMode1 + sifMode2 * sifMode2);
         }
 
+        private HashSet<ISubdomain> FindSubdomainsWithNewHeavisideEnrichedNodes()
+        {
+            var newHeavisideEnrichedSubdomains = new HashSet<ISubdomain>();
+            foreach (ISet<XNode> heavisideNodes in crack.CrackBodyNodesNew.Values)
+            {
+                foreach (XNode node in heavisideNodes)
+                {
+                    newHeavisideEnrichedSubdomains.UnionWith(node.SubdomainsDictionary.Values);
+                }
+            }
+            return newHeavisideEnrichedSubdomains;
+        }
+
         private HashSet<ISubdomain> FindSubdomainsWithNewTipEnrichedNodes()
         {
             var newTipEnrichedSubdomains = new HashSet<ISubdomain>();
@@ -203,6 +225,7 @@ namespace ISAAR.MSolve.XFEM.Analyzers
 
         private void UpdateModifiedSubdomains()
         {
+            if (model.Subdomains.Count == 1) return;
             if (newTipEnrichedSubdomains == null) 
             {
                 // First analysis step: All subdomains must be fully processed.
@@ -224,11 +247,13 @@ namespace ISAAR.MSolve.XFEM.Analyzers
                     subdomain.StiffnessModified = false;
                 }
 
-                // The modified subdomains are the ones with tip function enriched nodes during the current 
-                // and the previous analysis step.
+                // The modified subdomains are the ones containing nodes enriched with tip or Heaviside functions during the  
+                // current analysis step. Also the ones that had tip enriched nodes in the previous step.
                 HashSet<ISubdomain> modifiedSubdomains = newTipEnrichedSubdomains;
                 newTipEnrichedSubdomains = FindSubdomainsWithNewTipEnrichedNodes(); // Prepare for the next analysis step
                 modifiedSubdomains.UnionWith(newTipEnrichedSubdomains);
+                HashSet<ISubdomain> newHeavisideSubdomains = FindSubdomainsWithNewHeavisideEnrichedNodes();
+                modifiedSubdomains.UnionWith(newHeavisideSubdomains);
                 foreach (ISubdomain subdomain in modifiedSubdomains)
                 {
                     subdomain.ConnectivityModified = true;
