@@ -30,5 +30,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
         void InvertKff(double factorizationTolerance, bool inPlace);
 
         Vector MultiplyInverseKffTimes(Vector vector);
+
+        void ReorderInternalDofs(Feti1DofSeparator dofSeparator);
     }
 }

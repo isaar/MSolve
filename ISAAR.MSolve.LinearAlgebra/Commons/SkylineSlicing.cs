@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Reordering;
@@ -167,50 +168,52 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
             return submatrix;
         }
 
-        //internal static SparsityPatternSymmetric GetSubmatrixSymmetricPattern(double[] skyValues, int[] skyDiagOffsets,
-        //    int[] rowsColsToKeep)
-        //{
-        //    //TODO: perhaps this can be combined with the CSC and full version to get all 2 submatrices needed for 
-        //    //      Schur complements more efficiently.
-
-        //    int subOrder = rowsColsToKeep.Length;
-        //    if (subOrder == 0) return SkylineMatrix.CreateFromArrays(subOrder, new double[0], new int[1] { 0 }, false, false);
-        //    var submatrix = DokSymmetric.CreateEmpty(subOrder);
-        //    for (int subCol = 0; subCol < subOrder; ++subCol)
-        //    {
-        //        int col = rowsColsToKeep[subCol];
-        //        int diagOffset = skyDiagOffsets[col];
-        //        int colHeight = skyDiagOffsets[col + 1] - diagOffset - 1; // excluding diagonal
-        //        for (int subRow = 0; subRow <= subCol; ++subRow)
-        //        {
-        //            int row = rowsColsToKeep[subRow];
-        //            if (row <= col)
-        //            {
-        //                int entryHeight = col - row; // excluding diagonal
-        //                if (entryHeight <= colHeight) // inside stored non zero pattern
-        //                {
-        //                    double val = skyValues[diagOffset + entryHeight];
-        //                    if (val != 0.0) submatrix[subRow, subCol] = val; // Skyline format stores many unnecessary zeros.
-        //                }
-        //            }
-        //            else // Transpose row <-> col. The cached column height and offset must be recalculated.
-        //            {
-        //                int transposedDiagOffset = skyDiagOffsets[row];
-        //                int transposedColHeight = skyDiagOffsets[row + 1] - transposedDiagOffset - 1; // excluding diagonal
-        //                int entryHeight = row - col; // excluding diagonal
-        //                if (entryHeight <= transposedColHeight) // inside stored non zero pattern
-        //                {
-        //                    double val = skyValues[transposedDiagOffset + entryHeight];
-        //                    if (val != 0.0) submatrix[subRow, subCol] = val; // Skyline format stores many unnecessary zeros.
-        //                }
-        //            }
-        //        }
-        //    }
-        //    return submatrix.BuildSkylineMatrix();
-        //}
-
-        internal static SkylineMatrix GetSubmatrixSymmetricSkyline(double[] skyValues, int[] skyDiagOffsets, 
+        //TODO: Move this method to SparsityPatternSymmetric, so that I can optimize access to its private data
+        internal static SparsityPatternSymmetric GetSubmatrixSymmetricPattern(double[] skyValues, int[] skyDiagOffsets,
             int[] rowsColsToKeep)
+        {
+            //TODO: perhaps this can be combined with the CSC and full version to get all 2 submatrices needed for 
+            //      Schur complements more efficiently.
+
+            int subOrder = rowsColsToKeep.Length;
+            if (subOrder == 0) throw new NonMatchingDimensionsException("The original matrix had 0 rows and columns.");
+            var submatrix = SparsityPatternSymmetric.CreateEmpty(subOrder);
+            for (int subCol = 0; subCol < subOrder; ++subCol)
+            {
+                int col = rowsColsToKeep[subCol];
+                int diagOffset = skyDiagOffsets[col];
+                int colHeight = skyDiagOffsets[col + 1] - diagOffset - 1; // excluding diagonal
+                for (int subRow = 0; subRow <= subCol; ++subRow)
+                {
+                    int row = rowsColsToKeep[subRow];
+                    if (row <= col)
+                    {
+                        int entryHeight = col - row; // excluding diagonal
+                        if (entryHeight <= colHeight) // inside stored non zero pattern
+                        {
+                            double val = skyValues[diagOffset + entryHeight];
+                            if (val != 0.0) submatrix.AddEntryUpper(subRow, subCol); // Skyline format stores many unnecessary zeros.
+                        }
+                    }
+                    else // Transpose row <-> col. The cached column height and offset must be recalculated.
+                    {
+                        int transposedDiagOffset = skyDiagOffsets[row];
+                        int transposedColHeight = skyDiagOffsets[row + 1] - transposedDiagOffset - 1; // excluding diagonal
+                        int entryHeight = row - col; // excluding diagonal
+                        if (entryHeight <= transposedColHeight) // inside stored non zero pattern
+                        {
+                            double val = skyValues[transposedDiagOffset + entryHeight];
+                            if (val != 0.0) submatrix.AddEntryUpper(subRow, subCol); // Skyline format stores many unnecessary zeros.
+                        }
+                    }
+                }
+            }
+            return submatrix;
+        }
+
+        //TODO: Move this method to DokSymmetric, so that I can optimize access to its private data
+        internal static SkylineMatrix GetSubmatrixSymmetricSkyline(double[] skyValues, int[] skyDiagOffsets, 
+            int[] rowsColsToKeep) 
         {
             //TODO: perhaps this can be combined with the CSC and full version to get all 2 submatrices needed for 
             //      Schur complements more efficiently.
@@ -232,7 +235,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Commons
                         if (entryHeight <= colHeight) // inside stored non zero pattern
                         {
                             double val = skyValues[diagOffset + entryHeight];
-                            if (val != 0.0) submatrix[subRow, subCol] = val; // Skyline format stores many unnecessary zeros.
+                            if (val != 0.0) submatrix.SetEntryUpper(subRow, subCol, val); // Skyline format stores many unnecessary zeros.
                         }
                     }
                     else // Transpose row <-> col. The cached column height and offset must be recalculated.

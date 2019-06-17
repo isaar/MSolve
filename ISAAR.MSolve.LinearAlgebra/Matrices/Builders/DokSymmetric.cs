@@ -696,6 +696,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
         }
 
         /// <summary>
+        /// Like <see cref="this[int, int]"/>, but will not check or transpose the entry.
+        /// </summary>
+        /// <param name="rowIdx">The row index: 0 &lt;= <paramref name="rowIdx"/> &lt; <see cref="NumRows"/>.</param>
+        /// <param name="colIdx">The column index: 0 &lt;= <paramref name="colIdx"/> &lt; <see cref="NumColumns"/>.</param>
+        /// <param name="value">The value to set.</param>
+        public void SetEntryUpper(int rowIdx, int colIdx, double value) => columns[colIdx][rowIdx] = value;
+
+        /// <summary>
         /// Sets all entries that are on the main diagonal and have not been explicitly modified by a previous method or 
         /// constructor, and thus are equal to 0, to 1.
         /// </summary>

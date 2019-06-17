@@ -5,6 +5,7 @@ using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
@@ -21,6 +22,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
     {
         private readonly SkylineAssembler assembler = new SkylineAssembler();
         private readonly SingleSubdomainSystem<SkylineMatrix> linearSystem;
+        private readonly IReorderingAlgorithm reordering;
 
         private SemidefiniteCholeskySkyline inverseKff;
         private LdlSkyline inverseKii;
@@ -28,9 +30,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
         private Matrix Kbb;
         private CscMatrix Kib;
 
-        public SkylineFeti1SubdomainMatrixManager(ISubdomain subdomain)
+        public SkylineFeti1SubdomainMatrixManager(ISubdomain subdomain, IReorderingAlgorithm reordering)
         {
             this.linearSystem = new SingleSubdomainSystem<SkylineMatrix>(subdomain);
+            this.reordering = reordering;
         }
 
         public ISingleSubdomainLinearSystem LinearSystem => linearSystem;
@@ -272,10 +275,28 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
 
         public void SetSolutionVector(Vector solution) => linearSystem.SolutionConcrete = solution;
 
+        public void ReorderInternalDofs(Feti1DofSeparator dofSeparator)
+        {
+            if (reordering != null) // Else use the natural ordering and do not modify any stored dof data
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         public class Factory : IFeti1SubdomainMatrixManagerFactory
         {
+            private readonly IReorderingAlgorithm reordering;
+
+            //TODO: Use the reordering classes in solvers.
+            //TODO: If the natural ordering is best, then there is no need to modify the stored dof data. 
+            //      Find a better way to handle it, perhaps by checking if IReorderingAlgorithm produced a better ordering.
+            public Factory(IReorderingAlgorithm reordering = null)
+            {
+                this.reordering = reordering;
+            }
+
             public IFeti1SubdomainMatrixManager CreateMatricesManager(ISubdomain subdomain)
-                => new SkylineFeti1SubdomainMatrixManager(subdomain);
+                => new SkylineFeti1SubdomainMatrixManager(subdomain, reordering);
         }
     }
 }

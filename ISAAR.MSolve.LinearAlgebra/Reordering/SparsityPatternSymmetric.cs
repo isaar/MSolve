@@ -92,6 +92,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
             return pattern;
         }
 
+        public static SparsityPatternSymmetric CreateFromSkylineSubmatrix(SkylineMatrix original, int[] rowsColsToKeep)
+        {
+            return SkylineSlicing.GetSubmatrixSymmetricPattern(original.RawValues, original.RawDiagOffsets, rowsColsToKeep);
+        }
+
         /// <summary>
         /// Marks the matrix entry (<paramref name="rowIdx"/>, <paramref name="colIdx"/>) as non-zero. If it was already marked,
         /// nothing happens.
@@ -108,6 +113,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
             }
             columns[colIdx].Add(rowIdx); //TODO: should I return whether the entry exists?
         }
+
+        /// <summary>
+        /// Like <see cref="AddEntry(int, int)"/>, but will not check or transpose the entry.
+        /// </summary>
+        /// <param name="rowIdx">The row index of the new non-zero entry.</param>
+        /// <param name="colIdx">The column index of the new non-zero entry.</para
+        public void AddEntryUpper(int rowIdx, int colIdx) => columns[colIdx].Add(rowIdx);
 
         /// <summary>
         /// Marks all possible matrix entries (i, j), such that i, j belong to <paramref name="indices"/>, as non-zero.
