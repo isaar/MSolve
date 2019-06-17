@@ -3,6 +3,7 @@ using System.Diagnostics;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
@@ -27,7 +28,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
         {
             int numElementsX = 20, numElementsY = 10;
             double factorizationTolerance = 1E-4; // Defining the rigid body modes is very sensitive to this. TODO: The user shouldn't have to specify such a volatile parameter.
-            double equalityTolerance = 1E-7;
+            double equalityTolerance = 1E-6;
             IVectorView expectedDisplacements = SolveModelWithoutSubdomains(numElementsX, numElementsY);
             (IVectorView computedDisplacements, SolverLogger logger) = 
                 SolveModelWithSubdomains(numElementsX, numElementsY, factorizationTolerance);
@@ -85,9 +86,11 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             var factorizationTolerances = new Dictionary<int, double>();
             foreach (Subdomain s in multiSubdomainModel.Subdomains) factorizationTolerances[s.ID] = factorizationTolerance;
             //var fetiMatrices = new DenseFeti1SubdomainMatrixManager.Factory();
-            var fetiMatrices = new SkylineFeti1SubdomainMatrixManager.Factory();
+            //var fetiMatrices = new SkylineFeti1SubdomainMatrixManager.Factory();
+            var fetiMatrices = new SkylineFeti1SubdomainMatrixManager.Factory(new OrderingAmdSuiteSparse());
             var solverBuilder = new Feti1Solver.Builder(fetiMatrices, factorizationTolerances);
-            solverBuilder.PreconditionerFactory = new LumpedPreconditioner.Factory();
+            //solverBuilder.PreconditionerFactory = new LumpedPreconditioner.Factory();
+            solverBuilder.PreconditionerFactory = new DirichletPreconditioner.Factory();
             solverBuilder.ProblemIsHomogeneous = true;
             Feti1Solver fetiSolver = solverBuilder.BuildSolver(multiSubdomainModel);
 

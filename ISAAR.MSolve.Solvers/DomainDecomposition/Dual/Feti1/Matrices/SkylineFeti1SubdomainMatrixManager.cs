@@ -10,6 +10,7 @@ using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.LinearSystems;
+using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
 //TODO: Add state checking for all the managed matrices. A state machine (using State pattern) should help.
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
@@ -275,11 +276,17 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
 
         public void SetSolutionVector(Vector solution) => linearSystem.SolutionConcrete = solution;
 
-        public void ReorderInternalDofs(Feti1DofSeparator dofSeparator)
+        public void ReorderInternalDofs(Feti1DofSeparator dofSeparator, ISubdomain subdomain)
         {
             if (reordering != null) // Else use the natural ordering and do not modify any stored dof data
             {
-                throw new NotImplementedException();
+                int[] internalDofs = dofSeparator.InternalDofIndices[subdomain.ID];
+                var pattern = SparsityPatternSymmetric.CreateFromSkylineSubmatrix(linearSystem.Matrix, internalDofs);
+                (int[] permutation, bool oldToNew) = reordering.FindPermutation(pattern);
+                int[] newInternalDofs = ReorderingUtilities.ReorderKeysOfDofIndicesMap(internalDofs, permutation, oldToNew);
+
+                // What if the dof separator gets added other state that needs to be updated?
+                dofSeparator.InternalDofIndices[subdomain.ID] = newInternalDofs; 
             }
         }
 
@@ -287,7 +294,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
         {
             private readonly IReorderingAlgorithm reordering;
 
-            //TODO: Use the reordering classes in solvers.
+            //TODO: Use the reordering classes of project Solvers.
             //TODO: If the natural ordering is best, then there is no need to modify the stored dof data. 
             //      Find a better way to handle it, perhaps by checking if IReorderingAlgorithm produced a better ordering.
             public Factory(IReorderingAlgorithm reordering = null)

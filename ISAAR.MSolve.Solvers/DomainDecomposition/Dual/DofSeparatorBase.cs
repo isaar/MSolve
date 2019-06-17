@@ -36,7 +36,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual
             }
         }
 
-        protected (int[] internalDofIndices, int[] boundaryDofIndices, (INode node, IDofType dofType)[] boundaryDofs) 
+        protected static (int[] internalDofIndices, int[] boundaryDofIndices, (INode node, IDofType dofType)[] boundaryDofs) 
             SeparateBoundaryInternalDofs(IEnumerable<INode> nodes, DofTable freeDofs)
         {
             var boundaryDofs = new SortedDictionary<int, (INode node, IDofType dofType)>(); // key = dofIdx, value = (node, dofType)

@@ -570,7 +570,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Vectors
                 var comparer = new ValueComparer(tolerance);
                 for (int i = 0; i < Length; ++i)
                 {
-                    if (!comparer.AreEqual(this.data[i], casted.data[i])) return false;
+                    if (!comparer.AreEqual(this.data[i], casted.data[i]))
+                    {
+                        return false;
+                    }
                 }
                 return true;
             }

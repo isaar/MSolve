@@ -190,7 +190,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 
                 // Separate internal / boundary dofs
                 (int[] internalDofIndices, int[] boundaryDofIndices, (INode node, IDofType dofType)[] boundaryDofConnectivities)
-                    = base.SeparateBoundaryInternalDofs(remainderAndConstrainedNodes, remainderDofOrdering);
+                    = DofSeparatorBase.SeparateBoundaryInternalDofs(remainderAndConstrainedNodes, remainderDofOrdering);
 
                 InternalDofIndices[s] = internalDofIndices;
                 BoundaryDofIndices[s] = boundaryDofIndices;

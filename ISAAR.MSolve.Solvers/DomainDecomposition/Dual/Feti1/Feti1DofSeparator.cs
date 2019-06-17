@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices;
 
 //TODO: Needs a proper name. This probably cannot be incorporated in the ISubdomainDofOrdering, as the intent is different and
 //      depending on the DD method the dof categories may be different (e.g. FETI-1: internal/boundary, 
@@ -38,7 +39,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 int s = subdomain.ID;
                 Debug.WriteLine($"{this.GetType().Name}: Separating boundary-internal dofs of subdomain {s}");
                 (int[] internalDofIndices, int[] boundaryDofIndices, (INode node, IDofType dofType)[] boundaryDofConnectivities)
-                    = base.SeparateBoundaryInternalDofs(subdomain.Nodes, subdomain.FreeDofOrdering.FreeDofs);
+                    = DofSeparatorBase.SeparateBoundaryInternalDofs(subdomain.Nodes, subdomain.FreeDofOrdering.FreeDofs);
 
                 InternalDofIndices[s] = internalDofIndices;
                 BoundaryDofIndices[s] = boundaryDofIndices;

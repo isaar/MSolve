@@ -3,6 +3,7 @@ using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
@@ -223,7 +224,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             var factorizationTolerances = new Dictionary<int, double>();
             foreach (Subdomain s in multiSubdomainModel.Subdomains) factorizationTolerances[s.ID] = factorizationTolerance;
             //var fetiMatrices = new DenseFeti1SubdomainMatrixManager.Factory();
-            var fetiMatrices = new SkylineFeti1SubdomainMatrixManager.Factory();
+            //var fetiMatrices = new SkylineFeti1SubdomainMatrixManager.Factory();
+            var fetiMatrices = new SkylineFeti1SubdomainMatrixManager.Factory(new OrderingAmdSuiteSparse());
             var solverBuilder = new Feti1Solver.Builder(fetiMatrices, factorizationTolerances);
 
             // Homogeneous/heterogeneous problem, matrix Q.

@@ -31,6 +31,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
 
         Vector MultiplyInverseKffTimes(Vector vector);
 
-        void ReorderInternalDofs(Feti1DofSeparator dofSeparator);
+        //TODO: Perhaps this should be done by the dofSeperator since its state will be modified. What about the cases where no 
+        //      reordering is applied?
+        //TODO: Bad design. All this time the matrix manager had access to only 1 subdomain and now I pass it an object that
+        //      stores dof data for all subdomains and which subdomain to use.
+        void ReorderInternalDofs(Feti1DofSeparator dofSeparator, ISubdomain subdomain);
     }
 }

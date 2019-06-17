@@ -143,6 +143,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             return matrices;
         }
 
+        //TODO: There is a lot of repetition between this method and BuildGlobalMatrices
         public Dictionary<int, (IMatrix matrixFreeFree, IMatrixView matrixFreeConstr, IMatrixView matrixConstrFree,
             IMatrixView matrixConstrConstr)> BuildGlobalSubmatrices(IElementMatrixProvider elementMatrixProvider)
         {
@@ -273,8 +274,21 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             // Calculate generalized inverses and rigid body modes of subdomains to assemble the interface flexibility matrix. 
             if (isStiffnessModified)
             {
-                // Calculate the preconditioner before factorizing each subdomain's Kff 
+                // Reorder internal dofs if needed by the preconditioner. TODO: Should I have done this previously?
                 watch.Start();
+                if (preconditionerFactory.ReorderInternalDofsForFactorization)
+                {
+                    foreach (ISubdomain subdomain in model.Subdomains)
+                    {
+                        if (subdomain.ConnectivityModified)
+                        {
+                            Debug.WriteLine($"{this.GetType().Name}: Reordering internal dofs of subdomain {subdomain.ID}.");
+                            matrixManagers[subdomain.ID].ReorderInternalDofs(dofSeparator, subdomain);
+                        }
+                    }
+                }
+
+                // Calculate the preconditioner before factorizing each subdomain's Kff 
                 preconditioner = preconditionerFactory.CreatePreconditioner(model, stiffnessDistribution, dofSeparator,
                     lagrangeEnumerator, matrixManagersGeneral);
                 watch.Stop();
