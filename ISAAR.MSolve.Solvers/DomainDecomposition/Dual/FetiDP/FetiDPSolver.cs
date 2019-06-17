@@ -224,13 +224,18 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                     Debug.WriteLine($"{this.GetType().Name}: Separating and ordering corner-remainder dofs of subdomain {s}");
                     dofSeparator.SeparateCornerRemainderDofs(subdomain, cornerNodes, remainderAndConstrainedNodes);
 
+                    Debug.WriteLine($"{this.GetType().Name}: Reordering internal dofs of subdomain {s}.");
+                    matrixManagers[s].ReorderRemainderDofs(dofSeparator, subdomain);
+
                     Debug.WriteLine($"{this.GetType().Name}: Separating and ordering boundary-internal dofs of subdomain {s}");
                     dofSeparator.SeparateBoundaryInternalDofs(subdomain, remainderAndConstrainedNodes);
                 }
-
-                //TODO: This can also be reused if the global corner dofs have not changed.
-                dofSeparator.CalcCornerMappingMatrix(subdomain, cornerNodes);
             }
+
+            // This must be called after determining the corner dofs of each subdomain
+            //TODO: Perhaps the corner dofs of each subdomain should be handled in dofSeparator.DefineGlobalCornerDofs();
+            coarseProblemSolver.ReorderCornerDofs(dofSeparator);
+            dofSeparator.CalcCornerMappingMatrices(model, CornerNodesOfSubdomains);
 
             //TODO: B matrices could also be reused in some cases
             // Define lagrange multipliers and boolean matrices. 

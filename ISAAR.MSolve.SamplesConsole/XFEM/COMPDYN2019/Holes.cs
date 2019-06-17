@@ -46,14 +46,14 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             HolesBenchmark benchmarkSub10;
 
             // Skyline
-            HolesBenchmark benchmarkSub1 = CreateSingleSubdomainBenchmark();
-            ISolver skylineSolver = DefineSolver(benchmarkSub1, SolverType.Skyline);
+            //HolesBenchmark benchmarkSub1 = CreateSingleSubdomainBenchmark();
+            //ISolver skylineSolver = DefineSolver(benchmarkSub1, SolverType.Skyline);
             //Console.WriteLine("Uncracked analysis, 1 subdomain, Skyline   : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub1.Model, skylineSolver));
             //Console.WriteLine("Cracked analysis only 1 step, 1 subdomain, Skyline   : norm2(globalU) = " +
             //    RunSingleCrackedStep(benchmarkSub1.Model, benchmarkSub1.Crack, skylineSolver));
             //Console.WriteLine("Skyline solver, 1 subdomain: ");
-            RunCrackPropagationAnalysis(benchmarkSub1, skylineSolver);
+            //RunCrackPropagationAnalysis(benchmarkSub1, skylineSolver);
 
             // FETI-1 10 subdomains
             //benchmarkSub10 = CreateMultiSubdomainBenchmark(10);
@@ -67,9 +67,9 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             //RunCrackPropagationAnalysis(benchmarkSub10, solverFeti1);
 
             // FETI-DP 10 subdomains
-            //benchmarkSub10 = CreateMultiSubdomainBenchmark(10);
-            //ISolver solverFetiDP = DefineSolver(benchmarkSub10, SolverType.FetiDP);
-            //PlotSubdomains(subdomainPlotPath, benchmarkSub10.Model);
+            benchmarkSub10 = CreateMultiSubdomainBenchmark(10);
+            ISolver solverFetiDP = DefineSolver(benchmarkSub10, SolverType.FetiDP);
+            PlotSubdomains(benchmarkSub10, solverFetiDP);
             //Console.WriteLine("Uncracked analysis, 10 subdomains, FETI-DP : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub10.Model, solverFetiDP));
             //Console.WriteLine("Cracked analysis only 1 step, 10 subdomains, FETI-DP : norm2(globalU) = " +

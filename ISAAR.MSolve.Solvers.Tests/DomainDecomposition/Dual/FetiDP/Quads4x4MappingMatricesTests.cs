@@ -214,10 +214,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
                 IEnumerable<INode> remainderAndConstrainedNodes = subdomain.Nodes.Where(node => !cornerNodes[s].Contains(node));
                 dofSeparator.SeparateCornerRemainderDofs(subdomain, cornerNodes[s], remainderAndConstrainedNodes);
                 dofSeparator.SeparateBoundaryInternalDofs(subdomain, remainderAndConstrainedNodes);
-
-                //TODO: This can also be reused if the global corner dofs have not changed.
-                dofSeparator.CalcCornerMappingMatrix(subdomain, cornerNodes[s]);
             }
+            dofSeparator.CalcCornerMappingMatrices(model, cornerNodes);
 
             // Check
             double tolerance = 1E-13;

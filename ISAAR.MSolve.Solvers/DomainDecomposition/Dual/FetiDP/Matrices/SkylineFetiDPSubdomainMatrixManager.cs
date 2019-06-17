@@ -362,49 +362,47 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
 
         public void ReorderInternalDofs(FetiDPDofSeparator dofSeparator, ISubdomain subdomain)
         {
-            if (reordering != null) // Else use the natural ordering and do not modify any stored dof data
+            if (reordering == null) return; // Use the natural ordering and do not modify any stored dof data
+            try
             {
-                try
-                {
-                    int[] internalDofs = dofSeparator.InternalDofIndices[subdomain.ID];
-                    var pattern = Krr.GetSubmatrixSymmetricPattern(internalDofs);
-                    (int[] permutation, bool oldToNew) = reordering.FindPermutation(pattern);
-                    int[] newInternalDofs = ReorderingUtilities.ReorderKeysOfDofIndicesMap(internalDofs, permutation, oldToNew);
+                int[] internalDofs = dofSeparator.InternalDofIndices[subdomain.ID];
+                var pattern = Krr.GetSubmatrixSymmetricPattern(internalDofs);
+                (int[] permutation, bool oldToNew) = reordering.FindPermutation(pattern);
+                int[] newInternalDofs = ReorderingUtilities.ReorderKeysOfDofIndicesMap(internalDofs, permutation, oldToNew);
 
-                    // What if the dof separator gets added other state that needs to be updated?
-                    dofSeparator.InternalDofIndices[subdomain.ID] = newInternalDofs;
-                }
-                catch (MatrixDataOverwrittenException)
-                {
-                    throw new InvalidOperationException(
-                        "The remainder-remainder stiffness submatrix of this subdomain has been already been calculated and"
-                        + " then overwritten and cannot be used anymore. Try calling this method before" 
-                        + " factorizing/inverting it.");
-                }
+                // What if the dof separator gets added other state that needs to be updated?
+                dofSeparator.InternalDofIndices[subdomain.ID] = newInternalDofs;
+            }
+            catch (MatrixDataOverwrittenException)
+            {
+                throw new InvalidOperationException(
+                    "The remainder-remainder stiffness submatrix of this subdomain has been already been calculated and"
+                    + " then overwritten and cannot be used anymore. Try calling this method before"
+                    + " factorizing/inverting it.");
             }
         }
 
         public void ReorderRemainderDofs(FetiDPDofSeparator dofSeparator, ISubdomain subdomain)
         {
-            //if (reordering != null) // Else use the natural ordering and do not modify any stored dof data
-            //{
-            //    try
-            //    {
-            //        int[] remainderDofs = dofSeparator.RemainderDofIndices[subdomain.ID];
-            //        var pattern = linearSystem.Matrix.GetSubmatrixSymmetricPattern(remainderDofs);
-            //        (int[] permutation, bool oldToNew) = reordering.FindPermutation(pattern);
-            //        int[] newRemainderDofs = ReorderingUtilities.ReorderKeysOfDofIndicesMap(remainderDofs, permutation, oldToNew);
+            if (reordering == null) return; // Use the natural ordering and do not modify any stored dof data
+            try
+            {
+                int s = subdomain.ID;
+                int[] remainderDofs = dofSeparator.RemainderDofIndices[s];
+                var pattern = linearSystem.Matrix.GetSubmatrixSymmetricPattern(remainderDofs);
+                (int[] permutation, bool oldToNew) = reordering.FindPermutation(pattern);
+                int[] newRemainderDofs = ReorderingUtilities.ReorderKeysOfDofIndicesMap(remainderDofs, permutation, oldToNew);
 
-            //        // What if the dof separator gets added other state that needs to be updated?
-            //        dofSeparator.RemainderDofIndices[subdomain.ID] = newRemainderDofs;
-            //    }
-            //    catch (MatrixDataOverwrittenException)
-            //    {
-            //        throw new InvalidOperationException(
-            //            "The free-free stiffness matrix of this subdomain has been overwritten and cannot be used anymore."
-            //            + "Try calling this method before factorizing/inverting it.");
-            //    }
-            //}
+                // What if the dof separator gets added other state that needs to be updated?
+                dofSeparator.RemainderDofIndices[s] = newRemainderDofs;
+                dofSeparator.RemainderDofOrderings[s].Reorder(permutation, oldToNew);
+            }
+            catch (MatrixDataOverwrittenException)
+            {
+                throw new InvalidOperationException(
+                    "The free-free stiffness matrix of this subdomain has been overwritten and cannot be used anymore."
+                    + "Try calling this method before factorizing/inverting it.");
+            }
         }
 
         public class Factory : IFetiDPSubdomainMatrixManagerFactory
@@ -420,7 +418,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
             }
 
             public IFetiDPCoarseProblemSolver CreateCoarseProblemSolver(IReadOnlyList<ISubdomain> subdomains)
-                => new SkylineFetiDPCoarseProblemSolver(subdomains);
+                => new SkylineFetiDPCoarseProblemSolver(subdomains, reordering);
 
             public IFetiDPSubdomainMatrixManager CreateMatricesManager(ISubdomain subdomain)
                 => new SkylineFetiDPSubdomainMatrixManager(subdomain, reordering);

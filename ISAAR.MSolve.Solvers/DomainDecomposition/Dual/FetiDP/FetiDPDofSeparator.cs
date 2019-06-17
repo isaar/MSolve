@@ -48,7 +48,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
         /// If Xf is a vector with all free dofs of the model and Xc is a vector with all corner dofs of the model, then
         /// Xf[GlobalCornerToFreeDofMap[i]] = Xc[i].
         /// </summary>
-        public int[] GlobalCornerToFreeDofMap { get; private set; }
+        public int[] GlobalCornerToFreeDofMap { get; set; }
 
         /// <summary>
         /// Indices of internal remainder dofs into the sequence of all remainder dofs of each subdomain.
@@ -93,18 +93,21 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
         /// Bc unsigned boolean matrices that map global to subdomain corner dofs. This method must be called after 
         /// <see cref="DefineGlobalCornerDofs(IStructuralModel, Dictionary{int, HashSet{INode}})"/>.
         /// </summary>
-        public void CalcCornerMappingMatrix(ISubdomain subdomain, HashSet<INode> cornerNodes)
-        { //TODO: can I reuse subdomain data?
-            int s = subdomain.ID;
-            DofTable localCornerDofOrdering = SubdomainCornerDofOrderings[s];
-            int numLocalCornerDofs = localCornerDofOrdering.EntryCount;
-            var Bc = new UnsignedBooleanMatrix(numLocalCornerDofs, NumGlobalCornerDofs);
-            foreach ((INode node, IDofType dofType, int localIdx) in localCornerDofOrdering)
+        public void CalcCornerMappingMatrices(IStructuralModel model, Dictionary<int, HashSet<INode>> subdomainCornerNodes)
+        { //TODO: Can I reuse subdomain data? Yes if the global corner dofs have not changed.
+            foreach (ISubdomain subdomain in model.Subdomains)
             {
-                int globalIdx = GlobalCornerDofOrdering[node, dofType];
-                Bc.AddEntry(localIdx, globalIdx);
+                int s = subdomain.ID;
+                DofTable localCornerDofOrdering = SubdomainCornerDofOrderings[s];
+                int numLocalCornerDofs = localCornerDofOrdering.EntryCount;
+                var Bc = new UnsignedBooleanMatrix(numLocalCornerDofs, NumGlobalCornerDofs);
+                foreach ((INode node, IDofType dofType, int localIdx) in localCornerDofOrdering)
+                {
+                    int globalIdx = GlobalCornerDofOrdering[node, dofType];
+                    Bc.AddEntry(localIdx, globalIdx);
+                }
+                CornerBooleanMatrices[s] = Bc;
             }
-            CornerBooleanMatrices[s] = Bc;
         }
 
         public void DefineGlobalBoundaryDofs(IStructuralModel model, Dictionary<int, HashSet<INode>> subdomainCornerNodes)

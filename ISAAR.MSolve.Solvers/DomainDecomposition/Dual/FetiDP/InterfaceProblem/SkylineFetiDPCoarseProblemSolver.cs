@@ -2,25 +2,30 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices;
+using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
 //TODO: Use Skyline assembler instead of reimplementing it.
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
 {
     public class SkylineFetiDPCoarseProblemSolver : IFetiDPCoarseProblemSolver
     {
+        private readonly IReorderingAlgorithm reordering;
         private readonly IReadOnlyList<ISubdomain> subdomains;
         private LdlSkyline inverseGlobalKccStar;
 
-        public SkylineFetiDPCoarseProblemSolver(IReadOnlyList<ISubdomain> subdomains)
+        public SkylineFetiDPCoarseProblemSolver(IReadOnlyList<ISubdomain> subdomains, IReorderingAlgorithm reordering)
         {
             this.subdomains = subdomains;
+            this.reordering = reordering;
         }
 
         public void ClearCoarseProblemMatrix()
@@ -57,6 +62,29 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
         }
 
         public Vector MultiplyInverseCoarseProblemMatrixTimes(Vector vector) => inverseGlobalKccStar.SolveLinearSystem(vector);
+
+        public void ReorderCornerDofs(FetiDPDofSeparator dofSeparator)
+        {
+            if (reordering == null) return; // Use the natural ordering and do not modify any stored dof data
+            var pattern = SparsityPatternSymmetric.CreateEmpty(dofSeparator.NumGlobalCornerDofs);
+            for (int s = 0; s < subdomains.Count; ++s) 
+            {
+                // Treat each subdomain as a superelement with only its corner nodes.
+                var localCornerDofOrdering = dofSeparator.SubdomainCornerDofOrderings[s];
+                int numLocalCornerDofs = localCornerDofOrdering.EntryCount;
+                var subdomainToGlobalDofs = new int[numLocalCornerDofs];
+                foreach ((INode node, IDofType dofType, int localIdx) in localCornerDofOrdering)
+                {
+                    int globalIdx = dofSeparator.GlobalCornerDofOrdering[node, dofType];
+                    subdomainToGlobalDofs[localIdx] = globalIdx;
+                }
+                pattern.ConnectIndices(subdomainToGlobalDofs, false);
+            }
+            (int[] permutation, bool oldToNew) = reordering.FindPermutation(pattern);
+            dofSeparator.GlobalCornerDofOrdering.Reorder(permutation, oldToNew);
+            dofSeparator.GlobalCornerToFreeDofMap =
+                ReorderingUtilities.ReorderKeysOfDofIndicesMap(dofSeparator.GlobalCornerToFreeDofMap, permutation, oldToNew);
+        }
 
         //TODO: Use Skyline assembler
         private SkylineMatrix CreateGlobalKccStar(Dictionary<int, HashSet<INode>> cornerNodesOfSubdomains, 

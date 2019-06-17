@@ -278,24 +278,22 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
 
         public void ReorderInternalDofs(Feti1DofSeparator dofSeparator, ISubdomain subdomain)
         {
-            if (reordering != null) // Else use the natural ordering and do not modify any stored dof data
+            if (reordering == null) return; // Use the natural ordering and do not modify any stored dof data
+            try
             {
-                try
-                {
-                    int[] internalDofs = dofSeparator.InternalDofIndices[subdomain.ID];
-                    var pattern = linearSystem.Matrix.GetSubmatrixSymmetricPattern(internalDofs);
-                    (int[] permutation, bool oldToNew) = reordering.FindPermutation(pattern);
-                    int[] newInternalDofs = ReorderingUtilities.ReorderKeysOfDofIndicesMap(internalDofs, permutation, oldToNew);
+                int[] internalDofs = dofSeparator.InternalDofIndices[subdomain.ID];
+                var pattern = linearSystem.Matrix.GetSubmatrixSymmetricPattern(internalDofs);
+                (int[] permutation, bool oldToNew) = reordering.FindPermutation(pattern);
+                int[] newInternalDofs = ReorderingUtilities.ReorderKeysOfDofIndicesMap(internalDofs, permutation, oldToNew);
 
-                    // What if the dof separator gets added other state that needs to be updated?
-                    dofSeparator.InternalDofIndices[subdomain.ID] = newInternalDofs;
-                }
-                catch (MatrixDataOverwrittenException)
-                {
-                    throw new InvalidOperationException(
-                        "The free-free stiffness matrix of this subdomain has been overwritten and cannot be used anymore."
-                        + "Try calling this method before factorizing/inverting it.");
-                }
+                // What if the dof separator gets added other state that needs to be updated?
+                dofSeparator.InternalDofIndices[subdomain.ID] = newInternalDofs;
+            }
+            catch (MatrixDataOverwrittenException)
+            {
+                throw new InvalidOperationException(
+                    "The free-free stiffness matrix of this subdomain has been overwritten and cannot be used anymore."
+                    + "Try calling this method before factorizing/inverting it.");
             }
         }
 

@@ -55,6 +55,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
 
         public Vector MultiplyInverseCoarseProblemMatrixTimes(Vector vector) => inverseGlobalKccStar * vector;
 
+        public void ReorderCornerDofs(FetiDPDofSeparator dofSeparator)
+        {
+            // Do nothing, since the sparsity pattern is irrelevant for dense matrices.
+        }
+
         private Matrix CreateGlobalKccStar(FetiDPDofSeparator dofSeparator,
             Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers)
         {

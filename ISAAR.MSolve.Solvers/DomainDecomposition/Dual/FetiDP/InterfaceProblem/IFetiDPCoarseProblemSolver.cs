@@ -20,5 +20,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem
             FetiDPDofSeparator dofSeparator, Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers);
 
         Vector MultiplyInverseCoarseProblemMatrixTimes(Vector vector);
+
+        void ReorderCornerDofs(FetiDPDofSeparator dofSeparator);
     }
 }
