@@ -109,7 +109,7 @@ namespace ISAAR.MSolve.Solvers
                 WriteHeader(writer, title);
 
                 // Dofs
-                var numDofsRange = new SortedDictionary<string, (int min, int max)>();
+                var numDofsRange = new SortedDictionary<string, (int min, int max, int total)>();
                 for (int i = 0; i < currentStep; ++i)
                 {
                     foreach (var categoryDofs in numDofsPerCategory[i])
@@ -117,24 +117,27 @@ namespace ISAAR.MSolve.Solvers
                         string category = categoryDofs.Key;
                         int numDofs = categoryDofs.Value;
 
-                        bool exists = numDofsRange.TryGetValue(category, out (int min, int max) rangeSoFar); 
+                        bool exists = numDofsRange.TryGetValue(category, out (int min, int max, int total) rangeSoFar); 
                         if (!exists)
                         {
                             rangeSoFar.min = int.MaxValue;
                             rangeSoFar.max = int.MinValue;
+                            rangeSoFar.total = 0;
                         }
                         numDofsRange[category] =
                             (
                                 (numDofs < rangeSoFar.min) ? numDofs : rangeSoFar.min,
-                                (numDofs > rangeSoFar.max) ? numDofs : rangeSoFar.max
+                                (numDofs > rangeSoFar.max) ? numDofs : rangeSoFar.max,
+                                rangeSoFar.total + numDofs
                             );
                     }
                 }
                 foreach (var categoryRange in numDofsRange)
                 {
                     string category = categoryRange.Key;
-                    (int min, int max) = categoryRange.Value;
-                    writer.WriteLine($"Dof category = {category}: min = {min} - max = {max}");
+                    (int min, int max, int total) = categoryRange.Value;
+                    double average = ((double)total) / currentStep;
+                    writer.WriteLine($"Dof category = {category}: min = {min} - max = {max} - average = {average}");
                 }
 
                 // Durations
@@ -173,8 +176,8 @@ namespace ISAAR.MSolve.Solvers
                         maxResNorm = (res < maxResNorm) ? res : maxResNorm;
                     }
                     avgIterations /= currentStep;
-                    writer.WriteLine(
-                        $"Iterative algorithm iterations: min = {minIterations} - max = {maxIterations} - avg = {avgIterations}");
+                    writer.WriteLine("Iterative algorithm iterations:"
+                        + $" min = {minIterations} - max = {maxIterations} - average = {avgIterations}");
                     writer.WriteLine($"Iterative algorithm residual norm ratio: min = {minResNorm} - max = {maxResNorm}");
                 }
 

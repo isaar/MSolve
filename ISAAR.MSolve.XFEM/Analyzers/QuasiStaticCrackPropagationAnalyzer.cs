@@ -99,9 +99,6 @@ namespace ISAAR.MSolve.XFEM.Analyzers
                     }
                 }
 
-                // Plot domain decomposition data, if necessary
-                if (DDLogger != null) DDLogger.PlotSubdomains(model);
-
                 // Create the stiffness matrix and then the forces vector
                 //problem.ClearMatrices();
                 BuildMatrices();
@@ -111,6 +108,9 @@ namespace ISAAR.MSolve.XFEM.Analyzers
                     linearSystem.RhsVector = linearSystem.Subdomain.Forces;
                 }
                 AddEquivalentNodalLoadsToRhs();
+
+                // Plot domain decomposition data, if necessary
+                if (DDLogger != null) DDLogger.PlotSubdomains(model);
 
                 // Solve the linear system
                 solver.Solve();

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -204,6 +205,33 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
             var watch = new Stopwatch();
             watch.Start();
 
+            // Identify corner nodes
+            CornerNodesOfSubdomains = cornerNodeSelection.SelectCornerNodesOfSubdomains(); //TODO: Could this cause change in connectivity?
+
+            // Define boundary / internal dofs
+            dofSeparator.DefineGlobalBoundaryDofs(model, CornerNodesOfSubdomains);
+            dofSeparator.DefineGlobalCornerDofs(model, CornerNodesOfSubdomains);
+            foreach (ISubdomain subdomain in model.Subdomains)
+            {
+                int s = subdomain.ID;
+                HashSet<INode> cornerNodes = CornerNodesOfSubdomains[s];
+                if (subdomain.ConnectivityModified)
+                {
+                    //TODO: should I cache this somewhere?
+                    //TODO: should I use subdomain.Nodes.Except(cornerNodes) instead?
+                    IEnumerable<INode> remainderAndConstrainedNodes = subdomain.Nodes.Where(node => !cornerNodes.Contains(node));
+
+                    Debug.WriteLine($"{this.GetType().Name}: Separating and ordering corner-remainder dofs of subdomain {s}");
+                    dofSeparator.SeparateCornerRemainderDofs(subdomain, cornerNodes, remainderAndConstrainedNodes);
+
+                    Debug.WriteLine($"{this.GetType().Name}: Separating and ordering boundary-internal dofs of subdomain {s}");
+                    dofSeparator.SeparateBoundaryInternalDofs(subdomain, remainderAndConstrainedNodes);
+                }
+
+                //TODO: This can also be reused if the global corner dofs have not changed.
+                dofSeparator.CalcCornerMappingMatrix(subdomain, cornerNodes);
+            }
+
             //TODO: B matrices could also be reused in some cases
             // Define lagrange multipliers and boolean matrices. 
             this.lagrangeEnumerator = new FetiDPLagrangeMultipliersEnumerator(crosspointStrategy, dofSeparator);
@@ -255,31 +283,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                 //subdomain.Forces = linearSystem.CreateZeroVector();
             }
 
-            // Identify corner nodes
-            CornerNodesOfSubdomains = cornerNodeSelection.SelectCornerNodesOfSubdomains(); //TODO: Could this cause change in connectivity?
-
-            // Define boundary / internal dofs
-            dofSeparator.SeparateDofs(model, CornerNodesOfSubdomains);
-            dofSeparator.DefineCornerMappingMatrices(model, CornerNodesOfSubdomains);
-
-            //TODO: B matrices could also be reused in some cases
-            // Define lagrange multipliers and boolean matrices. 
-            this.lagrangeEnumerator = new FetiDPLagrangeMultipliersEnumerator(crosspointStrategy, dofSeparator); 
-            if (problemIsHomogeneous) lagrangeEnumerator.DefineBooleanMatrices(model); // optimization in this case
-            else lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model);
-
             // Log dof statistics
             watch.Stop();
             Logger.LogTaskDuration("Dof ordering", watch.ElapsedMilliseconds);
             Logger.LogNumDofs("Global dofs", globalOrdering.NumGlobalFreeDofs);
-            int numExpandedDomainFreeDofs = 0;
-            foreach (var subdomain in model.Subdomains)
-            {
-                numExpandedDomainFreeDofs += subdomain.FreeDofOrdering.NumFreeDofs;
-            }
-            Logger.LogNumDofs("Expanded domain dofs", numExpandedDomainFreeDofs);
-            Logger.LogNumDofs("Lagrange multipliers", lagrangeEnumerator.NumLagrangeMultipliers);
-            Logger.LogNumDofs("Corner dofs", dofSeparator.NumGlobalCornerDofs);
         }
 
         public void PreventFromOverwrittingSystemMatrices() => factorizeInPlace = false;

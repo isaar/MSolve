@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
@@ -66,8 +67,14 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 
             // Separate dofs
             var dofSeparator = new FetiDPDofSeparator();
-            dofSeparator.SeparateDofs(model, cornerNodes);
-
+            foreach (ISubdomain subdomain in model.Subdomains)
+            {
+                int s = subdomain.ID;
+                IEnumerable<INode> remainderNodes = subdomain.Nodes.Except(cornerNodes[s]);
+                dofSeparator.SeparateCornerRemainderDofs(subdomain, cornerNodes[s], remainderNodes);
+                dofSeparator.SeparateBoundaryInternalDofs(subdomain, remainderNodes);
+            }
+            
             // Check
             for (int s = 0; s < 4; ++s)
             {
@@ -125,7 +132,14 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 
             // Separate dofs
             var dofSeparator = new FetiDPDofSeparator();
-            dofSeparator.SeparateDofs(model, cornerNodes);
+            dofSeparator.DefineGlobalBoundaryDofs(model, cornerNodes);
+            foreach (ISubdomain subdomain in model.Subdomains)
+            {
+                int s = subdomain.ID;
+                IEnumerable<INode> remainderNodes = subdomain.Nodes.Except(cornerNodes[s]);
+                dofSeparator.SeparateCornerRemainderDofs(subdomain, cornerNodes[s], remainderNodes);
+                dofSeparator.SeparateBoundaryInternalDofs(subdomain, remainderNodes);
+            }
 
             // Enumerate lagranges
             var crosspointStrategy = new FullyRedundantConstraints();
@@ -193,7 +207,17 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 
             // Separate dofs
             var dofSeparator = new FetiDPDofSeparator();
-            dofSeparator.DefineCornerMappingMatrices(model, cornerNodes);
+            dofSeparator.DefineGlobalCornerDofs(model, cornerNodes);
+            foreach (ISubdomain subdomain in model.Subdomains)
+            {
+                int s = subdomain.ID;
+                IEnumerable<INode> remainderAndConstrainedNodes = subdomain.Nodes.Where(node => !cornerNodes[s].Contains(node));
+                dofSeparator.SeparateCornerRemainderDofs(subdomain, cornerNodes[s], remainderAndConstrainedNodes);
+                dofSeparator.SeparateBoundaryInternalDofs(subdomain, remainderAndConstrainedNodes);
+
+                //TODO: This can also be reused if the global corner dofs have not changed.
+                dofSeparator.CalcCornerMappingMatrix(subdomain, cornerNodes[s]);
+            }
 
             // Check
             double tolerance = 1E-13;

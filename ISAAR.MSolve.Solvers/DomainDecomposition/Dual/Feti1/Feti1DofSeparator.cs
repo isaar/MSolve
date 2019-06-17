@@ -24,27 +24,20 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             BoundaryDofs = new Dictionary<int, (INode node, IDofType dofType)[]>();
         }
 
-        internal void SeparateDofs(IStructuralModel model)
+        public void DefineGlobalBoundaryDofs(IStructuralModel model)
         {
-            GatherGlobalBoundaryDofs(model.Nodes, model.GlobalDofOrdering);
-            SeparateBoundaryInternalDofs(model);
+            base.DefineGlobalBoundaryDofs(model.Nodes, model.GlobalDofOrdering);
         }
 
-        private void SeparateBoundaryInternalDofs(IStructuralModel model)
+        public void SeparateBoundaryInternalDofs(ISubdomain subdomain)
         {
-            foreach (ISubdomain subdomain in model.Subdomains)
-            {
-                if (!subdomain.ConnectivityModified) continue;
+            int s = subdomain.ID;
+            (int[] internalDofIndices, int[] boundaryDofIndices, (INode node, IDofType dofType)[] boundaryDofConnectivities)
+                = DofSeparatorBase.SeparateBoundaryInternalDofs(subdomain.Nodes, subdomain.FreeDofOrdering.FreeDofs);
 
-                int s = subdomain.ID;
-                Debug.WriteLine($"{this.GetType().Name}: Separating boundary-internal dofs of subdomain {s}");
-                (int[] internalDofIndices, int[] boundaryDofIndices, (INode node, IDofType dofType)[] boundaryDofConnectivities)
-                    = DofSeparatorBase.SeparateBoundaryInternalDofs(subdomain.Nodes, subdomain.FreeDofOrdering.FreeDofs);
-
-                InternalDofIndices[s] = internalDofIndices;
-                BoundaryDofIndices[s] = boundaryDofIndices;
-                BoundaryDofs[s] = boundaryDofConnectivities;
-            }
+            InternalDofIndices[s] = internalDofIndices;
+            BoundaryDofIndices[s] = boundaryDofIndices;
+            BoundaryDofs[s] = boundaryDofConnectivities;
         }
     }
 }

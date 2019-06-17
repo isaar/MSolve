@@ -53,8 +53,8 @@ namespace ISAAR.MSolve.SamplesConsole
 
             // COMPDYN benchmarks
             //Fillet.Run();
-            Holes.Run();
-            //DoubleCantileverBeam.Run();
+            //Holes.Run();
+            DoubleCantileverBeam.Run();
         }
 
         private static void SolveBuildingInNoSoilSmall()

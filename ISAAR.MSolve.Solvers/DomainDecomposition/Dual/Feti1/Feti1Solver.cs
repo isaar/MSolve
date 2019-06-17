@@ -204,7 +204,13 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             watch.Start();
 
             // Define boundary / internal dofs
-            dofSeparator.SeparateDofs(model);
+            dofSeparator.DefineGlobalBoundaryDofs(model);
+            foreach (ISubdomain subdomain in model.Subdomains)
+            {
+                if (!subdomain.ConnectivityModified) continue;
+                Debug.WriteLine($"{this.GetType().Name}: Separating boundary-internal dofs of subdomain {subdomain.ID}");
+                dofSeparator.SeparateBoundaryInternalDofs(subdomain);
+            }
 
             //TODO: B matrices could also be reused in some cases
             // Define lagrange multipliers and boolean matrices

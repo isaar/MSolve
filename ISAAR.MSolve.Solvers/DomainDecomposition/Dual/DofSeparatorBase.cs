@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual
         public Dictionary<INode, IDofType[]> GlobalBoundaryDofs { get; private set; }
         public abstract Dictionary<int, int[]> InternalDofIndices { get; protected set; }
 
-        protected void GatherGlobalBoundaryDofs(IEnumerable<INode> allNodes, IGlobalFreeDofOrdering globalDofOrdering)
+        protected void DefineGlobalBoundaryDofs(IEnumerable<INode> allNodes, IGlobalFreeDofOrdering globalDofOrdering)
         {
             GlobalBoundaryDofs = new Dictionary<INode, IDofType[]>();
 

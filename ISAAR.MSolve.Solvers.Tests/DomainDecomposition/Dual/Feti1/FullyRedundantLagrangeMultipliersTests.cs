@@ -245,7 +245,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
 
             // Create boolean matrices
             var dofSeparator = new Feti1DofSeparator();
-            dofSeparator.SeparateDofs(model);
+            dofSeparator.DefineGlobalBoundaryDofs(model);
+            foreach (ISubdomain subdomain in model.Subdomains) dofSeparator.SeparateBoundaryInternalDofs(subdomain);
             var lagrangeEnumerator = new Feti1LagrangeMultipliersEnumerator(new FullyRedundantConstraints(), dofSeparator);
             if (createLagranges) lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model);
             else lagrangeEnumerator.DefineBooleanMatrices(model);
