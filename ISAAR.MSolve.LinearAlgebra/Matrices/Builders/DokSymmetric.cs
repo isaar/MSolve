@@ -624,7 +624,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
                 for (int subI = 0; subI <= subJ; ++subI)
                 {
                     int thisI = rowsColsToKeep[subI];
-                    double value = this[thisI, thisJ];
+                    double value = this[thisI, thisJ]; //TODO: This should be done explicitly
                     if (value != 0.0) submatrix[subI, subJ] = value;
                 }
             }

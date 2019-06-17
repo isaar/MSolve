@@ -11,6 +11,8 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.LinearSystems;
 
+//TODO: Kff should probably be a DOK. It will only be used to extract Krr, Krc, Kcc. 
+//      What about dynamic problems, where Kff needs to do linear combinations and matrix-vector multiplications
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
 {
     /// <summary>
