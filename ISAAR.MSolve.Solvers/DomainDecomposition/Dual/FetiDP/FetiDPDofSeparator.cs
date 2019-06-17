@@ -11,7 +11,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 //TODO: Remove code duplication between this and Feti1DofSeparator
 //TODO: Perhaps I should also find and expose the indices of boundary remainder and internal remainder dofs into the sequence 
 //      of all free dofs of each subdomain
-//TODO: Decide which of these data structures will be cached and which will be used once to create all required mapping matrices.
+//TODO: Decide which of these data structures will be stored and which will be used ONCE to create all required mapping matrices.
 //TODO: Perhaps the corner dof logic should be moved to another class.
 namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
 {

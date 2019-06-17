@@ -11,6 +11,7 @@ using ISAAR.MSolve.LinearAlgebra.Vectors;
 using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
 using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
 using System.Linq;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 
 //TODO: Also linear combinations with other matrix types may be useful, e.g. Skyline (K) with diagonal (M), but I think 
 //      that for global matrices, this should be done through concrete class to use DoEntrywiseIntoThis methods. 
@@ -822,6 +823,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //      Schur complements more efficiently.
             if (isOverwritten) throw new MatrixDataOverwrittenException();
             return SkylineSlicing.GetSubmatrixSymmetricPacked(values, diagOffsets, indices);
+        }
+
+        public SparsityPatternSymmetric GetSubmatrixSymmetricPattern(int[] indices)
+        {
+            //TODO: perhaps this can be combined with the CSC and full version to get all 2 submatrices needed for 
+            //      Schur complements more efficiently.
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
+            return SkylineSlicing.GetSubmatrixSymmetricPattern(values, diagOffsets, indices);
         }
 
         public SkylineMatrix GetSubmatrixSymmetricSkyline(int[] indices) 

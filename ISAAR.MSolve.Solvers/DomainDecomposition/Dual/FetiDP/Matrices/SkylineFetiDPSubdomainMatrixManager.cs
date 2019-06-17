@@ -5,12 +5,14 @@ using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.SchurComplements;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.Assemblers;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem;
 using ISAAR.MSolve.Solvers.LinearSystems;
+using ISAAR.MSolve.Solvers.Ordering.Reordering;
 
 //TODO: Kff should probably be a DOK. It will only be used to extract Krr, Krc, Kcc. 
 //      What about dynamic problems, where Kff needs to do linear combinations and matrix-vector multiplications
@@ -24,6 +26,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
     {
         private readonly SkylineAssembler assembler = new SkylineAssembler();
         private readonly SingleSubdomainSystem<SkylineMatrix> linearSystem;
+        private readonly IReorderingAlgorithm reordering;
 
         private DiagonalMatrix inverseKiiDiagonal;
         private LdlSkyline inverseKii;
@@ -35,9 +38,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
         private CscMatrix Krc;
         private SkylineMatrix Krr;
 
-        public SkylineFetiDPSubdomainMatrixManager(ISubdomain subdomain)
+        public SkylineFetiDPSubdomainMatrixManager(ISubdomain subdomain, IReorderingAlgorithm reordering)
         {
             this.linearSystem = new SingleSubdomainSystem<SkylineMatrix>(subdomain);
+            this.reordering = reordering;
         }
 
         public ISingleSubdomainLinearSystem LinearSystem => linearSystem;
@@ -356,13 +360,70 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
             return Krc.Multiply(vector);
         }
 
+        public void ReorderInternalDofs(FetiDPDofSeparator dofSeparator, ISubdomain subdomain)
+        {
+            if (reordering != null) // Else use the natural ordering and do not modify any stored dof data
+            {
+                try
+                {
+                    int[] internalDofs = dofSeparator.InternalDofIndices[subdomain.ID];
+                    var pattern = Krr.GetSubmatrixSymmetricPattern(internalDofs);
+                    (int[] permutation, bool oldToNew) = reordering.FindPermutation(pattern);
+                    int[] newInternalDofs = ReorderingUtilities.ReorderKeysOfDofIndicesMap(internalDofs, permutation, oldToNew);
+
+                    // What if the dof separator gets added other state that needs to be updated?
+                    dofSeparator.InternalDofIndices[subdomain.ID] = newInternalDofs;
+                }
+                catch (MatrixDataOverwrittenException)
+                {
+                    throw new InvalidOperationException(
+                        "The remainder-remainder stiffness submatrix of this subdomain has been already been calculated and"
+                        + " then overwritten and cannot be used anymore. Try calling this method before" 
+                        + " factorizing/inverting it.");
+                }
+            }
+        }
+
+        public void ReorderRemainderDofs(FetiDPDofSeparator dofSeparator, ISubdomain subdomain)
+        {
+            //if (reordering != null) // Else use the natural ordering and do not modify any stored dof data
+            //{
+            //    try
+            //    {
+            //        int[] remainderDofs = dofSeparator.RemainderDofIndices[subdomain.ID];
+            //        var pattern = linearSystem.Matrix.GetSubmatrixSymmetricPattern(remainderDofs);
+            //        (int[] permutation, bool oldToNew) = reordering.FindPermutation(pattern);
+            //        int[] newRemainderDofs = ReorderingUtilities.ReorderKeysOfDofIndicesMap(remainderDofs, permutation, oldToNew);
+
+            //        // What if the dof separator gets added other state that needs to be updated?
+            //        dofSeparator.RemainderDofIndices[subdomain.ID] = newRemainderDofs;
+            //    }
+            //    catch (MatrixDataOverwrittenException)
+            //    {
+            //        throw new InvalidOperationException(
+            //            "The free-free stiffness matrix of this subdomain has been overwritten and cannot be used anymore."
+            //            + "Try calling this method before factorizing/inverting it.");
+            //    }
+            //}
+        }
+
         public class Factory : IFetiDPSubdomainMatrixManagerFactory
         {
+            private readonly IReorderingAlgorithm reordering;
+
+            //TODO: Use the reordering classes of project Solvers.
+            //TODO: If the natural ordering is best, then there is no need to modify the stored dof data. 
+            //      Find a better way to handle it, perhaps by checking if IReorderingAlgorithm produced a better ordering.
+            public Factory(IReorderingAlgorithm reordering = null)
+            {
+                this.reordering = reordering;
+            }
+
             public IFetiDPCoarseProblemSolver CreateCoarseProblemSolver(IReadOnlyList<ISubdomain> subdomains)
                 => new SkylineFetiDPCoarseProblemSolver(subdomains);
 
             public IFetiDPSubdomainMatrixManager CreateMatricesManager(ISubdomain subdomain)
-                => new SkylineFetiDPSubdomainMatrixManager(subdomain);
+                => new SkylineFetiDPSubdomainMatrixManager(subdomain, reordering);
         }
     }
 }

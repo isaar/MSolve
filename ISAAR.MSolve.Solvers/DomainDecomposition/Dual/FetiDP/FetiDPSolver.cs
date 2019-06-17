@@ -307,8 +307,22 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP
                 watch.Stop();
                 Logger.LogTaskDuration("Separating vectors & matrices", watch.ElapsedMilliseconds);
 
+
+                // Reorder internal dofs if needed by the preconditioner. TODO: Should I have done this previously?
+                watch.Start();
+                if (preconditionerFactory.ReorderInternalDofsForFactorization)
+                {
+                    foreach (ISubdomain subdomain in model.Subdomains)
+                    {
+                        if (subdomain.ConnectivityModified)
+                        {
+                            Debug.WriteLine($"{this.GetType().Name}: Reordering internal dofs of subdomain {subdomain.ID}.");
+                            matrixManagers[subdomain.ID].ReorderInternalDofs(dofSeparator, subdomain);
+                        }
+                    }
+                }
+
                 // Calculate the preconditioner before factorizing each subdomain's Kff 
-                watch.Restart();
                 preconditioner = preconditionerFactory.CreatePreconditioner(model, stiffnessDistribution, dofSeparator,
                     lagrangeEnumerator, matrixManagersGeneral);
                 watch.Stop();

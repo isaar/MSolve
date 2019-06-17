@@ -92,11 +92,6 @@ namespace ISAAR.MSolve.LinearAlgebra.Reordering
             return pattern;
         }
 
-        public static SparsityPatternSymmetric CreateFromSkylineSubmatrix(SkylineMatrix original, int[] rowsColsToKeep)
-        {
-            return SkylineSlicing.GetSubmatrixSymmetricPattern(original.RawValues, original.RawDiagOffsets, rowsColsToKeep);
-        }
-
         /// <summary>
         /// Marks the matrix entry (<paramref name="rowIdx"/>, <paramref name="colIdx"/>) as non-zero. If it was already marked,
         /// nothing happens.

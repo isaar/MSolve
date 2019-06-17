@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
@@ -37,5 +38,14 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
         Vector MultiplyKccTimes(Vector vector);
         Vector MultiplyKcrTimes(Vector vector);
         Vector MultiplyKrcTimes(Vector vector);
+
+        //TODO: Perhaps these reorderings should be done by the dofSeparator since its state will be modified. What about the  
+        //      cases where no reordering is applied (e.g. lumped preconditioner)?
+        //TODO: Bad design. All this time the matrix manager had access to only 1 subdomain and now I pass it an object that
+        //      stores dof data for all subdomains and which subdomain to use.
+        void ReorderInternalDofs(FetiDPDofSeparator dofSeparator, ISubdomain subdomain);
+
+        //TODO: This must be called before creating mapping matrices (Br, Bc) or even processing boundary/internal dofs
+        void ReorderRemainderDofs(FetiDPDofSeparator dofSeparator, ISubdomain subdomain);
     }
 }

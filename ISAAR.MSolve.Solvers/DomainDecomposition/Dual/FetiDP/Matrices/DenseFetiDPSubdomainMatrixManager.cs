@@ -354,6 +354,16 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices
             return Krc * vector;
         }
 
+        public void ReorderInternalDofs(FetiDPDofSeparator dofSeparator, ISubdomain subdomain)
+        {
+            // Do nothing, since the sparsity pattern is irrelevant for dense matrices.
+        }
+
+        public void ReorderRemainderDofs(FetiDPDofSeparator dofSeparator, ISubdomain subdomain)
+        {
+            // Do nothing, since the sparsity pattern is irrelevant for dense matrices.
+        }
+
         public class Factory : IFetiDPSubdomainMatrixManagerFactory
         {
             public IFetiDPCoarseProblemSolver CreateCoarseProblemSolver(IReadOnlyList<ISubdomain> subdomains)

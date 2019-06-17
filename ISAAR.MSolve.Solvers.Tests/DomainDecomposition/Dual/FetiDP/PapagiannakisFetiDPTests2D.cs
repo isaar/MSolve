@@ -4,6 +4,7 @@ using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
@@ -152,7 +153,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             }
 
             // Solver
-            var fetiMatrices = new SkylineFetiDPSubdomainMatrixManager.Factory();
+            var fetiMatrices = new SkylineFetiDPSubdomainMatrixManager.Factory(new OrderingAmdSuiteSparse());
+            //var fetiMatrices = new SkylineFetiDPSubdomainMatrixManager.Factory();
             //var fetiMatrices = new DenseFetiDPSubdomainMatrixManager.Factory();
             var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodesOfEachSubdomain);
             var solverBuilder = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices);
