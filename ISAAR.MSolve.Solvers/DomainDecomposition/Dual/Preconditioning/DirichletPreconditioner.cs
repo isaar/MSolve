@@ -67,6 +67,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning
 
         public class Factory : FetiPreconditionerFactoryBase
         {
+            public override bool ReorderInternalDofsForFactorization => true;
+
             public override IFetiPreconditioner CreatePreconditioner(IStructuralModel model,
                 IStiffnessDistribution stiffnessDistribution, IDofSeparator dofSeparator,
                 ILagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, IFetiSubdomainMatrixManager> matrixManagers)

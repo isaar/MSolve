@@ -14,6 +14,8 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning
 {
     public abstract class FetiPreconditionerFactoryBase : IFetiPreconditionerFactory
     {
+        public abstract bool ReorderInternalDofsForFactorization { get; }
+
         public abstract IFetiPreconditioner CreatePreconditioner(IStructuralModel model, 
             IStiffnessDistribution stiffnessDistribution, IDofSeparator dofSeparator, 
             ILagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, IFetiSubdomainMatrixManager> matrixManagers);

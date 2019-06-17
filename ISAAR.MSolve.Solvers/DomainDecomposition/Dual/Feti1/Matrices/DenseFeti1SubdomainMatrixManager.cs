@@ -271,6 +271,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices
             return Kbi.MultiplyRight(matrix, true);
         }
 
+        public void ReorderInternalDofs(Feti1DofSeparator dofSeparator)
+        {
+            // Do nothing, since the sparsity pattern is irrelevant for dense matrices.
+        }
+
         public void SetSolutionVector(Vector solution) => linearSystem.SolutionConcrete = solution;
 
         public class Factory : IFeti1SubdomainMatrixManagerFactory

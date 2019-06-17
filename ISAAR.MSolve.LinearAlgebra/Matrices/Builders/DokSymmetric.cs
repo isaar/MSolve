@@ -624,7 +624,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
                 for (int subI = 0; subI <= subJ; ++subI)
                 {
                     int thisI = rowsColsToKeep[subI];
-                    double value = this[thisI, thisJ];
+                    double value = this[thisI, thisJ]; //TODO: This should be done explicitly
                     if (value != 0.0) submatrix[subI, subJ] = value;
                 }
             }
@@ -694,6 +694,14 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices.Builders
                 columns[j].Remove(colIdx); // If it is 0, then nothing will happen.
             }
         }
+
+        /// <summary>
+        /// Like <see cref="this[int, int]"/>, but will not check or transpose the entry.
+        /// </summary>
+        /// <param name="rowIdx">The row index: 0 &lt;= <paramref name="rowIdx"/> &lt; <see cref="NumRows"/>.</param>
+        /// <param name="colIdx">The column index: 0 &lt;= <paramref name="colIdx"/> &lt; <see cref="NumColumns"/>.</param>
+        /// <param name="value">The value to set.</param>
+        public void SetEntryUpper(int rowIdx, int colIdx, double value) => columns[colIdx][rowIdx] = value;
 
         /// <summary>
         /// Sets all entries that are on the main diagonal and have not been explicitly modified by a previous method or 
