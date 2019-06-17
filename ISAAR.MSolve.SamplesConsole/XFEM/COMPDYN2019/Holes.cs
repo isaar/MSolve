@@ -17,6 +17,8 @@ using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.CornerNodes;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
 using ISAAR.MSolve.Solvers.DomainDecomposition.MeshPartitioning;
+using ISAAR.MSolve.Solvers.Ordering;
+using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Solvers;
@@ -27,25 +29,31 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
 {
     public class Holes
     {
-        private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes.msh";
+        //private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes.msh";
+        //private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes_4442.msh";
+        //private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes_13738.msh";
+        //private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes_22666.msh";
+        //private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes_29052.msh";
+        private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes_189740.msh";
+        //private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes_357324.msh";
         private const string leftCrackPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Plots\Left";
         private const string rightCrackPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Plots\Right";
         private const string subdomainPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Plots\Subdomains";
-        private const string solverLogPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Fillet\solver_log.txt";
+        private const string solverLogPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\solver_log.txt";
 
         public static void Run()
         {
             HolesBenchmark benchmarkSub10;
 
             // Skyline
-            //HolesBenchmark benchmarkSub1 = CreateSingleSubdomainBenchmark();
-            //ISolver skylineSolver = DefineSolver(benchmarkSub1, SolverType.Skyline);
+            HolesBenchmark benchmarkSub1 = CreateSingleSubdomainBenchmark();
+            ISolver skylineSolver = DefineSolver(benchmarkSub1, SolverType.Skyline);
             //Console.WriteLine("Uncracked analysis, 1 subdomain, Skyline   : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub1.Model, skylineSolver));
             //Console.WriteLine("Cracked analysis only 1 step, 1 subdomain, Skyline   : norm2(globalU) = " +
             //    RunSingleCrackedStep(benchmarkSub1.Model, benchmarkSub1.Crack, skylineSolver));
             //Console.WriteLine("Skyline solver, 1 subdomain: ");
-            //RunCrackPropagationAnalysis(benchmarkSub1, skylineSolver);
+            RunCrackPropagationAnalysis(benchmarkSub1, skylineSolver);
 
             // FETI-1 10 subdomains
             //benchmarkSub10 = CreateMultiSubdomainBenchmark(10);
@@ -59,15 +67,15 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             //RunCrackPropagationAnalysis(benchmarkSub10, solverFeti1);
 
             // FETI-DP 10 subdomains
-            benchmarkSub10 = CreateMultiSubdomainBenchmark(10);
-            ISolver solverFetiDP = DefineSolver(benchmarkSub10, SolverType.FetiDP);
+            //benchmarkSub10 = CreateMultiSubdomainBenchmark(10);
+            //ISolver solverFetiDP = DefineSolver(benchmarkSub10, SolverType.FetiDP);
             //PlotSubdomains(subdomainPlotPath, benchmarkSub10.Model);
             //Console.WriteLine("Uncracked analysis, 10 subdomains, FETI-DP : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub10.Model, solverFetiDP));
             //Console.WriteLine("Cracked analysis only 1 step, 10 subdomains, FETI-DP : norm2(globalU) = " +
             //    RunSingleCrackedStep(benchmarkSub10.Model, benchmarkSub10.Crack, solverFetiDP));
             //Console.WriteLine("FETI-DP, 10 subdomains: ");
-            RunCrackPropagationAnalysis(benchmarkSub10, solverFetiDP);
+            //RunCrackPropagationAnalysis(benchmarkSub10, solverFetiDP);
 
             Console.Write("\nEnd");
         }
@@ -191,6 +199,7 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             if (solverType == SolverType.Skyline)
             {
                 var builder = new SkylineSolver.Builder();
+                builder.DofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithSuiteSparseAmd());
                 return builder.BuildSolver(benchmark.Model);
             }
             else if (solverType == SolverType.Feti1)
