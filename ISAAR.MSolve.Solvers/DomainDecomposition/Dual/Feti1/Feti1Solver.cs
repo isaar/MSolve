@@ -114,32 +114,28 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             var watch = new Stopwatch();
             watch.Start();
             var matrices = new Dictionary<int, IMatrix>();
-            var matricesReadonly = new Dictionary<int, IMatrixView>();
             foreach (ISubdomain subdomain in model.Subdomains) //TODO: this must be done in parallel
             {
                 int s = subdomain.ID;
-                IMatrix stiffness;
+                IMatrix Kff;
                 if (subdomain.StiffnessModified)
                 {
                     Debug.WriteLine($"{this.GetType().Name}: Assembling the free-free stiffness matrix of subdomain {s}");
-                    stiffness = matrixManagers[s].BuildGlobalMatrix(subdomain.FreeDofOrdering,
+                    Kff = matrixManagers[s].BuildGlobalMatrix(subdomain.FreeDofOrdering,
                         subdomain.Elements, elementMatrixProvider);
+                    linearSystems[s].Matrix = Kff; //TODO: This should be done by the solver not the analyzer. This method should return void.
                 }
                 else
                 {
-                    stiffness = (IMatrix)(linearSystems[s].Matrix); //TODO: remove the cast
+                    Kff = (IMatrix)(linearSystems[s].Matrix); //TODO: remove the cast
                 }
-                matrices[s] = stiffness;
-                matricesReadonly[s] = stiffness;
+                matrices[s] = Kff;
+
             }
             watch.Stop();
             Logger.LogTaskDuration("Matrix assembly", watch.ElapsedMilliseconds);
 
-            // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
-            //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
-            stiffnessDistribution.Update(matricesReadonly);
-            subdomainGlobalMapping = new Feti1SubdomainGlobalMapping(model, dofSeparator, stiffnessDistribution);
-
+            this.Initialize(); //TODO: Should this be called by the analyzer? Probably not, since it must be called before DistributeBoundaryLoads().
             return matrices;
         }
 
@@ -152,7 +148,6 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             var watch = new Stopwatch();
             watch.Start();
             var matrices = new Dictionary<int, (IMatrix Aff, IMatrixView Afc, IMatrixView Acf, IMatrixView Acc)>();
-            var matricesReadonly = new Dictionary<int, IMatrixView>();
             foreach (ISubdomain subdomain in model.Subdomains) //TODO: this must be done in parallel
             {
                 int s = subdomain.ID;
@@ -169,16 +164,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                     matrixManagers[s].BuildGlobalSubmatrices(subdomain.FreeDofOrdering,
                     subdomain.ConstrainedDofOrdering, subdomain.Elements, elementMatrixProvider);
                 matrices[s] = (Kff, Kfc, Kcf, Kcc);
-                matricesReadonly[s] = Kff;
+                linearSystems[s].Matrix = Kff; //TODO: This should be done by the solver not the analyzer. This method should return void.
             }
             watch.Stop();
             Logger.LogTaskDuration("Matrix assembly", watch.ElapsedMilliseconds);
 
-            // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
-            //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
-            stiffnessDistribution.Update(matricesReadonly);
-            subdomainGlobalMapping = new Feti1SubdomainGlobalMapping(model, dofSeparator, stiffnessDistribution);
-
+            this.Initialize(); //TODO: Should this be called by the analyzer? Probably not, since it must be called before DistributeBoundaryLoads().
             return matrices;
         }
 
@@ -208,7 +199,41 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
         }
 
         public void Initialize()
-        { }
+        {
+            var watch = new Stopwatch();
+            watch.Start();
+
+            // Define boundary / internal dofs
+            dofSeparator.SeparateDofs(model);
+
+            //TODO: B matrices could also be reused in some cases
+            // Define lagrange multipliers and boolean matrices
+            this.lagrangeEnumerator = new Feti1LagrangeMultipliersEnumerator(crosspointStrategy, dofSeparator);
+            if (problemIsHomogeneous) lagrangeEnumerator.DefineBooleanMatrices(model); // optimization in this case
+            else lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model);
+
+            // Log dof statistics
+            watch.Stop();
+            Logger.LogTaskDuration("Dof ordering", watch.ElapsedMilliseconds);
+            int numExpandedDomainFreeDofs = 0;
+            foreach (ISubdomain subdomain in model.Subdomains)
+            {
+                numExpandedDomainFreeDofs += subdomain.FreeDofOrdering.NumFreeDofs;
+            }
+            Logger.LogNumDofs("Expanded domain dofs", numExpandedDomainFreeDofs);
+            Logger.LogNumDofs("Lagrange multipliers", lagrangeEnumerator.NumLagrangeMultipliers);
+
+            // Use the newly created stiffnesses to determine the stiffness distribution between subdomains.
+            //TODO: Should this be done here or before factorizing by checking that isMatrixModified? 
+            var Kff = new Dictionary<int, IMatrixView>();
+            foreach (int s in linearSystems.Keys) Kff[s] = linearSystems[s].Matrix;
+            stiffnessDistribution.Update(Kff);
+            subdomainGlobalMapping = new Feti1SubdomainGlobalMapping(model, dofSeparator, stiffnessDistribution);
+
+            //Leftover code from Model.ConnectDataStructures().
+            //EnumerateSubdomainLagranges();
+            //EnumerateDOFMultiplicity();
+        }
 
         public Dictionary<int, Matrix> InverseSystemMatrixTimesOtherMatrix(Dictionary<int, IMatrixView> otherMatrix)
         {
@@ -235,30 +260,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 //subdomain.Forces = linearSystem.CreateZeroVector();
             }
 
-            // Define boundary / internal dofs
-            dofSeparator.SeparateDofs(model);
-
-            //TODO: B matrices could also be reused in some cases
-            // Define lagrange multipliers and boolean matrices
-            this.lagrangeEnumerator = new Feti1LagrangeMultipliersEnumerator(crosspointStrategy, dofSeparator);
-            if (problemIsHomogeneous) lagrangeEnumerator.DefineBooleanMatrices(model); // optimization in this case
-            else lagrangeEnumerator.DefineLagrangesAndBooleanMatrices(model);
-
             // Log dof statistics
             watch.Stop();
             Logger.LogTaskDuration("Dof ordering", watch.ElapsedMilliseconds);
             Logger.LogNumDofs("Global dofs", globalOrdering.NumGlobalFreeDofs);
-            int numExpandedDomainFreeDofs = 0;
-            foreach (var subdomain in model.Subdomains)
-            {
-                numExpandedDomainFreeDofs += subdomain.FreeDofOrdering.NumFreeDofs;
-            }
-            Logger.LogNumDofs("Expanded domain dofs", numExpandedDomainFreeDofs);
-            Logger.LogNumDofs("Lagrange multipliers", lagrangeEnumerator.NumLagrangeMultipliers);
-
-            //Leftover code from Model.ConnectDataStructures().
-            //EnumerateSubdomainLagranges();
-            //EnumerateDOFMultiplicity();
         }
 
         public void PreventFromOverwrittingSystemMatrices() => factorizeInPlace = false;
@@ -274,7 +279,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
             // Calculate generalized inverses and rigid body modes of subdomains to assemble the interface flexibility matrix. 
             if (isStiffnessModified)
             {
-                // Reorder internal dofs if needed by the preconditioner. TODO: Should I have done this previously?
+                // Reorder internal dofs if needed by the preconditioner. TODO: Should I have done this previously in Initialize()?
                 watch.Start();
                 if (preconditionerFactory.ReorderInternalDofsForFactorization)
                 {

@@ -41,7 +41,7 @@ namespace ISAAR.MSolve.Analyzers
         public void Initialize(bool isFirstAnalysis)
         {
             InitializeLogs();
-            solver.Initialize();
+            //solver.Initialize(); //TODO: Using this needs refactoring
         }
 
         public void Solve()

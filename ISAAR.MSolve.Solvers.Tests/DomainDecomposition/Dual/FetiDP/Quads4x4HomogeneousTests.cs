@@ -420,6 +420,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             var solver = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices).BuildSolver(model);
             model.ConnectDataStructures();
             solver.OrderDofs(false);
+            solver.Initialize();
 
             // Use the hardcoded intermediate matrices & vectors
             Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers = MockStiffnesses();
@@ -457,6 +458,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             FetiDPSolver solver = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices).BuildSolver(model);
             model.ConnectDataStructures();
             solver.OrderDofs(false);
+            solver.Initialize();
 
             // Mock the stiffness matrices and force vectors
             var fr = VectorsFr;
@@ -485,6 +487,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             var solver = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices).BuildSolver(model);
             model.ConnectDataStructures();
             solver.OrderDofs(false);
+            solver.Initialize();
 
             // Mock the stiffness matrices
             Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers = MockStiffnesses();
@@ -519,6 +522,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             var solver = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices).BuildSolver(model);
             model.ConnectDataStructures();
             solver.OrderDofs(false);
+            solver.Initialize();
 
             // Mock the stiffness matrices and force vectors
             Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers = MockStiffnesses();
@@ -569,6 +573,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             var solver = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices).BuildSolver(model);
             model.ConnectDataStructures();
             solver.OrderDofs(false);
+            solver.Initialize();
 
             // Mock the stiffness matrices and force vectors
             Dictionary<int, IFetiDPSubdomainMatrixManager> matrixManagers = MockStiffnesses();

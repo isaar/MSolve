@@ -64,7 +64,7 @@ namespace ISAAR.MSolve.XFEM.Analyzers
             // The order in which the next initializations happen is very important.
             if (isFirstAnalysis) model.ConnectDataStructures();
 
-            solver.Initialize(); //TODO: not sure about this one.
+            //solver.Initialize(); //TODO: not sure about this one.
         }
 
         /// <summary>
