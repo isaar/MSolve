@@ -56,7 +56,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Projection
             Matrix GQG = matrixG.MultiplyRight(matrixQ.Multiply(matrixG), true);
 
             var writer = new LinearAlgebra.Output.FullMatrixWriter();
-            writer.WriteToFile(GQG, @"C:\Users\Serafeim\Desktop\output.txt");
+            //writer.WriteToFile(GQG, @"C:\Users\Serafeim\Desktop\output.txt");
 
 
             factorGQG = GQG.FactorCholesky(true);

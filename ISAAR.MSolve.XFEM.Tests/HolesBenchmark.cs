@@ -29,6 +29,7 @@ using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.Entities;
 using ISAAR.MSolve.XFEM.Integration;
 using ISAAR.MSolve.XFEM.Materials;
+using ISAAR.MSolve.XFEM.Solvers;
 
 namespace ISAAR.MSolve.XFEM.Tests
 {
@@ -161,11 +162,13 @@ namespace ISAAR.MSolve.XFEM.Tests
         public TrackingExteriorCrackLSM LeftCrack { get; set; }
         public TrackingExteriorCrackLSM RightCrack { get; set; }
 
+        public TipAdaptivePartitioner Partitioner { get; set; } // Refactor its injection
+
         public void Analyze(ISolver solver)
         {
             var problem = new ProblemStructural(Model, solver);
             var analyzer = new QuasiStaticCrackPropagationAnalyzer(Model, solver, /*problem,*/ Crack, fractureToughness,
-                maxIterations);
+                maxIterations, Partitioner);
 
             // Subdomain plots
             if (subdomainPlotDirectory != null)

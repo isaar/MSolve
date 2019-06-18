@@ -31,6 +31,7 @@ namespace ISAAR.MSolve.XFEM.Analyzers
         private readonly int maxIterations;
         private readonly XModel model;
         private readonly TipAdaptivePartitioner partitioner; //TODO: Refactor its injection and usage
+        private readonly bool reanalysis = true;
 
         //private readonly IStaticProvider problem; //TODO: refactor and use this instead
         private readonly ElementStructuralStiffnessProvider problem = new ElementStructuralStiffnessProvider();
@@ -82,11 +83,8 @@ namespace ISAAR.MSolve.XFEM.Analyzers
                 // Apply the updated enrichements.
                 crack.UpdateEnrichments();
 
-                // Update the mesh partitioning, if necessary
-                if (partitioner != null) partitioner.UpdateSubdomains();
-
-                // Identify unmodified subdomains to avoid fully processing them again.
-                UpdateModifiedSubdomains();
+                // Update the mesh partitioning and identify unmodified subdomains to avoid fully processing them again.
+                UpdateSubdomains();
 
                 // Order and count dofs
                 solver.OrderDofs(false);
@@ -223,9 +221,10 @@ namespace ISAAR.MSolve.XFEM.Analyzers
             return newTipEnrichedSubdomains;
         }
 
-        private void UpdateModifiedSubdomains()
+        private void UpdateSubdomains()
         {
             if (model.Subdomains.Count == 1) return;
+
             if (newTipEnrichedSubdomains == null) 
             {
                 // First analysis step: All subdomains must be fully processed.
@@ -240,24 +239,33 @@ namespace ISAAR.MSolve.XFEM.Analyzers
             }
             else
             {
-                // Set them all to unmodified.
-                foreach (XSubdomain subdomain in model.Subdomains.Values)
-                {
-                    subdomain.ConnectivityModified = false;
-                    subdomain.StiffnessModified = false;
-                }
+                // Update the mesh partitioning, if necessary
+                HashSet<ISubdomain> modifiedSubdomains;
+                if (partitioner != null) modifiedSubdomains = partitioner.UpdateSubdomains();
+                else modifiedSubdomains = new HashSet<ISubdomain>();
 
-                // The modified subdomains are the ones containing nodes enriched with tip or Heaviside functions during the  
-                // current analysis step. Also the ones that had tip enriched nodes in the previous step.
-                HashSet<ISubdomain> modifiedSubdomains = newTipEnrichedSubdomains;
-                newTipEnrichedSubdomains = FindSubdomainsWithNewTipEnrichedNodes(); // Prepare for the next analysis step
-                modifiedSubdomains.UnionWith(newTipEnrichedSubdomains);
-                HashSet<ISubdomain> newHeavisideSubdomains = FindSubdomainsWithNewHeavisideEnrichedNodes();
-                modifiedSubdomains.UnionWith(newHeavisideSubdomains);
-                foreach (ISubdomain subdomain in modifiedSubdomains)
+                if (reanalysis)
                 {
-                    subdomain.ConnectivityModified = true;
-                    subdomain.StiffnessModified = true;
+                    // Set them all to unmodified.
+                    foreach (XSubdomain subdomain in model.Subdomains.Values)
+                    {
+                        subdomain.ConnectivityModified = false;
+                        subdomain.StiffnessModified = false;
+                    }
+
+                    // The modified subdomains are the ones containing nodes enriched with tip or Heaviside functions during the  
+                    // current analysis step. Also the ones that had tip enriched nodes in the previous step.
+                    modifiedSubdomains.UnionWith(newTipEnrichedSubdomains);
+                    newTipEnrichedSubdomains = FindSubdomainsWithNewTipEnrichedNodes(); // Prepare for the next analysis step
+                    modifiedSubdomains.UnionWith(newTipEnrichedSubdomains);
+                    HashSet<ISubdomain> newHeavisideSubdomains = FindSubdomainsWithNewHeavisideEnrichedNodes();
+                    modifiedSubdomains.UnionWith(newHeavisideSubdomains);
+
+                    foreach (ISubdomain subdomain in modifiedSubdomains)
+                    {
+                        subdomain.ConnectivityModified = true;
+                        subdomain.StiffnessModified = true;
+                    }
                 }
             }
         }

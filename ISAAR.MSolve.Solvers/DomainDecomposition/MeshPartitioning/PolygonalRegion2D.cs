@@ -9,7 +9,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.MeshPartitioning
     public class PolygonalRegion2D : IRegion2D
     {
         private readonly ConvexPolygon2D polygon;
-        private readonly HashSet<LineSegment2D> boundaries;
+        private readonly IEnumerable<LineSegment2D> boundaries;
         
         /// <summary>
         /// 
@@ -17,7 +17,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.MeshPartitioning
         /// <param name="allVertices"></param>
         /// <param name="boundaryVertices">If the all vertices are boundary, then this list needs to start and end with the same 
         ///     vertex.</param>
-        public PolygonalRegion2D(IReadOnlyList<CartesianPoint> allVertices, HashSet<LineSegment2D> boundaries)
+        public PolygonalRegion2D(IReadOnlyList<CartesianPoint> allVertices, IEnumerable<LineSegment2D> boundaries)
         {
             this.polygon = ConvexPolygon2D.CreateUnsafe(allVertices);
             this.boundaries = boundaries;

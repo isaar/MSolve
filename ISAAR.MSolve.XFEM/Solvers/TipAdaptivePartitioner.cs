@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
@@ -18,7 +19,7 @@ namespace ISAAR.MSolve.XFEM.Solvers
             this.crack = crack;
         }
 
-        public void UpdateSubdomains()
+        public HashSet<ISubdomain> UpdateSubdomains()
         {
             var modifiedSubdomains = new HashSet<XSubdomain>();
 
@@ -65,6 +66,8 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
             // Find the new nodes in the subdomains with added or removed elements
             foreach (XSubdomain subdomain in modifiedSubdomains) subdomain.DefineNodesFromElements();
+
+            return new HashSet<ISubdomain>(modifiedSubdomains);
         }
     }
 }

@@ -31,6 +31,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.MeshPartitioning
             // Process elements that are unambiguously internal to one subdomain.
             for (int e = 0; e < mesh.Elements.Count; ++e)
             {
+                // For debugging
+                //if (e == 472)
+                //{
+                //    Console.WriteLine();
+                //}
                 TElement element = mesh.Elements[e];
                 List<int> containingSubdomains = FindRegionsContainingElement(element);
                 if (containingSubdomains.Count == 0)
