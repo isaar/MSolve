@@ -131,7 +131,8 @@ namespace ISAAR.MSolve.XFEM.Analyzers
                 foreach (var tipPropagator in crack.CrackTipPropagators)
                 {
                     double sifEffective = CalculateEquivalentSIF(tipPropagator.Value.Logger.SIFsMode1[analysisStep],
-                    tipPropagator.Value.Logger.SIFsMode2[analysisStep]);
+                        tipPropagator.Value.Logger.SIFsMode2[analysisStep]);
+                    //Console.WriteLine("Keff = " + sifEffective);
                     if (sifEffective >= fractureToughness)
                     {
                         Termination = CrackPropagationTermination.FractureToughnessIsExceeded;
@@ -228,6 +229,7 @@ namespace ISAAR.MSolve.XFEM.Analyzers
             if (newTipEnrichedSubdomains == null) 
             {
                 // First analysis step: All subdomains must be fully processed.
+                if (partitioner != null) partitioner.UpdateSubdomains();
                 foreach (XSubdomain subdomain in model.Subdomains.Values)
                 {
                     subdomain.ConnectivityModified = true;

@@ -22,7 +22,7 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
 {
     public class DoubleCantileverBeam
     {
-        private const int numElementsY = 35;
+        private const int numElementsY = 100;
         private const double tipEnrichementRadius = 0.0;
         private const string crackPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\DCB\Plots\LSM";
         private const string subdomainPlotDirectory = @"C:\Users\Serafeim\Desktop\COMPDYN2019\DCB\Plots\Subdomains";
@@ -92,6 +92,7 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             }
             else if (solverType == SolverType.FetiDP)
             {
+                //benchmark.Partitioner = new TipAdaptivePartitioner(benchmark.Crack);
                 benchmark.Model.ConnectDataStructures();
 
                 Dictionary<int, HashSet<INode>> initialCorners = FindCornerNodesFromRectangleCorners(benchmark.Model);

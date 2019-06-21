@@ -9,6 +9,7 @@ using ISAAR.MSolve.XFEM.CrackGeometry;
 using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Entities;
 
+//TODO: It is possible that some previous corner nodes become internal due to the TipAdaptivePartitioner. How to handle this?
 namespace ISAAR.MSolve.XFEM.Solvers
 {
     public class CrackedFetiDPSubdomainCornerNodes : ICornerNodeSelection
@@ -25,8 +26,14 @@ namespace ISAAR.MSolve.XFEM.Solvers
 
         public Dictionary<int, HashSet<INode>> SelectCornerNodesOfSubdomains()
         {
-            HashSet<XNode> enrichedBoundaryNodes = FindNewEnrichedBoundaryNodes();
+            // Remove the previous corner nodes that are no longer boundary.
+            foreach (HashSet<INode> subdomainCorners in currentCornerNodes.Values)
+            {
+                subdomainCorners.RemoveWhere(node => node.SubdomainsDictionary.Count < 2);
+            }
 
+            // Add boundary Heaviside nodes and nodes of the tip element(s).
+            HashSet<XNode> enrichedBoundaryNodes = FindNewEnrichedBoundaryNodes();
             foreach (XNode node in enrichedBoundaryNodes)
             {
                 foreach (int subdomainID in node.SubdomainsDictionary.Keys)

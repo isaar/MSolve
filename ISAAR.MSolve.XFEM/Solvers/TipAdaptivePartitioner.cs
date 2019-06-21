@@ -7,6 +7,7 @@ using ISAAR.MSolve.XFEM.Entities;
 
 //TODO: At the start of each iteration, find which region the tip belongs to, instead of taking the current subdomain of the 
 //      tip element. Then adapt the elements/nodes/subdomains around the crack tip.
+//TODO: It is possible that due to this exchange of elements between subdomains, some corner nodes change. How to handle this?
 namespace ISAAR.MSolve.XFEM.Solvers
 {
     public class TipAdaptivePartitioner

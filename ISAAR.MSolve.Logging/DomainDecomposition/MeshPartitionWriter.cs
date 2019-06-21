@@ -16,6 +16,13 @@ namespace ISAAR.MSolve.Logging.DomainDecomposition
     public class MeshPartitionWriter
     {
         public const string vtkReaderVersion = "4.1";
+        private const int shuffleSeed = 314159;
+        private bool shuffleSubdomainColors;
+
+        public MeshPartitionWriter(bool shuffleSubdomainColors = false)
+        {
+            this.shuffleSubdomainColors = shuffleSubdomainColors;
+        }
 
         public void WriteBoundaryNodes(string path, IStructuralModel model)
         {
@@ -204,14 +211,14 @@ namespace ISAAR.MSolve.Logging.DomainDecomposition
                 writer.WriteLine("POINT_DATA " + numNodes);
                 writer.WriteLine($"SCALARS subdomainID double 1");
                 writer.WriteLine("LOOKUP_TABLE default");
-                int id = 0;
-                foreach (ISubdomain subdomain in subdomains)
+                int[] subdomainColors = Enumerable.Range(0, subdomains.Count).ToArray();
+                if (shuffleSubdomainColors) ShuffleFischerYates(subdomainColors);
+                for (int s = 0; s < subdomains.Count; ++s)
                 {
-                    foreach (var node in subdomain.Nodes)
+                    foreach (var node in subdomains[s].Nodes)
                     {
-                        writer.WriteLine(id);
+                        writer.WriteLine(subdomainColors[s]);
                     }
-                    ++id;
                 }
                 writer.WriteLine();
             }
@@ -308,6 +315,21 @@ namespace ISAAR.MSolve.Logging.DomainDecomposition
                 //    }
                 //}
             }
-        }  
+        }
+
+        private static int[] ShuffleFischerYates(int[] array)
+        {
+            Random rng = new Random(shuffleSeed);
+            int n = array.Length;        // The number of items left to shuffle (loop invariant).
+            while (n > 1)
+            {
+                int k = rng.Next(n);      // 0 <= k < n.
+                n--;                      // n is now the last pertinent index;
+                int temp = array[n];     // swap array[n] with array[k] (does nothing if k == n).
+                array[n] = array[k];
+                array[k] = temp;
+            }
+            return array;
+        }
     }
 }

@@ -32,10 +32,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.MeshPartitioning
             for (int e = 0; e < mesh.Elements.Count; ++e)
             {
                 // For debugging
-                //if (e == 472)
+                //if (((IElement)mesh.Elements[e]).ID == 406)
                 //{
                 //    Console.WriteLine();
                 //}
+
                 TElement element = mesh.Elements[e];
                 List<int> containingSubdomains = FindRegionsContainingElement(element);
                 if (containingSubdomains.Count == 0)
@@ -57,6 +58,19 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.MeshPartitioning
             // Process elements that are intersected by the region boundaries
             foreach (TElement element in boundaryElements)
             {
+                // For debugging
+                //foreach (TNode node in element.Nodes)
+                //{
+                //    if (node.ID == 552)
+                //    {
+                //        Console.WriteLine();
+                //    }
+                //}
+                //if (((IElement)element).ID == 406)
+                //{
+                //    Console.WriteLine();
+                //}
+
                 int subdomain = FindSubdomainWithMostNeighbors(element, partitionedElements);
                 partition[subdomain].Add(element);
                 partitionedElements[element] = subdomain; // Take this element into account for the next boundary elements.
@@ -106,6 +120,12 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.MeshPartitioning
                 IRegion2D region = idRegionPair.Value;
                 foreach (TNode node in element.Nodes) //TODO: If a node was internal to a previous region, there is no need to process it again
                 {
+                    //For debuging
+                    //if (node.ID == 552)
+                    //{
+                    //    Console.WriteLine();
+                    //}
+
                     // We are interested in regions where nodes are internal to. If an element has 3 nodes internal to region A 
                     // and 1 node on the boundary between regions A,B then it belongs to A.
                     NodePosition relativePosition = region.FindRelativePosition(node);

@@ -33,10 +33,12 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
     public class Holes
     {
         //private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes.msh";
-        private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes_4442.msh";
+        //private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes_4442.msh";
+        private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes_8000.msh";
         //private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes_13738.msh";
         ////private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes_22666.msh";
         //private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes_29052.msh";
+        //private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes_60000.msh";
         //private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes_100000.msh";
         ////private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes_189740.msh";
         ////private const string meshPath = @"C:\Users\Serafeim\Desktop\COMPDYN2019\Holes\Mesh\holes_357324.msh";
@@ -47,39 +49,46 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
 
         public static void Run()
         {
+            HolesBenchmark benchmarkSub1;
             HolesBenchmark benchmarkSub10;
+            HolesBenchmark benchmarkSub15;
 
             // Skyline
-            //HolesBenchmark benchmarkSub1 = CreateSingleSubdomainBenchmark();
+            //benchmarkSub1 = CreateSingleSubdomainBenchmark();
             //ISolver skylineSolver = DefineSolver(benchmarkSub1, SolverType.Skyline);
+            //RunCrackPropagationAnalysis(benchmarkSub1, skylineSolver);
             //Console.WriteLine("Uncracked analysis, 1 subdomain, Skyline   : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub1.Model, skylineSolver));
             //Console.WriteLine("Cracked analysis only 1 step, 1 subdomain, Skyline   : norm2(globalU) = " +
             //    RunSingleCrackedStep(benchmarkSub1.Model, benchmarkSub1.Crack, skylineSolver));
             //Console.WriteLine("Skyline solver, 1 subdomain: ");
-            //RunCrackPropagationAnalysis(benchmarkSub1, skylineSolver);
 
             // FETI-1 10 subdomains
-            benchmarkSub10 = CreateMultiSubdomainBenchmark(10);
-            ISolver solverFeti1 = DefineSolver(benchmarkSub10, SolverType.Feti1);
+            //benchmarkSub10 = CreateMultiSubdomainBenchmark(10);
+            //ISolver solverFeti1 = DefineSolver(benchmarkSub10, SolverType.Feti1);
             //PlotSubdomains(subdomainPlotPath, benchmarkSub10.Model);
             //Console.WriteLine("Uncracked analysis, 10 subdomains, FETI-1  : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub10.Model, solverFeti1));
             //Console.WriteLine("Cracked analysis only 1 step, 10 subdomains, FETI-1  : norm2(globalU) = " +
             //    RunSingleCrackedStep(benchmarkSub10.Model, benchmarkSub10.Crack, solverFeti1));
             //Console.WriteLine("FETI-1, 10 subdomains: ");
-            RunCrackPropagationAnalysis(benchmarkSub10, solverFeti1);
+            //RunCrackPropagationAnalysis(benchmarkSub10, solverFeti1);
 
             // FETI-DP 10 subdomains
-            //benchmarkSub10 = CreateMultiSubdomainBenchmark(10);
-            //ISolver solverFetiDP = DefineSolver(benchmarkSub10, SolverType.FetiDP);
+            benchmarkSub10 = CreateMultiSubdomainBenchmark(10);
+            ISolver solverFetiDP = DefineSolver(benchmarkSub10, SolverType.FetiDP);
+            RunCrackPropagationAnalysis(benchmarkSub10, solverFetiDP);
             //PlotSubdomains(benchmarkSub10, solverFetiDP);
             //Console.WriteLine("Uncracked analysis, 10 subdomains, FETI-DP : norm2(globalU) = " +
             //    RunUncrackedAnalysis(benchmarkSub10.Model, solverFetiDP));
             //Console.WriteLine("Cracked analysis only 1 step, 10 subdomains, FETI-DP : norm2(globalU) = " +
             //    RunSingleCrackedStep(benchmarkSub10.Model, benchmarkSub10.Crack, solverFetiDP));
             //Console.WriteLine("FETI-DP, 10 subdomains: ");
-            //RunCrackPropagationAnalysis(benchmarkSub10, solverFetiDP);
+
+            // FETI-DP 15 subdomains
+            //benchmarkSub15 = CreateMultiSubdomainBenchmark(15);
+            //ISolver solverFetiDP = DefineSolver(benchmarkSub15, SolverType.FetiDP);
+            //RunCrackPropagationAnalysis(benchmarkSub15, solverFetiDP);
 
             Console.Write("\nEnd");
         }
@@ -91,30 +100,23 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             var regions = new Dictionary<int, IRegion2D>();
             if (numSubdomains == 10)
             {
-                //double horizontalBoundary = 5.0;
-                double minX = 0.0, minY = 0.0, maxX = 20.0, maxY = 10.0;
-                //double leftBoundary1X = 3.5, leftBoundary2X = 7.0, leftBoundary3X = 10.5, leftBoundary4X = 15.1;
-                //double rightBoundary1X = 4.9, rightBoundary2X = 9.5, rightBoundary3X = 13.0, rightBoundary4X = 16.5;
+                double xMin = 0.0, yMin = 0.0, xMax = 20.0, yMax = 10.0;
                 double x1 = 2.75, x2 = 3.5, x3 = 5.0, x4 = 8.0, x5 = 12.2, x6 = 15.5, x7 = 16.5, x8 = 16.75;
                 double y1 = 1.85, y2 = 5.0, y3 = 8.85;
 
                 // Left crack regions: 
-
-                var region0 = new RectangularRegion2D(minX, minY, x2, y2, tol);
-                //var region0 = new RectangularRegion2D(minX, minY, leftBoundary1X, horizontalBoundary, tol);
+                var region0 = new RectangularRegion2D(xMin, yMin, x2, y2, tol);
                 region0.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Up);
                 region0.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Right);
                 regions[0] = region0;
 
-                var region1 = new RectangularRegion2D(x2, minY, x4, y2, tol);
-                //var region1 = new RectangularRegion2D(leftBoundary1X, minY, leftBoundary2X, horizontalBoundary, tol);
+                var region1 = new RectangularRegion2D(x2, yMin, x4, y2, tol);
                 region1.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Up);
                 region1.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Left);
                 region1.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Right);
                 regions[1] = region1;
 
-                var region2 = new RectangularRegion2D(x4, minY, x5, y2, tol);
-                //var region2 = new RectangularRegion2D(leftBoundary2X, minY, leftBoundary3X, horizontalBoundary, tol);
+                var region2 = new RectangularRegion2D(x4, yMin, x5, y2, tol);
                 region2.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Up);
                 region2.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Left);
                 region2.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Right);
@@ -122,7 +124,7 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
 
                 var region3Vertices = new CartesianPoint[]
                 {
-                    new CartesianPoint(x5, minY), new CartesianPoint(x6, minY), new CartesianPoint(x6, y1),
+                    new CartesianPoint(x5, yMin), new CartesianPoint(x6, yMin), new CartesianPoint(x6, y1),
                     new CartesianPoint(x8, y2), new CartesianPoint(x5, y2)
                 };
                 var region3Boundaries = new LineSegment2D[4]
@@ -133,15 +135,10 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                     new LineSegment2D(region3Vertices[4], region3Vertices[1])
                 };
                 regions[3] = new PolygonalRegion2D(region3Vertices, region3Boundaries);
-                //var region3 = new RectangularRegion2D(leftBoundary3X, minY, leftBoundary4X, horizontalBoundary, tol);
-                //region3.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Up);
-                //region3.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Left);
-                //region3.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Right);
-                //regions[3] = region2;
 
                 var region4Vertices = new CartesianPoint[]
                 {
-                    new CartesianPoint(x6, minY), new CartesianPoint(maxX, minY), new CartesianPoint(maxX, y2),
+                    new CartesianPoint(x6, yMin), new CartesianPoint(xMax, yMin), new CartesianPoint(xMax, y2),
                     new CartesianPoint(x8, y2), new CartesianPoint(x6, y1)
                 };
                 var region4Boundaries = new LineSegment2D[3]
@@ -151,15 +148,12 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                     new LineSegment2D(region4Vertices[4], region4Vertices[0])
                 };
                 regions[4] = new PolygonalRegion2D(region4Vertices, region4Boundaries);
-                //regions[4] = new RectangularRegion2D(leftBoundary4X, minY, maxX, horizontalBoundary, tol);
-                //regions[4].AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Up);
-                //regions[4].AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Left);
 
                 // Right crack regions:
                 var region5Vertices = new CartesianPoint[]
                 {
-                    new CartesianPoint(minX, y2), new CartesianPoint(x1, y2), new CartesianPoint(x3, y3),
-                    new CartesianPoint(x3, maxY), new CartesianPoint(minX, maxY)
+                    new CartesianPoint(xMin, y2), new CartesianPoint(x1, y2), new CartesianPoint(x3, y3),
+                    new CartesianPoint(x3, yMax), new CartesianPoint(xMin, yMax)
                 };
                 var region5Boundaries = new LineSegment2D[3]
                 {
@@ -168,14 +162,11 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                     new LineSegment2D(region5Vertices[2], region5Vertices[3]),
                 };
                 regions[5] = new PolygonalRegion2D(region5Vertices, region5Boundaries);
-                //regions[5] = new RectangularRegion2D(minX, horizontalBoundary, rightBoundary1X, maxY, tol);
-                //regions[5].AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Down);
-                //regions[5].AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Right);
 
                 var region6Vertices = new CartesianPoint[]
                 {
-                    new CartesianPoint(x1, y2), new CartesianPoint(x4, y2), new CartesianPoint(x4, maxY),
-                    new CartesianPoint(x3, maxY), new CartesianPoint(x3, y3)
+                    new CartesianPoint(x1, y2), new CartesianPoint(x4, y2), new CartesianPoint(x4, yMax),
+                    new CartesianPoint(x3, yMax), new CartesianPoint(x3, y3)
                 };
                 var region6Boundaries = new LineSegment2D[4]
                 {
@@ -185,30 +176,153 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                     new LineSegment2D(region6Vertices[4], region6Vertices[0]),
                 };
                 regions[6] = new PolygonalRegion2D(region6Vertices, region6Boundaries);
-                //regions[6] = new RectangularRegion2D(rightBoundary1X, horizontalBoundary, rightBoundary2X, maxY, tol);
-                //regions[6].AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Down);
-                //regions[6].AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Left);
-                //regions[6].AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Right);
 
-                var region7 = new RectangularRegion2D(x4, y2, x5, maxY, tol);
-                //var region7 = new RectangularRegion2D(rightBoundary2X, horizontalBoundary, rightBoundary3X, maxY, tol);
+                var region7 = new RectangularRegion2D(x4, y2, x5, yMax, tol);
                 region7.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Down);
                 region7.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Left);
                 region7.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Right);
                 regions[7] = region7;
 
-                var region8 = new RectangularRegion2D(x5, y2, x7, maxY, tol);
-                //var region8 = new RectangularRegion2D(rightBoundary3X, horizontalBoundary, rightBoundary4X, maxY, tol);
+                var region8 = new RectangularRegion2D(x5, y2, x7, yMax, tol);
                 region8.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Down);
                 region8.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Left);
                 region8.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Right);
                 regions[8] = region8;
 
-                var region9 = new RectangularRegion2D(x7, y2, maxX, maxY, tol);
-                //var region9 = new RectangularRegion2D(rightBoundary4X, horizontalBoundary, maxX, maxY, tol);
+                var region9 = new RectangularRegion2D(x7, y2, xMax, yMax, tol);
                 region9.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Down);
                 region9.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Left);
                 regions[9] = region9;
+            }
+            else if (numSubdomains == 15)
+            {
+                double xMin = 0.0, yMin = 0.0, xMax = 20.0, yMax = 10.0;
+                double x1 = 2.75, x2 = 3.5, x3 = 5.0, x4 = 8.0, x5 = 12.2, x6 = 15.5, x7 = 16.5, x8 = 16.75;
+                double y1 = 1.85, y2 = 3.25, y3 = 6.5, y4 = 8.85;
+
+                // Bottom row: 
+                var region0 = new RectangularRegion2D(xMin, yMin, x2, y2, tol);
+                region0.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Up);
+                region0.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Right);
+                regions[0] = region0;
+
+                var region1 = new RectangularRegion2D(x2, yMin, x4, y2, tol);
+                region1.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Up);
+                region1.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Left);
+                region1.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Right);
+                regions[1] = region1;
+
+                var region2 = new RectangularRegion2D(x4, yMin, x5, y2, tol);
+                region2.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Up);
+                region2.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Left);
+                region2.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Right);
+                regions[2] = region2;
+
+                var region3Vertices = new CartesianPoint[]
+                {
+                    new CartesianPoint(x5, yMin), new CartesianPoint(x6, yMin), new CartesianPoint(x6, y1),
+                    new CartesianPoint(x8, y2), new CartesianPoint(x5, y2)
+                };
+                var region3Boundaries = new LineSegment2D[4]
+                {
+                    new LineSegment2D(region3Vertices[1], region3Vertices[2]),
+                    new LineSegment2D(region3Vertices[2], region3Vertices[3]),
+                    new LineSegment2D(region3Vertices[3], region3Vertices[4]),
+                    new LineSegment2D(region3Vertices[4], region3Vertices[1])
+                };
+                regions[3] = new PolygonalRegion2D(region3Vertices, region3Boundaries);
+
+                var region4Vertices = new CartesianPoint[]
+                {
+                    new CartesianPoint(x6, yMin), new CartesianPoint(xMax, yMin), new CartesianPoint(xMax, y2),
+                    new CartesianPoint(x8, y2), new CartesianPoint(x6, y1)
+                };
+                var region4Boundaries = new LineSegment2D[3]
+                {
+                    new LineSegment2D(region4Vertices[2], region4Vertices[3]),
+                    new LineSegment2D(region4Vertices[3], region4Vertices[4]),
+                    new LineSegment2D(region4Vertices[4], region4Vertices[0])
+                };
+                regions[4] = new PolygonalRegion2D(region4Vertices, region4Boundaries);
+
+                // Middle row:
+                var region5 = new RectangularRegion2D(xMin, y2, x2, y3, tol);
+                region5.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Up);
+                region5.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Down);
+                region5.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Right);
+                regions[5] = region5;
+
+                var region6 = new RectangularRegion2D(x2, y2, x4, y3, tol);
+                region6.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Up);
+                region6.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Down);
+                region6.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Left);
+                region6.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Right);
+                regions[6] = region6;
+
+                var region7 = new RectangularRegion2D(x4, y2, x5, y3, tol);
+                region7.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Up);
+                region7.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Down);
+                region7.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Left);
+                region7.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Right);
+                regions[7] = region7;
+
+                var region8 = new RectangularRegion2D(x5, y2, x7, y3, tol);
+                region8.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Up);
+                region8.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Down);
+                region8.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Left);
+                region8.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Right);
+                regions[8] = region8;
+
+                var region9 = new RectangularRegion2D(x7, y2, xMax, y3, tol);
+                region9.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Up);
+                region9.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Down);
+                region9.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Left);
+                regions[9] = region9;
+
+                // Top row:
+                var region10Vertices = new CartesianPoint[]
+                {
+                    new CartesianPoint(xMin, y3), new CartesianPoint(x1, y3), new CartesianPoint(x3, y4),
+                    new CartesianPoint(x3, yMax), new CartesianPoint(xMin, yMax)
+                };
+                var region10Boundaries = new LineSegment2D[3]
+                {
+                    new LineSegment2D(region10Vertices[0], region10Vertices[1]),
+                    new LineSegment2D(region10Vertices[1], region10Vertices[2]),
+                    new LineSegment2D(region10Vertices[2], region10Vertices[3]),
+                };
+                regions[10] = new PolygonalRegion2D(region10Vertices, region10Boundaries);
+
+                var region11Vertices = new CartesianPoint[]
+                {
+                    new CartesianPoint(x1, y3), new CartesianPoint(x4, y3), new CartesianPoint(x4, yMax),
+                    new CartesianPoint(x3, yMax), new CartesianPoint(x3, y4)
+                };
+                var region11Boundaries = new LineSegment2D[4]
+                {
+                    new LineSegment2D(region11Vertices[0], region11Vertices[1]),
+                    new LineSegment2D(region11Vertices[1], region11Vertices[2]),
+                    new LineSegment2D(region11Vertices[3], region11Vertices[4]),
+                    new LineSegment2D(region11Vertices[4], region11Vertices[0]),
+                };
+                regions[11] = new PolygonalRegion2D(region11Vertices, region11Boundaries);
+
+                var region12 = new RectangularRegion2D(x4, y3, x5, yMax, tol);
+                region12.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Down);
+                region12.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Left);
+                region12.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Right);
+                regions[12] = region12;
+
+                var region13 = new RectangularRegion2D(x5, y3, x7, yMax, tol);
+                region13.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Down);
+                region13.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Left);
+                region13.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Right);
+                regions[13] = region13;
+
+                var region14 = new RectangularRegion2D(x7, y3, xMax, yMax, tol);
+                region14.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Down);
+                region14.AddBoundaryEdge(RectangularRegion2D.RectangleEdge.Left);
+                regions[14] = region14;
             }
             else
             {
@@ -303,10 +417,10 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
             }
             else if (solverType == SolverType.FetiDP)
             {
-                benchmark.Partitioner = new TipAdaptivePartitioner(benchmark.Crack);
+                //benchmark.Partitioner = new TipAdaptivePartitioner(benchmark.Crack);
                 Dictionary<int, HashSet<INode>> cornerNodes = null;
 
-                if (benchmark.Model.Subdomains.Count == 10)
+                if (benchmark.Model.Subdomains.Count == 10 || benchmark.Model.Subdomains.Count == 15)
                 {
                     cornerNodes = FindCornerNodesFromCrosspoints2D(benchmark.Model);
                 }
@@ -323,6 +437,7 @@ namespace ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019
                 var fetiMatrices = new SkylineFetiDPSubdomainMatrixManager.Factory(new OrderingAmdSuiteSparse());
                 var builder = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices);
                 //builder.PreconditionerFactory = new LumpedPreconditioner.Factory();
+                //builder.PreconditionerFactory = new DiagonalDirichletPreconditioner.Factory();
                 builder.PreconditionerFactory = new DirichletPreconditioner.Factory();
                 builder.ProblemIsHomogeneous = true;
                 return builder.BuildSolver(benchmark.Model);
