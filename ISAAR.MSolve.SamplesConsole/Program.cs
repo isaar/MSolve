@@ -5,8 +5,6 @@ using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.SamplesConsole.Solvers;
-using ISAAR.MSolve.SamplesConsole.XFEM.COMPDYN2019;
 using ISAAR.MSolve.Solvers;
 using ISAAR.MSolve.Solvers.Direct;
 using MGroup.Stochastic;
@@ -51,10 +49,6 @@ namespace ISAAR.MSolve.SamplesConsole
 
             //MeshPartitioningExamples.PartitionMeshes();
 
-            // COMPDYN benchmarks
-            Fillet.Run();
-            //Holes.Run();
-            //DoubleCantileverBeam.Run();
         }
 
         private static void SolveBuildingInNoSoilSmall()
