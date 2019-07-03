@@ -4,6 +4,8 @@ using System.IO;
 using System.Text;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Solvers.Direct;
+using ISAAR.MSolve.Solvers.Ordering;
+using ISAAR.MSolve.Solvers.Ordering.Reordering;
 using Xunit;
 
 namespace ISAAR.MSolve.XFEM.Tests
@@ -42,7 +44,9 @@ namespace ISAAR.MSolve.XFEM.Tests
             HolesBenchmark benchmark = builder.BuildBenchmark();
             benchmark.InitializeModel();
             //SuiteSparseSolver solver = new SuiteSparseSolver.Builder().BuildSolver(benchmark.Model);
-            SkylineSolver solver = new SkylineSolver.Builder().BuildSolver(benchmark.Model);
+            var solverBuilder = new SkylineSolver.Builder();
+            solverBuilder.DofOrderer = new DofOrderer(new NodeMajorDofOrderingStrategy(), AmdReordering.CreateWithCSparseAmd());
+            SkylineSolver solver = solverBuilder.BuildSolver(benchmark.Model);
             benchmark.Analyze(solver);
 
             CheckCrackPropagationPath(benchmark);
