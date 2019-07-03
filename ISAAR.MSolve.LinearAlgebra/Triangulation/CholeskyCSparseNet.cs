@@ -30,17 +30,22 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
             this.factorization = factorization;
         }
 
+        public int NumColumns => Order;
+
         /// <summary>
         /// The number of non-zero entries (and explicitly stored zeros) in the explicitly stored upper triangular factor 
         /// after Cholesky factorization.
         /// </summary>
         public int NumNonZerosUpper => factorization.NonZerosCount;
 
+        public int NumRows => Order;
+
         /// <summary>
         /// The number of rows/columns of the square matrix. 
         /// </summary>
         public int Order { get; }
 
+        
         /// <summary>
         /// Performs the Cholesky factorization: A = L * L^T of a symmetric positive definite matrix A. 
         /// Only the upper triangle of the original matrix is required and is provided in symmetric CSC format by 

@@ -5,11 +5,21 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Output.Formatting;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
-namespace ISAAR.MSolve.LinearAlgebra.Matrices
+//TODO: Investigate if you can store this in COO like format: rowsPlus, colsPlus, rowsMinus, colsMinus.
+//      When operating with these arrays, there will not be any multiplications, accessing will be faster than
+//      Dictionaries and the code will be portable to C. That would need to be done in another class, optimized for 
+//      multiplications, while this one would be used for assembly. 
+//TODO: Also investigate if column major is more efficient than row major. This depends on how many multiplications are done
+//      as B * vector vs how many B^T * vector. The slicing needed in FETI is B[:, boundaryCols], which is more efficient
+//      in column major formats.
+//TODO: Another approach would be to store the non zeros twice. Once as row major and once as col major.
+//      Investigate if it is worth it for the multiplications, when coupled with the 1st TODO (arrays instead of Dictionaries).
+//      The memory requirements of B matrices should be minimal.
+namespace ISAAR.MSolve.LinearAlgebra.Matrices.Operators
 {
     /// <summary>
     /// Sparse matrix with the non-zero entries being 1 or -1. Its main use is in domain decomposition solvers. In this context, 
-    /// a <see cref="SignedBooleanMatrix"/> represents the equations that enforce continuity between the freedom degrees of 
+    /// a <see cref="SignedBooleanMatrixRowMajor"/> represents the equations that enforce continuity between the freedom degrees of 
     /// subdomains. Each row corresponds to a displacement continuity equation. If this matrix is for the whole domain, all rows 
     /// will have exactly 2 non zero entries (1 and -1). If it is only for a subdomain then some rows may be empty.
     /// Each column corresponds to a freedom degree of one of the subdomains. Columns that correspond to freedom degrees with 
@@ -18,19 +28,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     /// empty. The internal data structures that store the non-zero entries are row major.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public class SignedBooleanMatrix: IIndexable2D, ISparseMatrix
+    public class SignedBooleanMatrixRowMajor: IMappingMatrix, ISparseMatrix
     {
         /// <summary>
-        /// (row, (column, sign))
+        /// Non-zero entries: (row, (column, sign))
         /// </summary>
         private readonly Dictionary<int, Dictionary<int, int>> data;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="SignedBooleanMatrix"/> with the provided dimensions.
+        /// Initializes a new instance of <see cref="SignedBooleanMatrixRowMajor"/> with the provided dimensions.
         /// </summary>
         /// <param name="numRows">The number of rows of the new matrix.</param>
         /// <param name="numColumns">The number of columns of the new matrix. </param>
-        public SignedBooleanMatrix(int numRows, int numColumns)
+        public SignedBooleanMatrixRowMajor(int numRows, int numColumns)
         {
             this.NumRows = numRows;
             this.NumColumns = numColumns;
@@ -60,8 +70,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         /// <param name="rowIdx">The row index: 0 &lt;= <paramref name="rowIdx"/> &lt; <see cref="NumRows"/>.</param>
         /// <param name="colIdx">The column index: 0 &lt;= <paramref name="colIdx"/> &lt; <see cref="NumColumns"/>.</param>
-        /// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="rowIdx"/> or <paramref name="colIdx"/> violate 
-        ///     the described constraints.</exception>
+        /// <exception cref="IndexOutOfRangeException">
+        /// Thrown if <paramref name="rowIdx"/> or <paramref name="colIdx"/> violate the described constraints.
+        /// </exception>
         public int this[int rowIdx, int colIdx]
         {
             get
@@ -77,12 +88,18 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// Sets the entry with indices (<paramref name="rowIdx"/>, <paramref name="colIdx"/>) to +1 or -1.
         /// </summary>
-        /// <param name="rowIdx">The row index of the entry to set. Constraints: 
-        ///     0 &lt;= <paramref name="rowIdx"/> &lt; <see cref="NumRows"/>.</param>
-        /// <param name="colIdx">The column index of the entry to set. Constraints: 
-        ///     0 &lt;= <paramref name="colIdx"/> &lt; <see cref="NumColumns"/>.</param>
-        /// <param name="sign">If true, the entry (<paramref name="rowIdx"/>, <paramref name="colIdx"/>)  will be set to +1. If 
-        ///     false, it will be set to -1.</param>
+        /// <param name="rowIdx">
+        /// The row index of the entry to set. Constraints: 
+        /// 0 &lt;= <paramref name="rowIdx"/> &lt; <see cref="NumRows"/>.
+        /// </param>
+        /// <param name="colIdx">
+        /// The column index of the entry to set. Constraints: 
+        /// 0 &lt;= <paramref name="colIdx"/> &lt; <see cref="NumColumns"/>.
+        /// </param>
+        /// <param name="sign">
+        /// If true, the entry (<paramref name="rowIdx"/>, <paramref name="colIdx"/>)  will be set to +1. 
+        /// If false, it will be set to -1.
+        /// </param>
         public void AddEntry(int rowIdx, int colIdx, bool sign)
         {
             if (data.TryGetValue(rowIdx, out Dictionary<int, int> colSigns))
@@ -104,10 +121,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         public double[,] CopyToArray2D() => DenseStrategies.CopyToArray2D(this);
 
         /// <summary>
-        /// Initializes a new <see cref="Matrix"/> instance by copying the entries of this <see cref="SignedBooleanMatrix"/>.
+        /// Initializes a new <see cref="Matrix"/> instance by copying the entries of this <see cref="SignedBooleanMatrixRowMajor"/>.
         /// </summary>
-        /// <param name="transpose">If true, the new matrix will be transpose to this <see cref="SignedBooleanMatrix"/>. If 
-        ///     false, thay will represent the exact same matrix (in different formats).</param>
+        /// <param name="transpose">
+        /// If true, the new matrix will be transpose to this <see cref="SignedBooleanMatrixRowMajor"/>. If false, they will 
+        /// represent the exact same matrix (in different formats).
+        /// </param>
         public Matrix CopyToFullMatrix(bool transpose)
         {
             // TODO: perhaps I should work with th col major arrays.
@@ -202,10 +221,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// Returns a vector with the entries of the original matrix's row at index = <paramref name="rowIdx"/>.
         /// </summary>
-        /// <param name="rowIdx">The index of the row to return. Constraints: 
-        ///     0 &lt;= <paramref name="rowIdx"/> &lt; <see cref="IIndexable2D.NumRows"/>.</param>
-        /// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="rowIdx"/> violates the described 
-        ///     constraints.</exception>
+        /// <param name="rowIdx">
+        /// The index of the row to return. Constraints: 
+        /// 0 &lt;= <paramref name="rowIdx"/> &lt; <see cref="IIndexable2D.NumRows"/>.
+        /// </param>
+        /// <exception cref="IndexOutOfRangeException">
+        /// Thrown if <paramref name="rowIdx"/> violates the described constraints.
+        /// </exception>
         public Vector GetRow(int rowIdx)
         {
             var rowVector = new double[NumColumns];
@@ -249,11 +271,15 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// To multiply this * columnVector, set <paramref name="transposeThis"/> to false.
         /// To multiply rowVector * this, set <paramref name="transposeThis"/> to true.
         /// </summary>
-        /// <param name="vector">A vector with <see cref="IIndexable1D.Length"/> being equal to the 
-        ///     <see cref="IIndexable2D.NumColumns"/> of oper(this).</param>
+        /// <param name="vector">
+        /// A vector with <see cref="IIndexable1D.Length"/> being equal to the <see cref="IIndexable2D.NumColumns"/> 
+        /// of oper(this).
+        /// </param>
         /// <param name="transposeThis">If true, oper(this) = transpose(this). Otherwise oper(this) = this.</param>
-        /// <exception cref="NonMatchingDimensionsException">Thrown if the <see cref="IIndexable1D.Length"/> of
-        ///     <paramref name="vector"/> is different than the <see cref="NumColumns"/> of oper(this).</exception>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if the <see cref="IIndexable1D.Length"/> of <paramref name="vector"/> is different 
+        /// than the <see cref="NumColumns"/> of oper(this).
+        /// </exception>
         public Vector Multiply(Vector vector, bool transposeThis = false)
         {
             //TODO: I think that dealing with arrays will be faster than iterating the dictionaries. Another reason to separate 
@@ -262,13 +288,19 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             else return MultiplyUntransposed(vector);
         }
 
+        public Matrix MultiplyRight(Matrix other, bool transposeThis = false)
+        {
+            if (transposeThis) return MultiplyRightTransposed(other);
+            else return MultiplyRightUntransposed(other);
+        }
+
         /// <summary>
-        /// Initializes a new <see cref="SignedBooleanMatrix"/> instance, that is transpose to this: result[i, j] = this[j, i]. 
+        /// Initializes a new <see cref="SignedBooleanMatrixRowMajor"/> instance, that is transpose to this: result[i, j] = this[j, i]. 
         /// The entries will be explicitly copied. This method is meant for testing purposes and thus is not efficient.
         /// </summary>
-        public SignedBooleanMatrix Transpose()
+        public SignedBooleanMatrixRowMajor Transpose()
         {
-            var transpose = new SignedBooleanMatrix(NumColumns, NumRows);
+            var transpose = new SignedBooleanMatrixRowMajor(NumColumns, NumRows);
             foreach (var wholeRow in data)
             {
                 foreach (var colSign in wholeRow.Value)
@@ -303,29 +335,55 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             var result = new double[NumRows];
             foreach (var wholeRow in data)
             {
+                double sum = 0.0;
                 foreach (var colSign in wholeRow.Value)
                 {
-                    result[wholeRow.Key] += colSign.Value * vector[colSign.Key];
+                    sum += colSign.Value * vector[colSign.Key];
                 }
+                result[wholeRow.Key] = sum;
             }
             return Vector.CreateFromArray(result, false);
         }
 
-        //TODO: delete this. There is now a dedicated Writer class
-        //private void WriteToConsole()
-        //{
-        //    for (int i = 0; i < NumRows; ++i)
-        //    {
-        //        bool rowExists = data.TryGetValue(i, out Dictionary<int, int> colSigns);
-        //        for (int j = 0; j < NumColumns; ++j)
-        //        {
-        //            int val = 0;
-        //            if (rowExists) colSigns.TryGetValue(j, out val);
-        //            Console.Write($"{val,3}");
-        //        }
-        //        Console.WriteLine();
-        //    }
-        //    Console.WriteLine();
-        //}
+        private Matrix MultiplyRightTransposed(Matrix other)
+        {
+            //TODO: I think that it will pay off to transpose an all integer CSR matrix and store both. Especially in the case 
+            //     of subdomain boolean matrices, that little extra memory should not be of concern.
+            Preconditions.CheckMultiplicationDimensions(this.NumRows, other.NumRows);
+            var result = new double[this.NumColumns * other.NumRows];
+            for (int j = 0; j < other.NumColumns; ++j)
+            {
+                int offset = j * this.NumRows;
+                // Transpose it conceptually and multiply with the vector on the right. 
+                foreach (var wholeRow in data)
+                {
+                    foreach (var colSign in wholeRow.Value)
+                    {
+                        result[offset + colSign.Key] += colSign.Value * other[wholeRow.Key, j];
+                    }
+                }
+            }
+            return Matrix.CreateFromArray(result, this.NumColumns, other.NumColumns, false);
+        }
+
+        private Matrix MultiplyRightUntransposed(Matrix other)
+        {
+            Preconditions.CheckMultiplicationDimensions(this.NumColumns, other.NumRows);
+            var result = new double[this.NumRows * other.NumColumns];
+            for (int j = 0; j < other.NumColumns; ++j)
+            {
+                int offset = j * this.NumRows;
+                foreach (var wholeRow in data)
+                {
+                    double sum = 0.0;
+                    foreach (var colSign in wholeRow.Value)
+                    {
+                        sum += colSign.Value * other[colSign.Key, j];
+                    }
+                    result[offset + wholeRow.Key] = sum;
+                }
+            }
+            return Matrix.CreateFromArray(result, this.NumRows, other.NumColumns, false);
+        }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
 using ISAAR.MSolve.LinearAlgebra;
@@ -24,6 +25,7 @@ namespace ISAAR.MSolve.FEM.Elements
         private IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
 
         public int ID => 999;
+        public CellType CellType { get; } = CellType.Unknown;
 
         public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
 

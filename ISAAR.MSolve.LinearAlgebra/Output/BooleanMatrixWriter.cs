@@ -1,11 +1,11 @@
 ﻿using System;
 using System.IO;
-using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 
 namespace ISAAR.MSolve.LinearAlgebra.Output
 {
     /// <summary>
-    /// Writes all entries of a <see cref="SignedBooleanMatrix"/> matrix to Console or a file.
+    /// Writes all entries of a <see cref="SignedBooleanMatrixRowMajor"/> matrix to Console or a file.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public class BooleanMatrixWriter
@@ -27,7 +27,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
         /// Writes the provided matrix to Console.
         /// </summary>
         /// <param name="matrix">The matrix to write.</param>
-        public void WriteToConsole(SignedBooleanMatrix matrix)
+        public void WriteToConsole(SignedBooleanMatrixRowMajor matrix)
         {
             Utilities.WriteToConsole((writer) => WriteToStream(matrix, writer));
         }
@@ -39,12 +39,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Output
         /// <param name="path">The absolute path of the file, where <paramref name="matrix"/> will be written.</param>
         /// <param name="append">If true, <paramref name="matrix"/> will be written after the current contents of the file at
         ///     <paramref name="path"/>. If false, it will overwrite them.</param>
-        public void WriteToFile(SignedBooleanMatrix matrix, string path, bool append = false)
+        public void WriteToFile(SignedBooleanMatrixRowMajor matrix, string path, bool append = false)
         {
             Utilities.WriteToFile((writer) => WriteToStream(matrix, writer), path, append);
         }
 
-        private void WriteToStream(SignedBooleanMatrix matrix, StreamWriter writer)
+        private void WriteToStream(SignedBooleanMatrixRowMajor matrix, StreamWriter writer)
         {
             for (int i = 0; i < matrix.NumRows; ++i)
             {

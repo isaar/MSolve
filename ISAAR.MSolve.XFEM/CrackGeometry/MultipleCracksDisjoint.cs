@@ -199,7 +199,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         public IReadOnlyList<ISingleCrack> SingleCracks { get {return cracks;} }
 
-        public void Propagate(Vector totalFreeDisplacements)
+        public void Propagate(Dictionary<int, Vector> totalFreeDisplacements)
         {
             foreach (var crack in cracks) crack.Propagate(totalFreeDisplacements);
         }

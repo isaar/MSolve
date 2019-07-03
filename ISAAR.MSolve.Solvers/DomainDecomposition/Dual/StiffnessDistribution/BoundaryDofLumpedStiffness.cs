@@ -7,7 +7,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 //TODO: there are algebraic expressions for these. E.g. inv(Lb^T * Db * Lb) for the inverse of total stiffness. Should I use 
 //      those instead?
 //TODO: Could this be used outside FETI?
-namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual
+namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
 {
     public class BoundaryDofLumpedStiffness
     {

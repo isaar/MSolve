@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
@@ -79,11 +80,12 @@ namespace ISAAR.MSolve.Solvers.Direct
             //writer.WriteToConsole(matrix);
             #endregion
 
-            return new Dictionary<int, IMatrix>
-            {
-                { subdomain.ID,
-                    assembler.BuildGlobalMatrix(subdomain.FreeDofOrdering, subdomain.Elements, elementMatrixProvider) }
-            };
+            var watch = new Stopwatch();
+            watch.Start();
+            Matrix matrix = assembler.BuildGlobalMatrix(subdomain.FreeDofOrdering, subdomain.Elements, elementMatrixProvider);
+            watch.Stop();
+            Logger.LogTaskDuration("Matrix assembly", watch.ElapsedMilliseconds);
+            return new Dictionary<int, IMatrix> { { subdomain.ID, matrix } };
         }
 
         public override void HandleMatrixWillBeSet()
@@ -101,29 +103,49 @@ namespace ISAAR.MSolve.Solvers.Direct
         /// </summary>
         public override void Solve()
         {
-
-            if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
+            var watch = new Stopwatch();
+            if (linearSystem.SolutionConcrete == null) linearSystem.SolutionConcrete = linearSystem.CreateZeroVectorConcrete();
             //else linearSystem.Solution.Clear(); // no need to waste computational time on this in a direct solver
 
+            // Factorization
             if (mustInvert)
             {
+                watch.Start();
                 if (isMatrixPositiveDefinite) inverse = linearSystem.Matrix.FactorCholesky(factorizeInPlace).Invert(true);
                 else inverse = linearSystem.Matrix.FactorLU(factorizeInPlace).Invert(true);
+                watch.Stop();
+                Logger.LogTaskDuration("Matrix factorization", watch.ElapsedMilliseconds);
+                watch.Reset();
                 mustInvert = false;
             }
-            inverse.MultiplyIntoResult(linearSystem.RhsVector, linearSystem.Solution);
+
+            // Substitutions
+            watch.Start();
+            inverse.MultiplyIntoResult(linearSystem.RhsConcrete, linearSystem.SolutionConcrete);
+            watch.Stop();
+            Logger.LogTaskDuration("Back/forward substitutions", watch.ElapsedMilliseconds);
+            Logger.IncrementAnalysisStep();
         }
 
         protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)
         {
+            var watch = new Stopwatch();
             if (mustInvert)
             {
+                watch.Start();
                 if (isMatrixPositiveDefinite) inverse = linearSystem.Matrix.FactorCholesky(factorizeInPlace).Invert(true);
                 else inverse = linearSystem.Matrix.FactorLU(factorizeInPlace).Invert(true);
+                watch.Stop();
+                Logger.LogTaskDuration("Matrix factorization", watch.ElapsedMilliseconds);
+                watch.Reset();
                 mustInvert = false;
             }
-
-            return inverse.MultiplyRight(otherMatrix);
+            watch.Start();
+            Matrix result = inverse.MultiplyRight(otherMatrix);
+            watch.Stop();
+            Logger.LogTaskDuration("Back/forward substitutions", watch.ElapsedMilliseconds);
+            Logger.IncrementAnalysisStep();
+            return result;
         }
 
         public class Builder: ISolverBuilder

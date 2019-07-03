@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
 
 //TODO: This should be an enum class. There are only 2 possible cases.
@@ -15,7 +16,10 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution
 
         Dictionary<int, double> CalcBoundaryDofCoefficients(INode node, IDofType dofType);
 
-        Dictionary<int, Matrix> CalcBoundaryPreconditioningSignedBooleanMatrices(
-            ILagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, Matrix> boundarySignedBooleanMatrices);
+        Dictionary<int, IMappingMatrix> CalcBoundaryPreconditioningSignedBooleanMatrices(
+            ILagrangeMultipliersEnumerator lagrangeEnumerator, 
+            Dictionary<int, SignedBooleanMatrixColMajor> boundarySignedBooleanMatrices);
+
+        void Update(Dictionary<int, IMatrixView> stiffnessesFreeFree);
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Interfaces;
@@ -21,9 +22,9 @@ namespace ISAAR.MSolve.IGA.Elements
 
 
 
+        public CellType CellType { get; } = CellType.Unknown;
 
-
-		public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
+        public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
 
 		public IElementDofEnumerator DofEnumerator
 		{

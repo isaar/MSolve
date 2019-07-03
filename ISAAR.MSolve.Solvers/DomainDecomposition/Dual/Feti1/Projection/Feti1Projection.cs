@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
 
 //TODO: If Q is identity, optimizations will be possible: E.g. multiplications with Q do not have to copy the vector/matrix
@@ -12,17 +14,17 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Projection
 {
     public class Feti1Projection : IInterfaceProjection
     {
-        private readonly Dictionary<int, SignedBooleanMatrix> booleanMatrices;
+        private readonly Dictionary<int, SignedBooleanMatrixColMajor> booleanMatrices;
+        private readonly Dictionary<int, IFeti1SubdomainMatrixManager> matrixManagers;
         private readonly IMatrixQ matrixQ;
-        private readonly Dictionary<int, List<Vector>> rigidBodyModes;
         private Matrix matrixG;
         private CholeskyFull factorGQG; // Because Karmath suggests using POTRF, POTRS.
 
-        internal Feti1Projection(Dictionary<int, SignedBooleanMatrix> booleanMatrices, 
-            Dictionary<int, List<Vector>> rigidBodyModes, IMatrixQ matrixQ)
+        internal Feti1Projection(Dictionary<int, SignedBooleanMatrixColMajor> booleanMatrices,
+            Dictionary<int, IFeti1SubdomainMatrixManager> matrixManagers, IMatrixQ matrixQ)
         {
             this.booleanMatrices = booleanMatrices;
-            this.rigidBodyModes = rigidBodyModes;
+            this.matrixManagers = matrixManagers;
             this.matrixQ = matrixQ;
         }
 
@@ -52,6 +54,11 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Projection
             CalculateMatrixG();
             //Matrix GQG = matrixG.ThisTransposeTimesOtherTimesThis(matrixQ);
             Matrix GQG = matrixG.MultiplyRight(matrixQ.Multiply(matrixG), true);
+
+            var writer = new LinearAlgebra.Output.FullMatrixWriter();
+            //writer.WriteToFile(GQG, @"C:\Users\Serafeim\Desktop\output.txt");
+
+
             factorGQG = GQG.FactorCholesky(true);
         }
 
@@ -85,17 +92,20 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Projection
         {
             int numEquations = booleanMatrices.First().Value.NumRows;
             int numRbms = 0;
-            foreach (int subdomain in rigidBodyModes.Keys) numRbms += rigidBodyModes[subdomain].Count;
+            foreach (IFeti1SubdomainMatrixManager matrixManager in matrixManagers.Values)
+            {
+                numRbms += matrixManager.RigidBodyModes.Count;
+            }
 
             matrixG = Matrix.CreateZero(numEquations, numRbms);
             int colCounter = 0;
-            foreach (int subdomain in booleanMatrices.Keys)
+            foreach (int s in booleanMatrices.Keys)
             {
-                SignedBooleanMatrix matrixB = booleanMatrices[subdomain];
-                List<Vector> matrixR = rigidBodyModes[subdomain];
+                SignedBooleanMatrixColMajor matrixB = booleanMatrices[s];
+                List<Vector> matrixR = matrixManagers[s].RigidBodyModes;
                 foreach (Vector columnR in matrixR)
                 {
-                    Vector columnG = matrixB.Multiply(columnR, false);
+                    Vector columnG = matrixB.Multiply(columnR, false); //TODO: Perhaps I can cache some of these for reanalysis.
                     matrixG.SetSubcolumn(colCounter++, columnG);
                 }
             }

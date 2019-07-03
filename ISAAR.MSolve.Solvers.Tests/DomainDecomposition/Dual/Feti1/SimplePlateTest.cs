@@ -3,11 +3,13 @@ using System.Diagnostics;
 using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
 using Xunit;
 
@@ -26,11 +28,12 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
         {
             int numElementsX = 20, numElementsY = 10;
             double factorizationTolerance = 1E-4; // Defining the rigid body modes is very sensitive to this. TODO: The user shouldn't have to specify such a volatile parameter.
-            double equalityTolerance = 1E-7;
+            double equalityTolerance = 1E-6;
             IVectorView expectedDisplacements = SolveModelWithoutSubdomains(numElementsX, numElementsY);
-            (IVectorView computedDisplacements, DualSolverLogger logger) = 
+            (IVectorView computedDisplacements, SolverLogger logger) = 
                 SolveModelWithSubdomains(numElementsX, numElementsY, factorizationTolerance);
-            Debug.WriteLine($"Iterations: {logger.PcgIterations}");
+            int pcgIterations = logger.GetNumIterationsOfIterativeAlgorithm(analysisStep: 0);
+            Debug.WriteLine($"Iterations: {pcgIterations}");
             Assert.True(expectedDisplacements.Equals(computedDisplacements, equalityTolerance));
         }
 
@@ -74,14 +77,20 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             return model;
         }
 
-        private static (IVectorView U, DualSolverLogger logger) SolveModelWithSubdomains(int numElementsX, int numElementsY,
+        private static (IVectorView U, SolverLogger logger) SolveModelWithSubdomains(int numElementsX, int numElementsY,
             double factorizationTolerance)
         {
             Model multiSubdomainModel = CreateModel(numElementsX, numElementsY);
 
             // Solver
-            var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
-            solverBuilder.PreconditionerFactory = new LumpedPreconditioner.Factory();
+            var factorizationTolerances = new Dictionary<int, double>();
+            foreach (Subdomain s in multiSubdomainModel.Subdomains) factorizationTolerances[s.ID] = factorizationTolerance;
+            //var fetiMatrices = new DenseFeti1SubdomainMatrixManager.Factory();
+            //var fetiMatrices = new SkylineFeti1SubdomainMatrixManager.Factory();
+            var fetiMatrices = new SkylineFeti1SubdomainMatrixManager.Factory(new OrderingAmdSuiteSparse());
+            var solverBuilder = new Feti1Solver.Builder(fetiMatrices, factorizationTolerances);
+            //solverBuilder.PreconditionerFactory = new LumpedPreconditioner.Factory();
+            solverBuilder.PreconditionerFactory = new DirichletPreconditioner.Factory();
             solverBuilder.ProblemIsHomogeneous = true;
             Feti1Solver fetiSolver = solverBuilder.BuildSolver(multiSubdomainModel);
 

@@ -1,4 +1,5 @@
 ﻿using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 using ISAAR.MSolve.LinearAlgebra.Tests.TestData;
 using ISAAR.MSolve.LinearAlgebra.Tests.Utilities;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
@@ -7,18 +8,18 @@ using Xunit;
 namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
 {
     /// <summary>
-    /// Tests for <see cref="SignedBooleanMatrix"/>.
+    /// Tests for <see cref="SignedBooleanMatrixRowMajor"/>.
     /// Authors: Serafeim Bakalakos
     /// </summary>
     public static class SignedBooleanMatrixTests
     {
         private static readonly MatrixComparer comparer = new MatrixComparer(1E-13);
 
-        internal static SignedBooleanMatrix CreateMatrix(double[,] matrix)
+        internal static SignedBooleanMatrixRowMajor CreateMatrix(double[,] matrix)
         {
             int m = matrix.GetLength(0);
             int n = matrix.GetLength(1);
-            var booleanMatrix = new SignedBooleanMatrix(m, n);
+            var booleanMatrix = new SignedBooleanMatrixRowMajor(m, n);
             for (int i = 0; i < m; ++i)
             {
                 for (int j = 0; j < n; ++j)
@@ -35,12 +36,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         {
             // matrix 1
             var A1Expected = Matrix.CreateFromArray(SignedBoolean5by10.A1);
-            SignedBooleanMatrix A1Computed = CreateMatrix(SignedBoolean5by10.A1);
+            SignedBooleanMatrixRowMajor A1Computed = CreateMatrix(SignedBoolean5by10.A1);
             comparer.AssertEqual(A1Expected, A1Computed);
 
             // matrix 2
             var A2Expected = Matrix.CreateFromArray(SignedBoolean5by10.A2);
-            SignedBooleanMatrix A2Computed = CreateMatrix(SignedBoolean5by10.A2);
+            SignedBooleanMatrixRowMajor A2Computed = CreateMatrix(SignedBoolean5by10.A2);
             comparer.AssertEqual(A2Expected, A2Computed);
         }
 
@@ -48,7 +49,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
         private static void TestMatrixVectorMultiplication()
         {
             // matrix 1 - untransposed
-            SignedBooleanMatrix A1 = CreateMatrix(SignedBoolean5by10.A1);
+            SignedBooleanMatrixRowMajor A1 = CreateMatrix(SignedBoolean5by10.A1);
             Vector x10 = Vector.CreateFromArray(SignedBoolean5by10.X10, true);
             Vector A1TimesX10Expected = Vector.CreateFromArray(SignedBoolean5by10.A1TimesX10, true);
             Vector A1TimesX10Computed = A1.Multiply(x10, false);
@@ -61,7 +62,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Tests.Matrices
             comparer.AssertEqual(transpA1TimesX5Expected, transpA1TimesX5Computed);
 
             // matrix 2 - untransposed
-            SignedBooleanMatrix A2 = CreateMatrix(SignedBoolean5by10.A2);
+            SignedBooleanMatrixRowMajor A2 = CreateMatrix(SignedBoolean5by10.A2);
             Vector A2TimesX10Expected = Vector.CreateFromArray(SignedBoolean5by10.A2TimesX10, true);
             Vector A2TimesX10Computed = A2.Multiply(x10, false);
             comparer.AssertEqual(A2TimesX10Expected, A2TimesX10Computed);

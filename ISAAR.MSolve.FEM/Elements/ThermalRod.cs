@@ -4,6 +4,7 @@ using System.Diagnostics;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
@@ -39,6 +40,7 @@ namespace ISAAR.MSolve.FEM.Elements
 
         public int ID => throw new NotImplementedException(
             "Element type codes should be in a settings class. Even then it's a bad design choice");
+        public CellType CellType { get; } = CellType.Line;
 
         public double CrossSectionArea { get; }
         public double Length { get; }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
@@ -44,36 +45,52 @@ namespace ISAAR.MSolve.Solvers.Direct
         /// </summary>
         public override void Solve()
         {
-            if (linearSystem.Solution == null) linearSystem.Solution = linearSystem.CreateZeroVector();
+            var watch = new Stopwatch();
+            if (linearSystem.SolutionConcrete == null) linearSystem.SolutionConcrete = linearSystem.CreateZeroVectorConcrete();
             //else linearSystem.Solution.Clear(); // no need to waste computational time on this in a direct solver
 
+            // Factorization
             if (mustFactorize)
             {
-                factorizedMatrix = linearSystem.Matrix.FactorLdl(factorizeInPlace, factorizationPivotTolerance); 
+                watch.Start();
+                factorizedMatrix = linearSystem.Matrix.FactorLdl(factorizeInPlace, factorizationPivotTolerance);
+                watch.Stop();
+                Logger.LogTaskDuration("Matrix factorization", watch.ElapsedMilliseconds);
+                watch.Reset();
                 mustFactorize = false;
             }
 
-            factorizedMatrix.SolveLinearSystem(linearSystem.RhsVector, linearSystem.Solution);
+            // Substitutions
+            watch.Start();
+            factorizedMatrix.SolveLinearSystem(linearSystem.RhsConcrete, linearSystem.SolutionConcrete);
+            watch.Stop();
+            Logger.LogTaskDuration("Back/forward substitutions", watch.ElapsedMilliseconds);
+            Logger.IncrementAnalysisStep();
         }
 
         protected override Matrix InverseSystemMatrixTimesOtherMatrix(IMatrixView otherMatrix)
         {
+            var watch = new Stopwatch();
+
             // Factorization
             if (mustFactorize)
             {
+                watch.Start();
                 factorizedMatrix = linearSystem.Matrix.FactorLdl(factorizeInPlace, factorizationPivotTolerance);
+                watch.Stop();
+                Logger.LogTaskDuration("Matrix factorization", watch.ElapsedMilliseconds);
+                watch.Reset();
                 mustFactorize = false;
             }
 
-            // Solution vectors
+            // Substitutions
+            watch.Start();
             int systemOrder = linearSystem.Matrix.NumColumns;
             int numRhs = otherMatrix.NumColumns;
             var solutionVectors = Matrix.CreateZero(systemOrder, numRhs);
-
             if (otherMatrix is Matrix otherDense)
             {
                 factorizedMatrix.SolveLinearSystems(otherDense, solutionVectors);
-                return solutionVectors;
             }
             else
             {
@@ -83,12 +100,11 @@ namespace ISAAR.MSolve.Solvers.Direct
                     //TODO: must be benchmarked, if it is actually more efficient than solving column by column.
                     Matrix rhsVectors = otherMatrix.CopyToFullMatrix();
                     factorizedMatrix.SolveLinearSystems(rhsVectors, solutionVectors);
-                    return solutionVectors;
                 }
                 catch (InsufficientMemoryException) //TODO: what about OutOfMemoryException?
                 {
                     // Solve each linear system separately, to avoid copying the RHS matrix to a dense one.
-                    Vector solutionVector = linearSystem.CreateZeroVector();
+                    Vector solutionVector = linearSystem.CreateZeroVectorConcrete();
                     for (int j = 0; j < numRhs; ++j)
                     {
                         if (j != 0) solutionVector.Clear();
@@ -96,9 +112,12 @@ namespace ISAAR.MSolve.Solvers.Direct
                         factorizedMatrix.SolveLinearSystem(rhsVector, solutionVector);
                         solutionVectors.SetSubcolumn(j, solutionVector);
                     }
-                    return solutionVectors;
                 }
             }
+            watch.Stop();
+            Logger.LogTaskDuration("Back/forward substitutions", watch.ElapsedMilliseconds);
+            Logger.IncrementAnalysisStep();
+            return solutionVectors;
         }
 
         public class Builder : ISolverBuilder

@@ -80,12 +80,20 @@ namespace ISAAR.MSolve.XFEM.Entities
             BuildSubdomainOfEachElement();
 
             // Storing the elements of each node is done by the IMesh class, if necessary. TODO: Find out what problems this causes.
-            //BuildElementDictionaryOfEachNode();
+            BuildElementDictionaryOfEachNode();
 
             // TODO: Storing the subdomains of each node should be done by another class, if necessary.
-            foreach (Node node in Nodes) node.BuildSubdomainDictionary();
+            foreach (XNode node in Nodes) node.BuildXSubdomainDictionary();
 
             foreach (XSubdomain subdomain in Subdomains.Values) subdomain.DefineNodesFromElements();
+        }
+
+        private void BuildElementDictionaryOfEachNode()
+        {
+            foreach (IXFiniteElement element in Elements)
+            {
+                foreach (XNode node in element.Nodes) node.ElementsDictionary[element.ID] = element;
+            }
         }
 
         private void BuildSubdomainOfEachElement()

@@ -29,7 +29,8 @@ namespace ISAAR.MSolve.XFEM.Entities
 
         public int ID { get; }
 
-        public bool MaterialsModified { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool StiffnessModified { get; set; } = true; // At first it is modified
+        public bool ConnectivityModified { get; set; } = true; // At first it is modified
 
         IReadOnlyList<INode> ISubdomain.Nodes => nodes;
         public IReadOnlyList<XNode> Nodes => nodes;

@@ -76,8 +76,8 @@ namespace ISAAR.MSolve.XFEM.CrackPropagation
         //}
 
         
-        public (double growthAngle, double growthLength) Propagate(Vector totalFreeDisplacements, CartesianPoint crackTip, 
-            TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
+        public (double growthAngle, double growthLength) Propagate(Dictionary<int, Vector> totalFreeDisplacements, 
+            CartesianPoint crackTip, TipCoordinateSystem tipSystem, IReadOnlyList<XContinuumElement2D> tipElements)
         {
             if (iteration >= Logger.GrowthLengths.Count) throw new IndexOutOfRangeException(
                 $"Only {Logger.GrowthLengths.Count} iterations have been recorder.");

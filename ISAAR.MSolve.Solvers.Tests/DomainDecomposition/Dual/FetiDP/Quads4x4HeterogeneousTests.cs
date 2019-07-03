@@ -8,13 +8,16 @@ using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 using ISAAR.MSolve.LinearAlgebra.Triangulation;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.CornerNodes;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.StiffnessDistribution;
@@ -32,12 +35,14 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             // Setup the model
             double stiffnessRatio = 1E-2; // Do not change this! The expected solution is taken for this value
             Model model = CreateModel(stiffnessRatio);
-            Dictionary<int, INode[]> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
+            Dictionary<int, HashSet<INode>> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
 
             // Setup solver
             var interfaceSolverBuilder = new FetiDPInterfaceProblemSolver.Builder();
             interfaceSolverBuilder.PcgConvergenceTolerance = 1E-7;
-            var fetiSolverBuilder = new FetiDPSolver.Builder(cornerNodes);
+            var fetiMatrices = new DenseFetiDPSubdomainMatrixManager.Factory();
+            var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodes);
+            var fetiSolverBuilder = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices);
             fetiSolverBuilder.InterfaceProblemSolver = interfaceSolverBuilder.Build();
             fetiSolverBuilder.ProblemIsHomogeneous = false;
             var preconditionerFactory = new DirichletPreconditioner.Factory();
@@ -61,7 +66,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             var stiffnessDistribution = (IStiffnessDistribution)fi.GetValue(fetiSolver);
             MethodInfo method = preconditionerFactory.GetType().GetMethod("CalcBoundaryPreconditioningBooleanMatrices",
                 BindingFlags.NonPublic | BindingFlags.Instance);
-            var Bpbr = (Dictionary<int, Matrix>)method.Invoke(preconditionerFactory, 
+            var Bpbr = (Dictionary<int, IMappingMatrix>)method.Invoke(preconditionerFactory, 
                 new object[] { stiffnessDistribution, dofSeparator, lagrangeEnumerator });
 
             // Compare the mapping matrices against the expected ones
@@ -112,7 +117,11 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             });
 
             double tol = 1E-13;
-            foreach (int s in expectedBpbr.Keys) Assert.True(expectedBpbr[s].Equals(Bpbr[s], tol));
+            foreach (int s in expectedBpbr.Keys)
+            {
+                Matrix explicitBpr = Bpbr[s].MultiplyRight(Matrix.CreateIdentity(Bpbr[s].NumColumns));
+                Assert.True(expectedBpbr[s].Equals(explicitBpr, tol));
+            }
         }
 
         [Fact]
@@ -121,12 +130,15 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             // Setup the model
             double stiffnessRatio = 1E-2; // Do not change this! The expected solution is taken for this value
             Model model = CreateModel(stiffnessRatio);
-            Dictionary<int, INode[]> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
+            Dictionary<int, HashSet<INode>> cornerNodes = Quads4x4MappingMatricesTests.DefineCornerNodes(model);
 
             // Setup solver
             var interfaceSolverBuilder = new FetiDPInterfaceProblemSolver.Builder();
             interfaceSolverBuilder.PcgConvergenceTolerance = 1E-7;
-            var fetiSolverBuilder = new FetiDPSolver.Builder(cornerNodes);
+            //var fetiMatrices = new SkylineFetiDPSubdomainMatrixManager.Factory();
+            var fetiMatrices = new DenseFetiDPSubdomainMatrixManager.Factory();
+            var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodes);
+            var fetiSolverBuilder = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices);
             fetiSolverBuilder.InterfaceProblemSolver = interfaceSolverBuilder.Build();
             fetiSolverBuilder.ProblemIsHomogeneous = false;
             fetiSolverBuilder.PreconditionerFactory = new DirichletPreconditioner.Factory();

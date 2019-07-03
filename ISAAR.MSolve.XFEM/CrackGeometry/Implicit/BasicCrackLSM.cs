@@ -265,9 +265,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
                         }
                         else completelyInside = false;
                     }
-
-                    //OBSOLETE: this does not work for tip blending elements. Elements access their enrichments from nodes now.
-                    //if (completelyInside) element.EnrichmentItems.Add(CrackTipEnrichments);  
+                    if (completelyInside) element.EnrichmentItems.Add(CrackTipEnrichments);
                 }
 
                 #region alternatively
@@ -311,27 +309,21 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         {
             foreach (var element in Mesh.Elements)
             {
-                //OBSOLETE: Elements access their enrichments from nodes now.
-                //element.EnrichmentItems.Clear();
-
+                element.EnrichmentItems.Clear();
                 ElementEnrichmentType type = CharacterizeElementEnrichment(element);
                 if (type == ElementEnrichmentType.Tip)
                 {
                     tipElements.Add(element);
                     foreach (var node in element.Nodes) tipNodes.Add(node);
-
-                    //OBSOLETE: Elements access their enrichments from nodes now.
-                    //element.EnrichmentItems.Add(CrackTipEnrichments);
+                    element.EnrichmentItems.Add(CrackTipEnrichments);
                 }
                 else if (type == ElementEnrichmentType.Heaviside)
                 {
                     foreach (var node in element.Nodes) bodyNodes.Add(node);
-
-                    //OBSOLETE: Elements access their enrichments from nodes now.
                     // Cut elements next to tip elements, they will be enriched with both Heaviside and tip functions. If all 
                     // nodes were enriched with tip functions, the element would not be enriched with Heaviside, but then it 
                     // would be a tip element and not fall under this case.
-                    //element.EnrichmentItems.Add(CrackBodyEnrichment); 
+                    element.EnrichmentItems.Add(CrackBodyEnrichment);
                 }
             }
             foreach (var node in tipNodes) bodyNodes.Remove(node); // tip element's nodes are not enriched with Heaviside

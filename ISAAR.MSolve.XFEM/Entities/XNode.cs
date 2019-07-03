@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.XFEM.Elements;
 using ISAAR.MSolve.XFEM.Enrichments.Items;
 using ISAAR.MSolve.XFEM.FreedomDegrees;
 
@@ -43,5 +44,19 @@ namespace ISAAR.MSolve.XFEM.Entities
                 return dofs;
             }
         }
+
+        //TODO: Redesign these and their counterparts in Node. Connectivity should be done using the Dircetization interfaces.
+        #region connectivity
+        public new Dictionary<int, IXFiniteElement> ElementsDictionary { get; } = new Dictionary<int, IXFiniteElement>();
+        //public new Dictionary<int, XSubdomain> SubdomainsDictionary { get; } = new Dictionary<int, XSubdomain>();
+
+        public void BuildXSubdomainDictionary()
+        {
+            foreach (IXFiniteElement element in ElementsDictionary.Values)
+            {
+                SubdomainsDictionary[element.Subdomain.ID] = element.Subdomain;
+            }
+        }
+        #endregion
     }
 }

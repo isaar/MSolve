@@ -13,10 +13,12 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
     {
         private readonly double relativeAreaTolerance;
         private readonly Triangulator2D<CartesianPoint> triangulator;
+        private readonly double zeroDistanceTolerance;
 
-        public RelativeAreaResolver(double relativeAreaTolerance = 1e-4)
+        public RelativeAreaResolver(double relativeAreaTolerance = 1E-4, double zeroDistanceTolerance = 1E-10)
         {
             this.relativeAreaTolerance = relativeAreaTolerance;
+            this.zeroDistanceTolerance = zeroDistanceTolerance;
             this.triangulator = new Triangulator2D<CartesianPoint>((x, y) => new CartesianPoint(x, y));
         }
 
@@ -142,7 +144,9 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.HeavisideSingularityResolving
                     }
                     if (vertexAsNode != null)
                     {
-                        sign = Math.Sign(crack.SignedDistanceOf(vertexAsNode));
+                        double distance = crack.SignedDistanceOf(vertexAsNode);
+                        if (Math.Abs(distance) <= zeroDistanceTolerance) sign = 0;
+                        else sign = Math.Sign(distance);
                         if (sign != 0) break;
                     }
                 }

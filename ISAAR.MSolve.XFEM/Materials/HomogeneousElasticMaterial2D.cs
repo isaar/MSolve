@@ -4,7 +4,7 @@ using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.XFEM.Materials
 {
-    class HomogeneousElasticMaterial2D: IMaterialField2D
+    public class HomogeneousElasticMaterial2D: IMaterialField2D
     {
         public double HomogeneousYoungModulus { get; }
         public double HomogeneousEquivalentYoungModulus { get; }

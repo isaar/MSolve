@@ -15,6 +15,8 @@
     <ProjectReference Include="..\ISAAR.MSolve.Geometry\ISAAR.MSolve.Geometry.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.LinearAlgebra\ISAAR.MSolve.LinearAlgebra.csproj" />
     <ProjectReference Include="..\ISAAR.MSolve.Logging\ISAAR.MSolve.Logging.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.Problems\ISAAR.MSolve.Problems.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj" />
   </ItemGroup>
 
 </Project>

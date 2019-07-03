@@ -45,7 +45,10 @@ namespace ISAAR.MSolve.SamplesConsole
             //BondSlipTest.CheckStressStrainBonSlipMaterial();
             //OneRveExample.Check_Graphene_rve_parallel();
             //LinearRves.CheckShellScaleTransitionsAndMicrostructure();
-            SolveCantileverWithStochasticMaterial();
+            //SolveCantileverWithStochasticMaterial();
+
+            //MeshPartitioningExamples.PartitionMeshes();
+
         }
 
         private static void SolveBuildingInNoSoilSmall()

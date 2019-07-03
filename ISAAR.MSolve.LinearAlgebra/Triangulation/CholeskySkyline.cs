@@ -72,8 +72,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         {
             // The factorization A = transpose(u) * D * u, u = unit upper triangular is stored. Thus U = sqrt(D) * u.
             // Since D is diagonal, we need to scale each column j of u by sqrt(D[j,j]).
-            var upper = TriangularUpper.CreateZero(NumColumns);
-            for (int j = 0; j < NumColumns; ++j)
+            var upper = TriangularUpper.CreateZero(Order);
+            for (int j = 0; j < Order; ++j)
             {
                 int colheight = diagOffsets[j+1] - diagOffsets[j] - 1;
                 for (int t = 0; t < colheight + 1; ++t)
@@ -91,10 +91,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         public override void SolveLinearSystem(Vector rhs, Vector solution)
         {
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
-            Preconditions.CheckMultiplicationDimensions(NumColumns, solution.Length);
+            Preconditions.CheckMultiplicationDimensions(Order, solution.Length);
 
-            SubstituteForward(NumColumns, values, diagOffsets, rhs.RawData, solution.RawData);
-            SubstituteBack(NumColumns, values, diagOffsets, solution.RawData);
+            SubstituteForward(Order, values, diagOffsets, rhs.RawData, solution.RawData);
+            SubstituteBack(Order, values, diagOffsets, solution.RawData);
         }
 
         internal static void FactorizeInternal(int order, double[] values, int[] diagOffsets, double pivotTolerance)

@@ -90,7 +90,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1
                 int[] subdomainToGlobalDofs = model.GlobalDofOrdering.MapFreeDofsSubdomainToGlobal(subdomain);
                 IVectorView displacements = subdomainDisplacements[id]; //TODO: benchmark the performance if this was concrete Vector
 
-                // Internal dofs are copied without averaging..
+                // Internal dofs are copied without averaging.
                 foreach (int internalDof in dofSeparator.InternalDofIndices[id])
                 {
                     int globalDofIdx = subdomainToGlobalDofs[internalDof];

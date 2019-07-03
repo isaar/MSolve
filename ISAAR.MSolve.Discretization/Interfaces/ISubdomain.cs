@@ -24,7 +24,8 @@ namespace ISAAR.MSolve.Discretization.Interfaces
 
         int ID { get; }
 
-        bool MaterialsModified { get; set; }
+        bool ConnectivityModified { get; set; }
+        bool StiffnessModified { get; set; }
 
         IReadOnlyList<INode> Nodes { get; } //TODO: perhaps this should be a set
 

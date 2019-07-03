@@ -30,7 +30,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
         IReadOnlyDictionary<CrackBodyEnrichment2D, ISet<XNode>> CrackBodyNodesModified { get; }
 
         /// <summary>
-        /// Nodes that were already enriched with Heaviside, but belong to elements, where at least one node bleongs to one of
+        /// Nodes that were already enriched with Heaviside, but belong to elements, where at least one node belongs to one of
         /// the sets <see cref="crackBodyNodesNew"/>, <see cref="crackBodyNodesModified"/>, <see cref="crackTipNodesNew"/> or 
         /// <see cref="crackTipNodesOld"/>. The stiffness matrix of these elements will change, causing a change in the stiffness
         /// terms associated with these nodes.
@@ -68,7 +68,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry
 
         IReadOnlyList<ISingleCrack> SingleCracks { get; } //Not sure about this one
         
-        void Propagate(Vector totalFreeDisplacements);
+        void Propagate(Dictionary<int, Vector> totalFreeDisplacements);
         void UpdateEnrichments();
     }
 }

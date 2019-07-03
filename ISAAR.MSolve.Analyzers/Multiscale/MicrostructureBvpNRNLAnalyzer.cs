@@ -168,7 +168,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
         public void Initialize(bool isFirstAnalysis = true)
         {
             InitializeInternalVectors();
-            solver.Initialize();
+            //solver.Initialize(); //TODO: Using this needs refactoring
         }
 
         private void UpdateRHS(int step)
@@ -205,7 +205,7 @@ namespace ISAAR.MSolve.Analyzers.Multiscale
                     {
                         provider.Reset();
                         BuildMatrices();
-                        solver.Initialize();
+                        //solver.Initialize(); //TODO: Using this needs refactoring
                     }
                 }
                 Debug.WriteLine("NR {0}, first error: {1}, exit error: {2}", step, firstError, errorNorm);

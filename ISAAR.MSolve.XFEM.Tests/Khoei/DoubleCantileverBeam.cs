@@ -153,7 +153,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             CreateCrack(Math.Max(elementSizeX, elementSizeY), model, mesh, jIntegralRadiusRatio);
         }
 
-        public (double jIintegral, double sifMode1) Propagate(Vector freeDisplacements)
+        public (double jIintegral, double sifMode1) Propagate(Dictionary<int, Vector> freeDisplacements)
         {
             Crack.Propagate(freeDisplacements);
             double jIntegral = (Math.Pow(Propagator.Logger.SIFsMode1[0], 2) +

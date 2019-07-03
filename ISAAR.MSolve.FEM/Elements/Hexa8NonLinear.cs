@@ -5,6 +5,7 @@ using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Embedding;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interfaces;
@@ -58,6 +59,7 @@ namespace ISAAR.MSolve.FEM.Elements
         public IQuadrature3D QuadratureForStiffness { get; }
 
         public int ID => 13;
+        public CellType CellType { get; } = CellType.Hexa8;
 
         public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
 

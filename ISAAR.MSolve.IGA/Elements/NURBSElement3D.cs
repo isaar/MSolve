@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.IGA.Entities;
 using ISAAR.MSolve.IGA.Entities.Loads;
 using ISAAR.MSolve.IGA.Interfaces;
@@ -20,9 +21,10 @@ namespace ISAAR.MSolve.IGA.Problems.Structural.Elements
         protected IDofType[][] dofTypes;
         protected IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
 	    private DynamicMaterial dynamicProperties;
+        public CellType CellType { get; } = CellType.Unknown;
 
 
-		public IElementDofEnumerator DofEnumerator
+        public IElementDofEnumerator DofEnumerator
         {
             get
             {

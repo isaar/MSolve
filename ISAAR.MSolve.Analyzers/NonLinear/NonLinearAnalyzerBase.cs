@@ -73,7 +73,7 @@ namespace ISAAR.MSolve.Analyzers.NonLinear
         public void Initialize(bool isFirstAnalysis)
         {
             InitializeInternalVectors();
-            solver.Initialize();
+            //solver.Initialize(); //TODO: Using this needs refactoring
         }
 
         //TODO: Internal Rhs vectors are created and destroyed at each iteration. It would be more efficient to store them as

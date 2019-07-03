@@ -33,7 +33,7 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem
 
         public Vector CalcLagrangeMultipliers(Feti1FlexibilityMatrix flexibility, IFetiPreconditioner preconditioner, 
             Feti1Projection projection, Vector disconnectedDisplacements, Vector rigidBodyModesWork, double globalForcesNorm,
-            DualSolverLogger logger)
+            SolverLogger logger)
         {
             // PCPG starts from the particular lagrange multipliers: λ0 = Q * G * inv(G^T * Q * G) * e
             Vector lagranges = projection.CalcParticularLagrangeMultipliers(rigidBodyModesWork);
@@ -42,17 +42,15 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem
             var pcpg = new PcpgAlgorithm(maxIterationsProvider, pcpgConvergenceTolerance, pcpgConvergenceStrategy);
             IterativeStatistics stats = 
                 pcpg.Solve(flexibility, preconditioner, projection, disconnectedDisplacements, lagranges);
-
-            // Log statistics about PCPG execution
             if (!stats.HasConverged)
             {
                 throw new IterativeSolverNotConvergedException(Feti1Solver.name + " did not converge to a solution. PCPG"
                     + $" algorithm run for {stats.NumIterationsRequired} iterations and the residual norm ratio was"
                     + $" {stats.ResidualNormRatioEstimation}");
             }
-            logger.PcgIterations = stats.NumIterationsRequired;
-            logger.PcgResidualNormRatio = stats.ResidualNormRatioEstimation;
 
+            // Log statistics about PCG execution
+            logger.LogIterativeAlgorithm(stats.NumIterationsRequired, stats.ResidualNormRatioEstimation);
             return lagranges;
         }
 

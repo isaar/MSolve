@@ -155,7 +155,9 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             XModel model = dcb.Model;
             TrackingExteriorCrackLSM crack = dcb.Crack;
             (IVectorView globalU, IMatrixView globalK) = dcb.SolveModel();
-            (double jIntegral, double sifMode1) = dcb.Propagate((Vector)globalU);
+            var freeDisplacementsPerSubdomain = new Dictionary<int, Vector>();
+            freeDisplacementsPerSubdomain[model.Subdomains.First().Key] = (Vector)globalU;
+            (double jIntegral, double sifMode1) = dcb.Propagate(freeDisplacementsPerSubdomain);
 
             // Check the results. For now, they are allowed to be more accurate.
             double tolerance = 1E-6;
@@ -240,7 +242,7 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             node7GlobalDofs[0] = freeDofs[node7, StructuralDof.TranslationX];
             node7GlobalDofs[1] = freeDofs[node7, StructuralDof.TranslationY];
             for (int i = 0; i < 8; ++i) node7GlobalDofs[2 + i] = freeDofs[node7, crack.CrackTipEnrichments.Dofs[i]];
-            Matrix node7GlobalStiffness = globalK.GetSubmatrix(node7GlobalDofs, node7GlobalDofs);
+            IMatrix node7GlobalStiffness = globalK.GetSubmatrix(node7GlobalDofs, node7GlobalDofs);
 
             // Element 1 dofs (std first):
             // (N1,ux,0) (N1,uy,1) (N4,ux,2) (N4,uy,3) (N7,ux,4) (N7,uy,5) (N2,ux,6) (N2,uy,7)
@@ -260,11 +262,11 @@ namespace ISAAR.MSolve.XFEM.Tests.Khoei
             IMatrix elem1Stiffness = ((XContinuumElement2D)model.Elements[1].ElementType).JoinStiffnessesStandardFirst();
             IMatrix elem2Stiffness = ((XContinuumElement2D)model.Elements[2].ElementType).JoinStiffnessesStandardFirst();
             int[] elem2Node6Dofs = { 4, 5, 18, 19 };
-            Matrix node6Stiffness = elem2Stiffness.GetSubmatrix(elem2Node6Dofs, elem2Node6Dofs);
+            IMatrix node6Stiffness = elem2Stiffness.GetSubmatrix(elem2Node6Dofs, elem2Node6Dofs);
             int[] elem1Node7Dofs = { 4, 5, 24, 25, 26, 27, 28, 29, 30, 31 };
-            Matrix node7Elem1Stiffness = elem1Stiffness.GetSubmatrix(elem1Node7Dofs, elem1Node7Dofs);
+            IMatrix node7Elem1Stiffness = elem1Stiffness.GetSubmatrix(elem1Node7Dofs, elem1Node7Dofs);
             int[] elem2Node7Dofs = { 6, 7, 20, 21, 22, 23, 24, 25, 26, 27 };
-            Matrix node7Elem2Stiffness = elem2Stiffness.GetSubmatrix(elem2Node7Dofs, elem2Node7Dofs);
+            IMatrix node7Elem2Stiffness = elem2Stiffness.GetSubmatrix(elem2Node7Dofs, elem2Node7Dofs);
 
             // Check matrices
             double equalityTolerance = 1E-13;

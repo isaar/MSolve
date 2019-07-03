@@ -25,6 +25,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
     public class Matrix : IMatrix, ISliceable2D, IEntrywiseOperableView2D<Matrix, Matrix>, IEntrywiseOperable2D<Matrix>
     {
         private double[] data;
+        private bool isOverwritten = false;
 
         private Matrix(double[] data, int numRows, int numColumns)
         {
@@ -491,6 +492,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 // Set the internal array to null to force NullReferenceException if it is accessed again.
                 // TODO: perhaps there is a better way to handle this.
                 data = null;
+                isOverwritten = true;
                 return factor;
             }
             else return CholeskyFull.Factorize(NumColumns, CopyInternalData());
@@ -514,6 +516,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 // Set the internal array to null to force NullReferenceException if it is accessed again.
                 // TODO: perhaps there is a better way to handle this.
                 data = null;
+                isOverwritten = true;
                 return factor;
             }
             else return LQFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
@@ -539,6 +542,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 // Set the internal array to null to force NullReferenceException if it is accessed again.
                 // TODO: perhaps there is a better way to handle this.
                 data = null;
+                isOverwritten = true;
                 return factor;
             }
             else return LUFactorization.Factorize(NumColumns, CopyInternalData());
@@ -562,6 +566,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 // Set the internal array to null to force NullReferenceException if it is accessed again.
                 // TODO: perhaps there is a better way to handle this.
                 data = null;
+                isOverwritten = true;
                 return factor;
             }
             else return QRFactorization.Factorize(NumRows, NumColumns, CopyInternalData());
@@ -572,6 +577,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public Vector GetColumn(int colIndex)
         {
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
             Preconditions.CheckIndexCol(this, colIndex);
             double[] columnVector = new double[NumRows];
             Array.Copy(data, colIndex * NumRows, columnVector, 0, NumRows);
@@ -590,6 +596,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
         public double[] GetDiagonalAsArray()
         {
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
             Preconditions.CheckSquare(this);
             double[] diag = new double[NumRows];
             for (int i = 0; i < NumRows; ++i) diag[i] = data[i * NumRows + i];
@@ -601,6 +608,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public Vector GetRow(int rowIndex)
         {
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
             Preconditions.CheckIndexRow(this, rowIndex);
             double[] rowVector = new double[NumColumns];
             for (int j = 0; j < NumColumns; ++j) rowVector[j] = data[j * NumRows + rowIndex];
@@ -610,8 +618,11 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="ISliceable2D.GetSubmatrix(int[], int[])"/>.
         /// </summary>
+        IMatrix ISliceable2D.GetSubmatrix(int[] rowIndices, int[] colIndices) => GetSubmatrix(rowIndices, colIndices);
+
         public Matrix GetSubmatrix(int[] rowIndices, int[] colIndices)
         {
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
             double[] submatrix = new double[colIndices.Length * rowIndices.Length];
             int idxCounter = -1;
             foreach (var j in colIndices)
@@ -624,8 +635,12 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="ISliceable2D.GetSubmatrix(int, int, int, int)"/>.
         /// </summary>
+        IMatrix ISliceable2D.GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
+            => GetSubmatrix(rowStartInclusive, rowEndExclusive, colStartInclusive, colEndExclusive);
+
         public Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
         {
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
             int numNewRows = rowEndExclusive - rowStartInclusive;
             int numNewCols = colEndExclusive - colStartInclusive;
             double[] submatrix = new double[numNewCols * numNewRows];
@@ -660,7 +675,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 (double[] inverse, double det) = AnalyticFormulas.Matrix3x3ColMajorInvert(data);
                 return new Matrix(inverse, 3, 3);
             }
-            else return FactorLU().Invert(true);
+            else return FactorLU(false).Invert(true);
         }
 
         /// <summary>
@@ -670,7 +685,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <exception cref="NonMatchingDimensionsException">Thrown if the matrix is not square.</exception>
         /// <exception cref="SingularMatrixException">Thrown if the matrix is not invertible.</exception>
         /// <exception cref="LapackException">Thrown if the call to LAPACK fails due to invalid input.</exception>
-        public void InvertInPlace()
+        public void InvertInPlace() //TODO: This needs redesign. A new object should be returned and this should be disabled.
         {
             //TODO: implement efficient 2x2 and 3x3 inplace operations to avoid copying. 
             if ((NumRows == 2) && (NumColumns == 2))
@@ -711,7 +726,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             }
             else
             {
-                LUFactorization factor = FactorLU();
+                LUFactorization factor = FactorLU(false);
                 double det = factor.CalcDeterminant(); // Call this before factor.Invert(), else the factor will be overwritten.
                 Matrix inverse = factor.Invert(true); 
                 return (factor.Invert(true), det);

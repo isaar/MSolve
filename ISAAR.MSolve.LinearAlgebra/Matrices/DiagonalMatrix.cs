@@ -5,6 +5,8 @@ using ISAAR.MSolve.LinearAlgebra.Commons;
 using ISAAR.MSolve.LinearAlgebra.Exceptions;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 
+//TODO: Use MKL vector math function vdMul(), vdInv(). See: 
+//      https://software.intel.com/en-us/mkl-developer-reference-c-vm-mathematical-functions#0C983A0A-02BA-46A9-AAA5-EAD9D8869ADD
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
@@ -94,6 +96,45 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <param name="order">The number of rows/columns of the matrix.</param>
         public static DiagonalMatrix CreateZero(int order) => new DiagonalMatrix(new double[order]);
 
+        #region operators (use extension operators when they become available)
+        /// <summary>
+        /// Performs the matrix-matrix multiplication: result = <paramref name="matrixLeft"/> * <paramref name="matrixRight"/>.
+        /// If <paramref name="matrixLeft"/> is m1-by-n1 and <paramref name="matrixRight"/> is m2-by-n2, then n1 must be equal to
+        /// m2. The result will be an m1-by-n2 matrix, written to a new <see cref="Matrix"/> instance.
+        /// </summary>
+        /// <param name="matrixLeft">The <see cref="DiagonalMatrix"/> operand on the left.</param>
+        /// <param name="matrixRight">The <see cref="Matrix"/> operand on the right.</param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if <paramref name="matrixLeft"/>.<see cref="NumColumns"/> is different than 
+        /// <paramref name="matrixRight"/>.<see cref="NumRows"/>.
+        /// </exception>
+        public static Matrix operator *(DiagonalMatrix matrixLeft, Matrix matrixRight)
+            => matrixLeft.MultiplyRight(matrixRight);
+
+        /// <summary>
+        /// Performs the matrix-vector multiplication: result = <paramref name="matrixLeft"/> * <paramref name="vectorRight"/>.
+        /// If <paramref name="matrixLeft"/> is m1-by-n1 and <paramref name="vectorRight"/> has length = n2, then n1 must be 
+        /// equal to n2. The result will be a vector with length = m1, written to a new <see cref="Vector"/> instance.
+        /// </summary>
+        /// <param name="matrixLeft">The <see cref="DiagonalMatrix"/> operand on the left.</param>
+        /// <param name="vectorRight">
+        /// The <see cref="Vector"/> operand on the right. It can be considered as a column vector.
+        /// </param>
+        /// <exception cref="NonMatchingDimensionsException">
+        /// Thrown if <paramref name="matrixLeft"/>.<see cref="NumColumns"/> is different than 
+        /// <paramref name="vectorRight"/>.<see cref="Vector.Length"/>.
+        /// </exception>
+        public static Vector operator *(DiagonalMatrix matrixLeft, Vector vectorRight)
+            => matrixLeft.Multiply(vectorRight);
+        #endregion
+
+        public Matrix CopyToFullMatrix()
+        {
+            var clone = Matrix.CreateZero(NumRows, NumRows);
+            for (int i = 0; i < NumRows; ++i) clone[i, i] = this.diagonal[i];
+            return clone;
+        }
+
         /// <summary>
         /// Calculates the inverse matrix and writes it over the entries of this object, in order to conserve memory 
         /// and possibly time.
@@ -147,9 +188,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             //TODO: This should be delegated to each matrix type which should scale its rows itself efficiently.
             Preconditions.CheckMultiplicationDimensions(this, matrix);
             var result = Matrix.CreateZero(matrix.NumRows, matrix.NumColumns);
-            for (int i = 0; i < matrix.NumRows; ++i)
+            for (int j = 0; j < matrix.NumColumns; ++j) 
             {
-                for (int j = 0; j < matrix.NumColumns; ++j) result[i, j] = diagonal[i] * matrix[i, j];
+                for (int i = 0; i < matrix.NumRows; ++i) result[i, j] = diagonal[i] * matrix[i, j];
             }
             return result;
         }

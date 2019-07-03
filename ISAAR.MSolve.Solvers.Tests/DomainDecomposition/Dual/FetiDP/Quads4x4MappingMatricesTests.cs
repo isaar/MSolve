@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
@@ -19,6 +21,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
         [Fact]
         public static void TestDofSeparation()
         {
+            //TODO: These should be available from properties
             int[][] cornerDofsExpected = new int[4][];
             int[][] remainderDofsExpected = new int[4][];
             int[][] boundaryRemainderDofsExpected = new int[4][];
@@ -50,7 +53,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 
             // Create model
             Model model = CreateModel();
-            Dictionary<int, INode[]> cornerNodes = DefineCornerNodes(model);
+            Dictionary<int, HashSet<INode>> cornerNodes = DefineCornerNodes(model);
             model.ConnectDataStructures();
 
             // Order free dofs.
@@ -64,8 +67,14 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 
             // Separate dofs
             var dofSeparator = new FetiDPDofSeparator();
-            dofSeparator.SeparateDofs(model, cornerNodes);
-
+            foreach (ISubdomain subdomain in model.Subdomains)
+            {
+                int s = subdomain.ID;
+                IEnumerable<INode> remainderNodes = subdomain.Nodes.Except(cornerNodes[s]);
+                dofSeparator.SeparateCornerRemainderDofs(subdomain, cornerNodes[s], remainderNodes);
+                dofSeparator.SeparateBoundaryInternalDofs(subdomain, remainderNodes);
+            }
+            
             // Check
             for (int s = 0; s < 4; ++s)
             {
@@ -109,7 +118,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 
             // Create model
             Model model = CreateModel();
-            Dictionary<int, INode[]> cornerNodes = DefineCornerNodes(model);
+            Dictionary<int, HashSet<INode>> cornerNodes = DefineCornerNodes(model);
             model.ConnectDataStructures();
 
             // Order free dofs.
@@ -123,7 +132,14 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 
             // Separate dofs
             var dofSeparator = new FetiDPDofSeparator();
-            dofSeparator.SeparateDofs(model, cornerNodes);
+            dofSeparator.DefineGlobalBoundaryDofs(model, cornerNodes);
+            foreach (ISubdomain subdomain in model.Subdomains)
+            {
+                int s = subdomain.ID;
+                IEnumerable<INode> remainderNodes = subdomain.Nodes.Except(cornerNodes[s]);
+                dofSeparator.SeparateCornerRemainderDofs(subdomain, cornerNodes[s], remainderNodes);
+                dofSeparator.SeparateBoundaryInternalDofs(subdomain, remainderNodes);
+            }
 
             // Enumerate lagranges
             var crosspointStrategy = new FullyRedundantConstraints();
@@ -177,7 +193,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 
             // Create model
             Model model = CreateModel();
-            Dictionary<int, INode[]> cornerNodes = DefineCornerNodes(model);
+            Dictionary<int, HashSet<INode>> cornerNodes = DefineCornerNodes(model);
             model.ConnectDataStructures();
 
             // Order free dofs.
@@ -191,14 +207,22 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 
             // Separate dofs
             var dofSeparator = new FetiDPDofSeparator();
-            dofSeparator.DefineCornerMappingMatrices(model, cornerNodes);
+            dofSeparator.DefineGlobalCornerDofs(model, cornerNodes);
+            foreach (ISubdomain subdomain in model.Subdomains)
+            {
+                int s = subdomain.ID;
+                IEnumerable<INode> remainderAndConstrainedNodes = subdomain.Nodes.Where(node => !cornerNodes[s].Contains(node));
+                dofSeparator.SeparateCornerRemainderDofs(subdomain, cornerNodes[s], remainderAndConstrainedNodes);
+                dofSeparator.SeparateBoundaryInternalDofs(subdomain, remainderAndConstrainedNodes);
+            }
+            dofSeparator.CalcCornerMappingMatrices(model, cornerNodes);
 
             // Check
             double tolerance = 1E-13;
             Assert.Equal(expectedNumCornerDofs, dofSeparator.NumGlobalCornerDofs);
             for (int id = 0; id < 4; ++id)
             {
-                Matrix Lc = dofSeparator.CornerBooleanMatrices[id];
+                UnsignedBooleanMatrix Lc = dofSeparator.CornerBooleanMatrices[id];
                 Assert.True(expectedLc[id].Equals(Lc, tolerance));
             }
         }
@@ -238,7 +262,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             return builder.BuildModel();
         }
 
-        public static Dictionary<int, INode[]> DefineCornerNodes(Model model)
+        public static Dictionary<int, HashSet<INode>> DefineCornerNodes(Model model)
         {
             // subdomain 2         subdomain 3                      
             // 20 ---- 21 ---- 22  22---- 23 ---- 24
@@ -258,11 +282,11 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             // |       |       |   |      |       |
             // 0 ----- 1 ----- 2   2 ---- 3 ----- 4
 
-            var cornerNodes = new Dictionary<int, INode[]>();
-            cornerNodes[0] = new INode[] { model.Nodes[2], model.Nodes[12] };
-            cornerNodes[1] = new INode[] { model.Nodes[2], model.Nodes[12], model.Nodes[14] };
-            cornerNodes[2] = new INode[] { model.Nodes[12], model.Nodes[22] };
-            cornerNodes[3] = new INode[] { model.Nodes[12], model.Nodes[14], model.Nodes[22] };
+            var cornerNodes = new Dictionary<int, HashSet<INode>>();
+            cornerNodes[0] = new HashSet<INode>(new INode[] { model.Nodes[2], model.Nodes[12] });
+            cornerNodes[1] = new HashSet<INode>(new INode[] { model.Nodes[2], model.Nodes[12], model.Nodes[14] });
+            cornerNodes[2] = new HashSet<INode>(new INode[] { model.Nodes[12], model.Nodes[22] });
+            cornerNodes[3] = new HashSet<INode>(new INode[] { model.Nodes[12], model.Nodes[14], model.Nodes[22] });
             return cornerNodes;
         }
     }

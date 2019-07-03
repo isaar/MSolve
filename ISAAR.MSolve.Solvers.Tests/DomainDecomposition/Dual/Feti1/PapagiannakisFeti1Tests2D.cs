@@ -3,12 +3,14 @@ using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.Matrices;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
 using Xunit;
 using static ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Feti1.InterfaceProblem.Feti1ProjectedInterfaceProblemSolver;
@@ -143,28 +145,30 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
         //[InlineData(1E-6, InterfaceSolver.Method2, Precond.Dirichlet, MatrixQ.Precond, Residual.Exact, 9)] // converges, stagnates almost before the tolerance and then diverges
         //[InlineData(1E-6, InterfaceSolver.Method3, Precond.Dirichlet, MatrixQ.Precond, Residual.Exact, 23)] //3
         //[InlineData(1E-6, InterfaceSolver.Method4, Precond.Dirichlet, MatrixQ.Precond, Residual.Exact, 9)] // converges, stagnates almost before the tolerance and then diverges
-        [InlineData(1E-6, InterfaceSolver.Default, Precond.Dirichlet, MatrixQ.Precond, Residual.Approximate, 9)]
+        //[InlineData(1E-6, InterfaceSolver.Default, Precond.Dirichlet, MatrixQ.Precond, Residual.Approximate, 9)]
         public static void Run(double stiffnessRatio, InterfaceSolver interfaceSolver, Precond precond, MatrixQ q,
             Residual convergence, int iterExpected)
         {
             //InterfaceSolver interfaceSolver = 0;
             double factorizationTol = 1E-3, pcpgConvergenceTol = 1E-5;
             IVectorView directDisplacements = SolveModelWithoutSubdomains(stiffnessRatio);
-            (IVectorView ddDisplacements, DualSolverLogger logger, int numUniqueGlobalDofs, int numExtenedDomainDofs) =
+            (IVectorView ddDisplacements, SolverLogger logger, int numUniqueGlobalDofs, int numExtenedDomainDofs) =
                 SolveModelWithSubdomains(stiffnessRatio, interfaceSolver, precond, q, convergence, 
                     factorizationTol, pcpgConvergenceTol);
             double normalizedError = directDisplacements.Subtract(ddDisplacements).Norm2() / directDisplacements.Norm2();
 
+            int analysisStep = 0;
             Assert.Equal(882, numUniqueGlobalDofs);    // 882 includes constrained and free dofs
             Assert.Equal(1056, numExtenedDomainDofs); // 1056 includes constrained and free dofs
-            Assert.Equal(190, logger.NumLagrangeMultipliers);
+            Assert.Equal(190, logger.GetNumDofs(analysisStep, "Lagrange multipliers"));
 
             // The error is provided in the reference solution the, but it is almost impossible for two different codes run on 
             // different machines to achieve the exact same accuracy.
             Assert.Equal(0.0, normalizedError, 5);
 
             // Allow a tolerance: It is ok if my solver is better or off by 1 iteration 
-            Assert.InRange(logger.PcgIterations, 1, iterExpected + 1); // the upper bound is inclusive!
+            int pcgIterations = logger.GetNumIterationsOfIterativeAlgorithm(analysisStep);
+            Assert.InRange(pcgIterations, 1, iterExpected + 1); // the upper bound is inclusive!
         }
 
         private static Model CreateModel(double stiffnessRatio)
@@ -209,7 +213,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             return model;
         }
 
-        private static (IVectorView globalDisplacements, DualSolverLogger logger, int numUniqueGlobalDofs, int numExtenedDomainDofs)
+        private static (IVectorView globalDisplacements, SolverLogger logger, int numUniqueGlobalDofs, int numExtenedDomainDofs)
             SolveModelWithSubdomains(double stiffnessRatio, InterfaceSolver interfaceSolver, Precond precond, MatrixQ q,
                 Residual residualConvergence, double factorizationTolerance, double pcgConvergenceTolerance)
         {
@@ -217,7 +221,12 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.Feti1
             Model multiSubdomainModel = CreateModel(stiffnessRatio);
 
             // Solver
-            var solverBuilder = new Feti1Solver.Builder(factorizationTolerance);
+            var factorizationTolerances = new Dictionary<int, double>();
+            foreach (Subdomain s in multiSubdomainModel.Subdomains) factorizationTolerances[s.ID] = factorizationTolerance;
+            //var fetiMatrices = new DenseFeti1SubdomainMatrixManager.Factory();
+            //var fetiMatrices = new SkylineFeti1SubdomainMatrixManager.Factory();
+            var fetiMatrices = new SkylineFeti1SubdomainMatrixManager.Factory(new OrderingAmdSuiteSparse());
+            var solverBuilder = new Feti1Solver.Builder(fetiMatrices, factorizationTolerances);
 
             // Homogeneous/heterogeneous problem, matrix Q.
             solverBuilder.ProblemIsHomogeneous = stiffnessRatio == 1.0;

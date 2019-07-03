@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Operators;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.LagrangeMultipliers;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
@@ -10,38 +13,34 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning
 {
     public class DirichletPreconditioner : IFetiPreconditioner
     {
-        private readonly Dictionary<int, Matrix> preconditioningBoundarySignedBooleanMatrices;
-        private readonly Dictionary<int, Matrix> stiffnessesBoundaryBoundary;
-        private readonly Dictionary<int, Matrix> stiffnessesBoundaryInternal;
-        private readonly Dictionary<int, Matrix> stiffnessesInternalInternalInverse;
+        private readonly Dictionary<int, IFetiSubdomainMatrixManager> matrixManagers;
+        private readonly Dictionary<int, IMappingMatrix> preconditioningBoundarySignedBooleanMatrices;
         private readonly int[] subdomainIDs;
 
-        private DirichletPreconditioner(int[] subdomainIDs, Dictionary<int, Matrix> stiffnessesBoundaryBoundary,
-            Dictionary<int, Matrix> stiffnessesBoundaryInternal, Dictionary<int, Matrix> stiffnessesInternalInternalInverse,
-            Dictionary<int, Matrix> preconditioningBoundarySignedBooleanMatrices)
+        private DirichletPreconditioner(int[] subdomainIDs, Dictionary<int, IFetiSubdomainMatrixManager> matrixManagers, 
+            Dictionary<int, IMappingMatrix> preconditioningBoundarySignedBooleanMatrices)
         {
             this.subdomainIDs = subdomainIDs;
+            this.matrixManagers = matrixManagers;
             this.preconditioningBoundarySignedBooleanMatrices = preconditioningBoundarySignedBooleanMatrices;
-            this.stiffnessesBoundaryBoundary = stiffnessesBoundaryBoundary;
-            this.stiffnessesBoundaryInternal = stiffnessesBoundaryInternal;
-            this.stiffnessesInternalInternalInverse = stiffnessesInternalInternalInverse;
         }
 
         public void SolveLinearSystem(Vector rhs, Vector lhs)
         {
             lhs.Clear(); //TODO: this should be avoided
-            foreach (int id in subdomainIDs)
+            foreach (int s in subdomainIDs)
             {
-                Matrix Bpb = preconditioningBoundarySignedBooleanMatrices[id];
-                Matrix Kbb = stiffnessesBoundaryBoundary[id];
-                Matrix Kbi = stiffnessesBoundaryInternal[id];
-                Matrix invKii = stiffnessesInternalInternalInverse[id];
+                IFetiSubdomainMatrixManager matrixManager = matrixManagers[s];
+                IMappingMatrix Bpb = preconditioningBoundarySignedBooleanMatrices[s];
 
                 // inv(F) * y = Bpb * S * Bpb^T * y
                 // S = Kbb - Kbi * inv(Kii) * Kib
                 Vector By = Bpb.Multiply(rhs, true);
-                Vector SBy = Kbb.Multiply(By) - Kbi.Multiply(invKii.Multiply(Kbi.Multiply(By, true)));
-                Vector subdomainContribution = Bpb.Multiply(SBy);
+                Vector temp = matrixManager.MultiplyKibTimes(By);
+                temp = matrixManager.MultiplyInverseKiiTimes(temp);
+                temp = matrixManager.MultiplyKbiTimes(temp);
+                temp = matrixManager.MultiplyKbbTimes(By) - temp;
+                Vector subdomainContribution = Bpb.Multiply(temp);
                 lhs.AddIntoThis(subdomainContribution);
             }
         }
@@ -49,53 +48,50 @@ namespace ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning
         public void SolveLinearSystems(Matrix rhs, Matrix lhs)
         {
             lhs.Clear(); //TODO: this should be avoided
-            foreach (int id in subdomainIDs)
+            foreach (int s in subdomainIDs)
             {
-                Matrix Bpb = preconditioningBoundarySignedBooleanMatrices[id];
-                Matrix Kbb = stiffnessesBoundaryBoundary[id];
-                Matrix Kbi = stiffnessesBoundaryInternal[id];
-                Matrix invKii = stiffnessesInternalInternalInverse[id];
+                IFetiSubdomainMatrixManager matrixManager = matrixManagers[s];
+                IMappingMatrix Bpb = preconditioningBoundarySignedBooleanMatrices[s];
 
                 // inv(F) * Y = Bpb * S * Bpb^T * Y
                 // S = Kbb - Kbi * inv(Kii) * Kib
                 Matrix BY = Bpb.MultiplyRight(rhs, true);
-                Matrix SBY = Kbb.MultiplyRight(BY) - Kbi.MultiplyRight(invKii.MultiplyRight(Kbi.MultiplyRight(BY, true)));
-                Matrix subdomainContribution = Bpb.MultiplyRight(SBY);
+                Matrix temp = matrixManager.MultiplyKibTimes(BY);
+                temp = matrixManager.MultiplyInverseKiiTimes(temp);
+                temp = matrixManager.MultiplyKbiTimes(temp);
+                temp = matrixManager.MultiplyKbbTimes(BY) - temp;
+                Matrix subdomainContribution = Bpb.MultiplyRight(temp);
                 lhs.AddIntoThis(subdomainContribution);
             }
         }
 
         public class Factory : FetiPreconditionerFactoryBase
         {
-            public override IFetiPreconditioner CreatePreconditioner(IStiffnessDistribution stiffnessDistribution,
-                IDofSeparator dofSeparator, ILagrangeMultipliersEnumerator lagrangeEnumerator,
-                Dictionary<int, IMatrixView> stiffnessMatrices)
+            public override bool ReorderInternalDofsForFactorization => true;
+
+            public override IFetiPreconditioner CreatePreconditioner(IStructuralModel model,
+                IStiffnessDistribution stiffnessDistribution, IDofSeparator dofSeparator,
+                ILagrangeMultipliersEnumerator lagrangeEnumerator, Dictionary<int, IFetiSubdomainMatrixManager> matrixManagers)
             {
+                IReadOnlyList<ISubdomain> subdomains = model.Subdomains;
                 int[] subdomainIDs = dofSeparator.BoundaryDofIndices.Keys.ToArray();
-                Dictionary<int, Matrix> boundaryBooleans = CalcBoundaryPreconditioningBooleanMatrices(stiffnessDistribution,
-                    dofSeparator, lagrangeEnumerator);
-                Dictionary<int, Matrix> stiffnessesBoundaryBoundary = 
-                    ExtractStiffnessesBoundaryBoundary(dofSeparator, stiffnessMatrices);
-                Dictionary<int, Matrix> stiffnessesBoundaryInternal = 
-                    ExtractStiffnessBoundaryInternal(dofSeparator, stiffnessMatrices);
-                Dictionary<int, Matrix> stiffnessesInternalInternalInverse = 
-                    InvertStiffnessInternalInternal(dofSeparator.InternalDofIndices, stiffnessMatrices);
+                Dictionary<int, IMappingMatrix> boundaryBooleans = CalcBoundaryPreconditioningBooleanMatrices(
+                    stiffnessDistribution, dofSeparator, lagrangeEnumerator);
 
-                return new DirichletPreconditioner(subdomainIDs, stiffnessesBoundaryBoundary, stiffnessesBoundaryInternal, 
-                    stiffnessesInternalInternalInverse, boundaryBooleans);
-            }
-
-            private Dictionary<int, Matrix> InvertStiffnessInternalInternal(Dictionary<int, int[]> internalDofs, 
-                Dictionary<int, IMatrixView> stiffnessMatrices)
-            {
-                var stiffnessesInternalInternalInverse = new Dictionary<int, Matrix>();
-                foreach (int id in internalDofs.Keys)
+                foreach (int s in subdomainIDs)
                 {
-                    Matrix stiffnessInternalInternal = stiffnessMatrices[id].GetSubmatrix(internalDofs[id], internalDofs[id]);
-                    stiffnessInternalInternal.InvertInPlace();
-                    stiffnessesInternalInternalInverse.Add(id, stiffnessInternalInternal);
+                    if (!subdomains[s].StiffnessModified) continue;
+                    Debug.WriteLine($"{typeof(DirichletPreconditioner).Name}.{this.GetType().Name}:"
+                        + $" Extracting boundary/internal submatrices of subdomain {s} for preconditioning");
+                    IFetiSubdomainMatrixManager matrixManager = matrixManagers[s];
+                    int[] boundaryDofs = dofSeparator.BoundaryDofIndices[s];
+                    int[] internalDofs = dofSeparator.InternalDofIndices[s];
+                    matrixManager.ExtractKbb(boundaryDofs);
+                    matrixManager.ExtractKbiKib(boundaryDofs, internalDofs);
+                    matrixManager.ExtractAndInvertKii(internalDofs);
                 }
-                return stiffnessesInternalInternalInverse;
+                
+                return new DirichletPreconditioner(subdomainIDs, matrixManagers, boundaryBooleans);
             }
         }
     }

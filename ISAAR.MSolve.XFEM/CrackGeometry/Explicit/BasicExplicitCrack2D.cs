@@ -223,9 +223,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
                         }
                         else completelyInside = false;
                     }
-
-                    //OBSOLETE: Elements access their enrichments from nodes now.
-                    //if (completelyInside) element.EnrichmentItems.Add(CrackTipEnrichments);
+                    if (completelyInside) element.EnrichmentItems.Add(CrackTipEnrichments);
                 }
 
                 #region alternatively
@@ -320,24 +318,18 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             var bothElements = new HashSet<XContinuumElement2D>();
             foreach (var element in Mesh.Elements)
             {
-                //OBSOLETE: Elements access their enrichments from nodes now.
-                //element.EnrichmentItems.Clear();
-
+                element.EnrichmentItems.Clear();
                 ElementEnrichmentType type = CharacterizeElementEnrichment(element);
                 if (type == ElementEnrichmentType.Tip)
                 {
                     tipElements.Add(element);
                     foreach (var node in element.Nodes) tipNodes.Add(node);
-
-                    //OBSOLETE: Elements access their enrichments from nodes now.
-                    //element.EnrichmentItems.Add(CrackTipEnrichments);
+                    element.EnrichmentItems.Add(CrackTipEnrichments);
                 }
                 else if (type == ElementEnrichmentType.Heaviside)
                 {
                     foreach (var node in element.Nodes) bodyNodes.Add(node);
-
-                    //OBSOLETE: Elements access their enrichments from nodes now.
-                    //element.EnrichmentItems.Add(CrackBodyEnrichment);
+                    element.EnrichmentItems.Add(CrackBodyEnrichment);
                 }
                 else if (type == ElementEnrichmentType.Both)
                 {
@@ -348,10 +340,8 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
                         tipNodes.Add(node);
                         bodyNodes.Add(node);
                     }
-
-                    //OBSOLETE: Elements access their enrichments from nodes now.
-                    //element.EnrichmentItems.Add(CrackTipEnrichments);
-                    //element.EnrichmentItems.Add(CrackBodyEnrichment);
+                    element.EnrichmentItems.Add(CrackTipEnrichments);
+                    element.EnrichmentItems.Add(CrackBodyEnrichment);
                 }
             }
 
@@ -472,7 +462,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
                         double dx = globalPoint.X - Vertices[i].X;
                         double dy = globalPoint.Y - Vertices[i].Y;
                         double distance = Math.Sqrt(dx * dx + dy * dy);
-                        int sign = -Math.Sign(Angles[i-1]); // If growth angle > 0, the convex angle faces the positive area.
+                        int sign = -Math.Sign(Angles[i - 1]); // If growth angle > 0, the convex angle faces the positive area.
                         distances.Add(sign * distance);
                     }
                     afterPreviousSegment = false;
@@ -553,7 +543,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Explicit
             Console.WriteLine("------ /DEBUG: TRIANGULATION ------");
         }
 
-        public void Propagate(Vector totalFreeDisplacements)
+        public void Propagate(Dictionary<int, Vector> totalFreeDisplacements)
         {
             throw new NotImplementedException();
         }

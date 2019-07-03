@@ -4,12 +4,15 @@ using ISAAR.MSolve.Analyzers;
 using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Solvers.Direct;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.CornerNodes;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.InterfaceProblem;
+using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.FetiDP.Matrices;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Pcg;
 using ISAAR.MSolve.Solvers.DomainDecomposition.Dual.Preconditioning;
 using Xunit;
@@ -65,12 +68,13 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
         {
             double pcgConvergenceTol = 1E-5;
             IVectorView directDisplacements = SolveModelWithoutSubdomains(stiffnessRatio);
-            (IVectorView ddDisplacements, DualSolverLogger logger) =
+            (IVectorView ddDisplacements, SolverLogger logger) =
                 SolveModelWithSubdomains(stiffnessRatio, precond, convergence, pcgConvergenceTol);
             double normalizedError = directDisplacements.Subtract(ddDisplacements).Norm2() / directDisplacements.Norm2();
 
-            Assert.Equal(140, logger.NumLagrangeMultipliers);
-            Assert.Equal(20, logger.NumCornerDofs);
+            int analysisStep = 0;
+            Assert.Equal(140, logger.GetNumDofs(analysisStep, "Lagrange multipliers"));
+            Assert.Equal(20, logger.GetNumDofs(analysisStep, "Corner dofs"));
 
             // The error is provided in the reference solution the, but it is almost impossible for two different codes run on 
             // different machines to achieve the exact same accuracy.
@@ -78,7 +82,8 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 
             // Allow some tolerance for the iterations:
             int maxIterationsForApproximateResidual = (int)Math.Ceiling(1.0 * iterExpected);
-            Assert.InRange(logger.PcgIterations, 1, maxIterationsForApproximateResidual); // the upper bound is inclusive!
+            int pcgIterations = logger.GetNumIterationsOfIterativeAlgorithm(analysisStep);
+            Assert.InRange(pcgIterations, 1, maxIterationsForApproximateResidual); // the upper bound is inclusive!
         }
 
         private static Model CreateModel(double stiffnessRatio)
@@ -123,7 +128,7 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
             return model;
         }
 
-        private static (IVectorView globalDisplacements, DualSolverLogger logger) SolveModelWithSubdomains(double stiffnessRatio,
+        private static (IVectorView globalDisplacements, SolverLogger logger) SolveModelWithSubdomains(double stiffnessRatio,
             Precond precond, Residual residualConvergence, double pcgConvergenceTolerance)
         {
             // Model
@@ -131,25 +136,28 @@ namespace ISAAR.MSolve.Solvers.Tests.DomainDecomposition.Dual.FetiDP
 
             // Corner nodes
             double meshTol = 1E-6;
-            var cornerNodesOfEachSubdomain = new Dictionary<int, INode[]>();
+            var cornerNodesOfEachSubdomain = new Dictionary<int, HashSet<INode>>();
             foreach (Subdomain subdomain in multiSubdomainModel.Subdomains)
             {
                 subdomain.DefineNodesFromElements(); //TODO: This will also be called by the analyzer.
-                int[] cornerNodeIDs = subdomain.GetCornerNodes();
-                var cornerNodes = new List<INode>();
-                foreach (int id in cornerNodeIDs)
+                INode[] corners = CornerNodeUtilities.FindCornersOfRectangle2D(subdomain);
+                var cornerNodes = new HashSet<INode>();
+                foreach (INode node in corners)
                 {
-                    Node node = multiSubdomainModel.NodesDictionary[id];
                     if (node.Constraints.Count > 0) continue;
                     if ((Math.Abs(node.X - domainLengthX) <= meshTol) && (Math.Abs(node.Y) <= meshTol)) continue;
                     if ((Math.Abs(node.X - domainLengthX) <= meshTol) && (Math.Abs(node.Y - domainLengthY) <= meshTol)) continue;
                     cornerNodes.Add(node);
                 }
-                cornerNodesOfEachSubdomain[subdomain.ID] = cornerNodes.ToArray();
+                cornerNodesOfEachSubdomain[subdomain.ID] = cornerNodes;
             }
 
             // Solver
-            var solverBuilder = new FetiDPSolver.Builder(cornerNodesOfEachSubdomain);
+            var fetiMatrices = new SkylineFetiDPSubdomainMatrixManager.Factory(new OrderingAmdSuiteSparse());
+            //var fetiMatrices = new SkylineFetiDPSubdomainMatrixManager.Factory();
+            //var fetiMatrices = new DenseFetiDPSubdomainMatrixManager.Factory();
+            var cornerNodeSelection = new UsedDefinedCornerNodes(cornerNodesOfEachSubdomain);
+            var solverBuilder = new FetiDPSolver.Builder(cornerNodeSelection, fetiMatrices);
             solverBuilder.ProblemIsHomogeneous = stiffnessRatio == 1.0;
             //solverBuilder.ProblemIsHomogeneous = false;
 

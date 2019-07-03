@@ -9,11 +9,17 @@ using ISAAR.MSolve.LinearAlgebra.Providers.Managed;
 using ISAAR.MSolve.LinearAlgebra.Reduction;
 using ISAAR.MSolve.LinearAlgebra.Vectors;
 using static ISAAR.MSolve.LinearAlgebra.LibrarySettings;
+using ISAAR.MSolve.LinearAlgebra.Matrices.Builders;
+using System.Linq;
+using ISAAR.MSolve.LinearAlgebra.Reordering;
 
 //TODO: Also linear combinations with other matrix types may be useful, e.g. Skyline (K) with diagonal (M), but I think 
 //      that for global matrices, this should be done through concrete class to use DoEntrywiseIntoThis methods. 
 //TODO: Checks like: col - row <= colHeight can be written more efficiently without calculating the height:
 //      entryOffset = diagOffsets[col] + col - row, entryOffset <= diagOffsets[col+1]
+//TODO: Throw MatrixDataOverwrittenException whenever necessary. Possibly make the values and diagOffsets readonly again.
+//TODO: In most algorithms, I can cache in local variables for each column the height, diagOffset and diagOffset + colIdx
+//TODO: Most algorithms implemented here should be moved to a class the holds the implementations and called from there.
 namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
@@ -35,6 +41,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// being equal to nnz.
         /// </summary>
         private int[] diagOffsets;
+
+        private bool isOverwritten = false;
 
         private SkylineMatrix(int order, double[] values, int[] diagOffsets)
         {
@@ -75,22 +83,24 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
             get
             {
                 ProcessIndices(ref rowIdx, ref colIdx);
+                int diagOffset = diagOffsets[colIdx];
+                int maxColumnHeight = diagOffsets[colIdx + 1] - diagOffset - 1; // excluding diagonal
                 int entryHeight = colIdx - rowIdx; // excluding diagonal
-                int maxColumnHeight = diagOffsets[colIdx + 1] - diagOffsets[colIdx] - 1; // excluding diagonal
                 if (entryHeight > maxColumnHeight) return 0.0; // outside stored non zero pattern
-                else return values[diagOffsets[colIdx] + entryHeight];
+                else return values[diagOffset + entryHeight];
             }
             set
             {
                 ProcessIndices(ref rowIdx, ref colIdx);
+                int diagOffset = diagOffsets[colIdx];
+                int maxColumnHeight = diagOffsets[colIdx + 1] - diagOffset - 1; // excluding diagonal
                 int entryHeight = colIdx - rowIdx; // excluding diagonal
-                int maxColumnHeight = diagOffsets[colIdx + 1] - diagOffsets[colIdx] - 1; // excluding diagonal
                 if (entryHeight > maxColumnHeight)
                 {
                     throw new SparsityPatternModifiedException($"In column {colIdx} only rows [{maxColumnHeight}, {colIdx}]"
                         + $" can be changed, but you are trying to set entry ({rowIdx}, {colIdx})");
                 }
-                else values[diagOffsets[colIdx] + entryHeight] = value;
+                else values[diagOffset + entryHeight] = value;
             }
         }
 
@@ -595,6 +605,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 // TODO: perhaps there is a better way to handle this.
                 values = null;
                 diagOffsets = null;
+                isOverwritten = true;
                 return factor;
             }
             else
@@ -633,6 +644,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 // TODO: perhaps there is a better way to handle this.
                 values = null;
                 diagOffsets = null;
+                isOverwritten = true;
                 return factor;
             }
             else
@@ -674,6 +686,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 // TODO: perhaps there is a better way to handle this.
                 values = null;
                 diagOffsets = null;
+                isOverwritten = true;
                 return factor;
             }
             else
@@ -715,6 +728,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
                 // TODO: perhaps there is a better way to handle this.
                 values = null;
                 diagOffsets = null;
+                isOverwritten = true;
                 return factor;
             }
             else
@@ -730,27 +744,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public Vector GetColumn(int colIndex)
         {
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
             Preconditions.CheckIndexCol(this, colIndex);
-            var columnVector = new double[NumColumns];
-
-            // Upper triangle and diagonal entries of the column are stored explicitly and contiguously
-            int diagOffset = diagOffsets[colIndex];
-            int colHeight = diagOffsets[colIndex + 1] - diagOffset - 1; // excluding diagonal
-            for (int k = 0; k <= colHeight; ++k) columnVector[colIndex - k] = values[diagOffset + k];
-
-            // Lower triangle entries of the column can be found in the row with the same index
-            for (int j = colIndex + 1; j < NumColumns; ++j)
-            {
-                int otherDiagOffset = diagOffsets[j];
-                int otherColHeight = diagOffsets[j + 1] - otherDiagOffset - 1; // excluding diagonal
-                int entryHeight = j - colIndex; // excluding diagonal
-                if (entryHeight <= otherColHeight) // inside stored non zero pattern
-                {
-                    columnVector[j] = values[otherDiagOffset + entryHeight];
-                }
-            }
-
-            return Vector.CreateFromArray(columnVector);
+            return Vector.CreateFromArray(SkylineSlicing.GetColumn(values, diagOffsets, colIndex));
         }
 
         /// <summary>
@@ -763,10 +759,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public double[] GetDiagonalAsArray()
         {
-            Preconditions.CheckSquare(this);
-            double[] diag = new double[NumColumns];
-            for (int j = 0; j < NumColumns; ++j) diag[j] = values[diagOffsets[j]];
-            return diag;
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
+            return SkylineSlicing.GetDiagonal(values, diagOffsets);
         }
 
         /// <summary>
@@ -779,6 +773,7 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// </summary>
         public SparseFormat GetSparseFormat()
         {
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
             var format = new SparseFormat();
             format.RawValuesTitle = "Values";
             format.RawValuesArray = values;
@@ -789,15 +784,63 @@ namespace ISAAR.MSolve.LinearAlgebra.Matrices
         /// <summary>
         /// See <see cref="ISliceable2D.GetSubmatrix(int[], int[])"/>.
         /// </summary>
-        public Matrix GetSubmatrix(int[] rowIndices, int[] colIndices)
-            => DenseStrategies.GetSubmatrix(this, rowIndices, colIndices);
+        public IMatrix GetSubmatrix(int[] rowIndices, int[] colIndices) => GetSubmatrixFull(rowIndices, colIndices);
 
         /// <summary>
         /// See <see cref="ISliceable2D.GetSubmatrix(int, int, int, int)"/>.
         /// </summary>
-        public Matrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
-            => DenseStrategies.GetSubmatrix(this, rowStartInclusive, rowEndExclusive, colStartInclusive, colEndExclusive);
+        public IMatrix GetSubmatrix(int rowStartInclusive, int rowEndExclusive, int colStartInclusive, int colEndExclusive)
+        {
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
+            int[] rowIndices = Enumerable.Range(rowStartInclusive, rowEndExclusive - rowStartInclusive).ToArray();
+            int[] colIndices = Enumerable.Range(colStartInclusive, colEndExclusive - colStartInclusive).ToArray();
+            return GetSubmatrix(rowIndices, colIndices);
+        }
 
+        public CscMatrix GetSubmatrixCsc(int[] rowIndices, int[] colIndices)
+        {
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
+            return SkylineSlicing.GetSubmatrixCsc(values, diagOffsets, rowIndices, colIndices);
+        }
+
+        public Matrix GetSubmatrixFull(int[] rowIndices, int[] colIndices)
+        {
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
+            return DenseStrategies.GetSubmatrix(this, rowIndices, colIndices);
+        }
+
+        public Matrix GetSubmatrixSymmetricFull(int[] indices)
+        {
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
+            return SkylineSlicing.GetSubmatrixSymmetricFull(values, diagOffsets, indices);
+            //// I am not sure that the above is faster than: 
+            //return DenseStrategies.GetSubmatrix(this, indices, indices);
+        }
+
+        public SymmetricMatrix GetSubmatrixSymmetricPacked(int[] indices)
+        {
+            //TODO: perhaps this can be combined with the CSC and full version to get all 2 submatrices needed for 
+            //      Schur complements more efficiently.
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
+            return SkylineSlicing.GetSubmatrixSymmetricPacked(values, diagOffsets, indices);
+        }
+
+        public SparsityPatternSymmetric GetSubmatrixSymmetricPattern(int[] indices)
+        {
+            //TODO: perhaps this can be combined with the CSC and full version to get all 2 submatrices needed for 
+            //      Schur complements more efficiently.
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
+            return SkylineSlicing.GetSubmatrixSymmetricPattern(values, diagOffsets, indices);
+        }
+
+        public SkylineMatrix GetSubmatrixSymmetricSkyline(int[] indices) 
+        {
+            //TODO: perhaps this can be combined with the CSC and full version to get all 2 submatrices needed for 
+            //      Schur complements more efficiently.
+            if (isOverwritten) throw new MatrixDataOverwrittenException();
+            return SkylineSlicing.GetSubmatrixSymmetricSkyline(values, diagOffsets, indices);
+        }
+        
         /// <summary>
         /// See <see cref="IMatrixView.LinearCombination(double, IMatrixView, double)"/>.
         /// </summary>

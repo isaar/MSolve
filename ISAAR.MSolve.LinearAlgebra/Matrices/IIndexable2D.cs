@@ -1,23 +1,13 @@
 ﻿namespace ISAAR.MSolve.LinearAlgebra.Matrices
 {
     /// <summary>
-    /// A matrix that supports indexing and dimension querying. These are the most basic operations all matrix classes must
+    /// A matrix that supports indexing These are the most basic operations all matrix classes must
     /// implement. As such, it can be used for matrix formats that do not support linear algebra operations, such as DOKs and 
     /// other builders.
     /// Authors: Serafeim Bakalakos
     /// </summary>
-    public interface IIndexable2D
+    public interface IIndexable2D : IBounded2D
     {
-        /// <summary>
-        /// The number of columns of the matrix. 
-        /// </summary>
-        int NumColumns { get; }
-
-        /// <summary>
-        /// The number of rows of the matrix.
-        /// </summary>
-        int NumRows { get; }
-
         /// <summary>
         /// The entry with row index = rowIdx and column index = colIdx. 
         /// </summary>

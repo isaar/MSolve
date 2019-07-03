@@ -63,9 +63,9 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         /// </summary>
         public (Vector diagonal, TriangularUpper upper) GetFactorsDU() //TODO: not sure if this is ever needed.
         {
-            double[] diag = new double[NumColumns];
-            var upper = TriangularUpper.CreateZero(NumColumns);
-            for (int j = 0; j < NumColumns; ++j)
+            double[] diag = new double[Order];
+            var upper = TriangularUpper.CreateZero(Order);
+            for (int j = 0; j < Order; ++j)
             {
                 int diagOffset = diagOffsets[j];
                 int colTop = j - diagOffsets[j + 1] + diagOffset + 1;
@@ -87,8 +87,8 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         public override void SolveLinearSystem(Vector rhs, Vector solution)
         {
             Preconditions.CheckSystemSolutionDimensions(this, rhs);
-            Preconditions.CheckMultiplicationDimensions(NumColumns, solution.Length);
-            Solve(NumColumns, values, diagOffsets, rhs.RawData, solution.RawData);
+            Preconditions.CheckMultiplicationDimensions(Order, solution.Length);
+            Solve(Order, values, diagOffsets, rhs.RawData, solution.RawData);
         }
 
         /// <summary>
@@ -99,13 +99,13 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         /// <param name="rhsVectors">
         /// A matrix that contains the right hand side vectors as its columns. Constraints: 
         /// a) Its <see cref="IIndexable2D.NumRows"/> must be equal to the <see cref="IIndexable2D.NumRows"/> of the original 
-        /// matrix A. b) Its <see cref="IIndexable2D.NumColumns"/> must be equal to the <see cref="IIndexable2D.NumColumns"/> of
+        /// matrix A. b) Its <see cref="IIndexable2D.Order"/> must be equal to the <see cref="IIndexable2D.Order"/> of
         /// <paramref name="solutionVectors"/>.
         /// </param>
         /// <param name="solutionVectors">
         /// Output matrix that will be overwritten with the solutions of the linear system as its columns. Constraints:
         /// a) Its <see cref="IIndexable2D.NumRows"/> must be equal to the <see cref="IIndexable2D.NumRows"/> of the original 
-        /// matrix A. b) Its <see cref="IIndexable2D.NumColumns"/> must be equal to the <see cref="IIndexable2D.NumColumns"/> of
+        /// matrix A. b) Its <see cref="IIndexable2D.Order"/> must be equal to the <see cref="IIndexable2D.Order"/> of
         /// <paramref name="rhsVectors"/>.
         /// </param>
         /// <exception cref="NonMatchingDimensionsException">
@@ -114,13 +114,27 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         public void SolveLinearSystems(Matrix rhsVectors, Matrix solutionVectors)
         {
             Preconditions.CheckSystemSolutionDimensions(this.NumRows, rhsVectors.NumRows);
-            Preconditions.CheckMultiplicationDimensions(this.NumColumns, solutionVectors.NumRows);
+            Preconditions.CheckMultiplicationDimensions(this.Order, solutionVectors.NumRows);
             Preconditions.CheckSameColDimension(rhsVectors, solutionVectors);
 
             for (int j = 0; j < rhsVectors.NumColumns; ++j)
             {
                 int offset = j * NumRows;
-                SolveWithOffsets(NumColumns, values, diagOffsets, rhsVectors.RawData, offset, solutionVectors.RawData, offset);
+                SolveWithOffsets(Order, values, diagOffsets, rhsVectors.RawData, offset, solutionVectors.RawData, offset);
+            }
+        }
+
+        public void SolveLinearSystems(CscMatrix rhsVectors, Matrix solutionVectors)
+        {
+            Preconditions.CheckSystemSolutionDimensions(this.NumRows, rhsVectors.NumRows);
+            Preconditions.CheckMultiplicationDimensions(this.Order, solutionVectors.NumRows);
+            Preconditions.CheckSameColDimension(rhsVectors, solutionVectors);
+
+            for (int j = 0; j < rhsVectors.NumColumns; ++j)
+            {
+                double[] rhsColumn = rhsVectors.GetColumn(j).RawData;
+                int offset = j * NumRows;
+                SolveWithOffsets(Order, values, diagOffsets, rhsColumn, 0, solutionVectors.RawData, offset);
             }
         }
 

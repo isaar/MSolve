@@ -99,7 +99,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         public TrackingExteriorCrackLSM(IPropagator propagator, double tipEnrichmentAreaRadius = 0.0) :
             this(propagator, tipEnrichmentAreaRadius, null)
         {
-            this.SingularityResolver = new RelativeAreaResolver();
+            this.SingularityResolver = new RelativeAreaResolver(1E-4);
         }
 
         // TODO: Not too fond of the setters, but at least the enrichments are immutable. Perhaps I can pass their
@@ -360,7 +360,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
             return triangleVertices;
         }
 
-        public void Propagate(Vector totalFreeDisplacements)
+        public void Propagate(Dictionary<int, Vector> totalFreeDisplacements)
         {
             (double growthAngle, double growthLength) = propagator.Propagate(totalFreeDisplacements,
                 crackTip, tipSystem, tipElements);
@@ -483,8 +483,11 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
                         else completelyInside = false;
                     }
 
-                    //OBSOLETE: Elements access their enrichments from nodes now. Besides this doesn't work for blending elements.
-                    //if (completelyInside) element.EnrichmentItems.Add(CrackTipEnrichments);
+                    //TODO: I tried an alternative approach, ie elements access their enrichments from their nodes. 
+                    //      My original thought that this approach (storing enrichments in elements, unless they are standard /
+                    //      blending) wouldn't work for blending elements, was incorrect, as elements with 0 enrichments
+                    //      were then examined and separated into standard / blending.
+                    if (completelyInside) element.EnrichmentItems.Add(CrackTipEnrichments);
                 }
 
                 #region alternatively
@@ -512,8 +515,11 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
         {
             foreach (var element in Mesh.Elements)
             {
-                //OBSOLETE: Elements access their enrichments from nodes now.
-                //element.EnrichmentItems.Clear(); //TODO: not too fond of saving enrichment state in elements. It should be confined in nodes
+                //TODO: I tried an alternative approach, ie elements access their enrichments from their nodes. 
+                //      My original thought that this approach (storing enrichments in elements, unless they are standard /
+                //      blending) wouldn't work for blending elements, was incorrect, as elements with 0 enrichments
+                //      were then examined and separated into standard / blending.
+                element.EnrichmentItems.Clear(); //TODO: not too fond of saving enrichment state in elements. It should be confined in nodes
 
                 CrackElementPosition relativePosition = meshInteraction.FindRelativePositionOf(element);
                 if (relativePosition == CrackElementPosition.ContainsTip)
@@ -521,8 +527,7 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
                     tipElements.Add(element);
                     foreach (var node in element.Nodes) crackTipNodesNew.Add(node);
 
-                    //OBSOLETE: Elements access their enrichments from nodes now.
-                    //element.EnrichmentItems.Add(CrackTipEnrichments);
+                    element.EnrichmentItems.Add(CrackTipEnrichments);
                 }
                 else if (relativePosition == CrackElementPosition.Intersected)
                 {
@@ -532,11 +537,10 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit
                         if (isNew) crackBodyNodesNew.Add(node);
                     }
 
-                    //OBSOLETE: Elements access their enrichments from nodes now.
                     // Cut elements next to tip elements will be enriched with both Heaviside and tip functions. If all 
                     // nodes were enriched with tip functions, the element would not be enriched with Heaviside, but then it 
                     // would be a tip element and not fall under this case.
-                    //element.EnrichmentItems.Add(CrackBodyEnrichment);
+                    element.EnrichmentItems.Add(CrackBodyEnrichment);
                 }
             }
             foreach (var node in crackTipNodesNew) // tip element's nodes are not enriched with Heaviside

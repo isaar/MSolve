@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using ISAAR.MSolve.Geometry.Coordinates;
 using ISAAR.MSolve.Solvers.Direct;
@@ -14,16 +15,17 @@ namespace ISAAR.MSolve.XFEM.Tests
         [InlineData(false)]
         public static void TestPropagation(bool rigidBoundaryConditions)
         {
+            string meshPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName
+                + @"\Resources\fillet_1272dofs.msh";
             //string propagationPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Fillet\Propagation\crack_growth.txt";
             //string plotPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Fillet\Plots";
             //string timingPath = @"C:\Users\Serafeim\Desktop\GRACM\Benchmark_Fillet\Timing";
 
             double growthLength = 5; // mm. Must be sufficiently larger than the element size.
-            var builder = new FilletBenchmark.Builder(growthLength);
+            var builder = new FilletBenchmark.Builder(meshPath, growthLength);
             //builder.WritePropagation = writePropagationPath;
             builder.HeavisideEnrichmentTolerance = 0.01;
             builder.RigidBCs = rigidBoundaryConditions;
-            builder.NumSubdomains = 5;
 
             //builder.LsmPlotDirectory = plotLSM ? plotPath : null;
             builder.MaxIterations = 13;

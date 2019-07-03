@@ -32,6 +32,10 @@ namespace ISAAR.MSolve.LinearAlgebra.Triangulation
         /// </summary>
         public bool IsOverwritten { get; private set; }
 
+        public int NumColumns => Order;
+
+        public int NumRows => Order;
+
         /// <summary>
         /// The number of rows/columns of the original square matrix.
         /// </summary>

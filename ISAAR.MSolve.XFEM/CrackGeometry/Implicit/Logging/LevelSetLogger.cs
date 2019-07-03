@@ -14,12 +14,12 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
     public class LevelSetLogger
     {
         private readonly TrackingExteriorCrackLSM lsm;
-        private readonly Model2D_old model;
+        private readonly XModel model;
         private readonly string outputDirectory;
         private readonly VtkMesh<XNode> vtkMesh;
         private int iteration;
 
-        public LevelSetLogger(Model2D_old model, TrackingExteriorCrackLSM lsm, string outputDirectory)
+        public LevelSetLogger(XModel model, TrackingExteriorCrackLSM lsm, string outputDirectory)
         {
             this.model = model;
             this.lsm = lsm;
@@ -38,13 +38,13 @@ namespace ISAAR.MSolve.XFEM.CrackGeometry.Implicit.Logging
         public void Log() 
         {
             // Log the crack path
-            using (var crackWriter = new VtkPolylineWriter($"{outputDirectory}\\crack_{iteration}"))
+            using (var crackWriter = new VtkPolylineWriter($"{outputDirectory}\\crack_{iteration}.vtk"))
             {
                 crackWriter.WritePolyline(lsm.CrackPath);
             }
 
             // Log the level sets
-            using (var lsWriter = new VtkFileWriter($"{outputDirectory}\\level_sets_{iteration}"))
+            using (var lsWriter = new VtkFileWriter($"{outputDirectory}\\level_sets_{iteration}.vtk"))
             {
                 // The mesh should be provided by a dedicated IVtkMesh. Its implementations will be continuous/discontinuous, 
                 // FEM/XFEM. These classes should then replace the relevant code in DiscontinuousMeshVTKWriter.cs and Logging project.
