@@ -8,12 +8,12 @@ using Troschuetz.Random.Generators;
 
 namespace ISAAR.MSolve.Optimization.Commons
 {
-    static class RandomNumberGenerationUtilities
+    public static class RandomNumberGenerationUtilities
     {
         // TODO: make this Immutable and add a lock. 
         // See http://stackoverflow.com/questions/2706500/how-do-i-generate-a-random-int-number-in-c
         public static readonly Random sysRandom = new Random();
-        public static readonly IGenerator troschuetzRandom = new StandardGenerator();
+        public static IGenerator troschuetzRandom = new StandardGenerator(); //TODO: this must be readonly, once I figure out why I cannot reproduce the GA results.
 
         /// <summary>
         /// Returns a random long from min (inclusive) to max (exclusive)

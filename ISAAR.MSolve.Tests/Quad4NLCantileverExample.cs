@@ -1,18 +1,6 @@
-﻿using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Analyzers.Interfaces;
-using ISAAR.MSolve.FEM.Elements;
-using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Materials;
-using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Skyline;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
 using Xunit;
 
 namespace ISAAR.MSolve.Tests
@@ -36,10 +24,10 @@ namespace ISAAR.MSolve.Tests
 
         //    // Node creation
         //    IList<Node> nodes = new List<Node>();
-        //    Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
-        //    Node node2 = new Node { ID = 2, X = 10.0, Y = 0.0, Z = 0.0 };
-        //    Node node3 = new Node { ID = 3, X = 10.0, Y = 10.0, Z = 0.0 };
-        //    Node node4 = new Node { ID = 4, X = 0.0, Y = 10.0, Z = 0.0 };
+        //    Node node1 = new Node( id: 1, x: 0.0, y:  0.0, z: 0.0 };
+        //    Node node2 = new Node( id: 2, x: 10.0, y:  0.0, z: 0.0 };
+        //    Node node3 = new Node( id: 3, x: 10.0, y:  10.0, z: 0.0 };
+        //    Node node4 = new Node( id: 4, x: 0.0, y:  10.0, z: 0.0 };
         //    nodes.Add(node1);
         //    nodes.Add(node2);
         //    nodes.Add(node3);

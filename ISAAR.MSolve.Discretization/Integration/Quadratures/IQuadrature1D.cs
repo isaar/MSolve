@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using ISAAR.MSolve.Discretization.Integration.Points;
+using ISAAR.MSolve.Discretization.Integration;
 
 namespace ISAAR.MSolve.Discretization.Integration.Quadratures
 {
@@ -18,6 +18,6 @@ namespace ISAAR.MSolve.Discretization.Integration.Quadratures
         /// The integrations points are sorted in increasing xi order. This order is strictly defined for each quadrature and 
         /// cannot change.
         /// </summary>
-        IReadOnlyList<GaussPoint1D> IntegrationPoints { get; }
+        IReadOnlyList<GaussPoint> IntegrationPoints { get; }
     }
 }

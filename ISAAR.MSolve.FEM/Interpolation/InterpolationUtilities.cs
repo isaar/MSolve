@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
@@ -11,7 +11,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
     /// </summary>
     public static class InterpolationUtilities
     {
-        public static CartesianPoint2D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node2D> nodes, 
+        public static CartesianPoint TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node> nodes, 
             Vector shapeFunctionsAtNaturalPoint)
         {
             int numFuncs = shapeFunctionsAtNaturalPoint.Length;
@@ -20,15 +20,15 @@ namespace ISAAR.MSolve.FEM.Interpolation
             double x = 0, y = 0;
             for (int i = 0; i < numFuncs; ++i)
             {
-                Node2D node = nodes[i];
+                Node node = nodes[i];
                 double val = shapeFunctionsAtNaturalPoint[i];
                 x += val * node.X;
                 y += val * node.Y;
             }
-            return new CartesianPoint2D(x, y);
+            return new CartesianPoint(x, y);
         }
 
-        public static CartesianPoint3D TransformPointToGlobalCartesian(IReadOnlyList<Node3D> nodes,
+        public static CartesianPoint TransformPointToGlobalCartesian(IReadOnlyList<Node> nodes,
             Vector shapeFunctionsAtNaturalPoint)
         {
             int numFuncs = shapeFunctionsAtNaturalPoint.Length;
@@ -37,14 +37,14 @@ namespace ISAAR.MSolve.FEM.Interpolation
             double x = 0, y = 0, z = 0;
             for (int i = 0; i < numFuncs; ++i)
             {
-                Node3D node = nodes[i];
+                Node node = nodes[i];
                 double val = shapeFunctionsAtNaturalPoint[i];
                 x += val * node.X;
                 y += val * node.Y;
                 z += val * node.Z;
             }
 
-            return new CartesianPoint3D(x, y, z);
+            return new CartesianPoint(x, y, z);
         }
     }
 }

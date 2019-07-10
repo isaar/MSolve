@@ -1,16 +1,11 @@
 ﻿using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
+//TODO: Should this be in the Problems project?
 namespace ISAAR.MSolve.Discretization.Providers
 {
     public class ElementStructuralMassProvider : IElementMatrixProvider
     {
-        #region IElementMatrixProvider Members
-
-        public IMatrix2D Matrix(IElement element)
-        {
-            return element.IElementType.MassMatrix(element);
-        }
-        #endregion
+        public IMatrix Matrix(IElement element) => element.ElementType.MassMatrix(element);
     }
 }

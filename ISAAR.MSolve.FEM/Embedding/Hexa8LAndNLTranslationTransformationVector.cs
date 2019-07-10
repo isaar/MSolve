@@ -1,23 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
+using ISAAR.MSolve.FEM.Interfaces;
 
 namespace ISAAR.MSolve.FEM.Embedding
 {
     public class Hexa8LAndNLTranslationTransformationVector : IEmbeddedDOFInHostTransformationVector
     {
-        private readonly DOFType[] translationOnlyDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
+        private readonly IDofType[] translationOnlyDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ };
 
-        public IList<DOFType> GetDependentDOFTypes { get { return translationOnlyDOFTypes; } }
+        public IList<IDofType> GetDependentDOFTypes { get { return translationOnlyDOFTypes; } }
 
-        public IList<IList<DOFType>> GetDOFTypesOfHost(EmbeddedNode node)
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetDOFTypesOfHost(EmbeddedNode node)
         {
-            return node.EmbeddedInElement.ElementType.GetElementDOFTypes(node.EmbeddedInElement);
+            return node.EmbeddedInElement.ElementType.GetElementDofTypes(node.EmbeddedInElement);
         }
 
         public double[][] GetTransformationVector(EmbeddedNode node)

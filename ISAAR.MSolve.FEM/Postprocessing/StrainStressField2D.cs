@@ -1,10 +1,8 @@
-﻿using ISAAR.MSolve.FEM.Elements;
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
+using ISAAR.MSolve.FEM.Elements;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 //TODO: should it be reused between analysis iterations (Clear method, store the node multiplicities)?
 namespace ISAAR.MSolve.FEM.Postprocessing
@@ -37,19 +35,20 @@ namespace ISAAR.MSolve.FEM.Postprocessing
         /// <param name="model"></param>
         /// <param name="freeDisplacements"></param>
         /// <returns></returns>
-        public void CalculateNodalTensors(IVector freeDisplacements)
+        public void CalculateNodalTensors(IVectorView freeDisplacements)
         {
             var nodeMultiplicities = new Dictionary<Node, int>();
             foreach (Node node in model.Nodes) nodeMultiplicities.Add(node, 0); // how many elements each node belongs to
 
             foreach (Subdomain subdomain in model.Subdomains)
             {
-                foreach (Element element in subdomain.ElementsDictionary.Values)
+                foreach (Element element in subdomain.Elements)
                 {
-                    ContinuumElement2D elementType = (ContinuumElement2D)(element.ElementType); //TODO: remove the element types. Connectivity should be handled via interface inheritance.
-                    
+                    ContinuumElement2D elementType = (ContinuumElement2D)(element.ElementType); //TODO: remove cast
+
                     // Find local displacement vector
-                    double[] localDisplacements = subdomain.GetLocalVectorFromGlobal(element, freeDisplacements);
+                    double[] localDisplacements = subdomain.FreeDofOrdering.ExtractVectorElementFromSubdomain(element, 
+                        freeDisplacements);
 
                     // Calculate strains, stresses at Gauss points and extrapolate to nodes
                     (IReadOnlyList<double[]> strainsAtGPs, IReadOnlyList<double[]> stressesAtGPs) = 

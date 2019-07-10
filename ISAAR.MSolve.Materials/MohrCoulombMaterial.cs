@@ -7,13 +7,13 @@
 //------------------------------------------------------------------------
 
 
-using ISAAR.MSolve.Materials.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using System;
+using ISAAR.MSolve.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
+using ISAAR.MSolve.Materials.Interfaces;
 
-
-namespace ISAAR.MSolve.FEM.Materials
+//TODO: Use the Matrix and Vector operations instead of implementing them again for double[,] and double[] here
+namespace ISAAR.MSolve.Materials
 {
     public class MohrCoulombMaterial : IIsotropicContinuumMaterial3D
     {
@@ -28,19 +28,34 @@ namespace ISAAR.MSolve.FEM.Materials
         private double[] stressesNew = new double[6];
         private readonly double youngModulus, shearModulus, poissonRatio, cohesion, friction, dilation;
 
-        public StressStrainVectorContinuum3D Stresses
+        public MohrCoulombMaterial(double youngModulus, double poissonRatio, double cohesion, double friction, double dilation)
         {
-            get { return new StressStrainVectorContinuum3D(stressesNew); }
+            this.youngModulus = youngModulus;
+
+            if (poissonRatio == PoissonRatioForIncompressibleSolid)
+            {
+                throw new ArgumentException(
+                    "Poisson ratio cannot be" + PoissonRatioForIncompressibleSolid + "(incompressible solid)");
+            }
+
+            this.poissonRatio = poissonRatio;
+            this.cohesion = cohesion;
+            this.friction = friction;
+            this.dilation = dilation;
+
+            this.shearModulus = this.YoungModulus / (2 * (1 + this.PoissonRatio));
+            var Dinv = new double[6, 6];
+            DlinElas(youngModulus, poissonRatio, 6, constitutiveMatrix, Dinv);
+
         }
 
-        public ElasticityTensorContinuum3D ConstitutiveMatrix
-        {
-            get { return new ElasticityTensorContinuum3D(constitutiveMatrix); }
-        }
+        public double[] Stresses => stressesNew;
 
-        public void UpdateMaterial(StressStrainVectorContinuum3D strainsIncrement)
+        public IMatrixView ConstitutiveMatrix => Matrix.CreateFromArray(constitutiveMatrix); //TODO: this copies stuff and is not efficient.
+
+        public void UpdateMaterial(double[] strainsIncrement)
         {
-            Array.Copy(strainsIncrement.Data, this.incrementalStrains, 6);
+            this.incrementalStrains.CopyFrom(strainsIncrement);
             this.CalculateNextStressStrainPoint();
         }
 
@@ -68,20 +83,11 @@ namespace ISAAR.MSolve.FEM.Materials
             Array.Clear(this.stressesNew, 0, 6);
         }
 
-        public int ID
-        {
-            get { return 998; }
-        }
+        public int ID => 998;
 
-        public bool Modified
-        {
-            get { return modified; }
-        }
+        public bool Modified => modified;
 
-        public void ResetModified()
-        {
-            modified = false;
-        }
+        public void ResetModified() => modified = false;
 
         public double YoungModulus
         {
@@ -117,27 +123,6 @@ namespace ISAAR.MSolve.FEM.Materials
                 stresses = stressesCopy
             };
             return m;
-        }
-
-        public MohrCoulombMaterial(double youngModulus, double poissonRatio, double cohesion, double friction, double dilation)
-        {
-            this.youngModulus = youngModulus;
-
-            if (poissonRatio == PoissonRatioForIncompressibleSolid)
-            {
-                throw new ArgumentException(
-                    "Poisson ratio cannot be" + PoissonRatioForIncompressibleSolid + "(incompressible solid)");
-            }
-
-            this.poissonRatio = poissonRatio;
-            this.cohesion = cohesion;
-            this.friction = friction;
-            this.dilation = dilation;
-
-            this.shearModulus = this.YoungModulus / (2 * (1 + this.PoissonRatio));
-            var Dinv = new double[6, 6];
-            DlinElas(youngModulus, poissonRatio, 6, constitutiveMatrix, Dinv);
-
         }
 
         private void CalculateNextStressStrainPoint()
@@ -185,6 +170,7 @@ namespace ISAAR.MSolve.FEM.Materials
             return false;
         }
 
+        #region Code ported from Fortran
         private void DlinElas(double E, double nu, int nsigma, double[,] D, double[,] Dinv)
         {
             //----- Plane stress with three stress components -----------------------
@@ -1532,5 +1518,7 @@ namespace ISAAR.MSolve.FEM.Materials
             else
                 lode = Math.Asin(sin3lode) / 3d;
         }
+
+        #endregion
     }
 }

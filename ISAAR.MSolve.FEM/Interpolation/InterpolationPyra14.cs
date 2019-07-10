@@ -1,41 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
-	/// <summary>
-	/// Isoparamateric interpolation of a pyramid finite element with 14 nodes. Quadratic shape functions.
-	/// Implements singleton pattern.
-	/// Authors: Dimitris Tsapetis
-	/// </summary>
-    public class InterpolationPyra14:IsoparametricInterpolation3DBase
+    /// <summary>
+    /// Isoparamateric interpolation of a pyramid finite element with 14 nodes. Quadratic shape functions.
+    /// Implements singleton pattern.
+    /// Authors: Dimitris Tsapetis
+    /// </summary>
+    public class InterpolationPyra14 : IsoparametricInterpolation3DBase
     {
 		private static readonly InterpolationPyra14 uniqueInstance=new InterpolationPyra14();
 
 	    private InterpolationPyra14() : base(14)
 	    {
-		    NodalNaturalCoordinates = new NaturalPoint3D[]
+		    NodalNaturalCoordinates = new NaturalPoint[]
 		    {
-				new NaturalPoint3D(-1,-1,-1),
-			    new NaturalPoint3D(1,-1,-1),
-			    new NaturalPoint3D(1,1,-1),
-			    new NaturalPoint3D(-1,1,-1),
-			    new NaturalPoint3D(0,0,1),
+				new NaturalPoint(-1,-1,-1),
+			    new NaturalPoint(1,-1,-1),
+			    new NaturalPoint(1,1,-1),
+			    new NaturalPoint(-1,1,-1),
+			    new NaturalPoint(0,0,1),
 
-			    new NaturalPoint3D(0,-1,-1),
-			    new NaturalPoint3D(-1,0,-1),
-			    new NaturalPoint3D(-0.5,-0.5,0),
-			    new NaturalPoint3D(1,0,-1),
-			    new NaturalPoint3D(0.5,-0.5,0),
+			    new NaturalPoint(0,-1,-1),
+			    new NaturalPoint(-1,0,-1),
+			    new NaturalPoint(-0.5,-0.5,0),
+			    new NaturalPoint(1,0,-1),
+			    new NaturalPoint(0.5,-0.5,0),
 
-			    new NaturalPoint3D(0,1,-1),
-			    new NaturalPoint3D(0.5,0.5,0),
-			    new NaturalPoint3D(-0.5,0.5,0),
-				new NaturalPoint3D(0, 0, -1),
+			    new NaturalPoint(0,1,-1),
+			    new NaturalPoint(0.5,0.5,0),
+			    new NaturalPoint(-0.5,0.5,0),
+				new NaturalPoint(0, 0, -1),
 		    };
 	    }
 
@@ -43,19 +43,30 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// The coordinates of the finite element's nodes in the natural (element local) coordinate system. The order
 		/// of these nodes matches the order of the shape functions and is always the same for each element.
 		/// </summary>
-		public override IReadOnlyList<NaturalPoint3D> NodalNaturalCoordinates { get; }
+		public override IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
 		/// <summary>
 		/// Get the unique instance <see cref="InterpolationPyra14"/> object for the whole program. Thread safe.
 		/// </summary>
 		public static InterpolationPyra14 UniqueInstance => uniqueInstance;
 
-	    /// <summary>
-	    /// The reverse mapping for this interpolation, namely from global cartesian coordinates to natural (element local) coordinate system.
-	    /// </summary>
-	    /// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
-	    /// <returns></returns>
-	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> node) => throw new NotImplementedException("Iterative procedure required");
+        /// <summary>
+        /// See <see cref="IIsoparametricInterpolation2D.CheckElementNodes(IReadOnlyList{Node})"/>
+        /// </summary>
+        public override void CheckElementNodes(IReadOnlyList<Node> nodes)
+        {
+            if (nodes.Count != 14) throw new ArgumentException(
+                $"A Pyra14 finite element has 14 nodes, but {nodes.Count} nodes were provided.");
+            // TODO: Also check the order of the nodes too and perhaps even the shape
+        }
+
+        /// <summary>
+        /// The reverse mapping for this interpolation, namely from global cartesian coordinates to natural (element local) coordinate system.
+        /// </summary>
+        /// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
+        /// <returns></returns>
+        public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> node) 
+            => throw new NotImplementedException("Iterative procedure required");
 
 		// based on https://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/AFEM.Ch12.d/AFEM.Ch12.pdf
 		protected override double[] EvaluateAt(double xi, double eta, double zeta)
@@ -82,13 +93,13 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		}
 
 
-	    protected override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
+	    protected override Matrix EvaluateGradientsAt(double xi, double eta, double zeta)
 	    {
 		    var Ncx = -xi * (1 - eta * eta) * (1 - zeta);
 		    var Ncy = -eta * (1 - xi * xi) * (1 - zeta);
 		    var Ncz = -0.5 * (1 - xi * xi) * (1 - eta * eta);
 
-		    var derivatives = new double[14, 3];
+		    var derivatives = Matrix.CreateZero(14, 3);
 
 		    derivatives[0, 0] = 1 / 16.0 * (1 - eta) * (1 - zeta) * (1 + 6 * xi + eta + 4 * xi * eta + zeta + 2 * xi * zeta - eta * zeta + 4 * xi * eta * zeta) + 1 / 4.0 * Ncx;
 		    derivatives[1, 0] = -1 / 16.0 * (1 - eta) * (1 - zeta) * (1 - 6 * xi + eta - 4 * xi * eta + zeta - 2 * xi * zeta - eta * zeta - 4 * xi * eta * zeta) + 1 / 4.0 * Ncx;

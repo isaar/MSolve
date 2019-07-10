@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 // Tri3 nodes:
 // 1
@@ -23,13 +23,13 @@ namespace ISAAR.MSolve.FEM.Interpolation
     {
         private static readonly InterpolationTri3 uniqueInstance = new InterpolationTri3();
 
-        private InterpolationTri3() : base(CellType2D.Tri3, 3)
+        private InterpolationTri3() : base(CellType.Tri3, 3)
         {
-            NodalNaturalCoordinates = new NaturalPoint2D[]
+            NodalNaturalCoordinates = new NaturalPoint[]
             {
-                new NaturalPoint2D(1.0, 0.0),
-                new NaturalPoint2D(0.0, 1.0),
-                new NaturalPoint2D(0.0, 0.0)
+                new NaturalPoint(1.0, 0.0),
+                new NaturalPoint(0.0, 1.0),
+                new NaturalPoint(0.0, 0.0)
             };
         }
 
@@ -37,7 +37,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// The coordinates of the finite element's nodes in the natural (element local) coordinate system. The order of these
         /// nodes matches the order of the shape functions and is always the same for each element.
         /// </summary>
-        public override IReadOnlyList<NaturalPoint2D> NodalNaturalCoordinates { get; }
+        public override IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
         /// <summary>
         /// Get the unique <see cref="InterpolationTri3"/> object for the whole program. Thread safe.
@@ -45,11 +45,20 @@ namespace ISAAR.MSolve.FEM.Interpolation
         public static InterpolationTri3 UniqueInstance => uniqueInstance;
 
         /// <summary>
+        /// See <see cref="IIsoparametricInterpolation2D.CheckElementNodes(IReadOnlyList{Node})"/>
+        /// </summary>
+        public override void CheckElementNodes(IReadOnlyList<Node> nodes)
+        {
+            if (nodes.Count != 3) throw new ArgumentException(
+                $"A Tri3 finite element has 3 nodes, but {nodes.Count} nodes were provided.");
+            // TODO: Also check the order of the nodes too and perhaps even the shape
+        }
+
+        /// <summary>
         /// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.
         /// </summary>
         /// <param name="nodes">The nodes of the finite element in the global cartesian coordinate system.</param>
-        /// <returns></returns>
-        public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node2D> nodes)
+        public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node> nodes)
             => new InverseInterpolationTri3(nodes);
         
         protected override sealed double[] EvaluateAt(double xi, double eta)
@@ -61,15 +70,18 @@ namespace ISAAR.MSolve.FEM.Interpolation
             return values;
         }
 
-        protected override sealed double[,] EvaluateGradientsAt(double xi, double eta)
+        protected override sealed Matrix EvaluateGradientsAt(double xi, double eta)
         {
-            var derivatives = new double[3, 2];
+            var derivatives = Matrix.CreateZero(3, 2);
+
             derivatives[0, 0] = +1.0;
-            derivatives[0, 1] = +0.0;
             derivatives[1, 0] = +0.0;
-            derivatives[1, 1] = +1.0;
             derivatives[2, 0] = -1.0;
+
+            derivatives[0, 1] = +0.0;
+            derivatives[1, 1] = +1.0;
             derivatives[2, 1] = -1.0;
+
             return derivatives;
         }
     }

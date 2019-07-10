@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using ISAAR.MSolve.Discretization.Commons;
 
 //TODO: Node and Element in FEM, XFEM, etc should implement corresponding interfaces (point, cell, etc). Then these interfaces
 //      should be used here instead of dedicated VTK point and cell classes. This is mostly case right now.  
@@ -15,20 +15,16 @@ namespace ISAAR.MSolve.Logging.VTK
     public class VtkFileWriter : IDisposable
     {
         public const string vtkReaderVersion = "4.1";
-        private readonly string filePath;
         private readonly StreamWriter writer;
         private bool writeFieldsNext;
 
         public VtkFileWriter(string filePath)
         {
-            this.filePath = filePath;
             this.writer = new StreamWriter(filePath);
-
             writer.Write("# vtk DataFile Version ");
             writer.WriteLine(vtkReaderVersion);
             writer.WriteLine(filePath);
             writer.Write("ASCII\n\n");
-
             writeFieldsNext = false;
         }
 
@@ -37,22 +33,21 @@ namespace ISAAR.MSolve.Logging.VTK
             if (writer != null) writer.Dispose();
         }
 
+        public void WriteMesh(IVtkMesh mesh) => WriteMesh(mesh.VtkPoints, mesh.VtkCells);
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="points">They must be sorted on their IDs, which start from 0 and are contiguous.</param>
         /// <param name="cells"></param>
-        public void WriteMesh(IReadOnlyList<VtkPoint2D> points, IReadOnlyList<VtkCell2D> cells)
+        public void WriteMesh(IReadOnlyList<VtkPoint> points, IReadOnlyList<VtkCell> cells)
         {
             if (writeFieldsNext) throw new InvalidOperationException("A mesh has already been written.");
 
             // Vertices 
             writer.WriteLine("DATASET UNSTRUCTURED_GRID");
             writer.WriteLine($"POINTS {points.Count} double");
-            foreach (var point in points)
-            {
-                writer.WriteLine($"{point.X} {point.Y} 0.0");
-            }
+            foreach (var point in points) writer.WriteLine($"{point.X} {point.Y} 0.0");
 
             // Cell connectivity
             int cellDataCount = 0;
@@ -71,10 +66,7 @@ namespace ISAAR.MSolve.Logging.VTK
 
             // Element types
             writer.WriteLine("\nCELL_TYPES " + cells.Count);
-            foreach (var cell in cells)
-            {
-                writer.WriteLine(cell.Code);
-            }
+            foreach (var cell in cells) writer.WriteLine(cell.Code);
         }
 
         /// <summary>
@@ -87,10 +79,7 @@ namespace ISAAR.MSolve.Logging.VTK
             WriteFieldsHeader(pointValues.Length);
             writer.WriteLine($"SCALARS {fieldName} double 1");
             writer.WriteLine("LOOKUP_TABLE default");
-            for (int i = 0; i < pointValues.Length; ++i)
-            {
-                writer.WriteLine(pointValues[i]);
-            }
+            for (int i = 0; i < pointValues.Length; ++i) writer.WriteLine(pointValues[i]);
             writer.WriteLine();
         }
 
@@ -123,6 +112,38 @@ namespace ISAAR.MSolve.Logging.VTK
             writer.WriteLine($"SCALARS {fieldName}_12 double 1");
             writer.WriteLine("LOOKUP_TABLE default");
             for (int i = 0; i < numPoints; ++i) writer.WriteLine(pointTensors[i][2]);
+            writer.WriteLine();
+        }
+
+        /// <summary>
+        /// Tensor components are written as independent scalar fields, as I haven't found any advantage in using tensor datasets 
+        /// in Paraview. By exporting each one as a different scalar field, better naming can be enforces, instead of 0, 1, etc. 
+        /// indexing for each tensor component.
+        /// </summary>
+        /// <param name="fieldName">Each component will be prefixed by it. E.g. fieldName = "S": S_11, S_22, S_12.</param>
+        /// <param name="pointValues">Each row correspond to a different node. They must be in the exact same order as the nodes.
+        ///     Columns 0, 1 and 2 are the tensor entries T11, T22, T12 respectively.</param>
+        public void WriteTensor2DField(string fieldName, IReadOnlyList<Tensor2D> pointTensors)
+        {
+            int numPoints = pointTensors.Count;
+            WriteFieldsHeader(numPoints);
+
+            // Component 11
+            writer.WriteLine($"SCALARS {fieldName}_11 double 1");
+            writer.WriteLine("LOOKUP_TABLE default");
+            for (int i = 0; i < numPoints; ++i) writer.WriteLine(pointTensors[i].XX);
+            writer.WriteLine();
+
+            // Component 22
+            writer.WriteLine($"SCALARS {fieldName}_22 double 1");
+            writer.WriteLine("LOOKUP_TABLE default");
+            for (int i = 0; i < numPoints; ++i) writer.WriteLine(pointTensors[i].YY);
+            writer.WriteLine();
+
+            // Component 12
+            writer.WriteLine($"SCALARS {fieldName}_12 double 1");
+            writer.WriteLine("LOOKUP_TABLE default");
+            for (int i = 0; i < numPoints; ++i) writer.WriteLine(pointTensors[i].XY);
             writer.WriteLine();
         }
 

@@ -1,17 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
+﻿using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Materials;
+using ISAAR.MSolve.Materials;
 
 namespace ISAAR.MSolve.Tests
 {
     public static class HexaSimpleCantileverBeam
     {
-        public static void MakeCantileverBeam(Model model, double startX, double startY, double startZ, int startNodeID, int startElementID, int subdomainID)
+        public static void MakeCantileverBeam(Model model, double startX, double startY, double startZ, int startNodeID,
+            int startElementID, int subdomainID)
 
         {
 
@@ -21,15 +19,15 @@ namespace ISAAR.MSolve.Tests
             {
                 if (nodeID % 2 == 0)
                 {
-                    model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX, Y = startY + 0.25, Z = startZ + 0.25 * (j / 2) });
+                    model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX, y:  startY + 0.25, z: startZ + 0.25 * (j / 2) ));
                 }
                 else
                 {
-                    model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX, Y = startY, Z = startZ + 0.25 * (j / 2) });
+                    model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX, y:  startY, z: startZ + 0.25 * (j / 2) ));
                 }
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.X);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.Y);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.Z);
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
 
                 nodeID++;
             }
@@ -40,11 +38,11 @@ namespace ISAAR.MSolve.Tests
                 {
                     if (nodeID % 2 == 0)
                     {
-                        model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 0.25 * (i + 1), Y = startY + 0.25, Z = startZ + 0.25 * (k / 2) });
+                        model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + 0.25 * (i + 1), y:  startY + 0.25, z: startZ + 0.25 * (k / 2) ));
                     }
                     else
                     {
-                        model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 0.25 * (i + 1), Y = startY, Z = startZ + 0.25 * (k / 2) });
+                        model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + 0.25 * (i + 1), y:  startY, z: startZ + 0.25 * (k / 2) ));
                     }
                     nodeID++;
                 }
@@ -52,12 +50,12 @@ namespace ISAAR.MSolve.Tests
 
             int elementID = startElementID;
             Element e;
-            ElasticMaterial3D material = new ElasticMaterial3D()
+            var material = new ElasticMaterial3D()
             {
                 YoungModulus = 2.0e7,
                 PoissonRatio = 0.3
             };
-            
+
             for (int i = 0; i < 4; i++)
             {
 
@@ -79,14 +77,12 @@ namespace ISAAR.MSolve.Tests
                 e.NodesDictionary.Add(startNodeID + 4 * i + 3, model.NodesDictionary[startNodeID + 4 * i + 3]);
 
                 model.ElementsDictionary.Add(e.ID, e);
-                model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e.ID, e);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(e);
 
 
                 elementID++;
             }
         }
-
-
     }
 
 }

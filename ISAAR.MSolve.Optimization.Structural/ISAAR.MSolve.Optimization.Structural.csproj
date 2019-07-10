@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <ApplicationIcon />
+    <OutputType>Library</OutputType>
+    <StartupObject />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ISAAR.MSolve.Analyzers\ISAAR.MSolve.Analyzers.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.Discretization\ISAAR.MSolve.Discretization.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.FEM\ISAAR.MSolve.FEM.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.LinearAlgebra\ISAAR.MSolve.LinearAlgebra.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.Optimization\ISAAR.MSolve.Optimization.csproj" />
+    <ProjectReference Include="..\ISAAR.MSolve.Solvers\ISAAR.MSolve.Solvers.csproj" />
+  </ItemGroup>
+
+</Project>

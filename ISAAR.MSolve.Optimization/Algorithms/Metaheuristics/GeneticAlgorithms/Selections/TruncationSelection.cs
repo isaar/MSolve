@@ -3,18 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ISAAR.MSolve.Optimization.Commons;
+using Troschuetz.Random;
 
 namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.GeneticAlgorithms.Selections
 {
     public class TruncationSelection<T> : ISelectionStrategy<T>
     {
         private readonly double elitePercentage;
+        private readonly IGenerator rng;
 
+        public TruncationSelection(double elitePercentage = 0.5) :
+                            this(RandomNumberGenerationUtilities.troschuetzRandom, elitePercentage)
+        {
+        }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="elitePercentage">Legal values: (0, 1]. Recommended values: [0.1, 0.5]</param>
-        public TruncationSelection(double elitePercentage = 0.5)
+        public TruncationSelection(IGenerator randomNumberGenerator, double elitePercentage = 0.5)
         {
             if (elitePercentage <= 0 || elitePercentage > 1)
             {
@@ -22,6 +28,7 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.GeneticAlgorithms.
                     + "belong to the interval (0, 1], but was: " + elitePercentage);
             }
             this.elitePercentage = elitePercentage;
+            this.rng = randomNumberGenerator;
         }
 
         public Individual<T>[][] Apply(Individual<T>[] population, int parentGroupsCount, int parentsPerGroup)
@@ -37,7 +44,7 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.GeneticAlgorithms.
             Individual<T>[] allParents = SelectEnoughElites(selectionPool, parentGroupsCount * parentsPerGroup);
 
             // Shuffle them to avoid grouping together identical parents or the fittest ones.
-            RandomNumberGenerationUtilities.Shuffle<Individual<T>>(allParents);
+            RandomNumberGenerationUtilities.Shuffle<Individual<T>>(allParents, rng);
 
             // Place the parents in groups
             int counter = 0;

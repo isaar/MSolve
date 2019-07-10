@@ -1,10 +1,5 @@
-﻿using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
 {
@@ -22,7 +17,7 @@ namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
 
 		public double [,] BSPLineSecondDerivativeValues { get; private set; }
 
-        public BSPLines1D(int degree, IVector knotValueVector, IVector parametricCoordinates)
+        public BSPLines1D(int degree, Vector knotValueVector, IVector parametricCoordinates)
         {
             if (degree <= 0)
             {
@@ -44,7 +39,7 @@ namespace ISAAR.MSolve.IGA.Problems.SupportiveClasses
 
             for (int i = 0; i < numberOfGaussPoints; i++)
                 for (int j = 0; j < numberOfControlPoints+Degree; j++)
-	                if (KnotValueVector[j]<=ParametricCoordinates[i]&& ParametricCoordinates[i] < KnotValueVector[j + 1])
+	                if (KnotValueVector[j]<=ParametricCoordinates[i]&& ParametricCoordinates[i] <= KnotValueVector[j + 1])
 		                BSPLineValues[j, i] = 1;
 	                else
 		                BSPLineValues[j, i] = 0;

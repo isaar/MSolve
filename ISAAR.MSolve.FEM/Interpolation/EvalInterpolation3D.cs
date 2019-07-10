@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Jacobians;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
@@ -15,11 +15,20 @@ namespace ISAAR.MSolve.FEM.Interpolation
     /// </summary>
     public class EvalInterpolation3D
     {
-        public EvalInterpolation3D(Vector shapeFunctions, Matrix2D shapeGradientsNatural, IsoparametricJacobian3D jacobian)
+        private readonly IReadOnlyList<Node> elementNodes;
+
+        public EvalInterpolation3D(IReadOnlyList<Node> elementNodes, double[] shapeFunctions, Matrix shapeGradientsNatural,
+            IsoparametricJacobian3D jacobian)
         {
-            int numberOfNodes = shapeFunctions.Length;
-            if (shapeGradientsNatural.Rows != numberOfNodes) throw new ArgumentException($"There are {shapeFunctions.Length}"
-                + $" evaluated shape functions, but {shapeGradientsNatural.Rows} evaluated natural shape derivatives.");
+            int numNodes = elementNodes.Count;
+#if DEBUG
+            if ((shapeFunctions.Length != numNodes) || (shapeGradientsNatural.NumRows != numNodes))
+            {
+                throw new ArgumentException($"There are {numNodes} nodes, but {ShapeFunctions.Length} shape functions"
+                    + $" and {shapeGradientsNatural.NumRows} natural shape derivatives.");
+            }
+#endif
+            this.elementNodes = elementNodes;
             this.ShapeFunctions = shapeFunctions;
             this.ShapeGradientsNatural = shapeGradientsNatural;
             this.Jacobian = jacobian;
@@ -34,7 +43,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// <summary>
         /// A vector that contains the shape functions in the same order as the nodes of the interpolation.
         /// </summary>
-        public Vector ShapeFunctions { get; }
+        public double[] ShapeFunctions { get; }
 
         /// <summary>
         /// A matrix that contains the 1st order shape function derivatives with respect to the global cartesian coordinate 
@@ -42,7 +51,7 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// shape function. Each column corresponds to the derivatives of all shape functions with respect to a single 
         /// coordinate.
         /// </summary>
-        public Matrix2D ShapeGradientsCartesian { get; }
+        public Matrix ShapeGradientsCartesian { get; }
 
         /// <summary>
         /// A matrix that contains the 1st order shape function derivatives with respect to the natural coordinate 
@@ -50,21 +59,19 @@ namespace ISAAR.MSolve.FEM.Interpolation
         /// shape function. Each column corresponds to the derivatives of all shape functions with respect to a single 
         /// coordinate.
         /// </summary>
-        public Matrix2D ShapeGradientsNatural { get; }
+        public Matrix ShapeGradientsNatural { get; }
 
-        public CartesianPoint3D TransformPointNaturalToGlobalCartesian(IReadOnlyList<Node3D> nodes, NaturalPoint3D naturalCoordinates)
+        public CartesianPoint TransformPointNaturalToGlobalCartesian()
         {
-            if (nodes.Count != ShapeFunctions.Length) throw new ArgumentException(
-                $"There are {ShapeFunctions.Length} evaluated shape functions stored, but {nodes.Count} were passed in.");
             double x = 0, y = 0, z = 0;
             for (int i = 0; i < ShapeFunctions.Length; i++)
             {
-                Node3D node = nodes[i];
+                Node node = elementNodes[i];
                 x += ShapeFunctions[i] * node.X;
                 y += ShapeFunctions[i] * node.Y;
                 z += ShapeFunctions[i] * node.Z;
             }
-            return new CartesianPoint3D(x,y,z);
+            return new CartesianPoint(x,y,z);
         }
     }
 }

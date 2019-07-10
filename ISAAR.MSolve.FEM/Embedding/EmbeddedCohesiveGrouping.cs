@@ -6,8 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 
 //TODO: this and EmbeddedGrouping have most things in common. Use a base class for them and template method or use polymorhism from the composed classes.
-namespace ISAAR.MSolve.PreProcessor.Embedding
+namespace ISAAR.MSolve.FEM.Embedding
 {
+    /// <summary>
+    /// Appropriate for iplementing embedding kinematic constraints only for some nodes of the embedded element so that bond slip phenomena can be modeled.
+    /// Authors: Gerasimos Sotiropoulos
+    /// </summary>
     public class EmbeddedCohesiveGrouping
     {
         private readonly Model model;
@@ -15,10 +19,11 @@ namespace ISAAR.MSolve.PreProcessor.Embedding
         private readonly IEnumerable<Element> embeddedGroup;
         private readonly bool hasEmbeddedRotations = false;
 
-        public IEnumerable<Element> HostGroup { get { return hostGroup; } }
-        public IEnumerable<Element> EmbeddedGroup { get { return embeddedGroup; } }
+        public IEnumerable<Element> HostGroup => hostGroup;
+        public IEnumerable<Element> EmbeddedGroup => embeddedGroup;
 
-        public EmbeddedCohesiveGrouping(Model model, IEnumerable<Element> hostGroup, IEnumerable<Element> embeddedGroup, bool hasEmbeddedRotations)
+        public EmbeddedCohesiveGrouping(Model model, IEnumerable<Element> hostGroup, 
+            IEnumerable<Element> embeddedGroup, bool hasEmbeddedRotations = false)
         {
             this.model = model;
             this.hostGroup = hostGroup;
@@ -37,17 +42,11 @@ namespace ISAAR.MSolve.PreProcessor.Embedding
             UpdateNodesBelongingToEmbeddedElements();
         }
 
-        public EmbeddedCohesiveGrouping(Model model, IEnumerable<Element> hostGroup, IEnumerable<Element> embeddedGroup)
-            : this(model, hostGroup, embeddedGroup, false)
-        {
-        }
-
         private void UpdateNodesBelongingToEmbeddedElements()
         {
             IEmbeddedDOFInHostTransformationVector transformer;
             if (hasEmbeddedRotations)
-                //transformer = new Hexa8TranslationAndRotationTransformationVector();
-                throw new NotImplementedException();
+                transformer = new Hexa8TranslationAndRotationTransformationVector();
             else
                 transformer = new Hexa8LAndNLTranslationTransformationVector();
 
@@ -72,13 +71,13 @@ namespace ISAAR.MSolve.PreProcessor.Embedding
                                 if (!currentElementType.EmbeddedNodes.Contains(embeddedNode))
                                 {
                                     currentElementType.EmbeddedNodes.Add(embeddedNode);
-                                    element.ElementType.DOFEnumerator = new CohesiveElementEmbedder(model, element, transformer);
+                                    element.ElementType.DofEnumerator = new CohesiveElementEmbedder(model, element, transformer);
                                 }
                             }
                     }
                 }
 
-                embeddedElement.ElementType.DOFEnumerator = new CohesiveElementEmbedder(model, embeddedElement, transformer);
+                embeddedElement.ElementType.DofEnumerator = new CohesiveElementEmbedder(model, embeddedElement, transformer);
             }
         }
     }

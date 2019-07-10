@@ -1,58 +1,58 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
-	/// <summary>
-	/// Isoparametric interpolation of a hexahedral finite element with 27 nodes. Quadratic shape functions.
-	/// Implements singleton pattern.
-	/// Authors: Dimitris Tsapetis
-	/// </summary>
-    public class InterpolationHexa27:IsoparametricInterpolation3DBase
+    /// <summary>
+    /// Isoparametric interpolation of a hexahedral finite element with 27 nodes. Quadratic shape functions.
+    /// Implements singleton pattern.
+    /// Authors: Dimitris Tsapetis
+    /// </summary>
+    public class InterpolationHexa27 : IsoparametricInterpolation3DBase
 	{
 		private static readonly InterpolationHexa27 uniqueInstance = new InterpolationHexa27();
 
 		private InterpolationHexa27() : base(27)
 		{
-			NodalNaturalCoordinates = new NaturalPoint3D[]
+			NodalNaturalCoordinates = new NaturalPoint[]
 			{
-				new NaturalPoint3D(-1, -1, -1),
-				new NaturalPoint3D(1, -1, -1),
-				new NaturalPoint3D(1, 1, -1),
-				new NaturalPoint3D(-1, 1, -1),
+				new NaturalPoint(-1, -1, -1),
+				new NaturalPoint(1, -1, -1),
+				new NaturalPoint(1, 1, -1),
+				new NaturalPoint(-1, 1, -1),
 
-				new NaturalPoint3D(-1, -1, 1),
-				new NaturalPoint3D(1, -1, 1),
-				new NaturalPoint3D(1, 1, 1),
-				new NaturalPoint3D(-1, 1, 1),
+				new NaturalPoint(-1, -1, 1),
+				new NaturalPoint(1, -1, 1),
+				new NaturalPoint(1, 1, 1),
+				new NaturalPoint(-1, 1, 1),
 
-				new NaturalPoint3D(0, -1, -1),
-				new NaturalPoint3D(-1, 0, -1),
-				new NaturalPoint3D(-1, -1, 0),
-				new NaturalPoint3D(1, 0, -1),
+				new NaturalPoint(0, -1, -1),
+				new NaturalPoint(-1, 0, -1),
+				new NaturalPoint(-1, -1, 0),
+				new NaturalPoint(1, 0, -1),
 
-				new NaturalPoint3D(1, -1, 0),
-				new NaturalPoint3D(0, 1, -1),
-				new NaturalPoint3D(1, 1, 0),
-				new NaturalPoint3D(-1, 1, 0),
+				new NaturalPoint(1, -1, 0),
+				new NaturalPoint(0, 1, -1),
+				new NaturalPoint(1, 1, 0),
+				new NaturalPoint(-1, 1, 0),
 
-				new NaturalPoint3D(0, -1, 1),
-				new NaturalPoint3D(-1, 0, 1),
-				new NaturalPoint3D(1, 0, 1),
-				new NaturalPoint3D(0, 1, 1),
+				new NaturalPoint(0, -1, 1),
+				new NaturalPoint(-1, 0, 1),
+				new NaturalPoint(1, 0, 1),
+				new NaturalPoint(0, 1, 1),
 
-				new NaturalPoint3D(0, 0, -1),
-				new NaturalPoint3D(0, -1, 0),
-				new NaturalPoint3D(-1, 0, 0),
-				new NaturalPoint3D(1, 0, 0),
+				new NaturalPoint(0, 0, -1),
+				new NaturalPoint(0, -1, 0),
+				new NaturalPoint(-1, 0, 0),
+				new NaturalPoint(1, 0, 0),
 
-				new NaturalPoint3D(0, 1, 0),
-				new NaturalPoint3D(0, 0, 1),
-				new NaturalPoint3D(0, 0, 0),
+				new NaturalPoint(0, 1, 0),
+				new NaturalPoint(0, 0, 1),
+				new NaturalPoint(0, 0, 0),
 			};
 		}
 
@@ -60,19 +60,30 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// The coordinate of the finite element's nodes in the natural (element local) coordinate system. The order of these
 		/// nodes matches the order of the shape functions and is always the same for each element.
 		/// </summary>
-		public override IReadOnlyList<NaturalPoint3D> NodalNaturalCoordinates { get; }
+		public override IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
 		/// <summary>
 		/// Get the unique <see cref="InterpolationHexa27"/> object for the whole program. Thread safe.
 		/// </summary>
 		public static InterpolationHexa27 UniqueInstance => uniqueInstance;
 
-		/// <summary>
-		/// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.
-		/// </summary>
-		/// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
-		/// <returns></returns>
-		public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> node)=>throw new NotImplementedException("Iterative procedure needed");
+        /// <summary>
+        /// See <see cref="IIsoparametricInterpolation2D.CheckElementNodes(IReadOnlyList{Node})"/>
+        /// </summary>
+        public override void CheckElementNodes(IReadOnlyList<Node> nodes)
+        {
+            if (nodes.Count != 27) throw new ArgumentException(
+                $"A Hexa27 finite element has 27 nodes, but {nodes.Count} nodes were provided.");
+            // TODO: Also check the order of the nodes too and perhaps even the shape
+        }
+
+        /// <summary>
+        /// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.
+        /// </summary>
+        /// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
+        /// <returns></returns>
+        public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> node)
+            => throw new NotImplementedException("Iterative procedure needed");
 
 		/// <summary>
 		/// Evaluates Hexa27 shape functions according to <see cref="https://www.code-aster.org/V2/doc/v13/en/man_r/r3/r3.01.01.pdf">this</see>
@@ -123,13 +134,13 @@ namespace ISAAR.MSolve.FEM.Interpolation
 			return values;
 		}
 
-		protected override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
+		protected override Matrix EvaluateGradientsAt(double xi, double eta, double zeta)
 		{
 			var x = xi;
 			var y = eta;
 			var z = zeta;
 
-			var derivatives = new double[27, 3];
+			var derivatives = Matrix.CreateZero(27, 3);
 
 			derivatives[0, 0] = (x * y * z * (y - 1) * (z - 1)) / 8 + (y * z * (x - 1) * (y - 1) * (z - 1)) / 8;
 			derivatives[1, 0] = (x * y * z * (y - 1) * (z - 1)) / 8 + (y * z * (x + 1) * (y - 1) * (z - 1)) / 8;

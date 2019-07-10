@@ -1,134 +1,107 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.Discretization.Mesh;
 using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.FEM.Interfaces;
+using ISAAR.MSolve.LinearAlgebra;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.FEM.Elements
 {
     public class ConcentratedMass3D : IStructuralFiniteElement
     {
-        private static readonly DOFType[] nodalDOFTypes = new DOFType[] { DOFType.X, DOFType.Y, DOFType.Z };
-        private static readonly DOFType[][] dofs = new DOFType[][] { nodalDOFTypes };
+        private static readonly IDofType[] nodalDOFTypes = new IDofType[] { StructuralDof.TranslationX, StructuralDof.TranslationY, StructuralDof.TranslationZ };
+        private static readonly IDofType[][] dofs = new IDofType[][] { nodalDOFTypes };
         private readonly double massCoefficient;
-        private IElementDOFEnumerator dofEnumerator = new GenericDOFEnumerator();
+        private IElementDofEnumerator dofEnumerator = new GenericDofEnumerator();
 
-        public int ID
-        {
-            get { return 998; }
-        }
+        public int ID => 998;
+        public CellType CellType { get; } = CellType.Unknown;
 
-        public ElementDimensions ElementDimensions
-        {
-            get { return ElementDimensions.ThreeD; }
-        }
+        public ElementDimensions ElementDimensions => ElementDimensions.ThreeD;
 
-        public IElementDOFEnumerator DOFEnumerator
+        public IElementDofEnumerator DofEnumerator
         {
             get { return dofEnumerator; }
             set { dofEnumerator = value; }
         }
 
-        public IList<IList<DOFType>> GetElementDOFTypes(IElement element)
+        public IReadOnlyList<IReadOnlyList<IDofType>> GetElementDofTypes(IElement element)
         {
             if (element == null) return dofs;
 
-            var d = new List<IList<DOFType>>();
-            foreach (var node in element.INodes)
+            var d = new List<List<IDofType>>();
+            foreach (var node in element.Nodes)
             {
-                var nodeDofs = new List<DOFType>();
+                var nodeDofs = new List<IDofType>();
                 nodeDofs.AddRange(nodalDOFTypes);
                 d.Add(nodeDofs);
             }
             return d;
         }
 
-        public bool MaterialModified
-        {
-            get { return false; }
-        }
+        public bool MaterialModified => false;
 
         public ConcentratedMass3D(double massCoefficient)
         {
             this.massCoefficient = massCoefficient;
         }
 
-        public ConcentratedMass3D(double massCoefficient, IElementDOFEnumerator dofEnumerator)
+        public ConcentratedMass3D(double massCoefficient, IElementDofEnumerator dofEnumerator)
             : this(massCoefficient)
         {
             this.dofEnumerator = dofEnumerator;
         }
 
-        public IMatrix2D MassMatrix(IElement element)
+        public IMatrix MassMatrix(IElement element)
         {
-            return new SymmetricMatrix2D(new double[] { massCoefficient, 0, 0,
-                massCoefficient, 0,
-                massCoefficient
-            });
+            var mass = Matrix.CreateZero(3, 3);
+            mass[0, 0] = massCoefficient;
+            mass[1, 1] = massCoefficient;
+            mass[2, 2] = massCoefficient;
+            return mass;
         }
 
-        public IMatrix2D StiffnessMatrix(IElement element)
-        {
-            return new SymmetricMatrix2D(new double[6]);
-        }
+        public IMatrix StiffnessMatrix(IElement element) => Matrix.CreateZero(3, 3);
 
-        public IMatrix2D DampingMatrix(IElement element)
-        {
-            return new SymmetricMatrix2D(new double[6]);
-        }
+        public IMatrix DampingMatrix(IElement element) => Matrix.CreateZero(3, 3);
 
-        public void ResetMaterialModified()
-        {
-        }
+        public void ResetMaterialModified() { }
 
-        public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, double[] localdDisplacements)
-        {
-            return new Tuple<double[], double[]>(new double[6], new double[6]);
-        }
+        public Tuple<double[], double[]> CalculateStresses(Element element, double[] localDisplacements, 
+            double[] localdDisplacements)
+            => new Tuple<double[], double[]>(new double[6], new double[6]);
 
         public double[] CalculateForcesForLogging(Element element, double[] localDisplacements)
-        {
-            return CalculateForces(element, localDisplacements, new double[localDisplacements.Length]);
-        }
+            => CalculateForces(element, localDisplacements, new double[localDisplacements.Length]);
 
         public double[] CalculateForces(Element element, double[] localDisplacements, double[] localdDisplacements)
-        {
-            return new double[6];
-        }
+            => new double[6];
 
         public double[] CalculateAccelerationForces(Element element, IList<MassAccelerationLoad> loads)
         {
-            Vector accelerations = new Vector(3);
-            IMatrix2D massMatrix = MassMatrix(element);
+            var accelerations = new double[3];
+            IMatrix massMatrix = MassMatrix(element);
 
             foreach (MassAccelerationLoad load in loads)
             {
                 int index = 0;
-                foreach (DOFType[] nodalDOFTypes in dofs)
-                    foreach (DOFType dofType in nodalDOFTypes)
+                foreach (IDofType[] nodalDOFTypes in dofs)
+                    foreach (IDofType dofType in nodalDOFTypes)
                     {
                         if (dofType == load.DOF) accelerations[index] += load.Amount;
                         index++;
                     }
             }
-            double[] forces = new double[3];
-            massMatrix.Multiply(accelerations, forces);
-            return forces;
+
+            return massMatrix.Multiply(accelerations);
         }
 
-        public void ClearMaterialState()
-        {
-        }
-
-        public void SaveMaterialState()
-        {
-        }
-
-        public void ClearMaterialStresses()
-        {
-        }
+        public void ClearMaterialState() { }
+        public void SaveMaterialState() { }
+        public void ClearMaterialStresses() { }
     }
 }

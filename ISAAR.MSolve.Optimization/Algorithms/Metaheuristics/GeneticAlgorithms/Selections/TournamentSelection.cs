@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.GeneticAlgorithms.
         private readonly IGenerator rng;
 
         public TournamentSelection(int tournamentSize, bool sampleWithReplacement = true, bool allowIdenticalParents = false):
-            this(tournamentSize, sampleWithReplacement, allowIdenticalParents, RandomNumberGenerationUtilities.troschuetzRandom)
+            this(RandomNumberGenerationUtilities.troschuetzRandom, tournamentSize, sampleWithReplacement, allowIdenticalParents)
         {
         }
 
@@ -34,8 +34,8 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.GeneticAlgorithms.
         /// <param name="allowIdenticalParents">If set to false, sampling will be repeated until all parents of the same group are 
         ///     uniqe. This may degrade performance, especially with large tournament sizes.</param>
         /// <param name="randomNumberGenerator">A random number generator.</param>
-        public TournamentSelection(int tournamentSize, bool sampleWithReplacement, bool allowIdenticalParents, 
-            IGenerator randomNumberGenerator)
+        public TournamentSelection(IGenerator randomNumberGenerator, int tournamentSize, bool sampleWithReplacement = true, 
+            bool allowIdenticalParents = false)
         {
             if (tournamentSize < 2)
             {

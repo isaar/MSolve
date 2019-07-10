@@ -15,12 +15,12 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
 	/// </summary>
 	public class InverseInterpolationHexa8:IInverseInterpolation3D
     {
-	    public InverseInterpolationHexa8(IReadOnlyList<Node3D> nodes)
+	    public InverseInterpolationHexa8(IReadOnlyList<Node> nodes)
 	    {
 		    
 	    }
 
-		public NaturalPoint3D TransformPointCartesianToNatural(CartesianPoint3D point)
+		public NaturalPoint TransformPointCartesianToNatural(CartesianPoint point)
 		{
 			throw new NotImplementedException();
 		}

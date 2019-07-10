@@ -30,10 +30,11 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.ParticleSwarmOptim
 
         private Particle[] individuals;
 
-        private readonly Random randomNumberGenerator = new Random();
+        private readonly Random randomNumberGenerator;
 
         public ParticleSwarmOptimizationAlgorithm(int dimension, double[] lowerBound, double[] upperBound, IDesignFactory designFactory,
-           int swarmSize, double omega, double phip, double phig, IConvergenceCriterion convergenceCriterion, IOptimizationLogger logger)
+           int swarmSize, double omega, double phip, double phig, IConvergenceCriterion convergenceCriterion, IOptimizationLogger logger,
+           Random randomNumberGenerator)
         {
             this.dimension = dimension;
             this.lowerBound = lowerBound;
@@ -46,6 +47,8 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.ParticleSwarmOptim
             this.phig = phig;
             this.convergenceCriterion = convergenceCriterion;
             this.logger = logger;
+
+            this.randomNumberGenerator = randomNumberGenerator;
         }
 
         public double BestFitness
@@ -58,13 +61,12 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.ParticleSwarmOptim
             get; private set;
         }
 
-
         public int CurrentIteration
         {
             get; private set;
         }
 
-        public double CurrentFunctionEvaluations
+        public int CurrentFunctionEvaluations
         {
             get; private set;
         }
@@ -206,6 +208,7 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.ParticleSwarmOptim
             public double PhiG { get; set; } = 2.0;
             public IConvergenceCriterion ConvergenceCriterion { get; set; }
             public IOptimizationLogger Logger { get; set; }
+            public Random RandomNumberGenerator { get; set; } = new Random();
 
             private OptimizationProblem optimizationProblem;
 
@@ -219,7 +222,7 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.ParticleSwarmOptim
             {
                 return new ParticleSwarmOptimizationAlgorithm(optimizationProblem.Dimension,
                     optimizationProblem.LowerBound, optimizationProblem.UpperBound, optimizationProblem.DesignFactory,
-                    SwarmSize, Omega, PhiP, PhiG, ConvergenceCriterion, Logger);
+                    SwarmSize, Omega, PhiP, PhiG, ConvergenceCriterion, Logger, RandomNumberGenerator);
             }
         }
     }

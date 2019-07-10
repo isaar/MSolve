@@ -1,30 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Solvers.Skyline;
-using ISAAR.MSolve.Problems;
 using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Problems.Structural.Elements;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.FEM.Materials;
-using ISAAR.MSolve.Solvers.Interfaces;
+using ISAAR.MSolve.Logging;
+using ISAAR.MSolve.Problems;
+using ISAAR.MSolve.Solvers;
+using ISAAR.MSolve.Solvers.Direct;
 
 namespace ISAAR.MSolve.SamplesConsole
 {
     public class TrussExample
     {
+        private const int subdomainID = 0;
+
         public static IList<Node> CreateNodes()
         {
             IList<Node> nodes = new List<Node>();
-            Node node1 = new Node { ID = 1, X = 0, Y = 0 };
-            Node node2 = new Node { ID = 2, X = 0, Y = 40 };
-            Node node3 = new Node { ID = 3, X = 40, Y = 40 };
-          
+            Node node1 = new Node( id: 1, x: 0, y:  0 );
+            Node node2 = new Node( id: 2, x: 0, y:  40 );
+            Node node3 = new Node( id: 3, x: 40, y:  40 );
+
             nodes.Add(node1);
             nodes.Add(node2);
             nodes.Add(node3);
@@ -34,70 +32,82 @@ namespace ISAAR.MSolve.SamplesConsole
 
         public static void Run()
         {
-            VectorExtensions.AssignTotalAffinityCount();
             double youngMod = 10e6;
-            double poisson = 0.3;
+            //double poisson = 0.3;
             double loadX = 500;
             double loadY = 300;
             double sectionArea = 1.5;
 
             IList<Node> nodes = TrussExample.CreateNodes();
 
-            Model trussModel = new Model();
+            var model = new Model();
 
-            trussModel.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
+            model.SubdomainsDictionary.Add(0, new Subdomain(subdomainID));
 
             for (int i = 0; i < nodes.Count; i++)
             {
-                trussModel.NodesDictionary.Add(i + 1, nodes[i]);
+                model.NodesDictionary.Add(i + 1, nodes[i]);
             }
 
-            trussModel.NodesDictionary[1].Constraints.Add(DOFType.X);
-            trussModel.NodesDictionary[1].Constraints.Add(DOFType.Y);
-            trussModel.NodesDictionary[2].Constraints.Add(DOFType.X);
-            trussModel.NodesDictionary[2].Constraints.Add(DOFType.Y);
-            
-            var element1 = new Element() { ID = 1, ElementType = new Rod2D(youngMod) { Density = 1, SectionArea = sectionArea} };
-            var element2 = new Element() { ID = 2, ElementType = new Rod2D(youngMod) { Density = 1, SectionArea = sectionArea} };
-
-            element1.AddNode(trussModel.NodesDictionary[1]);
-            element1.AddNode(trussModel.NodesDictionary[3]);
-
-            element2.AddNode(trussModel.NodesDictionary[2]);
-            element2.AddNode(trussModel.NodesDictionary[3]);
-
-            trussModel.ElementsDictionary.Add(element1.ID, element1);
-            trussModel.ElementsDictionary.Add(element2.ID, element2);
-
-            trussModel.SubdomainsDictionary[0].ElementsDictionary.Add(element1.ID, element1);
-            trussModel.SubdomainsDictionary[0].ElementsDictionary.Add(element2.ID, element2);
-
-            trussModel.Loads.Add(new Load() { Amount = loadX, Node = trussModel.NodesDictionary[3], DOF = DOFType.X });
-            trussModel.Loads.Add(new Load() { Amount = loadY, Node = trussModel.NodesDictionary[3], DOF = DOFType.Y });
-
-            trussModel.ConnectDataStructures();
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+            model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+            model.NodesDictionary[2].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
 
 
-            var linearSystems = new Dictionary<int, ILinearSystem>(); //I think this should be done automatically
-            linearSystems[0] = new SkylineLinearSystem(0, trussModel.SubdomainsDictionary[0].Forces);
-            SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+            var element1 = new Element()
+            {
+                ID = 1,
+                ElementType = new Rod2D(youngMod) { Density = 1, SectionArea = sectionArea }
+            };
 
-            ProblemStructural provider = new ProblemStructural(trussModel, linearSystems);
+            var element2 = new Element()
+            {
+                ID = 2,
+                ElementType = new Rod2D(youngMod) { Density = 1, SectionArea = sectionArea }
+            };
 
-            LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
-            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
+            element1.AddNode(model.NodesDictionary[1]);
+            element1.AddNode(model.NodesDictionary[3]);
 
-            childAnalyzer.LogFactories[0] = new LinearAnalyzerLogFactory(new int[] {
-                trussModel.NodalDOFsDictionary[3][DOFType.X],
-                trussModel.NodalDOFsDictionary[3][DOFType.Y],
-                });
+            element2.AddNode(model.NodesDictionary[2]);
+            element2.AddNode(model.NodesDictionary[3]);
 
-            parentAnalyzer.BuildMatrices();
+            model.ElementsDictionary.Add(element1.ID, element1);
+            model.ElementsDictionary.Add(element2.ID, element2);
+
+            model.SubdomainsDictionary[subdomainID].Elements.Add(element1);
+            model.SubdomainsDictionary[subdomainID].Elements.Add(element2);
+
+            model.Loads.Add(new Load() { Amount = loadX, Node = model.NodesDictionary[3], DOF = StructuralDof.TranslationX });
+            model.Loads.Add(new Load() { Amount = loadY, Node = model.NodesDictionary[3], DOF = StructuralDof.TranslationY });
+
+            // Solver
+            var solverBuilder = new SkylineSolver.Builder();
+            ISolver solver = solverBuilder.BuildSolver(model);
+
+            // Structural problem provider
+            var provider = new ProblemStructural(model, solver);
+
+            // Linear static analysis
+            var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
+
+            // Output requests
+            var logFactory = new TotalDisplacementsLog.Factory(model.SubdomainsDictionary[subdomainID]);
+            logFactory.WatchDof(model.NodesDictionary[3], StructuralDof.TranslationX);
+            logFactory.WatchDof(model.NodesDictionary[3], StructuralDof.TranslationY);
+            childAnalyzer.LogFactories[subdomainID] = logFactory;
+
+            // Run the analysis
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            Console.WriteLine("Displacements of Node 3, along axes X, Y:");
-            Console.WriteLine(childAnalyzer.Logs[0][0]);
+            // Print output
+            var logger = (TotalDisplacementsLog)(childAnalyzer.Logs[subdomainID][0]); //There is a list of logs for each subdomain and we want the first one
+            double ux = logger.GetDisplacementAt(model.NodesDictionary[3], StructuralDof.TranslationX);
+            double uy = logger.GetDisplacementAt(model.NodesDictionary[3], StructuralDof.TranslationY);
+            Console.WriteLine($"Displacements of Node 3: Ux = {ux}, Uy = {uy}");
         }
     }
 }

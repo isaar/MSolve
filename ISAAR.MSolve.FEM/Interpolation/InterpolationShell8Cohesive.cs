@@ -1,14 +1,11 @@
-﻿using ISAAR.MSolve.Discretization.Integration.Points;
+﻿using System;
+using System.Collections.Generic;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Geometry.Shapes;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 namespace ISAAR.MSolve.FEM.Interpolation
 {
@@ -16,29 +13,40 @@ namespace ISAAR.MSolve.FEM.Interpolation
     {
         private static readonly InterpolationShell8Cohesive uniqueInstance = new InterpolationShell8Cohesive();
 
-        private readonly Dictionary<IQuadrature2D, IReadOnlyList<Matrix2D>> cachedN3AtGPs;
+        private readonly Dictionary<IQuadrature2D, IReadOnlyList<Matrix>> cachedN3AtGPs;
 
-        private InterpolationShell8Cohesive() : base(CellType2D.Quad8,8)
+        private InterpolationShell8Cohesive() : base(CellType.Quad8,8)
         {
-            cachedN3AtGPs = new Dictionary<IQuadrature2D, IReadOnlyList<Matrix2D>>();
-            NodalNaturalCoordinates = new NaturalPoint2D[]
+            cachedN3AtGPs = new Dictionary<IQuadrature2D, IReadOnlyList<Matrix>>();
+            NodalNaturalCoordinates = new NaturalPoint[]
             {
                 //TODO: validate this
-                new NaturalPoint2D(1, 1),
-                new NaturalPoint2D(-1, 1),
-                new NaturalPoint2D(-1, -1),
-                new NaturalPoint2D(1, -1),
-                new NaturalPoint2D(0, 1),
-                new NaturalPoint2D(-1, 0),
-                new NaturalPoint2D(0, -1),
-                new NaturalPoint2D(1, 0)
+                new NaturalPoint(1, 1),
+                new NaturalPoint(-1, 1),
+                new NaturalPoint(-1, -1),
+                new NaturalPoint(1, -1),
+                new NaturalPoint(0, 1),
+                new NaturalPoint(-1, 0),
+                new NaturalPoint(0, -1),
+                new NaturalPoint(1, 0)
             };
         }
-        public override IReadOnlyList<NaturalPoint2D> NodalNaturalCoordinates { get; }
+        public override IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
         public static InterpolationShell8Cohesive UniqueInstance => uniqueInstance;
 
-        public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node2D> nodes) => throw new NotImplementedException();
+        /// <summary>
+        /// See <see cref="IIsoparametricInterpolation2D.CheckElementNodes(IReadOnlyList{Node})"/>
+        /// </summary>
+        public override void CheckElementNodes(IReadOnlyList<Node> nodes)
+        {
+            if (nodes.Count != 8) throw new ArgumentException(
+                $"A Shell8 finite element has 8 nodes, but {nodes.Count} nodes were provided.");
+            // TODO: Also check the order of the nodes too and perhaps even the shape
+        }
+
+        public override IInverseInterpolation2D CreateInverseMappingFor(IReadOnlyList<Node> nodes)
+            => throw new NotImplementedException();
 
         protected override double[] EvaluateAt(double ksi, double heta)
         {
@@ -57,9 +65,9 @@ namespace ISAAR.MSolve.FEM.Interpolation
             return N1gp;
         }
 
-        protected override double[,] EvaluateGradientsAt(double ksi, double heta)
+        protected override Matrix EvaluateGradientsAt(double ksi, double heta)
         {
-            var shapeFunctionDerivativesGp = new double[2, 8]; //notation per each dimension 2(0:denotes derivative ksi 1:denotes derivative heta) 8(number of shape functions and hence nodes)
+            var shapeFunctionDerivativesGp = Matrix.CreateZero(2, 8); //notation per each dimension 2(0:denotes derivative ksi 1:denotes derivative heta) 8(number of shape functions and hence nodes)
 
             shapeFunctionDerivativesGp[0, 4] = (-ksi) * (1 + heta);
             shapeFunctionDerivativesGp[0, 5] = -0.5 * (1 - Math.Pow(heta, 2));
@@ -82,42 +90,39 @@ namespace ISAAR.MSolve.FEM.Interpolation
            return shapeFunctionDerivativesGp;
         }
 
-        public IReadOnlyList<Matrix2D> EvaluateN3ShapeFunctionsReorganized(IQuadrature2D quadrature)
+        public IReadOnlyList<Matrix> EvaluateN3ShapeFunctionsReorganized(IQuadrature2D quadrature)
         {
             bool isCached = cachedN3AtGPs.TryGetValue(quadrature,
-                out IReadOnlyList<Matrix2D> N3AtGPs);
+                out IReadOnlyList<Matrix> N3AtGPs);
             if (isCached) return N3AtGPs;
             else
             {
-                IReadOnlyList<Vector> N1 = EvaluateFunctionsAtGaussPoints(quadrature);
+                IReadOnlyList<double[]> N1 = EvaluateFunctionsAtGaussPoints(quadrature);
                 N3AtGPs = GetN3ShapeFunctionsReorganized(quadrature, N1);
                 cachedN3AtGPs.Add(quadrature, N3AtGPs);
                 return N3AtGPs;
             }
         }
 
-        private IReadOnlyList<Matrix2D> GetN3ShapeFunctionsReorganized(IQuadrature2D quadrature, IReadOnlyList<Vector> N1)
+        private IReadOnlyList<Matrix> GetN3ShapeFunctionsReorganized(IQuadrature2D quadrature, IReadOnlyList<double[]> N1)
         {
             //TODO reorganize cohesive shell  to use only N1 (not reorganised)
 
             int nGaussPoints = quadrature.IntegrationPoints.Count;
-            var N3 = new Matrix2D[nGaussPoints]; // shapeFunctionsgpData
+            var N3 = new Matrix[nGaussPoints]; // shapeFunctionsgpData
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
             {
                 double ksi = quadrature.IntegrationPoints[npoint].Xi;
                 double heta = quadrature.IntegrationPoints[npoint].Eta;
-                double[,] N3gp = new double[3, 24]; ; //8=nShapeFunctions;
+                var N3gp = Matrix.CreateZero( 3, 24); //8=nShapeFunctions;
 
                 for (int l = 0; l < 3; l++)
                 {
-                    for (int m = 0; m < 8; m++)
-                    { N3gp[l, l + 3 * m] = N1[npoint][m]; }
+                    for (int m = 0; m < 8; m++) N3gp[l, l + 3 * m] = N1[npoint][m];
                 }
-                N3[npoint] = new Matrix2D(N3gp);
+                N3[npoint] = N3gp;
             }
             return N3;
-
         }
-
     }
 }

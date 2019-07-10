@@ -1,9 +1,7 @@
-﻿using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.FEM.Entities;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.FEM.Postprocessing
 {
@@ -22,16 +20,16 @@ namespace ISAAR.MSolve.FEM.Postprocessing
             this.data = new Dictionary<Node, double[]>(model.Nodes.Count);
         }
 
-        public void FindNodalDisplacements(IVector solution)
+        public void FindNodalDisplacements(IVectorView solution)
         {
             foreach (var idxNodePair in model.NodesDictionary)
             {
-                Dictionary<DOFType, int> nodalDofs = model.NodalDOFsDictionary[idxNodePair.Key];
-                if (nodalDofs.Count != 2) throw new Exception("There must be exactly 2 dofs per node, X and Y");
-                int dofXIdx = nodalDofs[DOFType.X];
-                double ux = (dofXIdx != Model.constrainedDofIdx) ? solution[dofXIdx] : 0.0;
-                int dofYIdx = nodalDofs[DOFType.Y];
-                double uy = (dofYIdx != Model.constrainedDofIdx) ? solution[dofYIdx] : 0.0;
+                Node node = idxNodePair.Value;
+                //if (nodalDofs.Count != 2) throw new Exception("There must be exactly 2 dofs per node, X and Y");
+                bool isFree = model.GlobalDofOrdering.GlobalFreeDofs.TryGetValue(node, StructuralDof.TranslationX, out int dofXIdx);
+                double ux = isFree ? solution[dofXIdx] : 0.0;
+                isFree = model.GlobalDofOrdering.GlobalFreeDofs.TryGetValue(node, StructuralDof.TranslationY, out int dofYIdx);
+                double uy = isFree ? solution[dofYIdx] : 0.0;
                 data.Add(idxNodePair.Value, new double[] { ux, uy });
             }
         }

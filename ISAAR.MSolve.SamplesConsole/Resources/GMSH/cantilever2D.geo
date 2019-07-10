@@ -12,9 +12,9 @@
 
 // Parametric dimensions
 minX = 0.0;
-minY = 0.0;
+miny: 0.0;
 maxX = 4.0;
-maxY = 20.0;
+maxy: 20.0;
 
 // Mesh size
 lc =  1.0;

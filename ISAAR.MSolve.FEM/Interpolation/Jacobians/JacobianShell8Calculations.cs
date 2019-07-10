@@ -1,9 +1,8 @@
-﻿using ISAAR.MSolve.Discretization.Integration.Quadratures;
-using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using ISAAR.MSolve.Discretization.Integration.Quadratures;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 //J_0a and ll1 can only be calculated during initialization (at the first configuration) and then cached
 namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
@@ -54,14 +53,14 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
             return (ll1, J_0a);
         }
 
-        public static (Matrix2D[] ll1, Matrix2D[] J_0a)
-           Getll1AndJ_0a(IQuadrature3D quadrature, double[] tk, IReadOnlyList<Vector> shapeFunctions, IReadOnlyList<Matrix2D> shapeFunctionDerivatives)
+        public static (Matrix[] ll1, Matrix[] J_0a) Getll1AndJ_0a(IQuadrature3D quadrature, double[] tk, 
+            IReadOnlyList<double[]> shapeFunctions, IReadOnlyList<Matrix> shapeFunctionDerivatives)
         {
             int nGaussPoints = quadrature.IntegrationPoints.Count;
-            Matrix2D[] ll1;
-            ll1 = new Matrix2D[nGaussPoints];
+            Matrix[] ll1;
+            ll1 = new Matrix[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
-            { ll1[j] = new Matrix2D(3, 24); }
+            { ll1[j] = Matrix.CreateZero(3, 24); }
             for (int j = 0; j < nGaussPoints; j++) //calcualte ll1 as a whole, at each gp
             {
                 var gaussPoint = quadrature.IntegrationPoints[j];
@@ -80,10 +79,10 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
 
             }
 
-            Matrix2D[] J_0a;//final values (not precalculated )
-            J_0a = new Matrix2D[nGaussPoints];
+            Matrix[] J_0a;//final values (not precalculated )
+            J_0a = new Matrix[nGaussPoints];
             for (int j = 0; j < nGaussPoints; j++)
-            { J_0a[j] = new Matrix2D(3, 16); }
+            { J_0a[j] = Matrix.CreateZero(3, 16); }
             for (int j = 0; j < nGaussPoints; j++)
             {
                 for (int k = 0; k < 8; k++)
@@ -100,8 +99,8 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
             return (ll1, J_0a);
         }
 
-        public static (Matrix2D [] J_0inv,  double[] detJ_0) 
-            GetJ_0invAndDetJ_0(Matrix2D[] J_0a, IList<INode> elementNodes, double[][] oVn_i, int nGaussPoints)
+        public static (Matrix [] J_0inv,  double[] detJ_0) 
+            GetJ_0invAndDetJ_0(Matrix[] J_0a, IReadOnlyList<INode> elementNodes, double[][] oVn_i, int nGaussPoints)
         {
             double[][] ox_i = new double[8][];
             for (int j = 0; j < 8; j++)
@@ -163,10 +162,9 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
                 detJ_0[j] = jacobianDeterminant;
             }
 
-            Matrix2D [] J_0inv;
-            J_0inv = new Matrix2D[nGaussPoints];
-            for (int j = 0; j < nGaussPoints; j++)
-            { J_0inv[j] = new Matrix2D(3, 3); }
+            Matrix [] J_0inv;
+            J_0inv = new Matrix[nGaussPoints];
+            for (int j = 0; j < nGaussPoints; j++) J_0inv[j] = Matrix.CreateZero(3, 3);
             for (int j = 0; j < nGaussPoints; j++)
             {
                 J_0inv[j][0, 0] = ((J_0[j][1, 1] * J_0[j][2, 2]) - (J_0[j][2, 1] * J_0[j][1, 2])) *
@@ -192,16 +190,16 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
             return (J_0inv, detJ_0);
         }
 
-        public static Matrix2D[]  Get_J_1(int nGaussPoints, double[][] tx_i, double[][] tU, Matrix2D[] J_0a)
+        public static Matrix[]  Get_J_1(int nGaussPoints, double[][] tx_i, double[][] tU, Matrix[] J_0a)
         {
             double[,] J_1b;
 
             J_1b = new double[16, 3];
-            var J_1 = new Matrix2D[nGaussPoints];
+            var J_1 = new Matrix[nGaussPoints];
 
             for (int j = 0; j < nGaussPoints; j++)
             {
-                J_1[j] = new Matrix2D(3, 3);              
+                J_1[j] = Matrix.CreateZero(3, 3);              
             }
 
             for (int j = 0; j < 8; j++)

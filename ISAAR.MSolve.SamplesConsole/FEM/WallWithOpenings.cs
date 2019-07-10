@@ -1,19 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.FEM.Elements;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.Discretization.Mesh.Generation;
+using ISAAR.MSolve.Discretization.Mesh.Generation.GMSH;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Geometry.Shapes;
-using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Preprocessor.Meshes;
-using ISAAR.MSolve.Preprocessor.Meshes.Custom;
-using ISAAR.MSolve.Preprocessor.Meshes.GMSH;
-using ISAAR.MSolve.Preprocessor.UI;
+using ISAAR.MSolve.SamplesConsole.Preprocessing;
 
 namespace ISAAR.MSolve.SamplesConsole.FEM
 {
@@ -47,25 +40,25 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
 
             // Read mesh from GMSH file
             string meshPath = workingDirectory + "\\wall.msh";
-            IReadOnlyList<Node2D> nodes;
-            IReadOnlyList<CellConnectivity2D> elements;
-            using (var reader = new GmshReader2D(meshPath))
+            IReadOnlyList<Node> nodes;
+            IReadOnlyList<CellConnectivity<Node>> elements;
+            using (var reader = new GmshReader<Node>(meshPath))
             {
-                (nodes, elements) = reader.CreateMesh();
+                (nodes, elements) = reader.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
             }
             model.AddMesh2D(nodes, elements, material);
 
             // Prescribed displacements
             double tol = 1E-10;
-            IEnumerable<Node2D> constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol);
-            model.ApplyPrescribedDisplacements(constrainedNodes, DOFType.X, 0.0);
-            model.ApplyPrescribedDisplacements(constrainedNodes, DOFType.Y, 0.0);
+            IEnumerable<Node> constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol);
+            model.ApplyPrescribedDisplacements(constrainedNodes, StructuralDof.TranslationX, 0.0);
+            model.ApplyPrescribedDisplacements(constrainedNodes, StructuralDof.TranslationY, 0.0);
 
             // Loads
-            Node2D[] loadedNodes = nodes.Where(
+            Node[] loadedNodes = nodes.Where(
                 node => (Math.Abs(node.Y - height) <= tol) && ((Math.Abs(node.X) <= tol))).ToArray();
             if (loadedNodes.Length != 1) throw new Exception("Only 1 node was expected at the top left corner");
-            model.ApplyNodalLoad(loadedNodes[0], DOFType.X, horizontalLoad);
+            model.ApplyNodalLoad(loadedNodes[0], StructuralDof.TranslationX, horizontalLoad);
 
             // Define output
             OutputRequests output = new OutputRequests(workingDirectory + "\\Plots");
@@ -106,25 +99,25 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
 
             // Read mesh from GMSH file
             string meshPath = workingDirectory + "\\wall.msh";
-            IReadOnlyList<Node2D> nodes;
-            IReadOnlyList<CellConnectivity2D> elements;
-            using (var reader = new GmshReader2D(meshPath))
+            IReadOnlyList<Node> nodes;
+            IReadOnlyList<CellConnectivity<Node>> elements;
+            using (var reader = new GmshReader<Node>(meshPath))
             {
-                (nodes, elements) = reader.CreateMesh();
+                (nodes, elements) = reader.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
             }
             model.AddMesh2D(nodes, elements, material, dynamicProperties);
 
             // Prescribed displacements
             double tol = 1E-10;
-            IEnumerable<Node2D> constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol);
-            model.ApplyPrescribedDisplacements(constrainedNodes, DOFType.X, 0.0);
-            model.ApplyPrescribedDisplacements(constrainedNodes, DOFType.Y, 0.0);
+            IEnumerable<Node> constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol);
+            model.ApplyPrescribedDisplacements(constrainedNodes, StructuralDof.TranslationX, 0.0);
+            model.ApplyPrescribedDisplacements(constrainedNodes, StructuralDof.TranslationY, 0.0);
 
             // Loads
             string accelerogramPath = workingDirectory + "\\elcentro_NS.txt";
-            Dictionary<DOFType, double> magnifications = new Dictionary<DOFType, double>
+            Dictionary<IDofType, double> magnifications = new Dictionary<IDofType, double>
             {
-                { DOFType.X, 1.0 }
+                { StructuralDof.TranslationX, 1.0 }
             };
             model.SetGroundMotion(accelerogramPath, magnifications, 0.02, 53.74);
 

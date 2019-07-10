@@ -1,106 +1,101 @@
 ﻿using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Analyzers.Interfaces;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
-using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Materials;
+using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.LinearAlgebra.Iterative.PreconditionedConjugateGradient;
+using ISAAR.MSolve.LinearAlgebra.Iterative.Termination;
+using ISAAR.MSolve.Logging;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Skyline;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Solvers.Iterative;
 using Xunit;
 
 namespace ISAAR.MSolve.Tests
 {
-    public class Quad4LinearCantileverExample
+    public static class Quad4LinearCantileverExample
     {
         [Fact]
-        public void TestQuad4LinearCantileverExample()
+        private static void TestQuad4LinearCantileverExample()
         {
-            VectorExtensions.AssignTotalAffinityCount();
+            // Model & subdomains
+            var model = new Model();
+            int subdomainID = 0;
+            model.SubdomainsDictionary.Add(subdomainID, new Subdomain(subdomainID));
+
+            // Materials
             double youngModulus = 3.76;
             double poissonRatio = 0.3779;
             double thickness = 1.0;
             double nodalLoad = 500.0;
-
-            ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
+            var material = new ElasticMaterial2D(StressState2D.PlaneStress)
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio
             };
 
-            // Node creation
-            IList<Node> nodes = new List<Node>();
-            Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
-            Node node2 = new Node { ID = 2, X = 10.0, Y = 0.0, Z = 0.0 };
-            Node node3 = new Node { ID = 3, X = 10.0, Y = 10.0, Z = 0.0 };
-            Node node4 = new Node { ID = 4, X = 0.0, Y = 10.0, Z = 0.0 };
-            nodes.Add(node1);
-            nodes.Add(node2);
-            nodes.Add(node3);
-            nodes.Add(node4);
-
-            // Model creation
-            Model model = new Model();
-
-            // Add a single subdomain to the model
-            model.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
-
-            // Add nodes to the nodes dictonary of the model
-            for (int i = 0; i < nodes.Count; ++i)
+            // Nodes
+            var nodes = new Node[]
             {
-                model.NodesDictionary.Add(i + 1, nodes[i]);
-            }
-
-            // Constrain bottom nodes of the model
-            model.NodesDictionary[1].Constraints.Add(DOFType.X);
-            model.NodesDictionary[1].Constraints.Add(DOFType.Y);
-            model.NodesDictionary[4].Constraints.Add(DOFType.X);
-            model.NodesDictionary[4].Constraints.Add(DOFType.Y);
-
-            // Create Quad4 element
-            var quad = new Quad4(material) { Thickness = thickness };
-            var element = new Element()
-            {
-                ID = 1,
-                ElementType = quad,
+                new Node( id: 1, x:  0.0, y:   0.0, z: 0.0 ),
+                new Node( id: 2, x: 10.0, y:   0.0, z: 0.0 ),
+                new Node( id: 3, x: 10.0, y:  10.0, z: 0.0 ),
+                new Node( id: 4, x:  0.0, y:  10.0, z: 0.0 )
             };
+            for (int i = 0; i < nodes.Length; ++i) model.NodesDictionary.Add(i, nodes[i]);
 
-            // Add nodes to the created element
-            element.AddNode(model.NodesDictionary[1]);
-            element.AddNode(model.NodesDictionary[2]);
-            element.AddNode(model.NodesDictionary[3]);
-            element.AddNode(model.NodesDictionary[4]);
 
-            // Element Stiffness Matrix
-            var a = quad.StiffnessMatrix(element);
+            // Elements
+            var factory = new ContinuumElement2DFactory(thickness, material, null);
 
-            // Add quad element to the element and subdomains dictionary of the model
-            model.ElementsDictionary.Add(element.ID, element);
-            model.SubdomainsDictionary[1].ElementsDictionary.Add(element.ID, element);
+            var elementWrapper = new Element()
+            {
+                ID = 0,
+                ElementType = factory.CreateElement(CellType.Quad4, nodes)
+            };
+            elementWrapper.AddNodes(nodes);
+            model.ElementsDictionary.Add(elementWrapper.ID, elementWrapper);
+            model.SubdomainsDictionary[subdomainID].Elements.Add(elementWrapper);
 
-            // define loads
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[2], DOF = DOFType.X });
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[3], DOF = DOFType.X });
-            model.ConnectDataStructures();
-            var linearSystems = new Dictionary<int, ILinearSystem>();
-            linearSystems[1] = new SkylineLinearSystem(1, model.Subdomains[0].Forces);
-            SolverSkyline solver = new SolverSkyline(linearSystems[1]);
-            ProblemStructural provider = new ProblemStructural(model, linearSystems);
-            // Choose child analyzer -> Child: Linear or NewtonRaphsonNonLinearAnalyzer
-            LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
-            // Choose parent analyzer -> Parent: Static or Dynamic
-            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
+            //var a = quad.StiffnessMatrix(element);
+
+            // Prescribed displacements
+            model.NodesDictionary[0].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationX, Amount = 0.0 });
+            model.NodesDictionary[0].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationY, Amount = 0.0 });
+            model.NodesDictionary[3].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationX, Amount = 0.0 });
+            model.NodesDictionary[3].Constraints.Add(new Constraint() { DOF = StructuralDof.TranslationY, Amount = 0.0 });
+
+            // Nodal loads
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[1], DOF = StructuralDof.TranslationX });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[2], DOF = StructuralDof.TranslationX });
+
+            // Solver
+            var pcgBuilder = new PcgAlgorithm.Builder();
+            pcgBuilder.ResidualTolerance = 1E-6;
+            pcgBuilder.MaxIterationsProvider = new PercentageMaxIterationsProvider(0.5);
+            var solverBuilder = new PcgSolver.Builder();
+            solverBuilder.PcgAlgorithm = pcgBuilder.Build();
+            PcgSolver solver = solverBuilder.BuildSolver(model);
+
+            // Problem type
+            var provider = new ProblemStructural(model, solver);
+
+            // Analyzers
+            var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
             //NewmarkDynamicAnalyzer parentAnalyzer = new NewmarkDynamicAnalyzer(provider, childAnalyzer, linearSystems, 0.25, 0.5, 0.28, 3.36);
-            parentAnalyzer.BuildMatrices();
+
+            // Request output
+            childAnalyzer.LogFactories[subdomainID] = new LinearAnalyzerLogFactory(new int[] { 0 });
+
+            // Run the anlaysis 
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
-            Assert.Equal(253.132375961535, linearSystems[1].Solution[0], 8);
+
+            // Check output
+            DOFSLog log = (DOFSLog)childAnalyzer.Logs[subdomainID][0]; //There is a list of logs for each subdomain and we want the first one
+            Assert.Equal(253.132375961535, log.DOFValues[0], 8);
         }
     }
 }

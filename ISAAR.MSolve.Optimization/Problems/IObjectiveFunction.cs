@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Optimization.Problems
 {
+    //TODO: use a design class for this.
+    public delegate (double f, Vector gradF) DifferentiableObjectiveFunction(Vector x);
+
     /// <summary>
     /// Represents an objective function of an optimization problem. It will be called be the selected optimization algorithm. 
     /// The user hooks the model he wants to optimize by implementing this interface. 

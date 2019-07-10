@@ -1,18 +1,15 @@
-﻿using ISAAR.MSolve.Logging.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Logging.Interfaces;
 
+//TODO: should child analyzers hold references to their parent analyzers?
 namespace ISAAR.MSolve.Analyzers.Interfaces
 {
     public interface IAnalyzer
     {
-        IAnalyzer ParentAnalyzer { get; set; }
-        IAnalyzer ChildAnalyzer { get; set; }
         Dictionary<int, IAnalyzerLog[]> Logs { get; }
-        void BuildMatrices();
-        void Initialize();
+
+        void BuildMatrices(); //This makes sense for parent analyzers only.
+        void Initialize(bool isFirstAnalysis); // The user should not have to call this.
         void Solve();
     }
 }

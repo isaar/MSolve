@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Materials;
 
 namespace ISAAR.MSolve.SamplesConsole
 {
@@ -86,8 +84,8 @@ namespace ISAAR.MSolve.SamplesConsole
             return new Node[] { nodeRight, nodeTop, nodeLeft, nodeBottom };
         }
 
-        public static void MakeBeamBuilding(Model model, double startX, double startY, double startZ, double beamWidth, double beamHeight,
-            int startNodeID, int startElementID, int subdomainID, int floors, bool isInHexaSoil, bool hasPiles)
+        public static void MakeBeamBuilding(Model model, double startX, double startY, double startZ, double beamWidth,
+            double beamHeight, int startNodeID, int startElementID, int subdomainID, int floors, bool isInHexaSoil, bool hasPiles)
         {
             const int nodesPerFloor = 18;
 
@@ -99,39 +97,39 @@ namespace ISAAR.MSolve.SamplesConsole
                 {
                     for (int k = 0; k < 5; k++)
                     {
-                        model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + k * beamWidth, Y = startY, Z = startZ + j * beamWidth });
-                        model.NodesDictionary[nodeID].Constraints.Add(DOFType.X);
-                        model.NodesDictionary[nodeID].Constraints.Add(DOFType.Y);
-                        model.NodesDictionary[nodeID].Constraints.Add(DOFType.Z);
-                        model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotX);
-                        model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotY);
-                        model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotZ);
+                        model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + k * beamWidth, y:  startY, z: startZ + j * beamWidth ));
+                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
+                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationX });
+                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationY });
+                        model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationZ });
                         nodeID++;
                     }
                 }
-                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 2 * beamWidth, Y = startY, Z = startZ + 3 * beamWidth });
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.X);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.Y);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.Z);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotX);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotY);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotZ);
+                model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + 2 * beamWidth, y:  startY, z: startZ + 3 * beamWidth ));
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationX });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationY });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationZ });
                 nodeID++;
-                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 3 * beamWidth, Y = startY, Z = startZ + 3 * beamWidth });
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.X);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.Y);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.Z);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotX);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotY);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotZ);
+                model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + 3 * beamWidth, y:  startY, z: startZ + 3 * beamWidth ));
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationX });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationY });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationZ });
                 nodeID++;
-                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 4 * beamWidth, Y = startY, Z = startZ + 3 * beamWidth });
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.X);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.Y);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.Z);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotX);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotY);
-                model.NodesDictionary[nodeID].Constraints.Add(DOFType.RotZ);
+                model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + 4 * beamWidth, y:  startY, z: startZ + 3 * beamWidth ));
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationX });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationY });
+                model.NodesDictionary[nodeID].Constraints.Add(new Constraint { DOF = StructuralDof.RotationZ });
                 nodeID++;
             }
 
@@ -141,15 +139,15 @@ namespace ISAAR.MSolve.SamplesConsole
                 {
                     for (int k = 0; k < 5; k++)
                     {
-                        model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + k * beamWidth, Y = startY + i * beamHeight, Z = startZ + j * beamWidth });
+                        model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + k * beamWidth, y:  startY + i * beamHeight, z: startZ + j * beamWidth ));
                         nodeID++;
                     }
                 }
-                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 2 * beamWidth, Y = startY + i * beamHeight, Z = startZ + 3 * beamWidth });
+                model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + 2 * beamWidth, y:  startY + i * beamHeight, z: startZ + 3 * beamWidth ));
                 nodeID++;
-                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 3 * beamWidth, Y = startY + i * beamHeight, Z = startZ + 3 * beamWidth });
+                model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + 3 * beamWidth, y:  startY + i * beamHeight, z: startZ + 3 * beamWidth ));
                 nodeID++;
-                model.NodesDictionary.Add(nodeID, new Node() { ID = nodeID, X = startX + 4 * beamWidth, Y = startY + i * beamHeight, Z = startZ + 3 * beamWidth });
+                model.NodesDictionary.Add(nodeID, new Node(id: nodeID, x: startX + 4 * beamWidth, y:  startY + i * beamHeight, z: startZ + 3 * beamWidth ));
                 nodeID++;
             }
             List<Node> groundNodes = new List<Node>();
@@ -187,7 +185,7 @@ namespace ISAAR.MSolve.SamplesConsole
                             {
                                 Density = 7.85,
                                 SectionArea = b * h,
-                                MomentOfInertiaY = b * b * b * h,
+                                MomentOfInertiaY= b * b * b * h,
                                 MomentOfInertiaZ = b * h * h * h,
                             }
                         };
@@ -196,7 +194,7 @@ namespace ISAAR.MSolve.SamplesConsole
                         foreach (Node node in sub2AdjacentNodes) e.NodesDictionary.Add(node.ID, node);
                         foreach (Node node in sub1AdjacentNodes) e.NodesDictionary.Add(node.ID, node);
                         model.ElementsDictionary.Add(e.ID, e);
-                        model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e.ID, e);
+                        model.SubdomainsDictionary[subdomainID].Elements.Add(e);
                         elementID++;
                     }
                     // Create sub1 piles
@@ -220,7 +218,7 @@ namespace ISAAR.MSolve.SamplesConsole
                         foreach (Node node in sub1AdjacentNodes) e.NodesDictionary.Add(node.ID, node);
                         foreach (Node node in groundAdjacentNodes) e.NodesDictionary.Add(node.ID, node);
                         model.ElementsDictionary.Add(e.ID, e);
-                        model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e.ID, e);
+                        model.SubdomainsDictionary[subdomainID].Elements.Add(e);
                         elementID++;
                     }
                 }
@@ -253,7 +251,7 @@ namespace ISAAR.MSolve.SamplesConsole
                     foreach (Node node in groundAdjacentNodes)
                         e.NodesDictionary.Add(node.ID, node);
                 model.ElementsDictionary.Add(e.ID, e);
-                model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e.ID, e);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(e);
                 elementID++;
             }
 
@@ -279,7 +277,7 @@ namespace ISAAR.MSolve.SamplesConsole
                         e.NodesDictionary.Add(startNodeID + i * nodesPerFloor + j * 5 + k, model.NodesDictionary[startNodeID + i * nodesPerFloor + j * 5 + k]);
                         e.NodesDictionary.Add(startNodeID + i * nodesPerFloor + j * 5 + k + 1, model.NodesDictionary[startNodeID + i * nodesPerFloor + j * 5 + k + 1]);
                         model.ElementsDictionary.Add(e.ID, e);
-                        model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e.ID, e);
+                        model.SubdomainsDictionary[subdomainID].Elements.Add(e);
                         elementID++;
                     }
                 }
@@ -297,7 +295,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 e.NodesDictionary.Add(startNodeID + i * nodesPerFloor + 3 * 5, model.NodesDictionary[startNodeID + i * nodesPerFloor + 3 * 5]);
                 e.NodesDictionary.Add(startNodeID + i * nodesPerFloor + 3 * 5 + 1, model.NodesDictionary[startNodeID + i * nodesPerFloor + 3 * 5 + 1]);
                 model.ElementsDictionary.Add(e.ID, e);
-                model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e.ID, e);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(e);
                 elementID++;
                 e = new Element()
                 {
@@ -313,7 +311,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 e.NodesDictionary.Add(startNodeID + i * nodesPerFloor + 3 * 5 + 1, model.NodesDictionary[startNodeID + i * nodesPerFloor + 3 * 5 + 1]);
                 e.NodesDictionary.Add(startNodeID + i * nodesPerFloor + 3 * 5 + 2, model.NodesDictionary[startNodeID + i * nodesPerFloor + 3 * 5 + 2]);
                 model.ElementsDictionary.Add(e.ID, e);
-                model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e.ID, e);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(e);
                 elementID++;
                 // Vertical elements
                 for (int j = 0; j < 5; j++)
@@ -334,7 +332,7 @@ namespace ISAAR.MSolve.SamplesConsole
                         e.NodesDictionary.Add(startNodeID + i * nodesPerFloor + k * 5 + j, model.NodesDictionary[startNodeID + i * nodesPerFloor + k * 5 + j]);
                         e.NodesDictionary.Add(startNodeID + i * nodesPerFloor + (k + 1) * 5 + j, model.NodesDictionary[startNodeID + i * nodesPerFloor + (k + 1) * 5 + j]);
                         model.ElementsDictionary.Add(e.ID, e);
-                        model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e.ID, e);
+                        model.SubdomainsDictionary[subdomainID].Elements.Add(e);
                         elementID++;
                     }
                 }
@@ -352,7 +350,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 e.NodesDictionary.Add(startNodeID + i * nodesPerFloor + 2 * 5 + 2, model.NodesDictionary[startNodeID + i * nodesPerFloor + 2 * 5 + 2]);
                 e.NodesDictionary.Add(startNodeID + i * nodesPerFloor + 2 * 5 + 5, model.NodesDictionary[startNodeID + i * nodesPerFloor + 2 * 5 + 5]);
                 model.ElementsDictionary.Add(e.ID, e);
-                model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e.ID, e);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(e);
                 elementID++;
                 e = new Element()
                 {
@@ -368,7 +366,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 e.NodesDictionary.Add(startNodeID + i * nodesPerFloor + 2 * 5 + 3, model.NodesDictionary[startNodeID + i * nodesPerFloor + 2 * 5 + 3]);
                 e.NodesDictionary.Add(startNodeID + i * nodesPerFloor + 2 * 5 + 6, model.NodesDictionary[startNodeID + i * nodesPerFloor + 2 * 5 + 6]);
                 model.ElementsDictionary.Add(e.ID, e);
-                model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e.ID, e);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(e);
                 elementID++;
                 e = new Element()
                 {
@@ -384,7 +382,7 @@ namespace ISAAR.MSolve.SamplesConsole
                 e.NodesDictionary.Add(startNodeID + i * nodesPerFloor + 2 * 5 + 4, model.NodesDictionary[startNodeID + i * nodesPerFloor + 2 * 5 + 4]);
                 e.NodesDictionary.Add(startNodeID + i * nodesPerFloor + 2 * 5 + 7, model.NodesDictionary[startNodeID + i * nodesPerFloor + 2 * 5 + 7]);
                 model.ElementsDictionary.Add(e.ID, e);
-                model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e.ID, e);
+                model.SubdomainsDictionary[subdomainID].Elements.Add(e);
                 elementID++;
                 // Floor-to-floor beams
                 if (i == floors - 1) continue;
@@ -404,7 +402,7 @@ namespace ISAAR.MSolve.SamplesConsole
                     e.NodesDictionary.Add(startNodeID + i * nodesPerFloor + j, model.NodesDictionary[startNodeID + i * nodesPerFloor + j]);
                     e.NodesDictionary.Add(startNodeID + (i + 1) * nodesPerFloor + j, model.NodesDictionary[startNodeID + (i + 1) * nodesPerFloor + j]);
                     model.ElementsDictionary.Add(e.ID, e);
-                    model.SubdomainsDictionary[subdomainID].ElementsDictionary.Add(e.ID, e);
+                    model.SubdomainsDictionary[subdomainID].Elements.Add(e);
                     elementID++;
                 }
             }

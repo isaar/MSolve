@@ -16,7 +16,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
         private readonly double x1, x2, x3, y1, y2, y3;
         private readonly double det;
 
-        public InverseInterpolationTri3(IReadOnlyList<Node2D> nodes)
+        public InverseInterpolationTri3(IReadOnlyList<Node> nodes)
         {
             x1 = nodes[0].X;
             x2 = nodes[1].X;
@@ -27,11 +27,11 @@ namespace ISAAR.MSolve.FEM.Interpolation.Inverse
             det = (x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1);
         }
 
-        public NaturalPoint2D TransformPointCartesianToNatural(CartesianPoint2D point)
+        public NaturalPoint TransformPointCartesianToNatural(CartesianPoint point)
         {
             double detXi = (point.X - x1) * (y3 - y1) - (x3 - x1) * (point.Y - y1);
             double detEta = (x2 - x1) * (point.Y - y1) - (point.X - x1) * (y2 - y1);
-            return new NaturalPoint2D(detXi / det, detEta / det);
+            return new NaturalPoint(detXi / det, detEta / det);
         }
     }
 }

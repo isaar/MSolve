@@ -1,17 +1,13 @@
-﻿using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Analyzers.Interfaces;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Analyzers;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
 using ISAAR.MSolve.FEM.Elements;
-using ISAAR.MSolve.FEM.Elements.SupportiveClasses;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
+using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Skyline;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Solvers;
+using ISAAR.MSolve.Solvers.Direct;
 using Xunit;
 
 namespace ISAAR.MSolve.Tests
@@ -21,7 +17,6 @@ namespace ISAAR.MSolve.Tests
         [Fact]
         public void TestEulerBeam2DLinearBendingExample()
         {
-            VectorExtensions.AssignTotalAffinityCount();
             double youngModulus = 21000.0;
             double poissonRatio = 0.3;
             double nodalLoad = 2000.0;
@@ -29,7 +24,7 @@ namespace ISAAR.MSolve.Tests
             int monitorNode = 3;
 
             // Create new material
-            ElasticMaterial material = new ElasticMaterial()
+            var material = new ElasticMaterial()
             {
                 YoungModulus = youngModulus,
                 PoissonRatio = poissonRatio,
@@ -37,9 +32,9 @@ namespace ISAAR.MSolve.Tests
 
             // Node creation
             IList<Node> nodes = new List<Node>();
-            Node node1 = new Node { ID = 1, X = 0.0, Y = 0.0, Z = 0.0 };
-            Node node2 = new Node { ID = 2, X = 100.0, Y = 0.0, Z = 0.0 };
-            Node node3 = new Node { ID = 3, X = 200.0, Y = 0.0, Z = 0.0 };
+            Node node1 = new Node( id: 1, x:   0.0, y:  0.0, z: 0.0 );
+            Node node2 = new Node( id: 2, x: 100.0, y:  0.0, z: 0.0 );
+            Node node3 = new Node( id: 3, x: 200.0, y:  0.0, z: 0.0 );
             nodes.Add(node1);
             nodes.Add(node2);
             nodes.Add(node3);
@@ -48,7 +43,7 @@ namespace ISAAR.MSolve.Tests
             Model model = new Model();
 
             // Add a single subdomain to the model
-            model.SubdomainsDictionary.Add(1, new Subdomain() { ID = 1 });
+            model.SubdomainsDictionary.Add(1, new Subdomain(1));
 
             // Add nodes to the nodes dictonary of the model
             for (int i = 0; i < nodes.Count; ++i)
@@ -57,12 +52,12 @@ namespace ISAAR.MSolve.Tests
             }
 
             // Constrain bottom nodes of the model
-            model.NodesDictionary[1].Constraints.Add(DOFType.X);
-            model.NodesDictionary[1].Constraints.Add(DOFType.Y);
-            model.NodesDictionary[1].Constraints.Add(DOFType.Z);
-            model.NodesDictionary[1].Constraints.Add(DOFType.RotX);
-            model.NodesDictionary[1].Constraints.Add(DOFType.RotY);
-            model.NodesDictionary[1].Constraints.Add(DOFType.RotZ);
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationZ });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.RotationX });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.RotationY });
+            model.NodesDictionary[1].Constraints.Add(new Constraint { DOF = StructuralDof.RotationZ });
             // Generate elements of the structure
             int iNode = 1;
             for (int iElem = 0; iElem < nElems; iElem++)
@@ -89,35 +84,35 @@ namespace ISAAR.MSolve.Tests
 
                 // Add Hexa element to the element and subdomains dictionary of the model
                 model.ElementsDictionary.Add(element.ID, element);
-                model.SubdomainsDictionary[1].ElementsDictionary.Add(element.ID, element);
+                model.SubdomainsDictionary[1].Elements.Add(element);
                 iNode++;
             }
 
             // Add nodal load values at the top nodes of the model
-            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode], DOF = DOFType.Y });
+            model.Loads.Add(new Load() { Amount = nodalLoad, Node = model.NodesDictionary[monitorNode], DOF = StructuralDof.TranslationY });
 
-            // Needed in order to make all the required data structures
-            model.ConnectDataStructures();
+            // Solver
+            //var solverBuilder = new MSolve.Solvers.Iterative.PcgSolver.Builder(
+            //    (new LinearAlgebra.Iterative.ConjugateGradient.PcgAlgorithm.Builder()).Build());
+            //var solver = solverBuilder.BuildSolver(model);
+            var solverBuilder = new SkylineSolver.Builder();
+            ISolver solver = solverBuilder.BuildSolver(model);
 
-            // Choose linear equation system solver
-            var linearSystems = new Dictionary<int, ILinearSystem>();
-            linearSystems[1] = new SkylineLinearSystem(1, model.Subdomains[0].Forces);
-            SolverSkyline solver = new SolverSkyline(linearSystems[1]);
+            // Problem type
+            var provider = new ProblemStructural(model, solver);
 
-            // Choose the provider of the problem -> here a structural problem
-            ProblemStructural provider = new ProblemStructural(model, linearSystems);
+            // Analyzers
+            var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
 
-            // Choose child analyzer -> Child: LinearAnalyzer
-            LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
-
-            // Choose parent analyzer -> Parent: Static
-            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
-
-            parentAnalyzer.BuildMatrices();
+            // Run the anlaysis 
             parentAnalyzer.Initialize();
             parentAnalyzer.Solve();
 
-            Assert.Equal(31.388982074929341, linearSystems[1].Solution[4], 12);
+            double solutionNorm = solver.LinearSystems[1].Solution.Norm2();
+            double rhsNorm = solver.LinearSystems[1].RhsVector.Norm2();
+
+            Assert.Equal(31.388982074929341, solver.LinearSystems[1].Solution[4], 12);
         }
     }
 }

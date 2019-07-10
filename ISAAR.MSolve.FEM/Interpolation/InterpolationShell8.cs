@@ -1,11 +1,9 @@
-﻿using ISAAR.MSolve.Discretization.Integration.Quadratures;
+﻿using System;
+using System.Collections.Generic;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 //TODO: rename IsoparametricInterpolation3DBase. It works for shells as well.
 namespace ISAAR.MSolve.FEM.Interpolation
@@ -16,25 +14,36 @@ namespace ISAAR.MSolve.FEM.Interpolation
 
         private InterpolationShell8() : base(8)
         {
-            NodalNaturalCoordinates = new NaturalPoint3D[]
+            NodalNaturalCoordinates = new NaturalPoint[]
             {
                 //TODO: validate this
-                new NaturalPoint3D(1, 1, 0),
-                new NaturalPoint3D(-1, 1, 0),
-                new NaturalPoint3D(-1, -1, 0),
-                new NaturalPoint3D(1, -1, 0),
-                new NaturalPoint3D(0, 1, 0),
-                new NaturalPoint3D(-1, 0, 0),
-                new NaturalPoint3D(0, -1, 0),
-                new NaturalPoint3D(1, 0, 0)
+                new NaturalPoint(1, 1, 0),
+                new NaturalPoint(-1, 1, 0),
+                new NaturalPoint(-1, -1, 0),
+                new NaturalPoint(1, -1, 0),
+                new NaturalPoint(0, 1, 0),
+                new NaturalPoint(-1, 0, 0),
+                new NaturalPoint(0, -1, 0),
+                new NaturalPoint(1, 0, 0)
             };
         }
 
-        public override IReadOnlyList<NaturalPoint3D> NodalNaturalCoordinates { get; }
+        public override IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
         public static InterpolationShell8 UniqueInstance => uniqueInstance;
 
-        public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> nodes) => throw new NotImplementedException();
+        /// <summary>
+        /// See <see cref="IIsoparametricInterpolation2D.CheckElementNodes(IReadOnlyList{Node})"/>
+        /// </summary>
+        public override void CheckElementNodes(IReadOnlyList<Node> nodes)
+        {
+            if (nodes.Count != 8) throw new ArgumentException(
+                $"A Shell8 finite element has 8 nodes, but {nodes.Count} nodes were provided.");
+            // TODO: Also check the order of the nodes too and perhaps even the shape
+        }
+
+        public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> nodes) 
+            => throw new NotImplementedException();
 
         protected override double[] EvaluateAt(double xi, double eta, double zeta)
         {
@@ -50,9 +59,9 @@ namespace ISAAR.MSolve.FEM.Interpolation
             return shapeFunctions;
         }
 
-        protected override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
+        protected override Matrix EvaluateGradientsAt(double xi, double eta, double zeta)
         {
-            var naturalDerivatives = new double[8, 2];
+            var naturalDerivatives = Matrix.CreateZero(8, 2);
 
             // Derivatives with respect to Xi
             naturalDerivatives[4, 0] = (-xi) * (1 + eta);

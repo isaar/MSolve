@@ -1,21 +1,20 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.Discretization.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-    public class ControlPoint:INode
+    public class ControlPoint : INode
 	{
-        private readonly List<DOFType> constrains = new List<DOFType>();
-        private readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
-        private readonly Dictionary<int, Patch> patchesDictionary =new Dictionary<int, Patch>();
-        
-        public List<DOFType> Constrains
+        protected readonly Dictionary<int, Element> elementsDictionary = new Dictionary<int, Element>();
+        protected readonly Dictionary<int, Patch> patchesDictionary =new Dictionary<int, Patch>();
+        private readonly List<Constraint> constraints = new List<Constraint>();
+
+		public List<Constraint> Constrains
         {
-            get { return constrains; }
+            get { return constraints; }
         }
 
         public Dictionary<int, Element> ElementsDictionary
@@ -37,36 +36,42 @@ namespace ISAAR.MSolve.IGA.Entities
         public double Heta { get; set; }
         public double Zeta { get; set; }
 
+        public List<Constraint> Constraints => constraints;
+
+        public Dictionary<int, ISubdomain> SubdomainsDictionary => throw new NotImplementedException();
+
         public void BuildPatchesDictionary()
         {
-            foreach (Element element in elementsDictionary.Values)
-                if (!patchesDictionary.ContainsKey(element.Patch.ID))
-                    patchesDictionary.Add(element.Patch.ID, element.Patch);
+            foreach (var element in elementsDictionary.Values)
+            {
+                if (element is ICollocationElement collocationElement)
+                {
+                    //if (!patchesDictionary.ContainsKey(collocationElement.Patch.ID))
+                    //    patchesDictionary.Add(collocationElement.Patch.ID, collocationElement.Patch);
+                }
+                else
+                {
+                    if (!patchesDictionary.ContainsKey(element.Patch.ID))
+                        patchesDictionary.Add(element.Patch.ID, element.Patch);
+                }
+                
+            }
+                
         }
 
+        public int CompareTo(INode other) => this.ID - other.ID;
 
         public override string ToString()
         {
             var header = String.Format("{0}: ({1}, {2}, {3})", ID, X, Y, Z);
             string constrainsDescription = string.Empty;
-            foreach (var c in constrains)
+            foreach (var c in constraints)
             {
                 string con = string.Empty;
-                switch (c)
-                {
-                    case DOFType.Unknown:
-                        con = "?";
-                        break;
-                    case DOFType.X:
-                        con = "X";
-                        break;
-                    case DOFType.Y:
-                        con = "Y";
-                        break;
-                    case DOFType.Z:
-                        con = "Z";
-                        break;
-                }
+                if (c.DOF == StructuralDof.TranslationX) con = "X";
+                if (c.DOF == StructuralDof.TranslationY) con = "Y";
+                if (c.DOF == StructuralDof.TranslationZ) con = "Z";
+                else con = "?";
                 constrainsDescription += c.ToString() + ", ";
             }
             constrainsDescription = constrainsDescription.Length>1? constrainsDescription.Substring(0, constrainsDescription.Length - 2) : constrainsDescription;

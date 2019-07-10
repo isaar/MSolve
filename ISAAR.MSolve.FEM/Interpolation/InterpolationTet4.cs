@@ -1,6 +1,7 @@
 ﻿using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using System;
 using System.Collections.Generic;
 
@@ -11,18 +12,18 @@ namespace ISAAR.MSolve.FEM.Interpolation
 	/// Implements sigleton pattern.
 	/// Authors: Dimitris Tsapetis
 	/// </summary>
-	public class InterpolationTet4:IsoparametricInterpolation3DBase
+	public class InterpolationTet4 : IsoparametricInterpolation3DBase
     {
 		private static readonly  InterpolationTet4 uniqueInstance= new InterpolationTet4();
 
 	    private InterpolationTet4() : base(4)
 	    {
-			NodalNaturalCoordinates= new NaturalPoint3D[]
+			NodalNaturalCoordinates= new NaturalPoint[]
 			{
-				new NaturalPoint3D(0,0,0),
-				new NaturalPoint3D(1,0,0),
-				new NaturalPoint3D(0,1,0),
-				new NaturalPoint3D(0,0,1),
+				new NaturalPoint(0,0,0),
+				new NaturalPoint(1,0,0),
+				new NaturalPoint(0,1,0),
+				new NaturalPoint(0,0,1),
 			};
 	    }
 
@@ -30,20 +31,31 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		/// The coordinates of the finite element's nodes in the natural (element local) coordinate system. The order
 		/// of these nodes matches the order of the shape functions and is always the same for each element.
 		/// </summary>
-	    public override IReadOnlyList<NaturalPoint3D> NodalNaturalCoordinates { get; }
+	    public override IReadOnlyList<NaturalPoint> NodalNaturalCoordinates { get; }
 
 		/// <summary>
 		/// Get the unique instance <see cref="InterpolationTet4"/> object for the whole program. Thread safe.
 		/// </summary>
 	    public static InterpolationTet4 UniqueInstance => uniqueInstance;
 
-		/// <summary>
-		/// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.
-		/// </summary>
-		/// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
-		/// <returns></returns>
-		// TODO: Find and implement inverse mapping for Tet4.
-	    public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node3D> node) => throw new NotImplementedException("Not implemented yet.");
+        /// <summary>
+        /// See <see cref="IIsoparametricInterpolation2D.CheckElementNodes(IReadOnlyList{Node})"/>
+        /// </summary>
+        public override void CheckElementNodes(IReadOnlyList<Node> nodes)
+        {
+            if (nodes.Count != 4) throw new ArgumentException(
+                $"A Tetra4 finite element has 4 nodes, but {nodes.Count} nodes were provided.");
+            // TODO: Also check the order of the nodes too and perhaps even the shape
+        }
+
+        /// <summary>
+        /// The inverse mapping of this interpolation, namely from global cartesian to natural (element local) coordinate system.
+        /// </summary>
+        /// <param name="node">The nodes of the finite element in the global cartesian coordinate system.</param>
+        /// <returns></returns>
+        // TODO: Find and implement inverse mapping for Tet4.
+        public override IInverseInterpolation3D CreateInverseMappingFor(IReadOnlyList<Node> node) 
+            => throw new NotImplementedException("Not implemented yet.");
 
 		/// <summary>
 		/// Returns the shape functions a tetrahedral linear element evaluated on a single point.
@@ -64,9 +76,9 @@ namespace ISAAR.MSolve.FEM.Interpolation
 		    return values;
 	    }
 
-	    protected sealed override double[,] EvaluateGradientsAt(double xi, double eta, double zeta)
+	    protected sealed override Matrix EvaluateGradientsAt(double xi, double eta, double zeta)
 	    {
-		    var derivatives = new double[4, 3];
+		    var derivatives = Matrix.CreateZero(4, 3);
 		    derivatives[0, 0] = -1.0;
 		    derivatives[0, 1] = -1.0;
 		    derivatives[0, 2] = -1.0;

@@ -1,15 +1,11 @@
-﻿using ISAAR.MSolve.IGA.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.IGA.Interfaces;
 
 namespace ISAAR.MSolve.IGA.Entities
 {
-    public class Element:IElement
+    public class Element: IElement
     {
         private readonly Dictionary<int, ControlPoint> controlPointDictionary =new Dictionary<int, ControlPoint>();
 
@@ -25,17 +21,19 @@ namespace ISAAR.MSolve.IGA.Entities
             get { return controlPointDictionary.Values.ToList<ControlPoint>(); }
         }
 
-	    public IList<INode> INodes
+	    public IReadOnlyList<INode> Nodes
 	    {
 		    get
 		    {
-			    IList<INode> a = new List<INode>();
+			    var a = new List<INode>();
 			    foreach (var controlPoint in controlPointDictionary.Values)
 				    a.Add(controlPoint);
 			    return a;
 		    }
 	    }
 
+        public ISubdomain Subdomain => this.Patch;
+	    public Patch Patch { get; set; }
 
 		public Dictionary<int, Knot> KnotsDictionary
         {
@@ -53,14 +51,12 @@ namespace ISAAR.MSolve.IGA.Entities
 
         public IIsogeometricElement ElementType { get; set; }
 
-		public IElementType IElementType
-		{
-			get => ElementType;
-		}
+        IElementType IElement.ElementType => ElementType;
 
-        public Patch Patch { get; set; }
+		//public Patch Patch { get; set; }
 
-        public int[] DOFs { get; set; }
+
+		public int[] DOFs { get; set; }
 
         public void AddControlPoint(ControlPoint controlPoint)
         {

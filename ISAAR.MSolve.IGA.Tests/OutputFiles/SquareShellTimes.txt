@@ -1,0 +1,3 @@
+Read model: 1957
+Matrices assembly: 980320
+System solution: 19956

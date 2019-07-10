@@ -1,20 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
 using Xunit;
 
 namespace ISAAR.MSolve.FEM.Tests.Interpolation
 {
-	/// <summary>
-	/// Unit testing implementations of <see cref="IIsoparametricInterpolation3D"/>
-	/// </summary>
+    /// <summary>
+    /// Unit testing implementations of <see cref="IIsoparametricInterpolation3D_OLD"/>
+    /// </summary>
     public class IsoparametricInterpolation3D
 	{
 		private const int numRandomPoints = 10;
-		private delegate NaturalPoint3D[] GenerateRandomPoints();
+		private delegate NaturalPoint[] GenerateRandomPoints();
 
 		public static readonly IEnumerable<object[]> interpolations = new List<object[]>()
 		{
@@ -53,10 +51,10 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 		private static void TestPartitionOfUnity(IIsoparametricInterpolation3D interpolation)
 		{
 			double tolerance = 1e-10;
-			NaturalPoint3D[] points = pointGenerators[interpolation]();
+			NaturalPoint[] points = pointGenerators[interpolation]();
 			for (int p = 0; p < points.Length; p++)
 			{
-				Vector shapeFunctions = interpolation.EvaluateFunctionsAt(points[p]);
+                double[] shapeFunctions = interpolation.EvaluateFunctionsAt(points[p]);
 				double sum = 0.0;
 				for (int f = 0; f < interpolation.NumFunctions; f++) sum += shapeFunctions[f];
 				Assert.True(Utilities.AreValuesEqual(1.0,sum,tolerance));
@@ -70,7 +68,7 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 			double tolerance = 1e-10;
 			for (int n = 0; n < interpolation.NodalNaturalCoordinates.Count; n++)
 			{
-				Vector shapeFunctions = interpolation.EvaluateFunctionsAt(interpolation.NodalNaturalCoordinates[n]);
+                double[] shapeFunctions = interpolation.EvaluateFunctionsAt(interpolation.NodalNaturalCoordinates[n]);
 				for (int f = 0; f < interpolation.NumFunctions; f++)
 				{
 					if (f==n) Assert.True(Utilities.AreValuesEqual(1.0,shapeFunctions[f], tolerance));
@@ -84,16 +82,16 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 		/// Generates random points in the tetrahedron.
 		/// </summary>
 		/// <returns></returns>
-		private static NaturalPoint3D[] GenerateRandomPointsInTetrahedron()
+		private static NaturalPoint[] GenerateRandomPointsInTetrahedron()
 		{
 			var rand= new Random();
-			var randomPoints= new NaturalPoint3D[numRandomPoints];
+			var randomPoints= new NaturalPoint[numRandomPoints];
 			for (int i = 0; i < numRandomPoints; i++)
 			{
 				double xi = rand.NextDouble();
 				double eta = rand.NextDouble() * xi;
 				double zeta = rand.NextDouble() * eta;
-				randomPoints[i]= new NaturalPoint3D(xi,eta,zeta);
+				randomPoints[i]= new NaturalPoint(xi,eta,zeta);
 			}
 
 			return randomPoints;
@@ -103,16 +101,16 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 		/// Generates random points in a wedge
 		/// </summary>
 		/// <returns></returns>
-		private static NaturalPoint3D[] GenerarandomPointsInWedge()
+		private static NaturalPoint[] GenerarandomPointsInWedge()
 		{
 			var rand = new Random();
-			var randomPoints = new NaturalPoint3D[numRandomPoints];
+			var randomPoints = new NaturalPoint[numRandomPoints];
 			for (int i = 0; i < numRandomPoints; i++)
 			{
 				double xi= -1 + rand.NextDouble() * 2.0;
 				double eta = rand.NextDouble();
 				double zeta = rand.NextDouble()*eta;
-				randomPoints[i] = new NaturalPoint3D(xi, eta, zeta);
+				randomPoints[i] = new NaturalPoint(xi, eta, zeta);
 			}
 
 			return randomPoints;
@@ -122,16 +120,16 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 		/// Generates random points in the parent cube.
 		/// </summary>
 		/// <returns></returns>
-		private static NaturalPoint3D[] GenerateRandomPointsInCube()
+		private static NaturalPoint[] GenerateRandomPointsInCube()
 		{
 			var rand = new Random();
-			var randomPoints= new NaturalPoint3D[numRandomPoints];
+			var randomPoints= new NaturalPoint[numRandomPoints];
 			for (int i = 0; i < numRandomPoints; i++)
 			{
 				double xi = -1 + rand.NextDouble() * 2.0;
 				double eta = -1 + rand.NextDouble() * 2.0;
 				double zeta = -1 + rand.NextDouble() * 2.0;
-				randomPoints[i] = new NaturalPoint3D(xi, eta, zeta);
+				randomPoints[i] = new NaturalPoint(xi, eta, zeta);
 			}
 
 			return randomPoints;
@@ -141,16 +139,16 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation
 		/// Generates random points inside a pyramid <see cref="https://people.sc.fsu.edu/~jburkardt/m_src/pyramid_grid/pyramid_grid.html"/>
 		/// </summary>
 		/// <returns></returns>
-		private static NaturalPoint3D[] GenerateRandomPointsInPyramid()
+		private static NaturalPoint[] GenerateRandomPointsInPyramid()
 		{
 			var rand = new Random();
-			var randomPoints= new NaturalPoint3D[numRandomPoints];
+			var randomPoints= new NaturalPoint[numRandomPoints];
 			for (int i = 0; i < numRandomPoints; i++)
 			{
 				double zeta = rand.NextDouble();
 				double xi = (-1 + rand.NextDouble() * 2.0)*(1-zeta);
 				double eta = (-1 + rand.NextDouble() * 2.0) * xi;
-				randomPoints[i] = new NaturalPoint3D(xi, eta, zeta);
+				randomPoints[i] = new NaturalPoint(xi, eta, zeta);
 			}
 
 			return randomPoints;

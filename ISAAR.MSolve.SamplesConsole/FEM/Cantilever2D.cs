@@ -2,22 +2,21 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using ISAAR.MSolve.Analyzers;
-using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.Discretization;
+using ISAAR.MSolve.Discretization.FreedomDegrees;
+using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.Discretization.Mesh.Generation;
+using ISAAR.MSolve.Discretization.Mesh.Generation.Custom;
+using ISAAR.MSolve.Discretization.Mesh.Generation.GMSH;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.Geometry.Shapes;
 using ISAAR.MSolve.Logging.VTK;
 using ISAAR.MSolve.Materials;
 using ISAAR.MSolve.Materials.VonMisesStress;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Preprocessor.Meshes;
-using ISAAR.MSolve.Preprocessor.Meshes.Custom;
-using ISAAR.MSolve.Preprocessor.Meshes.GMSH;
 using ISAAR.MSolve.Problems;
-using ISAAR.MSolve.Solvers.Interfaces;
-using ISAAR.MSolve.Solvers.Skyline;
+using ISAAR.MSolve.Solvers;
+using ISAAR.MSolve.Solvers.Direct;
 
 namespace ISAAR.MSolve.SamplesConsole.FEM
 {
@@ -51,21 +50,20 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
             //string meshPath = @"C:\Users\Serafeim\Desktop\Presentation\cantilever.msh";
 
 
-            (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateMeshFromGmsh(meshPath);
-            //(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateUniformMesh();
-            //(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) = GenerateMeshManually();
+            (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements) = GenerateMeshFromGmsh(meshPath);
+            //(IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements) = GenerateUniformMesh();
+            //(IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements) = GenerateMeshManually();
 
             Model model = CreateModel(nodes, elements);
             //PrintMeshOnly(model);
             SolveLinearStatic(model);
         }
 
-        private static Model CreateModel(IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements)
+        private static Model CreateModel(IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements)
         {
             // Initialize
             int numNodes = nodes.Count;
             int numElements = elements.Count;
-            VectorExtensions.AssignTotalAffinityCount();
 
             // Materials
             ElasticMaterial2D material = new ElasticMaterial2D(StressState2D.PlaneStress)
@@ -76,7 +74,7 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
 
             // Subdomains
             Model model = new Model();
-            model.SubdomainsDictionary.Add(0, new Subdomain() { ID = 0 });
+            model.SubdomainsDictionary.Add(0, new Subdomain(0));
 
             // Nodes
             for (int i = 0; i < numNodes; ++i) model.NodesDictionary.Add(i, nodes[i]);
@@ -89,94 +87,104 @@ namespace ISAAR.MSolve.SamplesConsole.FEM
                 var elementWrapper = new Element() { ID = i, ElementType = element };
                 foreach (Node node in element.Nodes) elementWrapper.AddNode(node);
                 model.ElementsDictionary.Add(i, elementWrapper);
-                model.SubdomainsDictionary[0].ElementsDictionary.Add(i, elementWrapper);
+                model.SubdomainsDictionary[0].Elements.Add(elementWrapper);
             }
 
             // Constraints
             double tol = 1E-10;
-            Node2D[] constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol).ToArray();
+            Node[] constrainedNodes = nodes.Where(node => Math.Abs(node.Y) <= tol).ToArray();
             for (int i = 0; i < constrainedNodes.Length; i++)
             {
-                constrainedNodes[i].Constraints.Add(DOFType.X);
-                constrainedNodes[i].Constraints.Add(DOFType.Y);
+                constrainedNodes[i].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationX });
+                constrainedNodes[i].Constraints.Add(new Constraint { DOF = StructuralDof.TranslationY });
             }
 
             // Loads
-            Node2D[] loadedNodes = nodes.Where(
+            Node[] loadedNodes = nodes.Where(
                 node => (Math.Abs(node.Y - height) <= tol) && ((Math.Abs(node.X) <= tol))).ToArray();
             if (loadedNodes.Length != 1) throw new Exception("Only 1 node was expected at the top left corner");
-            model.Loads.Add(new Load() { Amount = maxLoad, Node = loadedNodes[0], DOF = DOFType.X });
+            model.Loads.Add(new Load() { Amount = maxLoad, Node = loadedNodes[0], DOF = StructuralDof.TranslationX });
 
-            // Finalize
-            model.ConnectDataStructures();
             return model;
         }
 
-        private static (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) GenerateMeshManually()
+        private static (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements) GenerateMeshManually()
         {
-            Node2D[] nodes =
+            Node[] nodes =
             {
-                new Node2D(0, 0.0, 0.0),
-                new Node2D(1, length, 0.0),
-                new Node2D(2, 0.0, 0.25 * height),
-                new Node2D(3, length, 0.25 * height),
-                new Node2D(4, 0.0, 0.50 * height),
-                new Node2D(5, length, 0.50 * height),
-                new Node2D(6, 0.0, 0.75 * height),
-                new Node2D(7, length, 0.75 * height),
-                new Node2D(8, 0.0, height),
-                new Node2D(9, length, height)
+                new Node( id: 0, x: 0.0,    y: 0.0 ),
+                new Node( id: 1, x: length, y:  0.0 ),
+                new Node( id: 2, x: 0.0,    y: 0.25 * height ),
+                new Node( id: 3, x: length, y:  0.25 * height ),
+                new Node( id: 4, x: 0.0,    y: 0.50 * height ),
+                new Node( id: 5, x: length, y:  0.50 * height ),
+                new Node( id: 6, x: 0.0,    y: 0.75 * height ),
+                new Node( id: 7, x: length, y:  0.75 * height ),
+                new Node( id: 8, x: 0.0,    y: height ),
+                new Node( id: 9, x: length, y:  height )
             };
 
-            CellType2D[] cellTypes = { CellType2D.Quad4, CellType2D.Quad4, CellType2D.Quad4, CellType2D.Quad4 };
+            CellType[] cellTypes = { CellType.Quad4, CellType.Quad4, CellType.Quad4, CellType.Quad4 };
 
-            CellConnectivity2D[] elements =
+            CellConnectivity<Node>[] elements =
             {
-                new CellConnectivity2D(CellType2D.Quad4, new Node2D[] { nodes[0], nodes[1], nodes[3], nodes[2]}),
-                new CellConnectivity2D(CellType2D.Quad4, new Node2D[] { nodes[2], nodes[3], nodes[5], nodes[4]}),
-                new CellConnectivity2D(CellType2D.Quad4, new Node2D[] { nodes[4], nodes[5], nodes[7], nodes[6]}),
-                new CellConnectivity2D(CellType2D.Quad4, new Node2D[] { nodes[6], nodes[7], nodes[9], nodes[8]})
+                new CellConnectivity<Node>(CellType.Quad4, new Node[] { nodes[0], nodes[1], nodes[3], nodes[2]}),
+                new CellConnectivity<Node>(CellType.Quad4, new Node[] { nodes[2], nodes[3], nodes[5], nodes[4]}),
+                new CellConnectivity<Node>(CellType.Quad4, new Node[] { nodes[4], nodes[5], nodes[7], nodes[6]}),
+                new CellConnectivity<Node>(CellType.Quad4, new Node[] { nodes[6], nodes[7], nodes[9], nodes[8]})
             };
 
             return (nodes, elements);
         }
 
-        private static (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) GenerateMeshFromGmsh(string path)
+        private static (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements) GenerateMeshFromGmsh(string path)
         {
-            using (var reader = new GmshReader2D(path))
+            using (var reader = new GmshReader<Node>(path))
             {
-                return reader.CreateMesh();
+                return reader.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
             }
         }
 
-        private static (IReadOnlyList<Node2D> nodes, IReadOnlyList<CellConnectivity2D> elements) GenerateUniformMesh()
+        private static (IReadOnlyList<Node> nodes, IReadOnlyList<CellConnectivity<Node>> elements) GenerateUniformMesh()
         {
-            var meshGen = new UniformMeshGenerator(0.0, 0.0, length, height, 4, 20);
-            return meshGen.CreateMesh();
+            var meshGen = new UniformMeshGenerator2D<Node>(0.0, 0.0, length, height, 4, 20);
+            return meshGen.CreateMesh((id, x, y, z) => new Node(id: id, x: x, y:  y, z: z ));
         }
 
         private static void PrintMeshOnly(Model model)
         {
-            var mesh = new VtkMesh2D(model);
-            using (var writer = new VtkFileWriter(workingDirectory + "\\mesh.vtk"))
+            try
             {
-                writer.WriteMesh(mesh.Points, mesh.Cells);
+                Node[] nodes = model.Nodes.ToArray();
+                ICell<Node>[] elements = model.Elements.Select(element => (ICell<Node>)element).ToArray();
+                var mesh = new VtkMesh<Node>(nodes, elements);
+                using (var writer = new VtkFileWriter(workingDirectory + "\\mesh.vtk"))
+                {
+                    writer.WriteMesh(mesh);
+                }
+            }
+            catch (InvalidCastException ex)
+            {
+                throw new InvalidCastException("VtkLogFactory only works for models with elements that implement ICell.", ex);
             }
         }
 
         private static void SolveLinearStatic(Model model)
         {
             // Choose linear equation system solver
-            var linearSystems = new Dictionary<int, ILinearSystem>();
-            linearSystems[0] = new SkylineLinearSystem(0, model.Subdomains[0].Forces);
-            SolverSkyline solver = new SolverSkyline(linearSystems[0]);
+            var solverBuilder = new SkylineSolver.Builder();
+            ISolver solver = solverBuilder.BuildSolver(model);
 
-            // Choose the provider of the problem -> here a structural problem
-            ProblemStructural provider = new ProblemStructural(model, linearSystems);
+            // Structural problem provider
+            var provider = new ProblemStructural(model, solver);
 
-            // Choose parent and child analyzers -> Parent: Static, Child: Linear
-            LinearAnalyzer childAnalyzer = new LinearAnalyzer(solver, linearSystems);
-            StaticAnalyzer parentAnalyzer = new StaticAnalyzer(provider, childAnalyzer, linearSystems);
+            // Linear static analysis
+            var childAnalyzer = new LinearAnalyzer(model, solver, provider);
+            var parentAnalyzer = new StaticAnalyzer(model, solver, provider, childAnalyzer);
+
+            // Run the analysis
+            parentAnalyzer.Initialize();
+            parentAnalyzer.Solve();
 
             // Logging displacement, strain, and stress fields.
             string outputDirectory = workingDirectory + "\\Plots";

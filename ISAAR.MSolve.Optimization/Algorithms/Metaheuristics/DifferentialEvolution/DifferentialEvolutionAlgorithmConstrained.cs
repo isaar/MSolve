@@ -21,7 +21,7 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.DifferentialEvolut
         private double crossoverProbability = 0.9;
 
         private IConvergenceCriterion convergenceCriterion;
-        private readonly Random randomNumberGenerator = new Random();
+        private readonly Random randomNumberGenerator;
 
         // Optimization problem definition
         private readonly int dimension;
@@ -34,7 +34,8 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.DifferentialEvolut
         private Individual[] offsprings;
 
         private DifferentialEvolutionAlgorithmConstrained(OptimizationProblem optimizationProblem, int populationSize,
-            double mutationFactor, double crossoverProbability, IConvergenceCriterion convergenceCriterion, IPenaltyStatic penalty)
+            double mutationFactor, double crossoverProbability, IConvergenceCriterion convergenceCriterion, 
+            IPenaltyStatic penalty, Random randomNumberGenerator)
         {
             this.dimension = optimizationProblem.Dimension;
             this.lowerBound = optimizationProblem.LowerBound;
@@ -46,6 +47,8 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.DifferentialEvolut
             this.crossoverProbability = crossoverProbability;
             this.convergenceCriterion = convergenceCriterion;
             this.penalty = penalty;
+
+            this.randomNumberGenerator = randomNumberGenerator;
         }
 
         public double BestFitness
@@ -63,7 +66,7 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.DifferentialEvolut
             get; private set;
         }
 
-        public double CurrentFunctionEvaluations
+        public int CurrentFunctionEvaluations
         {
             get; protected set;
         }
@@ -250,10 +253,12 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.DifferentialEvolut
 
             public IPenaltyStatic Penalty { get; set; }
 
+            public Random RandomNumberGenerator { get; set; } = new Random();
+
             public IOptimizationAlgorithm Build()
             {
                 return new DifferentialEvolutionAlgorithmConstrained(optimizationProblem, PopulationSize,
-                    MutationFactor, CrossoverProbability, ConvergenceCriterion, Penalty);
+                    MutationFactor, CrossoverProbability, ConvergenceCriterion, Penalty, RandomNumberGenerator);
             }
         }
     }

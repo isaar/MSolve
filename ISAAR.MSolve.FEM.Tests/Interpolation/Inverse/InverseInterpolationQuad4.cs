@@ -4,7 +4,7 @@ using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.Inverse;
 using ISAAR.MSolve.Geometry.Coordinates;
-using ISAAR.MSolve.Numerical.Commons;
+using ISAAR.MSolve.Discretization.Commons;
 using Xunit;
 
 namespace ISAAR.MSolve.FEM.Tests.Interpolation.Inverse
@@ -16,24 +16,24 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation.Inverse
         /// <summary>
         /// Random shape, not too distorted.
         /// </summary>
-        private static readonly IReadOnlyList<Node2D> nodeSet = new Node2D[]
+        private static readonly IReadOnlyList<Node> nodeSet = new Node[]
         {
-            new Node2D(0, 0.7, 2.0),
-            new Node2D(1, 0.2, 0.3),
-            new Node2D(2, 2.0, 0.9),
-            new Node2D(3, 3.0, 2.7)
+            new Node( id: 0, x: 0.7, y:  2.0 ),
+            new Node( id: 1, x: 0.2, y:  0.3 ),
+            new Node( id: 2, x: 2.0, y:  0.9 ),
+            new Node( id: 3, x: 3.0, y:  2.7 )
         };
         
-        private static bool Coincide(NaturalPoint2D point1, NaturalPoint2D point2)
+        private static bool Coincide(NaturalPoint point1, NaturalPoint point2)
             => comparer.AreEqual(point1.Xi, point2.Xi) && comparer.AreEqual(point1.Eta, point2.Eta);
 
         /// <summary>
         /// Reorders the nodes such that the 1st one becomes the 2nd, the 2nd one becomes the 3rd, etc.
         /// </summary>
         /// <param name="originalOrder"></param>
-        private static Node2D[] CycleNodes(IReadOnlyList<Node2D> originalOrder)
+        private static Node[] CycleNodes(IReadOnlyList<Node> originalOrder)
         {
-            var cycled = new Node2D[originalOrder.Count];
+            var cycled = new Node[originalOrder.Count];
             cycled[0] = originalOrder[originalOrder.Count - 1];
             for (int i = 0; i < originalOrder.Count - 1; ++i) cycled[i + 1] = originalOrder[i];
             return cycled;
@@ -43,15 +43,15 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation.Inverse
         /// Generates random points in the square: -1 &lt;= xi &lt; 1 , -1 &lt;= eta &lt; 1
         /// </summary>
         /// <returns></returns>
-        private static NaturalPoint2D[] GenerateRandomPointsInSquare(int numRandomPoints)
+        private static NaturalPoint[] GenerateRandomPointsInSquare(int numRandomPoints)
         {
             var rand = new Random();
-            var randomPoints = new NaturalPoint2D[numRandomPoints];
+            var randomPoints = new NaturalPoint[numRandomPoints];
             for (int i = 0; i < numRandomPoints; ++i)
             {
                 double xi = -1.0 + rand.NextDouble() * 2.0;
                 double eta = -1.0 + rand.NextDouble() * 2.0;
-                randomPoints[i] = new NaturalPoint2D(xi, eta);
+                randomPoints[i] = new NaturalPoint(xi, eta);
             }
             return randomPoints;
         }
@@ -61,16 +61,16 @@ namespace ISAAR.MSolve.FEM.Tests.Interpolation.Inverse
         {
             var directMapping = InterpolationQuad4.UniqueInstance;
             int numRandomPoints = 10;
-            NaturalPoint2D[] naturalPoints = GenerateRandomPointsInSquare(numRandomPoints);
-            IReadOnlyList<Node2D> elementNodes = nodeSet;
+            NaturalPoint[] naturalPoints = GenerateRandomPointsInSquare(numRandomPoints);
+            IReadOnlyList<Node> elementNodes = nodeSet;
 
             for (int i = 0; i < 4; ++i)
             {
                 IInverseInterpolation2D inverseMapping = directMapping.CreateInverseMappingFor(elementNodes);
-                foreach (NaturalPoint2D originalPoint in naturalPoints)
+                foreach (NaturalPoint originalPoint in naturalPoints)
                 {
-                    CartesianPoint2D cartesianPoint = directMapping.TransformNaturalToCartesian(elementNodes, originalPoint);
-                    NaturalPoint2D remappedPoint = inverseMapping.TransformPointCartesianToNatural(cartesianPoint);
+                    CartesianPoint cartesianPoint = directMapping.TransformNaturalToCartesian(elementNodes, originalPoint);
+                    NaturalPoint remappedPoint = inverseMapping.TransformPointCartesianToNatural(cartesianPoint);
                     Assert.True(Coincide(originalPoint, remappedPoint));
                 }
 

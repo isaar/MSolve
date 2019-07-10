@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace ISAAR.MSolve.Discretization.Interfaces
 {
-    public interface INode
+    public interface INode : IComparable<INode>
     {
-		int ID { get; set; }
-		double X { get; set; }
-		double Y { get; set; }
-		double Z { get; set; }
-	}
+		int ID { get; }
+		double X { get; }
+		double Y { get; }
+		double Z { get; }
+
+        List<Constraint> Constraints { get; }
+        Dictionary<int, ISubdomain> SubdomainsDictionary { get; }
+    }
 }

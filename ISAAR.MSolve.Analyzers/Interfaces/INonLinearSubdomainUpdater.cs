@@ -1,10 +1,11 @@
-﻿using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
+﻿using ISAAR.MSolve.LinearAlgebra.Vectors;
 
 namespace ISAAR.MSolve.Analyzers.Interfaces
 {
     public interface INonLinearSubdomainUpdater
     {
-        IVector GetRHSFromSolution(IVector solution, IVector dSolution);
+        void ScaleConstraints(double scalingFactor);
+        IVector GetRhsFromSolution(IVectorView solution, IVectorView dSolution);
         void UpdateState();
         void ResetState();
     }

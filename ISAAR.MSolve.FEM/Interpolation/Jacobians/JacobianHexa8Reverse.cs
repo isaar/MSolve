@@ -1,19 +1,19 @@
-﻿using ISAAR.MSolve.Discretization.Interfaces;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using ISAAR.MSolve.Discretization.Interfaces;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 
 //J_0inv_hexa and detJ_0 can only be calculated during initialization (at the first configuration) and then cached
 namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
 {
     public class JacobianHexa8Reverse
     {
-        public static (Matrix2D[] J_0inv_hexa, double[] detJ_0) GetJ_0invHexaAndDetJ_0(IReadOnlyList<Matrix2D> ll1_hexa, IList<INode> elementNodes, int nGaussPoints)
+        public static (Matrix[] J_0inv_hexa, double[] detJ_0) 
+            GetJ_0invHexaAndDetJ_0(IReadOnlyList<Matrix> ll1_hexa, IReadOnlyList<INode> elementNodes, int nGaussPoints)
         {
             double[][,] J_0b_hexa; // dimension [] number of gpoints
             double[][,] J_0_hexa;
-            Matrix2D[] J_0inv_hexa;
+            Matrix[] J_0inv_hexa;
             double[] detJ_0; // dimension [] number of gpoints
 
             double[][] ox_i;
@@ -24,7 +24,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
             }
             J_0b_hexa = new double[nGaussPoints][,];
             J_0_hexa = new double[nGaussPoints][,];
-            J_0inv_hexa = new Matrix2D[nGaussPoints];
+            J_0inv_hexa = new Matrix[nGaussPoints];
             detJ_0 = new double[nGaussPoints];
 
             for (int gpoint = 0; gpoint < nGaussPoints; gpoint++)
@@ -32,7 +32,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
                 // initialize matrices and calculate those known in the undeformed configuration
                 J_0b_hexa[gpoint] = new double[8, 3];
                 J_0_hexa[gpoint] = new double[3, 3];
-                J_0inv_hexa[gpoint] =new Matrix2D(3, 3);
+                J_0inv_hexa[gpoint] = Matrix.CreateZero(3, 3);
 
                 //
                 for (int m = 0; m < 8; m++)
@@ -96,7 +96,8 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
             
 
         }
-        public static (double[][,] J_0inv_hexa, double[] detJ_0) GetJ_0invHexaAndDetJ_0(double[][,] ll1_hexa, IList<INode> elementNodes, int nGaussPoints)
+        public static (double[][,] J_0inv_hexa, double[] detJ_0) 
+            GetJ_0invHexaAndDetJ_0(double[][,] ll1_hexa, IList<INode> elementNodes, int nGaussPoints)
         {
             double[][,] J_0b_hexa; // dimension [] number of gpoints
             double[][,] J_0_hexa;
@@ -184,14 +185,14 @@ namespace ISAAR.MSolve.FEM.Interpolation.Jacobians
 
         }
 
-        public static Matrix2D[] Get_J_1(int nGaussPoints, double[][] tx_i,IReadOnlyList<Matrix2D> ll1_hexa)
+        public static Matrix[] Get_J_1(int nGaussPoints, double[][] tx_i,IReadOnlyList<Matrix> ll1_hexa)
         {
             double[,] J_1b = new double[8, 3];
-            Matrix2D[] J_1 = new Matrix2D[nGaussPoints];
+            Matrix[] J_1 = new Matrix[nGaussPoints];
 
             for (int npoint = 0; npoint < nGaussPoints; npoint++)
             {
-                J_1[npoint] = new Matrix2D(3, 3);
+                J_1[npoint] = Matrix.CreateZero(3, 3);
             }
 
             for (int m = 0; m < 8; m++)

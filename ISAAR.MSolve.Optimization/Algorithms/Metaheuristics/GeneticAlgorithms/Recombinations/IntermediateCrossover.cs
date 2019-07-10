@@ -14,9 +14,9 @@ namespace ISAAR.MSolve.Optimization.Algorithms.Metaheuristics.GeneticAlgorithms.
         private readonly double firstParentWeight;
 
         public IntermediateCrossover(double firstParentWeight = 1.0) : 
-            this(firstParentWeight, RandomNumberGenerationUtilities.troschuetzRandom) { }
+            this(RandomNumberGenerationUtilities.troschuetzRandom, firstParentWeight) { }
 
-        public IntermediateCrossover(double firstParentWeight, IGenerator randomNumberGenerator)
+        public IntermediateCrossover(IGenerator randomNumberGenerator, double firstParentWeight = 1.0)
         {
             if ((firstParentWeight < 0) || (firstParentWeight > 1))
             {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ISAAR.MSolve.Discretization.Commons;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.Geometry.Coordinates;
 
@@ -37,15 +38,9 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         public IQuadrature2D Quadrature { get; }
 
         /// <summary>
-        /// Calculates a scalar quantity at a given point by extrapolating (or interpolating) its known values at 
-        /// the integration points.
+        /// See <see cref="IGaussPointExtrapolation2D.ExtrapolateScalarFromGaussPoints(IReadOnlyList{double}, NaturalPoint)"/>.
         /// </summary>
-        /// <param name="scalarsAtGaussPoints">Their order must be the same as the order of integration points defined by 
-        ///     <see cref="Quadrature"/>.</param>
-        /// <param name="point">The point where the scalar will be computed. Its coordinates are expressed in the natural
-        ///     (element local) system, instead of the coordinate system defined by the integration points.</param>
-        /// <returns></returns>
-        public double ExtrapolateScalarFromGaussPoints(IReadOnlyList<double> scalarsAtGaussPoints, NaturalPoint2D point)
+        public double ExtrapolateScalarFromGaussPoints(IReadOnlyList<double> scalarsAtGaussPoints, NaturalPoint point)
         {
             double[] extrapolationFunctions = EvaluateExtrapolationFunctionsAt(point);
             double scalar = 0;
@@ -57,18 +52,14 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         }
 
         /// <summary>
-        /// Calculates a scalar quantity at the nodes of a finite element by extrapolating its known values at the integration 
-        /// points.
+        /// See <see cref="IGaussPointExtrapolation2D.ExtrapolateScalarFromGaussPointsToNodes(
+        /// IReadOnlyList{double}, IIsoparametricInterpolation2D)"/>
         /// </summary>
-        /// <param name="scalarsAtGaussPoints">Their order must be the same as the order of integration points defined by 
-        ///     <see cref="Quadrature"/>.</param>
-        /// <param name="interpolation">Defines the natural coordinates of the finite element's nodes.</param>
-        /// <returns></returns>
         public IReadOnlyList<double> ExtrapolateScalarFromGaussPointsToNodes(IReadOnlyList<double> scalarsAtGaussPoints, 
             IIsoparametricInterpolation2D interpolation)
         {
             double[][] nodalExtrapolationFunctions = EvaluateExtrapolationFunctionsAtNodes(interpolation);
-            IReadOnlyList<NaturalPoint2D> nodes = interpolation.NodalNaturalCoordinates;
+            IReadOnlyList<NaturalPoint> nodes = interpolation.NodalNaturalCoordinates;
             var nodalScalars = new double[nodes.Count];
             for (int i = 0; i < nodes.Count; ++i)
             {
@@ -84,15 +75,9 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         }
 
         /// <summary>
-        /// Calculates a tensor quantity at a given point by extrapolating (or interpolating) its known values at 
-        /// the integration points.
+        /// See <see cref="IGaussPointExtrapolation2D.ExtrapolateTensorFromGaussPoints(IReadOnlyList{double[]}, NaturalPoint)"/>.
         /// </summary>
-        /// <param name="tensorsAtGaussPoints">Their order must be the same as the order of integration points defined by 
-        ///     <see cref="Quadrature"/>.</param>
-        /// <param name="point">The point where the tensor will be computed. Its coordinates are expressed in the natural
-        ///     (element local) system, instead of the coordinate system defined by the integration points.</param>
-        /// <returns></returns>
-        public double[] ExtrapolateTensorFromGaussPoints(IReadOnlyList<double[]> tensorsAtGaussPoints, NaturalPoint2D point)
+        public double[] ExtrapolateTensorFromGaussPoints(IReadOnlyList<double[]> tensorsAtGaussPoints, NaturalPoint point)
         {
             double[] extrapolationFunctions = EvaluateExtrapolationFunctionsAt(point);
             var tensor = new double[3]; //In 2D problems, symmetric tensors have 3 entries. TODO: replace with Tensor2D class.
@@ -106,18 +91,30 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         }
 
         /// <summary>
-        /// Calculates a tensor quantity at the nodes of a finite element by extrapolating its known values at the integration 
-        /// points.
+        /// See <see cref="IGaussPointExtrapolation2D.ExtrapolateTensorFromGaussPoints(IReadOnlyList{Tensor2D}, NaturalPoint)"/>.
         /// </summary>
-        /// <param name="tensorsAtGaussPoints">Their order must be the same as the order of integration points defined by 
-        ///     <see cref="Quadrature"/>.</param>
-        /// <param name="interpolation">Defines the natural coordinates of the finite element's nodes.</param>
-        /// <returns></returns>
+        public Tensor2D ExtrapolateTensorFromGaussPoints(IReadOnlyList<Tensor2D> tensorsAtGaussPoints, NaturalPoint point)
+        {
+            double[] extrapolationFunctions = EvaluateExtrapolationFunctionsAt(point);
+            var tensor = new double[3]; //In 2D problems, symmetric tensors have 3 entries. TODO: replace with Tensor2D class.
+            for (int gp = 0; gp < Quadrature.IntegrationPoints.Count; ++gp)
+            {
+                tensor[0] += extrapolationFunctions[gp] * tensorsAtGaussPoints[gp].XX;
+                tensor[1] += extrapolationFunctions[gp] * tensorsAtGaussPoints[gp].YY;
+                tensor[2] += extrapolationFunctions[gp] * tensorsAtGaussPoints[gp].XY;
+            }
+            return new Tensor2D(tensor[0], tensor[1], tensor[2]);
+        }
+
+        /// <summary>
+        /// See <see cref="IGaussPointExtrapolation2D.ExtrapolateTensorFromGaussPointsToNodes(
+        /// IReadOnlyList{double[]}, IIsoparametricInterpolation2D)"/>
+        /// </summary>
         public IReadOnlyList<double[]> ExtrapolateTensorFromGaussPointsToNodes(IReadOnlyList<double[]> tensorsAtGaussPoints, 
             IIsoparametricInterpolation2D interpolation)
         {
             double[][] nodalExtrapolationFunctions = EvaluateExtrapolationFunctionsAtNodes(interpolation);
-            IReadOnlyList<NaturalPoint2D> nodes = interpolation.NodalNaturalCoordinates;
+            IReadOnlyList<NaturalPoint> nodes = interpolation.NodalNaturalCoordinates;
             var nodalTensors = new double[nodes.Count][];
             for (int i = 0; i < nodes.Count; ++i)
             {
@@ -135,15 +132,34 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         }
 
         /// <summary>
-        /// Calculates a vector quantity at a given point by extrapolating (or interpolating) its known values at 
-        /// the integration points.
+        /// See <see cref="IGaussPointExtrapolation2D.ExtrapolateTensorFromGaussPointsToNodes(
+        /// IReadOnlyList{Tensor2D}, IIsoparametricInterpolation2D)"/>
         /// </summary>
-        /// <param name="vectorsAtGaussPoints">Their order must be the same as the order of integration points defined by 
-        ///     <see cref="Quadrature"/>.</param>
-        /// <param name="point">The point where the tensor will be computed. Its coordinates are expressed in the natural
-        ///     (element local) system, instead of the coordinate system defined by the integration points.</param>
-        /// <returns></returns>
-        public double[] ExtrapolateVectorFromGaussPoints(IReadOnlyList<double[]> vectorsAtGaussPoints, NaturalPoint2D point)
+        public IReadOnlyList<Tensor2D> ExtrapolateTensorFromGaussPointsToNodes(IReadOnlyList<Tensor2D> tensorsAtGaussPoints,
+            IIsoparametricInterpolation2D interpolation)
+        {
+            double[][] nodalExtrapolationFunctions = EvaluateExtrapolationFunctionsAtNodes(interpolation);
+            IReadOnlyList<NaturalPoint> nodes = interpolation.NodalNaturalCoordinates;
+            var nodalTensors = new Tensor2D[nodes.Count];
+            for (int i = 0; i < nodes.Count; ++i)
+            {
+                //nodalTensors[i] = ExtrapolateVectorFromGaussPoints(tensorsAtGaussPoints, nodes[i]); // for debugging
+                var tensor = new double[3];
+                for (int gp = 0; gp < Quadrature.IntegrationPoints.Count; ++gp)
+                {
+                    tensor[0] += nodalExtrapolationFunctions[i][gp] * tensorsAtGaussPoints[gp].XX;
+                    tensor[1] += nodalExtrapolationFunctions[i][gp] * tensorsAtGaussPoints[gp].YY;
+                    tensor[2] += nodalExtrapolationFunctions[i][gp] * tensorsAtGaussPoints[gp].XY;
+                }
+                nodalTensors[i] = new Tensor2D(tensor[0], tensor[1], tensor[2]);
+            }
+            return nodalTensors;
+        }
+
+        /// <summary>
+        /// See <see cref="IGaussPointExtrapolation2D.ExtrapolateVectorFromGaussPoints(IReadOnlyList{double[]}, NaturalPoint)"/>.
+        /// </summary>
+        public double[] ExtrapolateVectorFromGaussPoints(IReadOnlyList<double[]> vectorsAtGaussPoints, NaturalPoint point)
         {
             double[] extrapolationFunctions = EvaluateExtrapolationFunctionsAt(point);
             var vector = new double[2]; //In 2D problems, vector fields have 2 entries. TODO: replace with Vector2 class.
@@ -156,18 +172,14 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         }
 
         /// <summary>
-        /// Calculates a vector quantity at the nodes of a finite element by extrapolating its known values at the integration 
-        /// points.
+        /// See <see cref="IGaussPointExtrapolation2D.ExtrapolateVectorFromGaussPointsToNodes(
+        /// IReadOnlyList{double[]}, IIsoparametricInterpolation2D)"/>
         /// </summary>
-        /// <param name="vectorsAtGaussPoints">Their order must be the same as the order of integration points defined by 
-        ///     <see cref="Quadrature"/>.</param>
-        /// <param name="interpolation">Defines the natural coordinates of the finite element's nodes.</param>
-        /// <returns></returns>
         public IReadOnlyList<double[]> ExtrapolateVectorFromGaussPointsToNodes(IReadOnlyList<double[]> vectorsAtGaussPoints, 
             IIsoparametricInterpolation2D interpolation)
         {
             double[][] nodalExtrapolationFunctions = EvaluateExtrapolationFunctionsAtNodes(interpolation);
-            IReadOnlyList<NaturalPoint2D> nodes = interpolation.NodalNaturalCoordinates;
+            IReadOnlyList<NaturalPoint> nodes = interpolation.NodalNaturalCoordinates;
             var nodalVectors = new double[nodes.Count][];
             for (int i = 0; i < nodes.Count; ++i)
             {
@@ -190,7 +202,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
         /// <param name="point">The coordinates of the point where the extrapolation functions will be calculated, in the 
         ///     natural (element local) system.</param>
         /// <returns></returns>
-        protected abstract double[] EvaluateExtrapolationFunctionsAt(NaturalPoint2D point);
+        protected abstract double[] EvaluateExtrapolationFunctionsAt(NaturalPoint point);
 
         private double[][] EvaluateExtrapolationFunctionsAtNodes(IIsoparametricInterpolation2D interpolation)
         {
@@ -198,7 +210,7 @@ namespace ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation
                 out double[][] nodalExtrapolationFunctions);
             if (!isCached)
             {
-                IReadOnlyList<NaturalPoint2D> nodes = interpolation.NodalNaturalCoordinates;
+                IReadOnlyList<NaturalPoint> nodes = interpolation.NodalNaturalCoordinates;
                 nodalExtrapolationFunctions = new double[nodes.Count][];
                 for (int i = 0; i < nodes.Count; ++i)
                 {

@@ -1,22 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
-using ISAAR.MSolve.FEM.Materials;
-using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
 using Xunit;
 
 namespace ISAAR.MSolve.FEM.Tests.Elements
 {
-	/// <summary>
-	/// Tests 4-noded tetrahedral instances of <see cref="Tet4"/> against the notes of the
-	/// University of Colorado at Boulder FEM course.
-	/// </summary>
-	public class Tet4
+    /// <summary>
+    /// Tests 4-noded tetrahedral instances of <see cref="Tet4"/> against the notes of the
+    /// University of Colorado at Boulder FEM course.
+    /// </summary>
+    public class Tet4
 	{
 		private static readonly ElasticMaterial3D Material0 = new ElasticMaterial3D()
 		{
@@ -26,12 +22,12 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
 
 		private static readonly DynamicMaterial DynamicMaterial0 = new DynamicMaterial(1,0,0);
 
-		private static readonly IReadOnlyList<Node3D> NodeSet0 = new Node3D[]
+		private static readonly IReadOnlyList<Node> NodeSet0 = new Node[]
 		{
-			new Node3D(0, 2, 3, 4),
-			new Node3D(1, 6, 3, 2),
-			new Node3D(2, 2, 5, 1),
-			new Node3D(3, 4, 3, 6),
+			new Node( id: 0, x: 2, y:  3, z: 4 ),
+			new Node( id: 1, x: 6, y:  3, z: 2 ),
+			new Node( id: 2, x: 2, y:  5, z: 1 ),
+			new Node( id: 3, x: 4, y:  3, z: 6 ),
 		};
 
 		/// <summary>
@@ -42,8 +38,8 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
 		private static void TestStiffnessMatrix0()
 		{
 			var factory = new ContinuumElement3DFactory(Material0, DynamicMaterial0);
-			var tet4 = factory.CreateElement(CellType3D.Tet4, NodeSet0);
-			IMatrix2D K = tet4.BuildStiffnessMatrix();
+			var tet4 = factory.CreateElement(CellType.Tet4, NodeSet0);
+			IMatrix K = tet4.BuildStiffnessMatrix();
 
 			double[,] expectedK =
 			{
@@ -60,9 +56,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
 				{-330, -1160, -300, 90, -380, -180, 60, 720, 120, 180, 820, 360},
 				{-180, -420, -470, 60, -180, -230, 0, 240, 180, 120, 360, 520},
 			};
-			Assert.True(Utilities.AreMatricesEqual(K, new Matrix2D(expectedK), 1e-10));
+			Assert.True(K.Equals(Matrix.CreateFromArray(expectedK), 1e-10));
 		}
-
-		
 	}
 }

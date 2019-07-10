@@ -1,16 +1,13 @@
-﻿using ISAAR.MSolve.Discretization.Integration.Points;
+﻿using System.Collections.Generic;
+using ISAAR.MSolve.Discretization.Integration;
 using ISAAR.MSolve.Discretization.Integration.Quadratures;
 using ISAAR.MSolve.FEM.Elements;
 using ISAAR.MSolve.FEM.Entities;
 using ISAAR.MSolve.FEM.Interpolation;
 using ISAAR.MSolve.FEM.Interpolation.GaussPointExtrapolation;
-using ISAAR.MSolve.Geometry.Shapes;
+using ISAAR.MSolve.Discretization.Mesh;
+using ISAAR.MSolve.LinearAlgebra.Matrices;
 using ISAAR.MSolve.Materials;
-using ISAAR.MSolve.Numerical.LinearAlgebra;
-using ISAAR.MSolve.Numerical.LinearAlgebra.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Xunit;
 
 //TODO: Add tests for wrong node orders, too distorted shapes, etc.
@@ -36,14 +33,14 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         /// <summary>
         /// Random shape, not too distorted.
         /// </summary>
-        private static readonly IReadOnlyList<Node2D> nodeSet0 = new Node2D[]
+        private static readonly IReadOnlyList<Node> nodeSet0 = new Node[]
         {
-            new Node2D(0, 1.5,  3.8),
-            new Node2D(1, 1.0,  1.0),
-            new Node2D(2, 4.0,  0.8),
-            new Node2D(3, 1.4,  2.3),
-            new Node2D(4, 2.6,  1.2),
-            new Node2D(5, 2.9,  2.6)
+            new Node( id: 0, x: 1.5, y:  3.8 ),
+            new Node( id: 1, x: 1.0, y:  1.0 ),
+            new Node( id: 2, x: 4.0, y:  0.8 ),
+            new Node( id: 3, x: 1.4, y:  2.3 ),
+            new Node( id: 4, x: 2.6, y:  1.2 ),
+            new Node( id: 5, x: 2.9, y:  2.6 )
         };
 
         /// <summary>
@@ -56,7 +53,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
             IQuadrature2D quadratureForMass = TriangleQuadratureSymmetricGaussian.Order4Points6;
 
             var materialsAtGaussPoints = new List<ElasticMaterial2D>();
-            foreach (GaussPoint2D gaussPoint in quadratureForMass.IntegrationPoints)
+            foreach (GaussPoint gaussPoint in quadratureForMass.IntegrationPoints)
             {
                 materialsAtGaussPoints.Add(material0.Clone());
             }
@@ -65,8 +62,8 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
                 ExtrapolationGaussTriangular3Points.UniqueInstance,
                 materialsAtGaussPoints, dynamicMaterial);
 
-            IMatrix2D M = tri6.BuildConsistentMassMatrix();
-            Matrix2D expectedM = new Matrix2D(new double[,]
+            IMatrix M = tri6.BuildConsistentMassMatrix();
+            Matrix expectedM = Matrix.CreateFromArray(new double[,]
             {
                 { 11.83599396, 0, -1.829621484, 0, -1.968668415, 0, 0.702983761, 0, -6.922261694, 0, 0.623796095, 0,  },
                 { 0, 11.83599396, 0, -1.829621484, 0, -1.968668415, 0, 0.702983761, 0, -6.922261694, 0, 0.623796095,  },
@@ -81,7 +78,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
                 { 0.623796095, 0, -7.392556104, 0, -0.141678539, 0, 29.25347375, 0, 28.6296356, 0, 58.49121809, 0,    },
                 { 0, 0.623796095, 0, -7.392556104, 0, -0.141678539, 0, 29.25347375, 0, 28.6296356, 0, 58.49121809,    }
             }); // from Abaqus
-            Assert.True(Utilities.AreMatricesEqual(M, expectedM, 1e-3));
+            Assert.True(M.Equals(expectedM, 1e-3));
         }
 
         /// <summary>
@@ -92,8 +89,8 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         private static void TestStiffness0()
         {
             var factory = new ContinuumElement2DFactory(thickness, material0, dynamicMaterial);
-            ContinuumElement2D tri6 = factory.CreateElement(CellType2D.Tri6, nodeSet0);
-            IMatrix2D K = tri6.BuildStiffnessMatrix();
+            ContinuumElement2D tri6 = factory.CreateElement(CellType.Tri6, nodeSet0);
+            IMatrix K = tri6.BuildStiffnessMatrix();
             double[,] expectedK = new double[,]
             {
                 { 51173.75966, -20778.82606, 4273.968122, 6461.400457, 3161.87986, -13008.35802, -16897.34468, -27025.3615, 9688.11919, 8859.762175, -51400.38215, 45491.38295      },
@@ -109,7 +106,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
                 { -51400.38215, 37799.07526, 19217.69278, 10342.90105, 22887.44239, 46026.42644, -239208.4748, -80313.17851, -140342.1468, -120289.217, 388845.8685, 106433.9928    },
                 { 45491.38295, -26012.91439, 10342.90105, 5545.740823, 38334.11875, -20361.09466, -80313.17851, -52169.18472, -120289.217, -266002.3867, 106433.9928, 358999.8396   }
             }; // from Abaqus
-            Assert.True(Utilities.AreMatricesEqual(K, new Matrix2D(expectedK), 1e-9));
+            Assert.True(K.Equals(Matrix.CreateFromArray(expectedK), 1e-9));
         }
 
         /// <summary>
@@ -120,7 +117,7 @@ namespace ISAAR.MSolve.FEM.Tests.Elements
         public static void TestStrainsStresses0()
         {
             var factory = new ContinuumElement2DFactory(thickness, material0, null);
-            ContinuumElement2D tri6 = factory.CreateElement(CellType2D.Tri6, nodeSet0);
+            ContinuumElement2D tri6 = factory.CreateElement(CellType.Tri6, nodeSet0);
 
             // Abaqus results
             double[] displacements =
